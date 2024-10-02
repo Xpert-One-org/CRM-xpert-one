@@ -29,7 +29,7 @@ export const signIn = async (formData: FormData) => {
   }
 
   const { data, error: roleCheckError } = await supabase
-    .from('users')
+    .from('profile')
     .select('role')
     .eq('id', user.id)
     .single();
