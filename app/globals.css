@@ -4,74 +4,114 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 9% 16%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 181.7 59.3% 34.7%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 194 22% 85%;
-    --primary-light-foreground: 0 0% 0%;
-    --secondary: 182 32% 54%;
-    --secondary-foreground: 0 0% 100%;
-    --tertiary: 191 77% 22%;
-    --tertiary-foreground: 0 0% 100%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 40 100% 49%;
-    --accent-foreground: 0 0% 100%;
-    --success: 155 59% 35%;
-    --success-foreground: 0 0% 100%;
-    --warning: 40 100% 49%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 64.3% 54.9%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 89%;
-    --input: 0 0% 89%;
-    --ring: 181.7 59.3% 34.7%;
-    --radius: 0.4rem;
+    --primary: #248a8d;
+    --secondary: #65adaf;
+    --tertiary: #0d5262;
+    --accent: #f9a800;
+    --accent-secondary: #fef9ee;
+    --important: #d64242;
+    --black: #222;
+    --dark: #25252c;
+    --dark-hard: #1c1c1c;
+    --white: #ffffff;
+    --lightgray: #f9f9f9;
+    --lightgray-secondary: #f5f5f5;
+    --inactive: #b1b1b1;
+    --fond-yellow: #fceed0;
+    --filter: #fff7e5;
+    --chat-selected: #fff7e5;
+    --fond-blue: #ddebec;
+    --fond-gray: #e1e1e1;
+    --light-gray-third: #bebec0;
+    --border-gray: #dbdbdb;
+    --skeleton: #f5f5f5;
+    --background: #d0dde1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
   }
 
-  .dark {
-    --background: 220 13% 18%;
-    --foreground: 0 0% 100%;
-    --card: 220 13% 18%;
-    --card-foreground: 0 0% 100%;
-    --popover: 220 13% 18%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 181.7 59.3% 34.7%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 194 22% 85%;
-    --primary-light-foreground: 0 0% 0%;
-    --secondary: 182 32% 54%;
-    --secondary-foreground: 0 0% 100%;
-    --tertiary: 191 77% 22%;
-    --tertiary-foreground: 0 0% 100%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 63%;
-    --accent: 40 100% 49%;
-    --accent-foreground: 0 0% 100%;
-    --success: 155 59% 35%;
-    --success-foreground: 0 0% 100%;
-    --warning: 40 100% 49%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 64.3% 54.9%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 181.7 59.3% 34.7%;
-    --radius: 0.4rem;
+  100% {
+    opacity: 0;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
+}
+
+.scrollbar-primary {
+  scrollbar-color: var(--primary) var(--lightgray) !important;
+}
+
+select.classic {
+  background-image: linear-gradient(45deg, transparent 50%, transparent 50%),
+    linear-gradient(135deg, transparent 50%, transparent 50%),
+    linear-gradient(to right, #f5f5f5, #f5f5f5) !important;
+  background-position:
+    calc(1em + 20px),
+    calc(100% - 100px) calc(1em + 200px),
+    calc(100% + 6px) 50% !important;
+  background-size:
+    4px 4px,
+    4px 4px,
+    2em 2em !important;
+  background-repeat: no-repeat !important;
+}
+
+input[type='date'] {
+  background-image: linear-gradient(45deg, transparent 50%, transparent 50%),
+    linear-gradient(135deg, transparent 50%, transparent 50%),
+    linear-gradient(to right, #f5f5f5, #f5f5f5) !important;
+  background-position:
+    calc(1em + 20px),
+    calc(100% - 100px) calc(1em + 200px),
+    calc(100% - 10px) 50% !important;
+  background-size:
+    4px 4px,
+    4px 4px,
+    2em 2em !important;
+  background-repeat: no-repeat !important;
+}
+
+.strokeAccent path {
+  stroke: var(--accent) !important;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  margin-left: 30px !important;
+}
+
+input[type='search']::-webkit-search-cancel-button {
+  display: none !important;
+}
+
+.animate-in {
+  animation: animateIn 0.3s ease 0.15s both;
+}
+
+@keyframes animateIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
 
-  body {
-    @apply bg-background text-foreground;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.article-img-size {
+  max-width: 100% !important;
+  margin-left: 20px;
+}
+
+/* Responsive */
+@media (min-width: 1024px) {
+  .article-img-size {
+    max-width: 55% !important;
   }
 }

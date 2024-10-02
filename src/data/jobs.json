@@ -1,0 +1,126 @@
+[
+  {
+    "job": "Assistant Dessinateur",
+    "image": "/static/jobs/Assistant Dessinateur.jpeg"
+  },
+  {
+    "job": "Chargé d'affaires",
+    "image": "/static/jobs/Chargé d'affaires.jpeg"
+  },
+  {
+    "job": "Chef d'équipes en Montage mécanique",
+    "image": "/static/jobs/Chef d'équipes en Montage mécanique.jpeg"
+  },
+  {
+    "job": "Chef de Quart",
+    "image": "/static/jobs/Chef de Quart.jpeg"
+  },
+  {
+    "job": "Chef(fe) de projets photovoltaïques",
+    "image": "/static/jobs/Chef(fe) de projets photovoltaïques.jpeg"
+  },
+  {
+    "job": "Commissioning manager",
+    "image": "/static/jobs/Commissioning manager.jpeg"
+  },
+  {
+    "job": "Dessinateur",
+    "image": "/static/jobs/Dessinateur.jpeg"
+  },
+  {
+    "job": "Directeur d'exploitation",
+    "image": "/static/jobs/Directeur d'exploitation.jpeg"
+  },
+  {
+    "job": "Directeur de projet",
+    "image": "/static/jobs/DirecteurProjet.jpeg"
+  },
+  {
+    "job": "Directeur de site/Site manager",
+    "image": "/static/jobs/Directeur de site: Site manager.jpeg"
+  },
+  {
+    "job": "Ingénieur analyses fonctionnelles",
+    "image": "/static/jobs/Ingénieur analyses fonctionnelles.jpeg"
+  },
+  {
+    "job": "Ingénieur automaticien",
+    "image": "/static/jobs/Ingénieur automaticien.jpeg"
+  },
+  {
+    "job": "Ingénieur Calcul Génie Civil",
+    "image": "/static/jobs/IngenieurCalculGenie.jpeg"
+  },
+  {
+    "job": "Ingénieur d'études solaires PV",
+    "image": "/static/jobs/Ingénieur d'études solaires PV.jpeg"
+  },
+  {
+    "job": "Ingénieur des procédés",
+    "image": "/static/jobs/Ingénieur des procédés.jpeg"
+  },
+  {
+    "job": "Ingénieur électricien",
+    "image": "/static/jobs/Ingénieur électricien.jpeg"
+  },
+  {
+    "job": "Ingénieur étude électriques",
+    "image": "/static/jobs/Ingénieur étude électriques.jpeg"
+  },
+  {
+    "job": "Ingénieur génie civil",
+    "image": "/static/jobs/Ingénieur génie civil.jpeg"
+  },
+  {
+    "job": "Ingénieur structure",
+    "image": "/static/jobs/Ingénieur structure.jpeg"
+  },
+  {
+    "job": "Instrumentiste",
+    "image": "/static/jobs/Instrumentiste.jpeg"
+  },
+  {
+    "job": "Metteur en route UVE: BIOMASSE",
+    "image": "/static/jobs/Metteur en route UVE: BIOMASSE.jpeg"
+  },
+  {
+    "job": "Monteurs électromécanicien",
+    "image": "/static/jobs/Monteurs électromécanicien.jpeg"
+  },
+  {
+    "job": "Monteurs mécaniciens",
+    "image": "/static/jobs/Monteurs mécaniciens.jpeg"
+  },
+  {
+    "job": "Planner",
+    "image": "/static/jobs/Planner.jpeg"
+  },
+  {
+    "job": "Responsable exploitation UVE",
+    "image": "/static/jobs/Responsable exploitation UVE.jpeg"
+  },
+  {
+    "job": "Responsable montage",
+    "image": "/static/jobs/Responsable montage.jpeg"
+  },
+  {
+    "job": "Responsable: Superviseur HSE: QHSE",
+    "image": "/static/jobs/Responsable: Superviseur HSE: QHSE.jpeg"
+  },
+  {
+    "job": "Site manager (Déchets, eau, énergie)",
+    "image": "/static/jobs/Site manager (Déchets, eau, énergie).jpeg"
+  },
+  {
+    "job": "Superviseur électricien",
+    "image": "/static/jobs/Superviseur électricien.jpeg"
+  },
+  {
+    "job": "Superviseur mécanicien",
+    "image": "/static/jobs/Superviseur mécanicien.jpeg"
+  },
+  {
+    "job": "Technicien Eolien Onshore:Offshore",
+    "image": "/static/jobs/Technicien Eolien Onshore:Offshore.jpeg"
+  }
+]

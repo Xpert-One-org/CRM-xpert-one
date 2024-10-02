@@ -1,8 +1,8 @@
 import React, { Suspense } from 'react';
 import Image from 'next/image';
-import Connexion from './_component/Connexion';
+import ConnexionForm from './_components/ConnexionForm';
 
-export default function page() {
+export default function LoginPage() {
   return (
     <section className="relative flex h-screen w-screen overflow-hidden bg-[#c4812e] bg-[url('/static/connexion/center_background.jpg')] bg-cover bg-center bg-no-repeat md:bg-[url('/static/connexion/main_background.jpg')] md:bg-right">
       <div className="absolute right-0 hidden h-screen w-[220px] flex-col md:flex">
@@ -40,7 +40,7 @@ export default function page() {
         </div>
       </div>
       <Suspense fallback={<div>Loading...</div>}>
-        <Connexion />
+        <ConnexionForm />
       </Suspense>
     </section>
   );

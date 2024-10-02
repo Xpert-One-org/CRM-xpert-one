@@ -1,8 +1,7 @@
-import { ThemeProvider } from 'next-themes';
-import Link from 'next/link';
-import './globals.css';
 import { Khand, Fira_Sans } from 'next/font/google';
-import { Toaster } from 'sonner';
+import { Providers } from './providers';
+import './globals.css';
+import type { Viewport } from 'next';
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -10,8 +9,14 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: 'Boilerplate Next.js + Supabase',
-  description: 'Boilerplate Next.js + Supabase',
+  title: 'Xpert One CRM',
+  description: 'Voici le CRM de Xpert One',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 const khand = Khand({
@@ -37,17 +42,9 @@ export default function RootLayout({
       className={`${khand.variable} ${firaSans.variable} overflow-hidden`}
     >
       <body className="bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main className="flex min-h-screen flex-col items-center">
-            {children}
-          </main>
-          <Toaster richColors position="top-center" />
-        </ThemeProvider>
+        <main className="flex min-h-screen flex-col items-center">
+          <Providers>{children}</Providers>
+        </main>
       </body>
     </html>
   );
