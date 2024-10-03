@@ -4,12 +4,12 @@ import SearchWBg from '@/components/svg/SearchWBg';
 import Upload from '@/components/svg/Upload';
 import { cn } from '@/utils/functions/utils';
 import { VariantProps, cva } from 'class-variance-authority';
-import type { ComponentProps} from 'react';
+import type { ComponentProps } from 'react';
 import React, { useState } from 'react';
 
 type Props = {
   label?: string | React.ReactNode;
-} & ComponentProps<'input'>
+} & ComponentProps<'input'>;
 
 export default function DownloadInput({
   className,
@@ -25,16 +25,13 @@ export default function DownloadInput({
   return (
     <div className="w-full xl:max-w-[280px]">
       {label && (
-        <label
-          htmlFor={props.id}
-          className="text-sm font-medium text-colors-black"
-        >
+        <label htmlFor={props.id} className="text-sm font-medium text-black">
           {label}
         </label>
       )}
       <label
         className={cn(
-          'flex h-[42px] min-w-[165px] items-center rounded-xs border-[1px] border-colors-border-gray bg-white',
+          'flex h-[42px] min-w-[165px] items-center rounded-xs border-[1px] border-border-gray bg-white',
           className
         )}
       >
@@ -52,7 +49,7 @@ export default function DownloadInput({
             <a
               href={file ? URL.createObjectURL(file) : ''}
               download={''}
-              className="m-[7px] rounded-xxs bg-colors-lightgray-secondary p-1 outline-none"
+              className="m-[7px] rounded-xxs bg-lightgray-secondary p-1 outline-none"
             >
               <Upload className="" />
             </a>
@@ -62,7 +59,7 @@ export default function DownloadInput({
             <p className="w-full truncate bg-transparent px-spaceMediumContainer text-sm font-light outline-none placeholder:text-sm">
               Aucun fichier renseigné
             </p>
-            <div className="m-[7px] rounded-xxs bg-colors-lightgray-secondary p-1 outline-none">
+            <div className="m-[7px] rounded-xxs bg-lightgray-secondary p-1 outline-none">
               <Upload className="" />
             </div>
           </>

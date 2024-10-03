@@ -19,7 +19,7 @@ type Props = {
   disabled?: boolean;
   value?: string;
   hasError?: boolean;
-} & ComponentProps<'div'>
+} & ComponentProps<'div'>;
 
 export default function PhoneInputComponent({
   className,
@@ -47,7 +47,7 @@ export default function PhoneInputComponent({
             className={cn('flex items-center', classNameLabel)}
           >
             {label}
-            {required && <span className="text-colors-accent">*</span>}
+            {required && <span className="text-accent">*</span>}
             {explain ? (
               <Info className="ml-2 w-fit">{explain}</Info>
             ) : (

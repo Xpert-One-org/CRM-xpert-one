@@ -39,7 +39,7 @@ export default async function Layout({
       {/* SIDEBAR DESKTOP*/}
       <Sidebar />
 
-      <section className="flex h-screen w-full flex-col overflow-auto bg-colors-lightgray-secondary py-spaceContainer sm:rounded-xl lg:px-spaceContainer lg:pt-[11px]">
+      <section className="flex h-screen w-full flex-col overflow-auto bg-lightgray-secondary p-spaceContainer sm:rounded-xl lg:pt-[11px]">
         <div className="relative grid grid-cols-3 items-center justify-between gap-x-spaceContainer px-spaceContainer lg:flex lg:items-end lg:px-0">
           {/* BURGER MOBILE SHEET */}
           <MenuBurger />

@@ -6,10 +6,9 @@ import type {
   DBProfileStatus,
   DBUser,
   DBProfileEducation,
-  DBMission} from './typesDb';
-import {
-  DBProfile
+  DBMission,
 } from './typesDb';
+import { DBProfile } from './typesDb';
 
 type User = DBUser;
 

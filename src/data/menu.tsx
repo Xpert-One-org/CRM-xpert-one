@@ -2,11 +2,12 @@ import Admin from '@/components/svg/Admin';
 import BriefCase from '@/components/svg/BriefCase';
 import ChatBubbles from '@/components/svg/ChatBubbles';
 import Cog from '@/components/svg/Cog';
+import FacturationLogo from '@/components/svg/Facturation';
 import PeopleCircle from '@/components/svg/PeopleCircle';
 import Supplier from '@/components/svg/Supplier';
 import Xpert from '@/components/svg/Xpert';
 import { cn } from '@/lib/utils';
-import { CalendarDays, ChartColumn, LayoutDashboard } from 'lucide-react';
+import { ChartColumn, LayoutDashboard } from 'lucide-react';
 
 export const menuCrm = [
   {
@@ -17,11 +18,25 @@ export const menuCrm = [
         width={32}
         height={32}
         className={cn(
-          'transition group-hover:fill-colors-accent group-hover:stroke-colors-accent'
+          'fill-white stroke-white transition group-hover:fill-accent group-hover:stroke-accent'
         )}
       />
     ),
     url: '/dashboard',
+    sub: [
+      {
+        title: 'Mail',
+        url: '/dashboard/mail',
+      },
+      {
+        title: 'Calendrier',
+        url: '/dashboard/calendrier',
+      },
+      {
+        title: 'To Do',
+        url: '/dashboard/todo',
+      },
+    ],
   },
   {
     id: 2,
@@ -30,26 +45,18 @@ export const menuCrm = [
       <Xpert
         width={32}
         height={32}
-        className="fill-white transition group-hover:fill-colors-accent"
+        className="fill-white transition group-hover:fill-accent"
       />
     ),
     url: '/xpert',
     sub: [
       {
-        title: 'Profil',
-        url: '/xpert/profile',
+        title: 'Fiche XPERT',
+        url: '/xpert/fiche',
       },
       {
-        title: 'Nouvel XPERT',
-        url: '/xpert/new',
-      },
-      {
-        title: 'Parcours',
-        url: '/xpert/parcours',
-      },
-      {
-        title: 'Missions XPERT',
-        url: '/xpert/missions',
+        title: 'Nouveau inscrits',
+        url: '/xpert/nouveau',
       },
     ],
   },
@@ -61,10 +68,20 @@ export const menuCrm = [
       <Supplier
         width={32}
         height={32}
-        className="fill-white transition group-hover:fill-colors-accent"
+        className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/supplier',
+    url: '/fournisseur',
+    sub: [
+      {
+        title: 'Fiche Fournisseurs',
+        url: '/fournisseur/fiche',
+      },
+      {
+        title: 'Nouveau inscrits',
+        url: '/fournisseur/nouveau',
+      },
+    ],
   },
   {
     id: 4,
@@ -73,14 +90,18 @@ export const menuCrm = [
       <BriefCase
         width={32}
         height={32}
-        className="fill-white transition group-hover:fill-colors-accent"
+        className="fill-white transition group-hover:fill-accent"
       />
     ),
     url: '/mission',
     sub: [
       {
-        title: 'Etat des mission',
-        url: '/mission/state',
+        title: 'État des mission',
+        url: '/mission/etats',
+      },
+      {
+        title: 'Fiche mission',
+        url: '/mission/fiche',
       },
       {
         title: 'Matching',
@@ -91,84 +112,91 @@ export const menuCrm = [
         url: '/mission/selection',
       },
       {
-        title: 'Etapes à réaliser',
-        url: '/mission/steps',
+        title: 'Calls à réaliser',
+        url: '/mission/calls',
       },
       {
-        title: 'Gestion des missions',
-        url: '/mission/management',
-      },
-      {
-        title: 'Gestion des facturations',
-        url: '/mission/billing',
-      },
-      {
-        title: 'Etat des facturations',
-        url: '/mission/billing-state',
+        title: 'Activation des missions',
+        url: '/mission/activation',
       },
     ],
   },
   {
     id: 5,
-    title: 'Messagerie',
+    title: 'Facturation',
+    icon: (
+      <FacturationLogo
+        width={32}
+        height={32}
+        className="fill-white transition group-hover:fill-accent"
+      />
+    ),
+    url: '/facturation',
+    sub: [
+      {
+        title: 'Gestion des facturations',
+        url: '/facturation/gestion-facturations',
+      },
+      {
+        title: 'Etat des facturations',
+        url: '/facturation/etats',
+      },
+    ],
+  },
+  {
+    id: 6,
+    title: 'Messagerie externe',
     icon: (
       <ChatBubbles
         width={32}
         height={32}
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
     ),
-    url: '/messaging',
-  },
-
-  {
-    id: 6,
-    title: 'Calendrier',
-    icon: (
-      <CalendarDays
-        width={32}
-        height={32}
-        className="transition group-hover:stroke-colors-accent"
-      />
-    ),
-    url: '/calendar',
+    url: '/messagerie',
   },
   {
     id: 7,
+    title: 'Communauté',
+    icon: (
+      <PeopleCircle
+        width={32}
+        height={32}
+        className="fill-white transition group-hover:fill-accent"
+      />
+    ),
+    url: '/communaute',
+  },
+  {
+    id: 8,
     title: 'Admin',
     icon: (
       <Admin
         width={32}
         height={32}
-        className="fill-white transition group-hover:fill-colors-accent"
+        className="fill-white transition group-hover:fill-accent"
       />
     ),
     url: '/admin',
+    sub: [
+      {
+        title: 'Gestion des collaborateurs',
+        url: '/admin/gestion-collaborateurs',
+      },
+    ],
   },
   {
-    id: 8,
+    id: 9,
     title: 'Statistiques',
     icon: (
       <ChartColumn
         width={32}
         height={32}
         fill="dark"
-        className="transition group-hover:stroke-colors-accent"
+        className="fill-transparent stroke-white transition group-hover:stroke-accent"
       />
     ),
-    url: '/parametres',
-  },
-  {
-    id: 9,
-    title: 'Communauté',
-    icon: (
-      <PeopleCircle
-        width={32}
-        height={32}
-        className="fill-white transition group-hover:fill-colors-accent"
-      />
-    ),
-    url: '/communaute/echo-de-la-communaute',
+    url: '/stats',
   },
   {
     id: 10,
@@ -178,7 +206,7 @@ export const menuCrm = [
         width={32}
         height={32}
         fill="dark"
-        className="fill-white transition group-hover:fill-colors-accent"
+        className="fill-white transition group-hover:fill-accent"
       />
     ),
     url: '/parametres',

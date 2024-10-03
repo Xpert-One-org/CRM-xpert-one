@@ -1,7 +1,7 @@
 import { cn } from '@/utils/functions/utils';
 import React from 'react';
 
-type Props = {} & React.SVGProps<SVGSVGElement>
+type Props = {} & React.SVGProps<SVGSVGElement>;
 
 export default function DocumentText({
   stroke = 'white',
@@ -23,7 +23,7 @@ export default function DocumentText({
         stroke={stroke}
         strokeWidth="2.00378"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
       <path
         d="M16.0037 3.49951V11.0022C16.0037 11.5328 16.2145 12.0417 16.5897 12.4169C16.9649 12.7922 17.4738 13.0029 18.0044 13.0029H25.5071"
@@ -31,7 +31,7 @@ export default function DocumentText({
         strokeWidth="2.00378"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
       <path
         d="M11.0023 18.0034H21.0059"
@@ -39,7 +39,7 @@ export default function DocumentText({
         strokeWidth="2.00378"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
       <path
         d="M11.0023 23.0044H21.0059"
@@ -47,7 +47,7 @@ export default function DocumentText({
         strokeWidth="2.00378"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
     </svg>
   );

@@ -4,28 +4,32 @@
 
 @layer base {
   :root {
-    --primary: #248a8d;
-    --secondary: #65adaf;
-    --tertiary: #0d5262;
-    --accent: #f9a800;
-    --accent-secondary: #fef9ee;
-    --important: #d64242;
-    --black: #222;
-    --dark: #25252c;
-    --dark-hard: #1c1c1c;
-    --white: #ffffff;
-    --lightgray: #f9f9f9;
-    --lightgray-secondary: #f5f5f5;
-    --inactive: #b1b1b1;
-    --fond-yellow: #fceed0;
-    --filter: #fff7e5;
-    --chat-selected: #fff7e5;
-    --fond-blue: #ddebec;
-    --fond-gray: #e1e1e1;
-    --light-gray-third: #bebec0;
-    --border-gray: #dbdbdb;
-    --skeleton: #f5f5f5;
-    --background: #d0dde1;
+    --primary: 181 58% 35%;
+    --secondary: 181 29% 54%;
+    --tertiary: 193 75% 22%;
+    --accent: 39 100% 49%;
+    --accent-secondary: 39 95% 94%;
+    --important: 0 68% 55%;
+    --black: 0 0% 13%;
+    --dark: 240 9% 16%;
+    --dark-hard: 0 0% 11%;
+    --white: 0 0% 100%;
+    --lightgray: 0 0% 98%;
+    --lightgray-secondary: 0 0% 96%;
+    --inactive: 0 0% 69%;
+    --fond-yellow: 39 82% 90%;
+    --filter: 39 100% 95%;
+    --chat-selected: 39 100% 95%;
+    --fond-blue: 187 33% 90%;
+    --fond-gray: 0 0% 88%;
+    --light-gray-third: 240 2% 75%;
+    --border-gray: 0 0% 86%;
+    --skeleton: 0 0% 96%;
+    --background: 196 23% 82%;
+    --foreground: 210 5% 38%;
+    --ring: 212 33% 89%;
+    --input: 0 0% 96%;
+    --border: 0 0% 89%;
   }
 }
 
@@ -37,9 +41,6 @@
   100% {
     opacity: 0;
   }
-}
-
-@layer base {
 }
 
 .scrollbar-primary {

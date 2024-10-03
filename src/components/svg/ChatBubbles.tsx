@@ -1,7 +1,7 @@
 import { cn } from '@/utils/functions/utils';
 import React from 'react';
 
-type Props = {} & React.SVGProps<SVGSVGElement>
+type Props = {} & React.SVGProps<SVGSVGElement>;
 
 export default function ChatBubbles({
   stroke = 'white',
@@ -24,7 +24,7 @@ export default function ChatBubbles({
         strokeWidth="2.00378"
         strokeMiterlimit="10"
         strokeLinecap="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
       <path
         d="M4.15337 14.5093C3.33346 15.9823 2.93683 17.6533 3.00733 19.3376C3.07782 21.022 3.6127 22.654 4.55283 24.0533C4.69724 24.2715 4.7785 24.4402 4.7535 24.5534C4.72849 24.6665 4.00771 28.4211 4.00771 28.4211C3.99037 28.509 3.99695 28.5999 4.02675 28.6843C4.05655 28.7688 4.10848 28.8437 4.17712 28.9012C4.26871 28.9742 4.38259 29.0135 4.49969 29.0125C4.56227 29.0127 4.6242 28.9999 4.68161 28.975L8.1955 27.5997C8.43734 27.5043 8.70713 27.5088 8.94566 27.6122C10.1297 28.0735 11.4387 28.3624 12.7484 28.3624C14.5058 28.3642 16.2324 27.9007 17.7526 27.0189"
@@ -32,7 +32,7 @@ export default function ChatBubbles({
         strokeWidth="2.00378"
         strokeMiterlimit="10"
         strokeLinecap="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
     </svg>
   );

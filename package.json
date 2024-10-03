@@ -13,7 +13,8 @@
     },
     "lint:strict": "next lint '*/**/*.{js,jsx,ts,tsx}'",
     "prettier": "prettier --write */**/*.{js,jsx,json,ts,tsx,scss,css,md}",
-    "prepare": "husky"
+    "prepare": "husky",
+    "gen-supabase-types": "npx supabase gen types --lang=typescript --project-id wxjnrjakjwjhvsiwhelt --schema public > types/supabase.ts"
   },
   "dependencies": {
     "@commitlint/cz-commitlint": "^19.5.0",

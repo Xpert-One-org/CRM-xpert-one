@@ -13,7 +13,7 @@ type Props = {
   side?: 'left' | 'right' | 'top' | 'bottom';
   fill?: string;
   color?: 'primary' | 'light' | 'important';
-} & React.ComponentProps<'div'>
+} & React.ComponentProps<'div'>;
 
 export default function Info({
   children,
@@ -42,9 +42,9 @@ export default function Info({
       <PopoverContent
         side={side}
         className={cn(
-          'mx-4 w-fit max-w-[50vw] rounded-lg border-transparent bg-colors-primary px-3 py-2 font-fira text-sm font-light text-white',
+          'mx-4 w-fit max-w-[50vw] rounded-lg border-transparent bg-primary px-3 py-2 font-fira text-sm font-light text-white',
           { 'bg-[#D0DDE1] text-black': color == 'light' },
-          { 'bg-colors-important': color == 'important' }
+          { 'bg-important': color == 'important' }
         )}
       >
         {children}

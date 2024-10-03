@@ -2,7 +2,7 @@
 import SearchWBg from '@/components/svg/SearchWBg';
 import { cn } from '@/utils/functions/utils';
 import { VariantProps, cva } from 'class-variance-authority';
-import type { ComponentProps} from 'react';
+import type { ComponentProps } from 'react';
 import React, { useState } from 'react';
 import Info from '../Info';
 import { Eye, EyeOff, Lock, Mail, X } from 'lucide-react';
@@ -17,7 +17,7 @@ type Props = {
   fillExplain?: string;
   hasError?: boolean;
   sideEplain?: 'left' | 'right' | 'top' | 'bottom';
-} & ComponentProps<'input'>
+} & ComponentProps<'input'>;
 
 export default function Input({
   className,
@@ -43,12 +43,12 @@ export default function Input({
         <label
           htmlFor={props.id}
           className={cn(
-            'flex items-center whitespace-nowrap text-sm font-medium text-colors-black',
+            'flex items-center whitespace-nowrap text-sm font-medium text-black',
             classNameLabel
           )}
         >
           {label}
-          {props.required && <span className="text-colors-accent">*</span>}
+          {props.required && <span className="text-accent">*</span>}
           {explain ? (
             <Info
               fill={fillExplain}
@@ -65,9 +65,9 @@ export default function Input({
 
       <div
         className={cn(
-          'relative flex h-[42px] w-full items-center rounded-xs border-[1px] border-colors-border-gray bg-white transition',
-          { 'border-colors-important': hasError },
-          { 'hover:border-colors-primary': !hasError && !props.disabled }
+          'relative flex h-[42px] w-full items-center rounded-xs border-[1px] border-border-gray bg-white transition',
+          { 'border-important': hasError },
+          { 'hover:border-primary': !hasError && !props.disabled }
         )}
       >
         {hasPreIcon && props.type === 'email' && (
@@ -94,7 +94,7 @@ export default function Input({
           }
           placeholder={placeholder}
           className={cn(
-            'h-full w-full rounded-xs bg-transparent px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-colors-light-gray-third disabled:bg-colors-lightgray-secondary',
+            'h-full w-full rounded-xs bg-transparent px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary',
             { uppercase: props.id === 'lastname' || uppercase }
           )}
         />

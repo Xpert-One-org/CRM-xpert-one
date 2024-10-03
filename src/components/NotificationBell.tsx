@@ -52,7 +52,7 @@ function NotificationBell() {
         onClick={togglePopup}
         className="relative z-20 focus:outline-none"
       >
-        <div className="border-colors-border-gray relative rounded-full border-[1px] bg-white p-2">
+        <div className="border-border-gray relative rounded-full border-[1px] bg-white p-2">
           <Bell />
           {chatNotifications && chatNotifications?.length > 0 && (
             <>
@@ -89,7 +89,7 @@ function NotificationBell() {
                       <li
                         key={notification.id}
                         className={
-                          'w-[99.1%] translate-x-[0.3%] px-7 py-6 group-hover:bg-colors-lightgray-secondary'
+                          'w-[99.1%] translate-x-[0.3%] px-7 py-6 group-hover:bg-lightgray-secondary'
                         }
                       >
                         <div>
@@ -108,7 +108,7 @@ function NotificationBell() {
                           </p>
                         </div>
                       </li>
-                      <div className="m-auto block h-px w-[93%] bg-colors-light-gray-third" />
+                      <div className="m-auto block h-px w-[93%] bg-light-gray-third" />
                     </Link>
                   ))}
                 </ul>

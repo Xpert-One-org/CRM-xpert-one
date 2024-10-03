@@ -22,7 +22,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './scroll-area';
-import { Button } from './btn';
+import { Button } from './button';
 
 type PhoneInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -41,7 +41,7 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
         <RPNInput.default
           ref={ref}
           className={cn('flex text-white', {
-            '[&>.input-phone]:border-colors-important': hasError,
+            '[&>.input-phone]:border-important': hasError,
           })}
           flagComponent={FlagComponent}
           countrySelectComponent={CountrySelect}
@@ -68,13 +68,13 @@ const InputComponent = React.forwardRef<HTMLInputElement>(
   ({ ...props }, ref) => (
     <div
       className={cn(
-        'input-phone flex h-[42px] w-full items-center rounded-r-xs border-[1px] border-colors-border-gray bg-white text-black'
+        'input-phone flex h-[42px] w-full items-center rounded-r-xs border-[1px] border-border-gray bg-white text-black'
       )}
     >
       <input
         {...props}
         className={cn(
-          'h-full w-full bg-transparent px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-colors-light-gray-third disabled:bg-colors-lightgray-secondary'
+          'h-full w-full bg-transparent px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary'
         )}
         ref={ref}
       />
@@ -147,7 +147,7 @@ const CountrySelect = ({
                       />
                       <span className="flex-1 text-sm">{option.label}</span>
                       {option.value && (
-                        <span className="text-foreground/50 text-sm">
+                        <span className="text-sm text-foreground/50">
                           {`+${RPNInput.getCountryCallingCode(option.value)}`}
                         </span>
                       )}

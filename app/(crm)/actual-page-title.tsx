@@ -15,7 +15,7 @@ type HasSeen = {
   has_seen_newsletter: boolean | null;
   has_seen_my_profile: boolean | null;
   has_seen_created_missions: boolean | null;
-}
+};
 
 const pathnameToColumnMap: Record<string, keyof HasSeen> = {
   'mes-missions': 'has_seen_my_missions',
@@ -58,7 +58,7 @@ export default function ActualPageTitle({
       )}
     >
       <div className="relative">
-        <p className="text-colors-dark">{navbarText}</p>
+        {navbarText}
         <button
           className="absolute -right-4 -top-1 cursor-pointer"
           onClick={() => setShowModal(true)}

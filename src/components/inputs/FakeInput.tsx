@@ -2,7 +2,7 @@
 import SearchWBg from '@/components/svg/SearchWBg';
 import { cn } from '@/utils/functions/utils';
 import { VariantProps, cva } from 'class-variance-authority';
-import type { ComponentProps} from 'react';
+import type { ComponentProps } from 'react';
 import React, { useState } from 'react';
 import Info from '../Info';
 import { Eye, EyeOff, Lock, Mail, X } from 'lucide-react';
@@ -18,7 +18,7 @@ type Props = {
   value?: string | null;
   type?: string;
   sideEplain?: 'left' | 'right' | 'top' | 'bottom';
-} & ComponentProps<'div'>
+} & ComponentProps<'div'>;
 
 export default function FakeInput({
   className,
@@ -41,7 +41,7 @@ export default function FakeInput({
         <label
           htmlFor={props.id}
           className={cn(
-            'flex items-center whitespace-nowrap text-sm font-medium text-colors-black',
+            'flex items-center whitespace-nowrap text-sm font-medium text-black',
             classNameLabel
           )}
         >
@@ -62,7 +62,7 @@ export default function FakeInput({
 
       <div
         className={cn(
-          'relative flex min-h-[42px] w-full items-center rounded-xs border-[1px] border-colors-border-gray bg-white py-3'
+          'relative flex min-h-[42px] w-full items-center rounded-xs border-[1px] border-border-gray bg-white py-3'
         )}
       >
         {hasPreIcon && type === 'email' && (
@@ -80,7 +80,7 @@ export default function FakeInput({
         <p
           {...props}
           className={cn(
-            'w-full bg-transparent px-[14px] pb-[1px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-colors-light-gray-third disabled:bg-colors-lightgray-secondary',
+            'w-full bg-transparent px-[14px] pb-[1px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary',
             { uppercase: props.id === 'lastname' || uppercase }
           )}
         >

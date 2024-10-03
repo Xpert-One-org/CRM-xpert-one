@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import React from 'react';
 
-type Props = {} & React.SVGProps<SVGSVGElement>
+type Props = {} & React.SVGProps<SVGSVGElement>;
 
 export default function MailOpen({
   stroke = 'white',
@@ -24,7 +24,7 @@ export default function MailOpen({
         strokeWidth="2.00378"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
       <path
         d="M24.8331 23.0191L16.7543 16.7353C16.491 16.5305 16.167 16.4193 15.8334 16.4193C15.4998 16.4193 15.1757 16.5305 14.9124 16.7353L6.83307 23.0191"
@@ -32,7 +32,7 @@ export default function MailOpen({
         strokeWidth="2.00378"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
       <path
         d="M19.333 18.4583L27.8342 12.0199"
@@ -40,7 +40,7 @@ export default function MailOpen({
         strokeWidth="2.00378"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
       <path
         d="M3.83319 12.0199L12.5219 18.5833"
@@ -48,7 +48,7 @@ export default function MailOpen({
         strokeWidth="2.00378"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="transition group-hover:stroke-colors-accent"
+        className="transition group-hover:stroke-accent"
       />
     </svg>
   );

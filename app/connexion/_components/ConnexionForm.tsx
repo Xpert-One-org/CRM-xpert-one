@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { toast } from 'sonner';
 import { Button } from '@components/ui/button';
-import { signIn } from '@utils/auth/sign-in';
+import { signIn } from '@/utils/functions/auth/signIn';
 import { Input } from '@components/ui/input';
 import LogoXpertCRM from '@components/svg/LogoXpertCRM';
 
@@ -58,7 +58,7 @@ export default function ConnexionForm() {
             Se souvenir de moi
             <Checkbox
               id="last_exp"
-              className="scale-90 border-white data-[state=checked]:text-colors-white"
+              className="scale-90 border-white data-[state=checked]:text-white"
             />
           </Label>{' '}
           <Button type="submit" variant={'accent'}>

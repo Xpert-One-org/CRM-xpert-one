@@ -41,7 +41,7 @@ export default function RootLayout({
       lang="fr"
       className={`${khand.variable} ${firaSans.variable} overflow-hidden`}
     >
-      <body className="bg-background text-foreground">
+      <body className="bg-dark text-foreground">
         <main className="flex min-h-screen flex-col items-center">
           <Providers>{children}</Providers>
         </main>
