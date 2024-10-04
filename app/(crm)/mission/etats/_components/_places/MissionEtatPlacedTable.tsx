@@ -1,0 +1,45 @@
+import { FilterButton } from '@/components/FilterButton';
+import React from 'react';
+
+export default function MissionEtatPlacedTable() {
+  const signUpDateOptions = [
+    { label: 'Toutes', value: '' },
+    { label: '1 semaine', value: '1_week' },
+    { label: '2 semaines', value: '2_weeks' },
+    { label: '3 semaines', value: '3_weeks' },
+    { label: '4 semaines', value: '4_weeks' },
+  ];
+  return (
+    <div className="grid grid-cols-9 gap-3">
+      <FilterButton
+        options={signUpDateOptions}
+        defaultSelectedKeys=""
+        onValueChange={() => {}}
+        placeholder="Créer le"
+      />
+      <FilterButton placeholder="N° de fournisseur" filter={false} />
+      <FilterButton placeholder="N° de mission" filter={false} />
+      <FilterButton placeholder="Référent Xpert One" filter={false} />
+      <FilterButton placeholder="Temps avant début de mission" filter={false} />
+      <FilterButton placeholder="N° XPERT" filter={false} />
+      <FilterButton
+        placeholder="Xpert: Documents mission"
+        options={signUpDateOptions}
+        defaultSelectedKeys=""
+        onValueChange={() => {}}
+      />
+      <FilterButton
+        placeholder="Xpert : Commande / Devis / CDI"
+        options={signUpDateOptions}
+        defaultSelectedKeys=""
+        onValueChange={() => {}}
+      />
+      <FilterButton
+        placeholder="Fournisseur : Commande"
+        options={signUpDateOptions}
+        defaultSelectedKeys=""
+        onValueChange={() => {}}
+      />
+    </div>
+  );
+}

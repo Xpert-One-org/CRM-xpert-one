@@ -1,6 +1,5 @@
 import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import type { DBFournisseur } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';

@@ -97,7 +97,7 @@ export const menuCrm = [
     sub: [
       {
         title: 'État des mission',
-        url: '/mission/etats',
+        url: '/mission/etats?etat=valider',
       },
       {
         title: 'Fiche mission',

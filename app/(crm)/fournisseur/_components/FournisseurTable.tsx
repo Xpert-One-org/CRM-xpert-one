@@ -84,12 +84,7 @@ export default function FournisseurTable({
           onValueChange={() => {}}
           placeholder="Nombre de missions"
         />
-        <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
-          placeholder="Fiche détaillée"
-        />
+        <FilterButton placeholder="Fiche détaillée" filter={false} />
 
         {fournisseurs.map((fournisseur) => (
           <>
