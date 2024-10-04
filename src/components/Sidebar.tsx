@@ -6,7 +6,7 @@ import LogoXpertCRM from './svg/LogoXpertCRM';
 import Arrow from './svg/Arrow';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { signOut } from '@/utils/functions/auth/signOut';
+import { signOut } from '../../functions/auth/signOut';
 import { menuCrm } from '@/data/menu';
 import Power from './svg/Power';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -22,15 +22,13 @@ export default function Sidebar() {
 
   const toggleSubMenu = (id: string) => {
     setOpenSubMenus((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [id]
+      prev.includes(id) ? prev.filter((subId) => subId !== id) : [...prev, id]
     );
   };
 
   const handleMenuClick = (el: (typeof menuCrm)[0]) => {
     if (el.sub) {
       toggleSubMenu(el.id.toString());
-    } else {
-      setOpenSubMenus([]);
     }
   };
 

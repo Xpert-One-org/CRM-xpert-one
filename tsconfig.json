@@ -31,7 +31,8 @@
       "@features/*": ["./src/features/*"],
       "@context/*": ["./src/context/*"],
       "@config/*": ["./src/config/*"],
-      "@store/*": ["./src/store/*"]
+      "@store/*": ["./src/store/*"],
+      "@functions/*": ["./functions/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

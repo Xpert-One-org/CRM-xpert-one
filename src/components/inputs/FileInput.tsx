@@ -1,9 +1,9 @@
 'use client';
 
 import Upload from '@/components/svg/Upload';
-import { cn } from '@/utils/functions/utils';
+import { cn } from '@/lib/utils';
 import type { ComponentProps } from 'react';
-import React, { useState } from 'react';
+import React from 'react';
 
 type Props = {
   label?: string | React.ReactNode;

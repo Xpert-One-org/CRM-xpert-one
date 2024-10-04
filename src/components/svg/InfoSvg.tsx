@@ -1,7 +1,6 @@
-import { cn } from '@/utils/functions/utils';
 import React from 'react';
 
-type Props = {} & React.SVGProps<SVGSVGElement>
+type Props = {} & React.SVGProps<SVGSVGElement>;
 
 export default function InfoSvg({
   fill = '#65ADAF',

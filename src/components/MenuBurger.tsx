@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { menuCrm } from '@/data/menu';
 import { usePathname } from 'next/navigation';
 import { ScrollArea } from './ui/scroll-area';
-import { signOut } from '@/utils/functions/auth/signOut';
+import { signOut } from '../../functions/auth/signOut';
 import Power from './svg/Power';
 
 export default function MenuBurger() {

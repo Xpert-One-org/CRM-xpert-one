@@ -1,11 +1,10 @@
 'use client';
 import SearchWBg from '@/components/svg/SearchWBg';
-import { cn } from '@/utils/functions/utils';
-import { VariantProps, cva } from 'class-variance-authority';
 import type { ComponentProps } from 'react';
 import React, { useState } from 'react';
 import Info from '../Info';
-import { Eye, EyeOff, Lock, Mail, X } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Props = {
   label?: string | React.ReactNode;

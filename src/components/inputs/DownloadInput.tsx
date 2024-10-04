@@ -1,11 +1,8 @@
 'use client';
 
-import SearchWBg from '@/components/svg/SearchWBg';
 import Upload from '@/components/svg/Upload';
-import { cn } from '@/utils/functions/utils';
-import { VariantProps, cva } from 'class-variance-authority';
-import type { ComponentProps } from 'react';
-import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
+import React from 'react';
 
 type Props = {
   label?: string | React.ReactNode;

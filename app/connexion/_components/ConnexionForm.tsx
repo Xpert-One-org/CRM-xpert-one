@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { toast } from 'sonner';
 import { Button } from '@components/ui/button';
-import { signIn } from '@/utils/functions/auth/signIn';
+import { signIn } from '@functions/auth/signIn';
 import { Input } from '@components/ui/input';
 import LogoXpertCRM from '@components/svg/LogoXpertCRM';
 

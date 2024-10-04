@@ -1,4 +1,4 @@
-import { cn } from '@/utils/functions/utils';
+import { cn } from '@/lib/utils';
 import React from 'react';
 
 type Props = {} & React.SVGProps<SVGSVGElement>;

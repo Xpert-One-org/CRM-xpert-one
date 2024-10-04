@@ -1,5 +1,5 @@
 'use client';
-import { cn } from '@/utils/functions/utils';
+import { cn } from '@/lib/utils';
 import type { ComponentProps } from 'react';
 import React, { useEffect } from 'react';
 import Info from '../Info';
