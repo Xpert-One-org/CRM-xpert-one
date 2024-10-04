@@ -1,6 +1,5 @@
 import type { Database } from './supabase';
 
-// PROFILE
 export type DBProfile = Database['public']['Tables']['profile']['Row'];
 export type DBProfileEducation =
   Database['public']['Tables']['profile_education']['Row'];
@@ -29,6 +28,10 @@ export type DBUser = DBProfile & {
   status: DBProfileStatus;
   expertise: DBProfileExpertise;
   mission: DBProfileMission;
+};
+
+export type DBFournisseur = DBProfile & {
+  mission: DBMission[];
 };
 
 // NOTIFICATION

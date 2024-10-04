@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { Box } from '@/components/ui/box';
 import type { DBUser } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import React from 'react';
@@ -32,25 +32,3 @@ export default function NewXpertsRow({ user, isOpen, onClick }: Props) {
     </>
   );
 }
-
-const Box = ({
-  children,
-  isSelected,
-  className,
-}: {
-  children: React.ReactNode;
-  isSelected: boolean;
-  className?: string;
-}) => {
-  return (
-    <div
-      className={cn(
-        'relative flex flex-col items-center justify-center overflow-visible rounded-xs bg-lightgray-secondary px-2 py-6 text-center text-sm text-dark transition-colors',
-        className,
-        { 'bg-background': isSelected }
-      )}
-    >
-      {children}
-    </div>
-  );
-};

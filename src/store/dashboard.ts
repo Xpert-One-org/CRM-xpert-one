@@ -12,7 +12,9 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   newUsers: [],
   setNewUsers: (users: DBUser[]) => set({ newUsers: users }),
   fetchLastSignUpNewUsersWeek: async () => {
-    const { data } = await getLastSignUpNewUsersWeek();
-    set({ newUsers: data });
+    const result = await getLastSignUpNewUsersWeek();
+    if (result) {
+      set({ newUsers: result.data });
+    }
   },
 }));

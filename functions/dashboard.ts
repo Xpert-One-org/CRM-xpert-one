@@ -2,25 +2,30 @@
 
 import type { DBProfile } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
+import { checkAuthRole } from './auth/checkRole';
 
 export const getLastSignUpNewUsersWeek = async () => {
   const supabase = createSupabaseAppServerClient();
 
-  const { data, error } = await supabase
-    .from('profile')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const isAdmin = await checkAuthRole();
 
-  if (error) {
-    throw error;
+  if (isAdmin) {
+    const { data, error } = await supabase
+      .from('profile')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const newUsers = data.filter(
+      (user: DBProfile) => new Date(user.created_at) > lastWeek
+    );
+
+    return { data: newUsers };
   }
-
-  const lastWeek = new Date();
-  lastWeek.setDate(lastWeek.getDate() - 7);
-
-  const newUsers = data.filter(
-    (user: DBProfile) => new Date(user.created_at) > lastWeek
-  );
-
-  return { data: newUsers };
 };

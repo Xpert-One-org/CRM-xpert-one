@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import FilterSvg from './svg/FIlterSvg';
@@ -32,17 +33,14 @@ export const FilterButton = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="filter"
-          className="flex h-auto max-w-[200px] items-center gap-x-2 text-wrap bg-chat-selected font-bold"
-        >
+        <Button className="flex h-auto max-w-[200px] items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected/80">
           {selected || placeholder}
           <div className="size-3">
             <FilterSvg />
           </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="bg-white">
         <DropdownMenuLabel>{placeholder}</DropdownMenuLabel>
         {options.length > 0 ? (
           options.map((option) => (

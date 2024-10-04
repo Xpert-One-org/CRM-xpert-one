@@ -1373,7 +1373,8 @@ export type Database = {
         | 'water'
         | 'infrastructure'
         | 'entrepreneurship'
-        | 'other';
+        | 'other'
+        | 'relation_presse';
       chat_type: 'chat' | 'echo_community' | 'forum' | 'xpert_to_xpert';
       revenu_type: 'tjm' | 'brut';
     };
