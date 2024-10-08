@@ -37,7 +37,7 @@ export default function Input({
   const placeholderIfNotPrecised = props.type == 'search' ? 'Rechercher' : '';
   const placeholder = props.placeholder ?? placeholderIfNotPrecised;
   return (
-    <div className={cn('w-full xl:max-w-[280px]', className)}>
+    <div className={cn('w-full', className)}>
       {label && (
         <label
           htmlFor={props.id}

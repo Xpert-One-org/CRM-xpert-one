@@ -14,7 +14,7 @@ export const Box = ({
   return (
     <div
       className={cn(
-        'flex items-center justify-center overflow-hidden rounded-xs bg-[#E1E1E1] px-2 py-6 text-center text-sm font-medium text-dark transition-colors',
+        'flex items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap text-wrap rounded-xs bg-[#E1E1E1] px-2 py-6 text-center text-sm font-medium text-dark transition-colors',
         className,
         { 'bg-background': isSelected },
         { 'bg-primary': primary }

@@ -31,6 +31,7 @@ const config = {
         lightgray: "hsl(var(--lightgray))",
         filter: "hsl(var(--filter))",
         skeleton: "hsl(var(--skeleton))",
+        muted: "hsl(var(--muted))",
         "chat-selected": "hsl(var(--chat-selected))",
         "light-gray-third": "hsl(var(--light-gray-third))",
         "fond-gray": "hsl(var(--fond-gray))",

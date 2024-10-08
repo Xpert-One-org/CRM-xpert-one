@@ -7,7 +7,6 @@ import FournisseurRow from './FournisseurRow';
 import { cn } from '@/lib/utils';
 import FournisseurMissionTable from './FournisseurMissionRow';
 import Input from '@/components/inputs/Input';
-import { Button } from '@/components/ui/button';
 
 export default function FournisseurTable({
   fournisseurs,
@@ -33,12 +32,14 @@ export default function FournisseurTable({
   return (
     <>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <Button className="py-spaceXSmall pl-spaceContainer text-white">
+        {/* <Button className="py-spaceXSmall pl-spaceContainer text-white">
           Créer un fournisseur
-        </Button>
-        <Button className="py-spaceXSmall pl-spaceContainer text-white">
-          Enregistrer
-        </Button>
+        </Button> */}
+        {/* {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
+          <Button className="py-spaceXSmall pl-spaceContainer text-white">
+            Enregistrer
+          </Button>
+        )} */}
       </div>
 
       <div className="grid grid-cols-8 gap-3">

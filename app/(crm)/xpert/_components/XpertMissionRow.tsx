@@ -4,11 +4,7 @@ import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';
 import React from 'react';
 
-export default function FournisseurMissionRow({
-  mission,
-}: {
-  mission: DBMission;
-}) {
+export default function XpertMissionRow({ mission }: { mission: DBMission }) {
   const startDate = formatDate(mission.start_date ?? '');
   const endDate = formatDate(mission.end_date ?? '');
 

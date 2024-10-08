@@ -35,7 +35,7 @@ export default function FournisseurRow({
       <Box className="col-span-1" isSelected={isOpen}>
         {uppercaseFirstLetter(fournisseur.company_role ?? '')}
       </Box>
-      <Box className="col-span-1 text-white" isSelected={isOpen} primary>
+      <Box className="col-span-1" isSelected={isOpen}>
         {fournisseur.generated_id}
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>

@@ -34,6 +34,13 @@ export type DBFournisseur = DBProfile & {
   mission: DBMission[];
 };
 
+export type DBXpert = DBProfile & {
+  profile_mission: DBProfileMission;
+  mission: DBMission[];
+  profile_status: DBProfileStatus;
+  profile_expertise: DBProfileExpertise;
+};
+
 // NOTIFICATION
 export type DBNotification = Pick<
   Database['public']['Tables']['notification']['Row'],

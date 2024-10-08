@@ -93,7 +93,7 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/mission',
+    url: '/mission/etats?etat=valider',
     sub: [
       {
         title: 'État des mission',
@@ -179,6 +179,10 @@ export const menuCrm = [
     ),
     url: '/admin',
     sub: [
+      {
+        title: 'Collaborateurs',
+        url: '/admin/collaborateurs',
+      },
       {
         title: 'Gestion des collaborateurs',
         url: '/admin/gestion-collaborateurs',
