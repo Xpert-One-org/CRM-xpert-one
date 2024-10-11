@@ -99,13 +99,6 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'chat_mission_id_fkey';
-            columns: ['mission_id'];
-            isOneToOne: false;
-            referencedRelation: 'mission';
-            referencedColumns: ['id'];
-          },
-          {
             foreignKeyName: 'chat_xpert_recipient_id_fkey';
             columns: ['xpert_recipient_id'];
             isOneToOne: false;
@@ -431,7 +424,7 @@ export type Database = {
           specialties: string[] | null;
           specialties_other: string | null;
           start_date: string | null;
-          state: string;
+          state: Database['public']['Enums']['mission_state'];
           street_number: number | null;
           tjm: string | null;
           xpert_associated_id: string | null;
@@ -451,7 +444,7 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
-          id?: number;
+          id?: never;
           job_title?: string | null;
           job_title_other?: string | null;
           languages?: string[] | null;
@@ -478,7 +471,7 @@ export type Database = {
           specialties?: string[] | null;
           specialties_other?: string | null;
           start_date?: string | null;
-          state?: string;
+          state?: Database['public']['Enums']['mission_state'];
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
@@ -498,7 +491,7 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
-          id?: number;
+          id?: never;
           job_title?: string | null;
           job_title_other?: string | null;
           languages?: string[] | null;
@@ -525,7 +518,7 @@ export type Database = {
           specialties?: string[] | null;
           specialties_other?: string | null;
           start_date?: string | null;
-          state?: string;
+          state?: Database['public']['Enums']['mission_state'];
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
@@ -1376,6 +1369,14 @@ export type Database = {
         | 'other'
         | 'relation_presse';
       chat_type: 'chat' | 'echo_community' | 'forum' | 'xpert_to_xpert';
+      mission_state:
+        | 'to_validate'
+        | 'open_all_to_validate'
+        | 'open'
+        | 'open_all'
+        | 'in_progress'
+        | 'deleted'
+        | 'finished';
       revenu_type: 'tjm' | 'brut';
     };
     CompositeTypes: {

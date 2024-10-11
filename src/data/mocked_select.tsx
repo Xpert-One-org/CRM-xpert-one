@@ -1,4 +1,4 @@
-import type { DBRevenuType } from '@/types/types_db';
+import type { DBRevenuType } from '@/types/typesDb';
 
 export const genres = [
   {

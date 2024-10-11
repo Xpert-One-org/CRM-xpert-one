@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
-import { useMediaQuery } from '@/src/hooks/use-media-query';
+import { useMediaQuery } from '@hooks/use-media-query';
 import {
   Dialog,
   DialogClose,
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/src/components/ui/dialog';
+} from '@components/ui/dialog';
 import {
   Drawer,
   DrawerClose,
@@ -23,21 +23,21 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@/src/components/ui/drawer';
+} from '@components/ui/drawer';
 
 type BaseProps = {
   children: React.ReactNode;
-}
+};
 
 type RootCredenzaProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-} & BaseProps
+} & BaseProps;
 
 type CredenzaProps = {
   className?: string;
   asChild?: true;
-} & BaseProps
+} & BaseProps;
 
 const desktop = '(min-width: 768px)';
 

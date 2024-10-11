@@ -1,17 +1,17 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import Bell from './svg/Bell';
 import BubbleNotif from './svg/BubbleNotif';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 
-// import useNotifications from '@/hook/useNotifications';
+import useNotifications from '@/hooks/useNotifications';
+import type { DBNotification } from '@/types/typesDb';
 
 function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  // const { chatNotifications } = useNotifications();
+  const { chatNotifications } = useNotifications();
 
   useEffect(() => {
     setIsOpen(false);
@@ -76,9 +76,9 @@ function NotificationBell() {
 
             <div className="relative z-10 mt-5 py-6">
               <h3 className="mb-2 px-7 text-sm font-semibold">Notifications</h3>
-              {chatNotifications && chatNotifications?.length > 0 ? (
+              {chatNotifications && chatNotifications.length > 0 ? (
                 <ul>
-                  {chatNotifications?.map((notification) => (
+                  {chatNotifications.map((notification: DBNotification) => (
                     <Link
                       href={`/messagerie`}
                       passHref

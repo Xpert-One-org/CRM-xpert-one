@@ -93,11 +93,11 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/mission/etats?etat=valider',
+    url: '/mission/etats?etat=to-validate',
     sub: [
       {
         title: 'État des mission',
-        url: '/mission/etats?etat=valider',
+        url: '/mission/etats?etat=to-validate',
       },
       {
         title: 'Fiche mission',

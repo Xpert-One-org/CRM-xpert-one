@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
-export default function ActualPageTitle() {
+export default function ActualPageTitle({ className }: { className?: string }) {
   const menuEls = menuCrm;
   const pathnameSegments = usePathname().split('/').filter(Boolean);
   const lastSegment = pathnameSegments[pathnameSegments.length - 1];
@@ -30,7 +30,8 @@ export default function ActualPageTitle() {
   return (
     <div
       className={cn(
-        'relative font-khand text-lg font-bold uppercase lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2'
+        'relative font-khand text-lg font-bold uppercase lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2',
+        className
       )}
     >
       <div className="relative">{navbarText}</div>

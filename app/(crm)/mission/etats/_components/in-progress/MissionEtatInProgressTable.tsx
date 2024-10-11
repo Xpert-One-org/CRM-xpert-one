@@ -1,7 +1,10 @@
 import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
+import MissionEtatInProgressRow from './MissionEtatInProgressRow';
+import { useMissionStore } from '@/store/mission';
 
-export default function MissionEtatDeletedTable() {
+export default function MissionEtatInProgressTable() {
+  const { missions } = useMissionStore();
   const signUpDateOptions = [
     { label: 'Toutes', value: '' },
     { label: '1 semaine', value: '1_week' },
@@ -12,7 +15,7 @@ export default function MissionEtatDeletedTable() {
 
   return (
     <>
-      <div className="grid grid-cols-7 gap-3">
+      <div className="grid grid-cols-9 gap-3">
         <FilterButton
           options={signUpDateOptions}
           defaultSelectedKeys=""
@@ -23,13 +26,16 @@ export default function MissionEtatDeletedTable() {
         <FilterButton placeholder="N° de mission" filter={false} />
         <FilterButton placeholder="Référent Xpert One" filter={false} />
         <FilterButton
-          placeholder="Perdu / Supprimée le"
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
+          placeholder="Temps avant début de mission"
+          filter={false}
         />
-        <FilterButton placeholder="Motif" filter={false} />
-        <FilterButton placeholder="Commentaire" filter={false} />
+        <FilterButton placeholder="N° XPERT" filter={false} />
+        <FilterButton placeholder="Xpert: Documents mission" />
+        <FilterButton placeholder="Xpert : Commande / Devis / CDI" />
+        <FilterButton placeholder="Fournisseur : Commande" />
+        {missions.map((mission) => (
+          <MissionEtatInProgressRow key={mission.id} mission={mission} />
+        ))}
       </div>
     </>
   );

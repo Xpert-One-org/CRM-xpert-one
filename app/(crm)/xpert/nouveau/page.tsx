@@ -87,7 +87,12 @@ export default function XpertNouveauPage() {
       </div>
       <div className="flex flex-col gap-4">
         {newUsers.map((user) => (
-          <NewXpertsRow key={user.id} user={user} />
+          <NewXpertsRow
+            key={user.id}
+            user={user}
+            isOpen={false}
+            onClick={() => {}}
+          />
         ))}
       </div>
     </div>

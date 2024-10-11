@@ -2,7 +2,7 @@ import type {
   DBMission,
   DBProfileEducation,
   DBProfileExperience,
-} from '@/types/types_db';
+} from '@/types/typesDb';
 
 export const emptyExperience: DBProfileExperience = {
   post: null,
@@ -51,7 +51,7 @@ export const emptyMission: DBMission = {
   created_at: '',
   created_by: '',
   company_name: null,
-  state: '',
+  state: 'to_validate',
   xpert_associated_id: '',
   job_title_other: null,
   sector_energy: null,

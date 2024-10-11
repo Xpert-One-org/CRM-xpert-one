@@ -58,8 +58,6 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
     setIsLoading(false);
   };
 
-  console.log(xperts);
-
   return (
     <>
       <div className="mb-2 flex items-center justify-end gap-2">
@@ -421,13 +419,13 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                     )}
                   </div>
                 </div>
-                <div className="flex size-full flex-col p-4">
+                <div className="flex w-full flex-col p-4">
                   {isLoading ? (
                     <Skeleton className="size-full" />
                   ) : (
                     <div className="flex size-full items-start justify-start">
                       {cvUrl ? (
-                        <iframe src={cvUrl} className="size-full" />
+                        <iframe src={cvUrl} className="h-[90vh] w-full" />
                       ) : (
                         <p>Aucun CV uploadé par l'xpert pour le moment</p>
                       )}

@@ -1,20 +1,12 @@
-import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
+import MissionEtatOpenRowSkeleton from './MissionEtatOpenRowSkeleton';
+import { FilterButton } from '@/components/FilterButton';
 
-export default function MissionEtatOpenTable() {
-  const signUpDateOptions = [
-    { label: 'Toutes', value: '' },
-    { label: '1 semaine', value: '1_week' },
-    { label: '2 semaines', value: '2_weeks' },
-    { label: '3 semaines', value: '3_weeks' },
-    { label: '4 semaines', value: '4_weeks' },
-  ];
-
+export default function MissionEtatOpenTableSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-11 gap-3">
         <FilterButton
-          options={signUpDateOptions}
           defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Créer le"
@@ -27,7 +19,6 @@ export default function MissionEtatOpenTable() {
           filter={false}
         />
         <FilterButton
-          options={signUpDateOptions}
           defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Remise des candidatures"
@@ -37,6 +28,10 @@ export default function MissionEtatOpenTable() {
         <FilterButton placeholder="Discussion" filter={false} />
         <FilterButton placeholder="Proposés" filter={false} />
         <FilterButton placeholder="Refusés" filter={false} />
+
+        {Array.from({ length: 3 }).map((_, index) => (
+          <MissionEtatOpenRowSkeleton key={index} />
+        ))}
       </div>
     </>
   );

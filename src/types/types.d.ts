@@ -35,7 +35,13 @@ type Reaction = {
   count: number;
 };
 
-type State = 'in_review' | 'open' | 'in_progress' | 'completed' | 'canceled';
+type State =
+  | 'to_validate'
+  | 'open'
+  | 'open_all'
+  | 'in_progress'
+  | 'deleted'
+  | 'finished';
 
 type Role = 'xpert' | 'company';
 

@@ -1,7 +1,10 @@
 import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
+import MissionEtatFinishedRow from './MissionEtatFinishedRow';
+import { useMissionStore } from '@/store/mission';
 
 export default function MissionEtatFinishedTable() {
+  const { missions } = useMissionStore();
   const signUpDateOptions = [
     { label: 'Toutes', value: '' },
     { label: '1 semaine', value: '1_week' },
@@ -12,7 +15,7 @@ export default function MissionEtatFinishedTable() {
 
   return (
     <>
-      <div className="grid grid-cols-7 gap-3">
+      <div className="grid grid-cols-8 gap-3">
         <FilterButton
           options={signUpDateOptions}
           defaultSelectedKeys=""
@@ -24,6 +27,7 @@ export default function MissionEtatFinishedTable() {
         <FilterButton placeholder="Référent Xpert One" filter={false} />
         <FilterButton placeholder="N° XPERT" filter={false} />
         <FilterButton
+          className="col-span-2"
           placeholder="Terminée le"
           options={signUpDateOptions}
           defaultSelectedKeys=""
@@ -35,6 +39,9 @@ export default function MissionEtatFinishedTable() {
           defaultSelectedKeys=""
           onValueChange={() => {}}
         />
+        {missions.map((mission) => (
+          <MissionEtatFinishedRow key={mission.id} mission={mission} />
+        ))}
       </div>
     </>
   );

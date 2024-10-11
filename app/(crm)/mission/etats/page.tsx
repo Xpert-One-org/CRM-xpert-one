@@ -1,16 +1,24 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import MissionEtatToValidateTable from './_components/_to-validate/MissionEtatToValidateTable';
-import MissionEtatOpenTable from './_components/_open/MissionEtatOpenTable';
-import MissionEtatPlacedTable from './_components/_places/MissionEtatPlacedTable';
-import MissionEtatDeletedTable from './_components/_perdues/MissionEtatDeletedTable';
-import MissionEtatFinishedTable from './_components/_terminees/MissionEtatFinishedTable';
+import MissionEtatOpenTable from './_components/open/MissionEtatOpenTable';
+import MissionEtatInProgressTable from './_components/in-progress/MissionEtatInProgressTable';
+import MissionEtatDeletedTable from './_components/deleted/MissionEtatDeletedTable';
+import MissionEtatFinishedTable from './_components/finished/MissionEtatFinishedTable';
+import { MissionEtatToValidateTable } from './_components/to-validate/MissionEtatToValidateTable';
+import { useMissionStore } from '@/store/mission';
+import MissionEtatToValidateTableSkeleton from './_components/to-validate/skeleton/MissionEtatToValidateTableSkeleton';
+import MissionEtatOpenTableSkeleton from './_components/open/skeleton/MissionEtatOpenTableSkeleton';
+import MissionEtatInProgressTableSkeleton from './_components/in-progress/skeleton/MissionEtatInProgressTableSkeleton';
+import MissionEtatDeletedTableSkeleton from './_components/deleted/skeleton/MissionEtatDeletedTableSkeleton';
+import MissionEtatFinishedTableSkeleton from './_components/finished/skeleton/MissionEtatFinishedTableSkeleton';
 
 export default function MissionEtatPage() {
+  const { fetchMissions, isLoading } = useMissionStore();
   const [selectedState, setSelectedState] = useState<string | null>(null);
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -18,8 +26,9 @@ export default function MissionEtatPage() {
     const etat = searchParams.get('etat');
     if (etat) {
       setSelectedState(etat);
+      fetchMissions(etat);
     }
-  }, [searchParams]);
+  }, [searchParams, fetchMissions]);
 
   const handleButtonClick = (state: string) => {
     setSelectedState(state);
@@ -32,50 +41,71 @@ export default function MissionEtatPage() {
     <>
       <div className="mb-2 flex flex-wrap items-center gap-[15px]">
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'valider' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('valider')}
+          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to-validate' ? 'bg-accent' : ''}`}
+          onClick={() => handleButtonClick('to-validate')}
         >
           Mission à valider
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'ouverts' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('ouverts')}
+          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'open' ? 'bg-accent' : ''}`}
+          onClick={() => handleButtonClick('open')}
         >
           Missions ouvertes / ouvertes à tous
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'places' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('places')}
+          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in-progress' ? 'bg-accent' : ''}`}
+          onClick={() => handleButtonClick('in-progress')}
         >
-          Mission placées
+          Missions en cours / placées
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'perdues' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('perdues')}
+          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'deleted' ? 'bg-accent' : ''}`}
+          onClick={() => handleButtonClick('deleted')}
         >
           Missions perdues / supprimées
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'terminees' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('terminees')}
+          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'finished' ? 'bg-accent' : ''}`}
+          onClick={() => handleButtonClick('finished')}
         >
           Missions terminées / clôturées
         </Button>
-        <Button
+        {/* <Button
           className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white`}
         >
           Créer une mission
-        </Button>
+        </Button> */}
 
-        {selectedState === 'valider' && <MissionEtatToValidateTable />}
-
-        {selectedState === 'ouverts' && <MissionEtatOpenTable />}
-
-        {selectedState === 'places' && <MissionEtatPlacedTable />}
-
-        {selectedState === 'perdues' && <MissionEtatDeletedTable />}
-
-        {selectedState === 'terminees' && <MissionEtatFinishedTable />}
+        {selectedState === 'to-validate' &&
+          (isLoading ? (
+            <MissionEtatToValidateTableSkeleton />
+          ) : (
+            <MissionEtatToValidateTable />
+          ))}
+        {selectedState === 'open' &&
+          (isLoading ? (
+            <MissionEtatOpenTableSkeleton />
+          ) : (
+            <MissionEtatOpenTable />
+          ))}
+        {selectedState === 'in-progress' &&
+          (isLoading ? (
+            <MissionEtatInProgressTableSkeleton />
+          ) : (
+            <MissionEtatInProgressTable />
+          ))}
+        {selectedState === 'deleted' &&
+          (isLoading ? (
+            <MissionEtatDeletedTableSkeleton />
+          ) : (
+            <MissionEtatDeletedTable />
+          ))}
+        {selectedState === 'finished' &&
+          (isLoading ? (
+            <MissionEtatFinishedTableSkeleton />
+          ) : (
+            <MissionEtatFinishedTable />
+          ))}
       </div>
     </>
   );

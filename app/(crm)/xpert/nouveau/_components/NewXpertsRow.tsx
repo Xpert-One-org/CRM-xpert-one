@@ -12,7 +12,7 @@ type Props = {
 export default function NewXpertsRow({ user, isOpen, onClick }: Props) {
   return (
     <>
-      <div className="flex" onClick={onClick}>
+      <div className="flex cursor-pointer" onClick={onClick}>
         <Box isSelected={isOpen}>
           <p>{formatDate(user.created_at) ?? 'Non renseigné'}</p>
         </Box>

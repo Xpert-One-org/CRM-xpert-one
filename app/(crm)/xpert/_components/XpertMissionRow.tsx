@@ -23,7 +23,7 @@ export default function XpertMissionRow({ mission }: { mission: DBMission }) {
       <Box className="col-span-1 bg-lightgray-secondary">
         {mission.state === 'open'
           ? 'Ouvert'
-          : mission.state === 'in_review'
+          : mission.state === 'in_progress'
             ? 'En attente de validation'
             : 'Fermée'}
       </Box>

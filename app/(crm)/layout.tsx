@@ -56,10 +56,7 @@ export default async function Layout({
             </TooltipContent>
           </Tooltip>
 
-          <ActualPageTitle
-            className="flex items-center justify-center"
-            has_seen={has_seen}
-          />
+          <ActualPageTitle className="flex items-center justify-center" />
           <div className="flex items-center justify-end gap-x-spaceSmall sm:gap-x-spaceContainer lg:items-end">
             <div>
               <NotificationBell />

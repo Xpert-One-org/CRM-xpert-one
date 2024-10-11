@@ -2,6 +2,7 @@
 
 import Upload from '@/components/svg/Upload';
 import { cn } from '@/lib/utils';
+import type { ComponentProps } from 'react';
 import React from 'react';
 
 type Props = {

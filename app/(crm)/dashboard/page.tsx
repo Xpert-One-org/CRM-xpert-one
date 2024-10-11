@@ -31,7 +31,7 @@ export default function DashboardPage() {
           iconButton={
             <BriefCase className="fill-white" width={24} height={24} />
           }
-          link="/mission/etats?etat=valider"
+          link="/mission/etats?etat=to-validate"
         />
         <DashBoardCards
           count={newUsers.length}
@@ -42,7 +42,7 @@ export default function DashboardPage() {
           iconButton={
             <BriefCase className="fill-white" width={24} height={24} />
           }
-          link="/mission/etats?etat=valider"
+          link="/mission/etats?etat=to-validate"
         />
         <DashBoardCards
           count={newUsers.length}
@@ -82,7 +82,7 @@ export default function DashboardPage() {
           iconButton={
             <BriefCaseAdd className="fill-white" width={24} height={24} />
           }
-          link="/mission/etats?etat=valider"
+          link="/mission/etats?etat=to-validate"
         />
         <DashBoardCards
           count={newUsers.length}
@@ -102,7 +102,7 @@ export default function DashboardPage() {
           urgentCount={0}
           buttonTitle="Suivi des missions"
           iconButton={<Phone className="fill-white" width={24} height={24} />}
-          link="/mission/etats?etat=valider"
+          link="/mission/etats?etat=to-validate"
         />
         <DashBoardCards
           count={newUsers.length}
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           iconButton={
             <BriefCase className="fill-white" width={24} height={24} />
           }
-          link="/mission/etats?etat=valider"
+          link="/mission/etats?etat=to-validate"
         />
       </div>
     </>
