@@ -2,7 +2,7 @@
 
 import { FilterButton } from '@/components/FilterButton';
 import type { DBFournisseur } from '@/types/typesDb';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FournisseurRow from './FournisseurRow';
 import { cn } from '@/lib/utils';
 import FournisseurMissionTable from './FournisseurMissionRow';
@@ -22,6 +22,14 @@ export default function FournisseurTable({
   ];
 
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fournisseurId = urlParams.get('id');
+    if (fournisseurId) {
+      setFournisseurIdOpened(fournisseurId);
+    }
+  }, []);
 
   const handleFournisseurIdOpened = (id: string) => {
     setFournisseurIdOpened((prevId) =>

@@ -37,9 +37,13 @@ export default function MissionEtatToValidateRow({
     return '';
   })();
 
-  const handleMissionNumberClick = () => {
-    const missionNumber = mission.mission_number?.replaceAll(' ', '-');
-    router.push(`/mission/fiche/${missionNumber}`);
+  const handleRedirectFicheMission = (number: string) => {
+    const formattedNumber = number.replaceAll(' ', '-');
+    router.push(`/mission/fiche/${formattedNumber}`);
+  };
+
+  const handleRedirectFournisseur = (fournisseurId: string) => {
+    router.push(`/fournisseur?id=${fournisseurId}`);
   };
 
   const handleValidationChange = (value: string) => {
@@ -67,13 +71,17 @@ export default function MissionEtatToValidateRow({
   return (
     <>
       <Box className={`col-span-1 ${getBackgroundClass}`}>{createdAt}</Box>
-      <Box className="col-span-1 text-white" primary>
+      <Box
+        className="col-span-1 cursor-pointer text-white"
+        primary
+        onClick={() => handleRedirectFournisseur(mission.created_by)}
+      >
         {mission.created_by}
       </Box>
       <Box
         className="col-span-1 cursor-pointer text-white"
         primary
-        onClick={handleMissionNumberClick}
+        onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
       >
         {mission.mission_number}
       </Box>

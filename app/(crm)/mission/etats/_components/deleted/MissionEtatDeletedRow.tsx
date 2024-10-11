@@ -13,21 +13,29 @@ export default function MissionEtatDeletedRow({
   const router = useRouter();
   const createdAt = formatDate(mission.created_at);
 
-  const handleNumberClick = (number: string) => {
+  const handleRedirectFicheMission = (number: string) => {
     const formattedNumber = number.replaceAll(' ', '-');
     router.push(`/mission/fiche/${formattedNumber}`);
+  };
+
+  const handleRedirectFournisseur = (fournisseurId: string) => {
+    router.push(`/fournisseur?id=${fournisseurId}`);
   };
 
   return (
     <>
       <Box className="col-span-1">{createdAt}</Box>
-      <Box className="col-span-1 cursor-pointer bg-primary text-white" primary>
+      <Box
+        className="col-span-1 cursor-pointer text-white"
+        primary
+        onClick={() => handleRedirectFournisseur(mission.created_by)}
+      >
         {mission.created_by}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
         primary
-        onClick={() => handleNumberClick(mission.mission_number ?? '')}
+        onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
       >
         {mission.mission_number}
       </Box>
