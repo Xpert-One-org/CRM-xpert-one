@@ -4,6 +4,7 @@ import { formatDate } from '@/utils/date';
 import { convertStateValue } from '@/utils/stateMissionConverter';
 import { Search } from 'lucide-react';
 import React from 'react';
+import RightSideFicheMission from './RightSideFicheMission';
 
 export default function FicheMissionTable({
   missionDetails,
@@ -93,7 +94,7 @@ export default function FicheMissionTable({
             </div>
           </div>
         </div>
-        <div className="flex w-2/3 justify-between">yooooo</div>
+        <RightSideFicheMission missionDetails={missionDetails} />
       </div>
     </>
   );

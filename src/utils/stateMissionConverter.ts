@@ -1,7 +1,11 @@
-export const convertStateValue = (value: string) => {
+import type { DBMission } from '@/types/typesDb';
+
+export const convertStateValue = (value: DBMission['state']) => {
   switch (value) {
     case 'to_validate':
       return 'EN VALIDATION PAR XPERT ONE';
+    case 'open_all_to_validate':
+      return 'OUVERTE À TOUS ET EN VALIDATION PAR XPERT ONE';
     case 'open':
       return 'OUVERTE';
     case 'open_all':

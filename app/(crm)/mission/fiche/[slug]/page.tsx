@@ -25,7 +25,7 @@ export default function MissionFichePage({
     };
 
     fetchMissionDetails();
-  }, [missionId]);
+  }, [missionNumber]);
 
   return (
     <div>
