@@ -16,19 +16,24 @@ import { ChevronDown } from 'lucide-react';
 
 export default function Sidebar() {
   const { isSidebarOpen, toggleSidebar } = useSidebarOpenStore();
-  const [openSubMenus, setOpenSubMenus] = useState<string[]>([]);
-
+  const menuCrmIds = menuCrm.map((el) => el.id.toString());
+  const [openSubMenus, setOpenSubMenus] = useState<string[]>(menuCrmIds);
+  const sidebarOpenWidth = 'min-w-[260px]';
   const pathname = usePathname();
 
-  const toggleSubMenu = (id: string) => {
-    setOpenSubMenus((prev) =>
-      prev.includes(id) ? prev.filter((subId) => subId !== id) : [...prev, id]
-    );
+  const toggleSubMenu = (id: string, open?: boolean) => {
+    open
+      ? setOpenSubMenus((prev) => [...prev, id])
+      : setOpenSubMenus((prev) =>
+          prev.includes(id)
+            ? prev.filter((subId) => subId !== id)
+            : [...prev, id]
+        );
   };
 
-  const handleMenuClick = (el: (typeof menuCrm)[0]) => {
+  const handleMenuClick = (el: (typeof menuCrm)[0], open?: boolean) => {
     if (el.sub) {
-      toggleSubMenu(el.id.toString());
+      toggleSubMenu(el.id.toString(), open);
     }
   };
 
@@ -72,30 +77,35 @@ export default function Sidebar() {
               const isSubMenuOpen = openSubMenus.includes(el.id.toString());
               if (isSidebarOpen) {
                 return (
-                  <div key={el.id}>
-                    <Link
-                      href={el.url}
+                  <div key={el.id} className={sidebarOpenWidth}>
+                    <div
                       className={
-                        'group flex w-full cursor-pointer flex-col items-center justify-start py-4'
+                        'group flex w-full cursor-pointer flex-col items-center justify-start'
                       }
-                      onClick={() => handleMenuClick(el)}
                     >
                       <div className={'flex w-full items-center justify-start'}>
-                        <div
-                          className={cn(
-                            `border-accent ${isActive ? 'border-l-2' : ''} pl-4`
-                          )}
+                        <Link
+                          className="flex py-4"
+                          href={el.url}
+                          onClick={() => handleMenuClick(el, true)}
                         >
-                          {el.icon}
-                        </div>
-                        <span className="ml-4 whitespace-nowrap text-lg text-white group-hover:text-accent">
-                          {el.title}
-                        </span>
+                          <div
+                            className={cn(
+                              `border-accent ${isActive ? 'border-l-2' : ''} pl-4`
+                            )}
+                          >
+                            {el.icon}
+                          </div>
+                          <span className="ml-4 whitespace-nowrap text-lg text-white group-hover:text-accent">
+                            {el.title}
+                          </span>
+                        </Link>
                         {isActive && (
-                          <div className="ml-3 size-2 rounded-full bg-accent" />
+                          <div className="mx-3 size-2 rounded-full bg-accent" />
                         )}
                         {el.sub && (
                           <ChevronDown
+                            onClick={() => handleMenuClick(el)}
                             className={cn(
                               'ml-auto h-4 w-4 stroke-white transition-transform group-hover:stroke-accent',
                               { 'rotate-180': isSubMenuOpen }
@@ -103,7 +113,7 @@ export default function Sidebar() {
                           />
                         )}
                       </div>
-                    </Link>
+                    </div>
                     {isSubMenuOpen && (
                       <div className="mb-3 ml-4 flex flex-col gap-2 border-l pl-3 text-light-gray-third">
                         {el.sub?.map((sub) => {

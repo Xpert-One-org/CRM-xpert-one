@@ -94,7 +94,7 @@ const config = {
       },
       fontFamily: {
         khand: ["var(--font-khand)"],
-        fira: ["var(--font-fira-sans)"],
+        sans: ["var(--font-fira-sans)"],
       },
     },
   },
