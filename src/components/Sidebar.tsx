@@ -117,7 +117,10 @@ export default function Sidebar() {
                     {isSubMenuOpen && (
                       <div className="mb-3 ml-4 flex flex-col gap-2 border-l pl-3 text-light-gray-third">
                         {el.sub?.map((sub) => {
-                          const isSubActive = sub.url === pathname;
+                          const pathanmeWithoutParams = pathname.split('?')[0];
+                          const subWithoutParams = sub.url.split('?')[0];
+                          const isSubActive =
+                            subWithoutParams === pathanmeWithoutParams;
                           return (
                             <Link
                               key={sub.url}

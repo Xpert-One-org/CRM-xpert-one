@@ -38,75 +38,73 @@ export default function MissionEtatPage() {
   };
 
   return (
-    <>
-      <div className="mb-2 flex flex-wrap items-center gap-[15px]">
-        <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to-validate' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('to-validate')}
-        >
-          Mission à valider
-        </Button>
-        <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'open' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('open')}
-        >
-          Missions ouvertes / ouvertes à tous
-        </Button>
-        <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in-progress' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('in-progress')}
-        >
-          Missions en cours / placées
-        </Button>
-        <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'deleted' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('deleted')}
-        >
-          Missions perdues / supprimées
-        </Button>
-        <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'finished' ? 'bg-accent' : ''}`}
-          onClick={() => handleButtonClick('finished')}
-        >
-          Missions terminées / clôturées
-        </Button>
-        {/* <Button
+    <div className="mb-2 flex flex-wrap items-center gap-[15px]">
+      <Button
+        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to-validate' ? 'bg-accent' : ''}`}
+        onClick={() => handleButtonClick('to-validate')}
+      >
+        Mission à valider
+      </Button>
+      <Button
+        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'open' ? 'bg-accent' : ''}`}
+        onClick={() => handleButtonClick('open')}
+      >
+        Missions ouvertes / ouvertes à tous
+      </Button>
+      <Button
+        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in-progress' ? 'bg-accent' : ''}`}
+        onClick={() => handleButtonClick('in-progress')}
+      >
+        Missions en cours / placées
+      </Button>
+      <Button
+        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'deleted' ? 'bg-accent' : ''}`}
+        onClick={() => handleButtonClick('deleted')}
+      >
+        Missions perdues / supprimées
+      </Button>
+      <Button
+        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'finished' ? 'bg-accent' : ''}`}
+        onClick={() => handleButtonClick('finished')}
+      >
+        Missions terminées / clôturées
+      </Button>
+      {/* <Button
           className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white`}
         >
           Créer une mission
         </Button> */}
 
-        {selectedState === 'to-validate' &&
-          (isLoading ? (
-            <MissionEtatToValidateTableSkeleton />
-          ) : (
-            <MissionEtatToValidateTable />
-          ))}
-        {selectedState === 'open' &&
-          (isLoading ? (
-            <MissionEtatOpenTableSkeleton />
-          ) : (
-            <MissionEtatOpenTable />
-          ))}
-        {selectedState === 'in-progress' &&
-          (isLoading ? (
-            <MissionEtatInProgressTableSkeleton />
-          ) : (
-            <MissionEtatInProgressTable />
-          ))}
-        {selectedState === 'deleted' &&
-          (isLoading ? (
-            <MissionEtatDeletedTableSkeleton />
-          ) : (
-            <MissionEtatDeletedTable />
-          ))}
-        {selectedState === 'finished' &&
-          (isLoading ? (
-            <MissionEtatFinishedTableSkeleton />
-          ) : (
-            <MissionEtatFinishedTable />
-          ))}
-      </div>
-    </>
+      {selectedState === 'to-validate' &&
+        (isLoading ? (
+          <MissionEtatToValidateTableSkeleton />
+        ) : (
+          <MissionEtatToValidateTable />
+        ))}
+      {selectedState === 'open' &&
+        (isLoading ? (
+          <MissionEtatOpenTableSkeleton />
+        ) : (
+          <MissionEtatOpenTable />
+        ))}
+      {selectedState === 'in-progress' &&
+        (isLoading ? (
+          <MissionEtatInProgressTableSkeleton />
+        ) : (
+          <MissionEtatInProgressTable />
+        ))}
+      {selectedState === 'deleted' &&
+        (isLoading ? (
+          <MissionEtatDeletedTableSkeleton />
+        ) : (
+          <MissionEtatDeletedTable />
+        ))}
+      {selectedState === 'finished' &&
+        (isLoading ? (
+          <MissionEtatFinishedTableSkeleton />
+        ) : (
+          <MissionEtatFinishedTable />
+        ))}
+    </div>
   );
 }

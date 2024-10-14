@@ -25,6 +25,10 @@ export const menuCrm = [
     url: '/dashboard',
     sub: [
       {
+        title: 'Accueil',
+        url: '/dashboard',
+      },
+      {
         title: 'Mail',
         url: '/dashboard/mail',
       },
@@ -48,7 +52,7 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/xpert',
+    url: '/xpert/fiche',
     sub: [
       {
         title: 'Fiche XPERT',
@@ -71,7 +75,7 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/fournisseur',
+    url: '/fournisseur/fiche',
     sub: [
       {
         title: 'Fiche Fournisseurs',
@@ -131,7 +135,7 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/facturation',
+    url: '/facturation/gestion-facturations',
     sub: [
       {
         title: 'Gestion des facturations',
@@ -177,7 +181,7 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/admin',
+    url: '/admin/collaborateurs',
     sub: [
       {
         title: 'Collaborateurs',
