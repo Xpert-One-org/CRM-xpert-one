@@ -7,6 +7,20 @@ import FournisseurRow from './FournisseurRow';
 import { cn } from '@/lib/utils';
 import FournisseurMissionTable from './FournisseurMissionRow';
 import Input from '@/components/inputs/Input';
+import { empty } from '@/data/constant';
+import { getLabel } from '@/utils/getLabel';
+import { useSelect } from '@/store/select';
+import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import {
+  areaSelect,
+  franceSelect,
+  genres,
+  iamSelect,
+} from '@/data/mocked_select';
+import { PhoneInput } from '@/components/ui/phone-input';
+import PhoneInputComponent from '@/components/inputs/PhoneInputComponent';
+import { useParams, useSearchParams } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function FournisseurTable({
   fournisseurs,
@@ -22,10 +36,24 @@ export default function FournisseurTable({
   ];
 
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
+  const {
+    sectors,
+    companyRoles,
+    regions,
+    countries,
+    fetchSectors,
+    fetchCompanyRoles,
+    fetchRegions,
+    fetchCountries,
+  } = useSelect();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fournisseurId = urlParams.get('id');
+    fetchSectors();
+    fetchCompanyRoles();
+    fetchRegions();
+    fetchCountries();
+    const fournisseurId = searchParams.get('id');
     if (fournisseurId) {
       setFournisseurIdOpened(fournisseurId);
     }
@@ -115,73 +143,147 @@ export default function FournisseurTable({
                     <Input
                       label="Référant XPERT ONE"
                       value={`${fournisseur.firstname}`}
+                      disabled
                     />
                     <Input
                       label="Adresse mail professionnel"
-                      value={fournisseur.email ?? ''}
+                      value={fournisseur.email ?? empty}
+                      disabled
                     />
                   </div>
                   <div className="flex items-center justify-end">
-                    <div className="mr-7 flex aspect-square h-[120px] items-center justify-center rounded-full bg-primary text-white">
-                      Photo profil
-                    </div>
+                    <Avatar className="aspect-square size-[120px]">
+                      <AvatarImage src={fournisseur.avatar_url ?? ''} />
+                      <AvatarFallback className="bg-primary text-xl uppercase text-white">
+                        {fournisseur.firstname?.substring(0, 1)}
+                        {fournisseur.lastname?.substring(0, 1)}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
                 </div>
                 <div className="grid w-full grid-cols-2 gap-4">
                   <Input
                     label="Nom de votre société"
-                    value={fournisseur.company_name ?? ''}
+                    value={fournisseur.company_name ?? empty}
+                    disabled
                   />
                   <Input
                     label="Votre fonction"
-                    value={fournisseur.city ?? ''}
+                    value={
+                      getLabel({
+                        value: fournisseur.company_role ?? '',
+                        select: companyRoles,
+                      }) ?? empty
+                    }
+                    disabled
                   />
                 </div>
                 <div className="grid w-full grid-cols-2 gap-4">
                   <Input
                     label="Votre secteur d’activité"
-                    value={fournisseur.sector ?? ''}
+                    value={
+                      getLabel({
+                        value: fournisseur.sector ?? '',
+                        select: sectors,
+                      }) ?? empty
+                    }
+                    disabled
                   />
-                  <Input
+                  <MultiSelectComponent
+                    disabled
                     label="Zone de couverture géographique"
-                    value={'Votre zone de couverture géographique'}
+                    defaultSelectedKeys={[
+                      ...(fournisseur.area ?? []),
+                      ...(fournisseur.france_detail ?? []),
+                      ...(fournisseur.regions ?? []),
+                    ]}
+                    options={[...areaSelect, ...franceSelect, ...regions]}
+                    name=""
+                    onValueChange={() => ({})}
                   />
                 </div>
                 <div className="grid w-full grid-cols-2 gap-4">
                   <Input
                     label="De quel service dépendez vous"
                     value={'Votre service'}
+                    disabled
                   />
                   <Input
                     label="Votre numéro de SIRET"
                     value={fournisseur.siret ?? ''}
+                    disabled
                   />
                 </div>
-                <Input label="Civilité" value={fournisseur.civility ?? ''} />
-                <div className="grid w-full grid-cols-2 gap-4">
-                  <Input label="Nom" value={fournisseur.lastname ?? ''} />
-                  <Input label="Prénom" value={fournisseur.firstname ?? ''} />
-                </div>
+                <Input
+                  label="Civilité"
+                  value={
+                    getLabel({
+                      value: fournisseur.civility ?? '',
+                      select: genres,
+                    }) ?? empty
+                  }
+                  disabled
+                />
                 <div className="grid w-full grid-cols-2 gap-4">
                   <Input
-                    label="Tél portable"
-                    value={fournisseur.mobile ?? ''}
+                    label="Nom"
+                    value={fournisseur.lastname ?? ''}
+                    disabled
                   />
-                  <Input label="Tél fixe" value={fournisseur.fix ?? ''} />
+                  <Input
+                    label="Prénom"
+                    value={fournisseur.firstname ?? ''}
+                    disabled
+                  />
+                </div>
+                <div className="grid w-full grid-cols-2 gap-4">
+                  <PhoneInputComponent
+                    label="Tél portable"
+                    name=""
+                    placeholder={empty}
+                    className="xl:max-w-full"
+                    value={fournisseur.mobile ?? ''}
+                    defaultSelectedKeys={fournisseur.mobile ?? ''}
+                    disabled
+                  />
+                  <PhoneInputComponent
+                    label="Tél fixe"
+                    name=""
+                    className="xl:max-w-full"
+                    placeholder={empty}
+                    value={fournisseur.fix ?? ''}
+                    defaultSelectedKeys={fournisseur.fix ?? ''}
+                    disabled
+                  />
                 </div>
                 <div className="grid w-full grid-cols-2 gap-4">
                   <Input
                     label="N° de rue"
                     value={fournisseur.street_number ?? ''}
+                    disabled
                   />
                   <Input
                     label="Addresse postale"
                     value={fournisseur.address ?? ''}
+                    disabled
                   />
                 </div>
                 <div className="grid w-full grid-cols-2 gap-4">
-                  <Input label="Ville" value={fournisseur.city ?? ''} />
-                  <Input label="Pays" value={fournisseur.country ?? ''} />
+                  <Input
+                    label="Ville"
+                    value={fournisseur.city ?? ''}
+                    disabled
+                  />
+                  <Input
+                    label="Pays"
+                    value={
+                      getLabel({
+                        value: fournisseur.country ?? '',
+                        select: countries,
+                      }) ?? empty
+                    }
+                    disabled
+                  />
                 </div>
               </div>
             </div>

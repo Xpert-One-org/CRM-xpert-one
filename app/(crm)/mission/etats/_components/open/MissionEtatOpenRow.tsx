@@ -4,6 +4,7 @@ import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import { getTimeBeforeMission, uppercaseFirstLetter } from '@/utils/string';
+import { empty } from '@/data/constant';
 
 export default function MissionEtatOpenRow({
   mission,
@@ -51,16 +52,18 @@ export default function MissionEtatOpenRow({
         primary
         onClick={() => handleRedirectFournisseur(mission.created_by)}
       >
-        {mission.created_by}
+        {mission.supplier?.generated_id}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
         primary
-        onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
+        onClick={() =>
+          handleRedirectFicheMission(mission.mission_number ?? empty)
+        }
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-1">{mission.referent_name}</Box>
+      <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
         {timeBeforeDeadlineApplication}
@@ -69,9 +72,9 @@ export default function MissionEtatOpenRow({
         {uppercaseFirstLetter(mission.job_title?.replaceAll('_', ' ') ?? '')}
       </Box>
       <Box className="col-span-1">{'0'}</Box>
-      <Box className="col-span-1">{'8'}</Box>
-      <Box className="col-span-1">{'12'}</Box>
-      <Box className="col-span-1">{'4'}</Box>
+      <Box className="col-span-1">{'0'}</Box>
+      <Box className="col-span-1">{'0'}</Box>
+      <Box className="col-span-1">{'0'}</Box>
     </>
   );
 }

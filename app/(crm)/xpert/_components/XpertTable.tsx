@@ -2,7 +2,7 @@
 
 import { FilterButton } from '@/components/FilterButton';
 import type { DBXpert } from '@/types/typesDb';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import XpertRow from './XpertRow';
 import XpertMissionRow from './XpertMissionRow';
 import { cn } from '@/lib/utils';
@@ -11,8 +11,45 @@ import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { getYears } from '@/utils/string';
+import { getLabel } from '@/utils/getLabel';
+import {
+  areaSelect,
+  franceSelect,
+  genres,
+  how,
+  iamSelect,
+  statusSelectEmployee,
+  statusSelectInde,
+} from '@/data/mocked_select';
+import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import { useSelect } from '@/store/select';
+import { formatDate } from '@/utils/formatDates';
+import { empty } from '@/data/constant';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useSearchParams } from 'next/navigation';
 
 export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
+  const {
+    specialities,
+    expertises,
+    habilitations,
+    diplomas,
+    languages,
+    sectors,
+    jobTitles,
+    regions,
+    countries,
+    fetchSpecialties,
+    fetchExpertises,
+    fetchHabilitations,
+    fetchDiplomas,
+    fetchLanguages,
+    fetchSectors,
+    fetchJobTitles,
+    fetchRegions,
+    fetchCountries,
+  } = useSelect();
+
   const signUpDateOptions = [
     { label: 'Toutes', value: '' },
     { label: '1 semaine', value: '1_week' },
@@ -25,6 +62,7 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
   const [xpertIdOpened, setXpertIdOpened] = useState('');
   const [cvUrl, setCvUrl] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
 
   const handleXpertIdOpened = (xpert: DBXpert) => {
     setXpertIdOpened((prevId) => {
@@ -57,6 +95,26 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
     setCvUrl(cvUrl.publicUrl);
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    const xpertId = searchParams.get('id');
+    if (xpertId) {
+      const foundXpert = xperts.find((xpert) => xpert.id === xpertId);
+      if (foundXpert) {
+        handleXpertIdOpened(foundXpert);
+      }
+      setXpertIdOpened(xpertId);
+    }
+    fetchSpecialties();
+    fetchExpertises();
+    fetchHabilitations();
+    fetchDiplomas();
+    fetchLanguages();
+    fetchSectors();
+    fetchJobTitles();
+    fetchRegions();
+    fetchCountries();
+  }, []);
 
   return (
     <>
@@ -118,6 +176,9 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
               0,
             max: ageMax,
           });
+
+          const selectStatus = [...statusSelectEmployee, ...statusSelectInde];
+
           return (
             <>
               <XpertRow
@@ -138,47 +199,83 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                       <Input
                         label="Référant XPERT ONE"
                         value={`${xpert.firstname}`}
+                        disabled
                       />
-                      <Input label="Adresse mail" value={xpert.email ?? ''} />
+                      <Input
+                        label="Adresse mail"
+                        value={xpert.email ?? ''}
+                        disabled
+                      />
                     </div>
                     <div className="flex items-center justify-end">
-                      <div className="mr-7 flex aspect-square h-[120px] items-center justify-center rounded-full bg-primary text-white">
-                        Photo profil
-                      </div>
+                      <Avatar className="aspect-square size-[120px]">
+                        <AvatarImage src={xpert.avatar_url ?? ''} />
+                        <AvatarFallback className="bg-primary text-xl uppercase text-white">
+                          {xpert.firstname?.substring(0, 1)}
+                          {xpert.lastname?.substring(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
                   </div>
-                  <p className="text-lg font-medium text-black">Mon profil</p>
+                  <p className="pt-4 text-lg font-medium text-black">
+                    Mon profil
+                  </p>
                   <div className="grid w-full grid-cols-3 gap-4">
-                    <Input label="Civilité" value={xpert.civility ?? ''} />
+                    <Input
+                      label="Civilité"
+                      value={
+                        getLabel({
+                          value: xpert.civility ?? '',
+                          select: genres,
+                        }) ?? empty
+                      }
+                      disabled
+                    />
                     <Input
                       type="date"
                       label="Date de naissance"
+                      disabled
                       value={xpert.birthdate ?? ''}
                     />
                     <Input
                       label="Notation"
+                      disabled
                       value={'Indisponible pour le moment'}
-                      disabled={true}
                     />
                   </div>
                   <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
                   <div className="grid w-full grid-cols-2 gap-4">
-                    <Input label="Tél portable" value={xpert.mobile ?? ''} />
-                    <Input label="Tél fixe" value={xpert.fix ?? ''} />
+                    <Input
+                      label="Tél portable"
+                      value={xpert.mobile ?? ''}
+                      disabled
+                    />
+                    <Input label="Tél fixe" value={xpert.fix ?? ''} disabled />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
                       label="N° de rue"
                       value={xpert.street_number ?? ''}
+                      disabled
                     />
                     <Input
                       label="Addresse postale"
                       value={xpert.address ?? ''}
+                      disabled
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
-                    <Input label="Ville" value={xpert.city ?? ''} />
-                    <Input label="Pays" value={xpert.country ?? ''} />
+                    <Input label="Ville" value={xpert.city ?? ''} disabled />
+                    <Input
+                      label="Pays"
+                      value={
+                        getLabel({
+                          value: xpert.country ?? '',
+                          select: countries,
+                        }) ?? empty
+                      }
+                      disabled
+                    />
                   </div>
                   <div className="mb-spaceContainer mt-[60px] h-px w-full bg-[#BEBEC0]" />
                   <div className="grid w-full grid-cols-2 gap-4">
@@ -188,13 +285,18 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                     />
                     <Input
                       label="Comment avez-vous connu Xpert One"
-                      value={xpert.how_did_you_hear_about_us ?? ''}
+                      value={
+                        getLabel({
+                          value: xpert.how_did_you_hear_about_us ?? '',
+                          select: how,
+                        }) ?? ''
+                      }
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
                       label="Je suis parrainé par"
-                      value={xpert.referent_id ?? ''}
+                      value={xpert.referent_id ?? empty}
                       disabled={true}
                     />
                   </div>
@@ -205,13 +307,22 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                     <Input
                       label="Je suis"
                       value={
-                        (xpert.profile_status && xpert.profile_status.iam) ?? ''
+                        (xpert.profile_status &&
+                          getLabel({
+                            value: xpert.profile_status.iam ?? '',
+                            select: iamSelect,
+                          })) ??
+                        ''
                       }
                     />
                     <Input
                       label="Mon statut"
                       value={
-                        (xpert.profile_status && xpert.profile_status.status) ??
+                        (xpert.profile_status &&
+                          getLabel({
+                            value: xpert.profile_status.status ?? '',
+                            select: selectStatus,
+                          })) ??
                         ''
                       }
                     />
@@ -223,20 +334,21 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                       value={
                         (xpert.profile_status &&
                           xpert.profile_status.rib_name) ??
-                        ''
+                        empty
                       }
                       disabled={true}
                     />
                   </div>
                   <div className="mb-spaceMediumContainer mt-spaceContainer h-px w-full bg-[#BEBEC0]" />
                   <p className="pt-spaceContainer text-lg font-medium text-black">
-                    Mon expertise{' '}
+                    Mon expertise
                   </p>
                   <p className="text-md font-medium text-black">
                     Depuis combien de temps exercez-vous dans les métiers de la
                     transition énergétique ?
                   </p>
                   <Slider
+                    disabled
                     defaultValue={[
                       xpert.profile_expertise &&
                       xpert.profile_expertise.seniority
@@ -256,40 +368,58 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                   />
                   <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
                   <div className="grid w-full grid-cols-2 gap-4">
-                    <Input
+                    <MultiSelectComponent
+                      disabled
                       label="Quelles sont vos spécialités"
-                      value={
-                        (xpert.profile_expertise &&
-                          xpert.profile_expertise.specialties) ??
-                        ''
-                      }
-                      disabled={true}
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_expertise?.specialties ?? []),
+                        xpert.profile_expertise?.specialties_other ?? '',
+                      ]}
+                      options={specialities}
+                      name=""
+                      onValueChange={() => ({})}
                     />
-                    <Input
+                    <MultiSelectComponent
+                      disabled
                       label="Quelles sont vos expertises"
-                      value={
-                        (xpert.profile_expertise &&
-                          xpert.profile_expertise.expertises) ??
-                        ''
-                      }
-                      disabled={true}
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_expertise?.expertises ?? []),
+                        xpert.profile_expertise?.expertises_other ?? '',
+                      ]}
+                      options={expertises}
+                      name=""
+                      onValueChange={() => ({})}
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
-                    <Input
+                    <MultiSelectComponent
+                      disabled
                       label="Quelles sont vos habilitations"
-                      value={
-                        (xpert.profile_expertise &&
-                          xpert.profile_expertise.habilitations) ??
-                        ''
-                      }
-                      disabled={true}
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_expertise?.habilitations ?? []),
+                        xpert.profile_expertise?.habilitations_other ?? '',
+                      ]}
+                      options={habilitations}
+                      name=""
+                      onValueChange={() => ({})}
                     />
                   </div>
                   <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
-                      label="Diplômes / Niveau d’étude"
+                      label="Niveau d’étude"
+                      value={
+                        (xpert.profile_expertise &&
+                          getLabel({
+                            value: xpert.profile_expertise.degree ?? '',
+                            select: diplomas,
+                          })) ??
+                        empty
+                      }
+                      disabled={true}
+                    />
+                    <Input
+                      label="Diplôme précis"
                       value={
                         (xpert.profile_expertise &&
                           xpert.profile_expertise.diploma) ??
@@ -304,7 +434,7 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                       value={
                         (xpert.profile_expertise &&
                           xpert.profile_expertise.expertises_other) ??
-                        ''
+                        empty
                       }
                       disabled={true}
                     />
@@ -314,19 +444,32 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                       label="Langue maternelle"
                       value={
                         (xpert.profile_expertise &&
-                          xpert.profile_expertise.maternal_language) ??
-                        ''
+                          getLabel({
+                            value:
+                              (xpert.profile_expertise.maternal_language !==
+                              'other'
+                                ? xpert.profile_expertise.maternal_language
+                                : xpert.profile_expertise
+                                    .maternal_language_other) ?? empty,
+                            select: languages,
+                          })) ??
+                        empty
                       }
                       disabled={true}
                     />
-                    <Input
-                      label="Langue 2"
-                      value={
-                        (xpert.profile_expertise &&
-                          xpert.profile_expertise.maternal_language_other) ??
-                        ''
-                      }
-                      disabled={true}
+                    <MultiSelectComponent
+                      disabled
+                      label="Autres langues parlées"
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_expertise?.other_language?.map(
+                          (lang: any) => lang?.language
+                        ) ?? []),
+                        xpert.profile_expertise?.other_language_detail ?? empty,
+                      ]}
+                      options={languages}
+                      placeholder={empty}
+                      name=""
+                      onValueChange={() => ({})}
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
@@ -353,11 +496,7 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
 
                     <Input
                       label="Auto-Évaluation"
-                      value={
-                        (xpert.profile_expertise &&
-                          xpert.profile_expertise.maternal_language_other) ??
-                        ''
-                      }
+                      value={empty}
                       disabled={true}
                     />
                   </div>
@@ -419,7 +558,7 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                     )}
                   </div>
                 </div>
-                <div className="flex w-full flex-col p-4">
+                <div className="flex w-full flex-col gap-4 p-4">
                   {isLoading ? (
                     <Skeleton className="size-full" />
                   ) : (
@@ -435,39 +574,66 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                     Ma recherche de mission
                   </p>
                   <div className="grid w-full grid-cols-2 gap-4">
-                    <Input
+                    <MultiSelectComponent
+                      className="xl:max-w-full"
+                      disabled
                       label="Quels secteurs d’activités"
-                      value={
-                        (xpert.profile_mission &&
-                          xpert.profile_mission.sector) ??
-                        ''
-                      }
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_mission?.sector ?? []),
+                        xpert.profile_mission?.sector_other ?? empty,
+                      ]}
+                      options={sectors}
+                      name=""
+                      onValueChange={() => ({})}
                     />
-                    <Input
+
+                    <MultiSelectComponent
+                      className="xl:max-w-full"
+                      disabled
                       label="Quels types de postes"
-                      value={
-                        (xpert.profile_mission &&
-                          xpert.profile_mission.job_titles) ??
-                        ''
-                      }
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_mission?.job_titles ?? []),
+                        xpert.profile_mission?.job_titles_other ?? empty,
+                      ]}
+                      options={jobTitles}
+                      name=""
+                      onValueChange={() => ({})}
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
-                    <Input
+                    <MultiSelectComponent
+                      className="xl:max-w-full"
+                      disabled
                       label="Dans quelles spécialités"
-                      value={
-                        (xpert.profile_mission &&
-                          xpert.profile_mission.specialties) ??
-                        ''
-                      }
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_mission?.specialties ?? []),
+                        xpert.profile_mission?.specialties_others ?? empty,
+                      ]}
+                      options={specialities}
+                      name=""
+                      onValueChange={() => ({})}
                     />
-                    <Input
+
+                    {/* <Input
                       label="Dans quelles expertises"
+                      disabled
                       value={
                         (xpert.profile_mission &&
                           xpert.profile_mission.expertises) ??
                         ''
                       }
+                    /> */}
+                    <MultiSelectComponent
+                      className="xl:max-w-full"
+                      disabled
+                      label="Dans quelles expertises"
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_mission?.expertises ?? []),
+                        xpert.profile_mission?.expertises_others ?? empty,
+                      ]}
+                      options={expertises}
+                      name=""
+                      onValueChange={() => ({})}
                     />
                   </div>
                   <div className="mb-spaceSmall mt-[36px] h-px w-full bg-[#BEBEC0]" />
@@ -477,18 +643,28 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
                       label="Disponibilités"
+                      disabled
                       value={
                         (xpert.profile_mission &&
-                          xpert.profile_mission.availability) ??
+                          formatDate(
+                            xpert.profile_mission.availability ?? ''
+                          )) ??
                         ''
                       }
                     />
-                    <Input
-                      label="Ma zone géographique de recherche"
-                      value={
-                        (xpert.profile_mission && xpert.profile_mission.area) ??
-                        ''
-                      }
+
+                    <MultiSelectComponent
+                      className="xl:max-w-full"
+                      disabled
+                      label="Quelles zones géographiques"
+                      defaultSelectedKeys={[
+                        ...(xpert.profile_mission?.area ?? []),
+                        ...(xpert.profile_mission?.france_detail ?? []),
+                        ...(xpert.profile_mission?.regions ?? [] ?? empty),
+                      ]}
+                      options={[...areaSelect, ...franceSelect, ...regions]}
+                      name=""
+                      onValueChange={() => ({})}
                     />
                   </div>
                   <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
@@ -498,16 +674,18 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
                       label="TJM total frais souhaité (hors grand déplacement)"
+                      disabled
                       value={
                         (xpert.profile_mission &&
                           xpert.profile_mission.desired_tjm) ??
-                        ''
+                        empty
                       }
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
                       label="Rémunération BRUT mensuel souhaitée (hors grand déplacement)"
+                      disabled
                       value={
                         (xpert.profile_mission &&
                           xpert.profile_mission.desired_monthly_brut) ??
@@ -522,21 +700,27 @@ export default function XpertTable({ xperts }: { xperts: DBXpert[] }) {
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
                       label="Avez-vous besoin d’un amménagement de poste"
+                      disabled
                       value={
                         (xpert.profile_mission &&
                           xpert.profile_mission &&
-                          xpert.profile_mission.workstation_needed) ??
-                        ''
+                          getLabel({
+                            value:
+                              xpert.profile_mission.workstation_needed ?? '',
+                            select: [],
+                          })) ??
+                        empty
                       }
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
                     <Input
                       label="Décrivez-nous votre besoin"
+                      disabled
                       value={
                         (xpert.profile_mission &&
                           xpert.profile_mission.workstation_description) ??
-                        ''
+                        empty
                       }
                     />
                   </div>

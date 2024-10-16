@@ -8,3 +8,4 @@ export const notifPerPage = 5;
 export const defaultAvatar = '/static/avatar.png';
 export const totaleCompletion = 100;
 export const mediumCompletion = 60;
+export const empty = 'Non renseigné';

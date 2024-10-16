@@ -52,11 +52,11 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/xpert/fiche',
+    url: '/xpert',
     sub: [
       {
-        title: 'Fiche XPERT',
-        url: '/xpert/fiche',
+        title: 'XPERT',
+        url: '/xpert',
       },
       {
         title: 'Nouveau inscrits',
@@ -75,11 +75,11 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/fournisseur/fiche',
+    url: '/fournisseur',
     sub: [
       {
-        title: 'Fiche Fournisseurs',
-        url: '/fournisseur/fiche',
+        title: 'Fournisseurs',
+        url: '/fournisseur',
       },
       {
         title: 'Nouveau inscrits',
@@ -97,11 +97,11 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/mission/etats?etat=to-validate',
+    url: '/mission/etats?etat=to_validate',
     sub: [
       {
         title: 'État des mission',
-        url: '/mission/etats?etat=to-validate',
+        url: '/mission/etats?etat=to_validate',
       },
       {
         title: 'Fiche mission',

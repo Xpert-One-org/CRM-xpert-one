@@ -4,6 +4,8 @@ import { formatDate } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Box } from '@/components/ui/box';
+import { empty } from '@/data/constant';
+import { cn } from '@/lib/utils';
 
 export default function MissionEtatInProgressRow({
   mission,
@@ -23,6 +25,10 @@ export default function MissionEtatInProgressRow({
 
   const handleRedirectFournisseur = (fournisseurId: string) => {
     router.push(`/fournisseur?id=${fournisseurId}`);
+  };
+
+  const handleRedirectXpert = (xpertId: string) => {
+    router.push(`/xpert?id=${xpertId}`);
   };
 
   const getBackgroundClass = (() => {
@@ -49,7 +55,7 @@ export default function MissionEtatInProgressRow({
         primary
         onClick={() => handleRedirectFournisseur(mission.created_by)}
       >
-        {mission.created_by}
+        {mission.supplier?.generated_id}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
@@ -60,8 +66,14 @@ export default function MissionEtatInProgressRow({
       </Box>
       <Box className="col-span-1">{mission.referent_name}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
-      <Box className="col-span-1 text-white" primary>
-        {mission.created_by}
+      <Box
+        className={cn('col-span-1 text-white', {
+          'cursor-pointer': mission.xpert?.id,
+        })}
+        primary
+        onClick={() => handleRedirectXpert(mission.xpert?.id ?? '')}
+      >
+        {mission.xpert?.generated_id ?? empty}
       </Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
         {getBackgroundClass === 'bg-[#D64242] text-white'

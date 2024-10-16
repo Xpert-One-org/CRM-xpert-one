@@ -85,7 +85,7 @@ export default function Sidebar() {
                     >
                       <div className={'flex w-full items-center justify-start'}>
                         <Link
-                          className="flex py-4"
+                          className="flex w-full py-4"
                           href={el.url}
                           onClick={() => handleMenuClick(el, true)}
                         >

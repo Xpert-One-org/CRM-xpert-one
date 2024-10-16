@@ -76,7 +76,7 @@ export default function MissionEtatToValidateRow({
         primary
         onClick={() => handleRedirectFournisseur(mission.created_by)}
       >
-        {mission.created_by}
+        {mission.supplier?.generated_id}
       </Box>
       <Box
         className="col-span-1 cursor-pointer text-white"

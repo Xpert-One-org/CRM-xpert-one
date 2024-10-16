@@ -14,35 +14,33 @@ export default function MissionEtatFinishedTable() {
   ];
 
   return (
-    <>
-      <div className="grid grid-cols-8 gap-3">
-        <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
-          placeholder="Créer le"
-        />
-        <FilterButton placeholder="N° de fournisseur" filter={false} />
-        <FilterButton placeholder="N° de mission" filter={false} />
-        <FilterButton placeholder="Référent Xpert One" filter={false} />
-        <FilterButton placeholder="N° XPERT" filter={false} />
-        <FilterButton
-          className="col-span-2"
-          placeholder="Terminée le"
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
-        />
-        <FilterButton
-          placeholder="Mission dupliquée"
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
-        />
-        {missions.map((mission) => (
-          <MissionEtatFinishedRow key={mission.id} mission={mission} />
-        ))}
-      </div>
-    </>
+    <div className="grid grid-cols-8 gap-3">
+      <FilterButton
+        options={signUpDateOptions}
+        defaultSelectedKeys=""
+        onValueChange={() => {}}
+        placeholder="Créer le"
+      />
+      <FilterButton placeholder="N° de fournisseur" filter={false} />
+      <FilterButton placeholder="N° de mission" filter={false} />
+      <FilterButton placeholder="Référent Xpert One" filter={false} />
+      <FilterButton placeholder="N° XPERT" filter={false} />
+      <FilterButton
+        className="col-span-2"
+        placeholder="Terminée le"
+        options={signUpDateOptions}
+        defaultSelectedKeys=""
+        onValueChange={() => {}}
+      />
+      <FilterButton
+        placeholder="Mission dupliquée"
+        options={signUpDateOptions}
+        defaultSelectedKeys=""
+        onValueChange={() => {}}
+      />
+      {missions.map((mission) => (
+        <MissionEtatFinishedRow key={mission.id} mission={mission} />
+      ))}
+    </div>
   );
 }

@@ -28,7 +28,7 @@ export default function DashboardPage() {
         urgentCount={0}
         buttonTitle="Missions ouvertes"
         iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to-validate"
+        link="/mission/etats?etat=to_validate"
       />
       <DashBoardCards
         count={newUsers.length}
@@ -37,7 +37,7 @@ export default function DashboardPage() {
         urgentCount={0}
         buttonTitle="Missions placées"
         iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to-validate"
+        link="/mission/etats?etat=to_validate"
       />
       <DashBoardCards
         count={newUsers.length}
@@ -77,7 +77,7 @@ export default function DashboardPage() {
         iconButton={
           <BriefCaseAdd className="fill-white" width={24} height={24} />
         }
-        link="/mission/etats?etat=to-validate"
+        link="/mission/etats?etat=to_validate"
       />
       <DashBoardCards
         count={newUsers.length}
@@ -97,7 +97,7 @@ export default function DashboardPage() {
         urgentCount={0}
         buttonTitle="Suivi des missions"
         iconButton={<Phone className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to-validate"
+        link="/mission/etats?etat=to_validate"
       />
       <DashBoardCards
         count={newUsers.length}
@@ -106,7 +106,7 @@ export default function DashboardPage() {
         urgentCount={0}
         buttonTitle="Missions arrêtées"
         iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to-validate"
+        link="/mission/etats?etat=to_validate"
       />
     </div>
   );

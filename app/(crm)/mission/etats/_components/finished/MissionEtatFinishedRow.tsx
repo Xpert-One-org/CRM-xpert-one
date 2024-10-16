@@ -1,4 +1,5 @@
 import { Box } from '@/components/ui/box';
+import { empty } from '@/data/constant';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { useRouter } from 'next/navigation';
@@ -31,7 +32,7 @@ export default function MissionEtatFinishedRow({
         primary
         onClick={() => handleRedirectFournisseur(mission.created_by)}
       >
-        {mission.created_by}
+        {mission.supplier?.generated_id}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
@@ -42,7 +43,7 @@ export default function MissionEtatFinishedRow({
       </Box>
       <Box className="col-span-1">{mission.referent_name}</Box>
       <Box className="col-span-1 text-white" primary>
-        {mission.created_by}
+        {mission.xpert?.generated_id ?? empty}
       </Box>
       <Box className="col-span-2">{finishedAt}</Box>
       <Box className="col-span-1 text-white" primary>

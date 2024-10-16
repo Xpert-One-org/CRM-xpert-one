@@ -1,9 +1,11 @@
 import { Box } from '@/components/ui/box';
+import { useSelect } from '@/store/select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
+import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 export default function FournisseurMissionRow({
   mission,
@@ -19,6 +21,12 @@ export default function FournisseurMissionRow({
     router.push(`/mission/fiche/${missionNumber}`);
   };
 
+  const { jobTitles, fetchJobTitles } = useSelect();
+
+  useEffect(() => {
+    fetchJobTitles();
+  }, []);
+
   return (
     <>
       <div className="flex flex-row gap-2">
@@ -32,7 +40,7 @@ export default function FournisseurMissionRow({
         {mission.mission_number}
       </Box>
       <Box className="col-span-1 bg-lightgray-secondary">
-        {uppercaseFirstLetter(mission.job_title ?? '')}
+        {getLabel({ value: mission.job_title ?? '', select: jobTitles })}
       </Box>
       <Box className="col-span-1 bg-lightgray-secondary">
         {mission.state === 'open'

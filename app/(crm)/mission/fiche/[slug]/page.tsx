@@ -32,7 +32,7 @@ export default function MissionFichePage({
       {missionDetails ? (
         <FicheMissionTable missionDetails={missionDetails} />
       ) : (
-        <p>Loading...</p>
+        <p>Chargement...</p>
       )}
     </div>
   );

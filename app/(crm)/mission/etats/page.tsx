@@ -4,33 +4,36 @@ import { Button } from '@/components/ui/button';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import MissionEtatOpenTable from './_components/open/MissionEtatOpenTable';
-import MissionEtatInProgressTable from './_components/in-progress/MissionEtatInProgressTable';
+import MissionEtatInProgressTable from './_components/in_progress/MissionEtatInProgressTable';
 import MissionEtatDeletedTable from './_components/deleted/MissionEtatDeletedTable';
 import MissionEtatFinishedTable from './_components/finished/MissionEtatFinishedTable';
-import { MissionEtatToValidateTable } from './_components/to-validate/MissionEtatToValidateTable';
+import { MissionEtatToValidateTable } from './_components/to_validate/MissionEtatToValidateTable';
 import { useMissionStore } from '@/store/mission';
-import MissionEtatToValidateTableSkeleton from './_components/to-validate/skeleton/MissionEtatToValidateTableSkeleton';
+import MissionEtatToValidateTableSkeleton from './_components/to_validate/skeleton/MissionEtatToValidateTableSkeleton';
 import MissionEtatOpenTableSkeleton from './_components/open/skeleton/MissionEtatOpenTableSkeleton';
-import MissionEtatInProgressTableSkeleton from './_components/in-progress/skeleton/MissionEtatInProgressTableSkeleton';
+import MissionEtatInProgressTableSkeleton from './_components/in_progress/skeleton/MissionEtatInProgressTableSkeleton';
 import MissionEtatDeletedTableSkeleton from './_components/deleted/skeleton/MissionEtatDeletedTableSkeleton';
 import MissionEtatFinishedTableSkeleton from './_components/finished/skeleton/MissionEtatFinishedTableSkeleton';
+import type { DBMissionState } from '@/types/typesDb';
 
 export default function MissionEtatPage() {
   const { fetchMissions, isLoading } = useMissionStore();
-  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<DBMissionState | null>(
+    null
+  );
 
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const etat = searchParams.get('etat');
+    const etat = searchParams.get('etat') as DBMissionState;
     if (etat) {
       setSelectedState(etat);
       fetchMissions(etat);
     }
   }, [searchParams, fetchMissions]);
 
-  const handleButtonClick = (state: string) => {
+  const handleButtonClick = (state: DBMissionState) => {
     setSelectedState(state);
     const newSearchParams = new URLSearchParams(searchParams.toString());
     newSearchParams.set('etat', state);
@@ -40,8 +43,8 @@ export default function MissionEtatPage() {
   return (
     <div className="mb-2 flex flex-wrap items-center gap-[15px]">
       <Button
-        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to-validate' ? 'bg-accent' : ''}`}
-        onClick={() => handleButtonClick('to-validate')}
+        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to_validate' ? 'bg-accent' : ''}`}
+        onClick={() => handleButtonClick('to_validate')}
       >
         Mission à valider
       </Button>
@@ -52,8 +55,8 @@ export default function MissionEtatPage() {
         Missions ouvertes / ouvertes à tous
       </Button>
       <Button
-        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in-progress' ? 'bg-accent' : ''}`}
-        onClick={() => handleButtonClick('in-progress')}
+        className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in_progress' ? 'bg-accent' : ''}`}
+        onClick={() => handleButtonClick('in_progress')}
       >
         Missions en cours / placées
       </Button>
@@ -75,7 +78,7 @@ export default function MissionEtatPage() {
           Créer une mission
         </Button> */}
 
-      {selectedState === 'to-validate' &&
+      {selectedState === 'to_validate' &&
         (isLoading ? (
           <MissionEtatToValidateTableSkeleton />
         ) : (
@@ -87,7 +90,7 @@ export default function MissionEtatPage() {
         ) : (
           <MissionEtatOpenTable />
         ))}
-      {selectedState === 'in-progress' &&
+      {selectedState === 'in_progress' &&
         (isLoading ? (
           <MissionEtatInProgressTableSkeleton />
         ) : (

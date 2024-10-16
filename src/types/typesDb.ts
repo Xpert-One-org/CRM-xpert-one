@@ -35,10 +35,10 @@ export type DBFournisseur = DBProfile & {
 };
 
 export type DBXpert = DBProfile & {
-  profile_mission: DBProfileMission;
+  profile_mission: DBProfileMission | null;
   mission: DBMission[];
-  profile_status: DBProfileStatus;
-  profile_expertise: DBProfileExpertise;
+  profile_status: DBProfileStatus | null;
+  profile_expertise: DBProfileExpertise | null;
 };
 
 // NOTIFICATION
@@ -109,6 +109,8 @@ export type DBUserAlerts = Database['public']['Tables']['user_alerts']['Row'];
 // MISSIONS
 export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   company_name?: string | null;
+  supplier?: DBProfile | null;
+  xpert?: DBProfile | null;
   generated_id?: string | null;
   mission_application?: Database['public']['Tables']['mission_application']['Row'][];
 };
@@ -119,6 +121,8 @@ export type ChatType = Database['public']['Enums']['chat_type'];
 export type MsgFiles = Database['public']['CompositeTypes']['msg_files'];
 
 export type DBRevenuType = Database['public']['Enums']['revenu_type'];
+
+export type DBMissionState = Database['public']['Enums']['mission_state'];
 
 export type DBXpertDemand =
   Database['public']['Tables']['contact_xpert_demands']['Row'] & {

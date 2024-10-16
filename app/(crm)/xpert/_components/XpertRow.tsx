@@ -23,7 +23,7 @@ export default function XpertRow({
     ? xpert.profile_mission.job_titles?.map((job) => {
         const jobTitle = uppercaseFirstLetter(job.replaceAll('_', ' '));
 
-        const otherJobTitle = xpert.profile_mission.job_titles_other
+        const otherJobTitle = xpert.profile_mission?.job_titles_other
           ? xpert.profile_mission.job_titles_other
           : '';
 

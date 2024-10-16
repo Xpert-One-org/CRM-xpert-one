@@ -16,6 +16,7 @@ export const getAllXperts = async (): Promise<DBXpert[]> => {
         `
         *,
         profile_mission(*),
+        experiences:profile_experience(*), educations:profile_education(*),
         mission!mission_created_by_fkey(*),
         profile_status(*),
         profile_expertise(*)
@@ -28,7 +29,24 @@ export const getAllXperts = async (): Promise<DBXpert[]> => {
       throw new Error(error.message);
     }
 
-    return data;
+    if (!data) {
+      console.error('No data returned');
+      throw new Error('No data returned');
+    }
+
+    const processedData = data.map((profile) => {
+      const { experiences, educations, profile_expertise, ...rest } = profile;
+      return {
+        ...rest,
+        profile_expertise: {
+          ...profile_expertise,
+          experiences,
+          educations,
+        } as DBXpert['profile_expertise'],
+      };
+    });
+
+    return processedData;
   }
 
   return [];

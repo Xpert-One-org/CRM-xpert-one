@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@commitlint/cz-commitlint": "^19.5.0",
+    "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
@@ -44,8 +45,9 @@
     "react-dom": "18.2.0",
     "react-phone-number-input": "^3.4.8",
     "sonner": "^1.5.0",
+    "use-debounce": "^10.0.4",
     "vaul": "^1.0.0",
-    "zustand": "5.0.0-rc.2"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
