@@ -1,12 +1,12 @@
 import { Box } from '@/components/ui/box';
-import type { DBUser } from '@/types/typesDb';
+import type { DBProfile, DBUser } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import React from 'react';
 
 type Props = {
   isOpen: boolean;
   onClick: () => void;
-  user: DBUser;
+  user: DBProfile;
 };
 
 export default function NewXpertsRow({ user, isOpen, onClick }: Props) {
