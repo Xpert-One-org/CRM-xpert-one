@@ -57,7 +57,7 @@ export default function Input({
               {explain}
             </Info>
           ) : (
-            <div className="h-6" />
+            <div className="" />
           )}
         </label>
       )}
@@ -93,7 +93,7 @@ export default function Input({
           }
           placeholder={placeholder}
           className={cn(
-            'h-full w-full rounded-xs bg-transparent px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary',
+            'h-full w-full rounded-xs bg-white px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary',
             { uppercase: props.id === 'lastname' || uppercase }
           )}
         />

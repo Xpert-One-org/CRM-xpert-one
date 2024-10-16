@@ -128,18 +128,23 @@ export default function FournisseurTable({
             <FournisseurRow
               key={fournisseur.id}
               fournisseur={fournisseur}
-              isOpen={fournisseurIdOpened === fournisseur.id}
-              onClick={() => handleFournisseurIdOpened(fournisseur.id)}
+              isOpen={fournisseurIdOpened === fournisseur.generated_id}
+              onClick={() =>
+                handleFournisseurIdOpened(fournisseur.generated_id)
+              }
             />
             <div
               className={cn(
                 'col-span-4 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
-                { 'block max-h-full': fournisseurIdOpened === fournisseur.id }
+                {
+                  'block max-h-full':
+                    fournisseurIdOpened === fournisseur.generated_id,
+                }
               )}
             >
               <div className="flex flex-col gap-y-spaceXSmall p-spaceSmall">
                 <div className="grid w-full grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-y-spaceXSmall">
+                  <div className="flex flex-col gap-4">
                     <Input
                       label="Référant XPERT ONE"
                       value={`${fournisseur.firstname}`}
@@ -160,8 +165,7 @@ export default function FournisseurTable({
                       </AvatarFallback>
                     </Avatar>
                   </div>
-                </div>
-                <div className="grid w-full grid-cols-2 gap-4">
+
                   <Input
                     label="Nom de votre société"
                     value={fournisseur.company_name ?? empty}
@@ -177,8 +181,7 @@ export default function FournisseurTable({
                     }
                     disabled
                   />
-                </div>
-                <div className="grid w-full grid-cols-2 gap-4">
+
                   <Input
                     label="Votre secteur d’activité"
                     value={
@@ -201,8 +204,7 @@ export default function FournisseurTable({
                     name=""
                     onValueChange={() => ({})}
                   />
-                </div>
-                <div className="grid w-full grid-cols-2 gap-4">
+
                   <Input
                     label="De quel service dépendez vous"
                     value={'Votre service'}
@@ -235,8 +237,7 @@ export default function FournisseurTable({
                     value={fournisseur.firstname ?? ''}
                     disabled
                   />
-                </div>
-                <div className="grid w-full grid-cols-2 gap-4">
+
                   <PhoneInputComponent
                     label="Tél portable"
                     name=""
@@ -255,8 +256,7 @@ export default function FournisseurTable({
                     defaultSelectedKeys={fournisseur.fix ?? ''}
                     disabled
                   />
-                </div>
-                <div className="grid w-full grid-cols-2 gap-4">
+
                   <Input
                     label="N° de rue"
                     value={fournisseur.street_number ?? ''}
@@ -267,8 +267,7 @@ export default function FournisseurTable({
                     value={fournisseur.address ?? ''}
                     disabled
                   />
-                </div>
-                <div className="grid w-full grid-cols-2 gap-4">
+
                   <Input
                     label="Ville"
                     value={fournisseur.city ?? ''}
@@ -290,7 +289,10 @@ export default function FournisseurTable({
             <div
               className={cn(
                 'col-span-4 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
-                { 'block max-h-full': fournisseurIdOpened === fournisseur.id }
+                {
+                  'block max-h-full':
+                    fournisseurIdOpened === fournisseur.generated_id,
+                }
               )}
             >
               <div className="grid grid-cols-4 gap-3 p-[14px]">

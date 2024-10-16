@@ -6,6 +6,8 @@ import { Search } from 'lucide-react';
 import React from 'react';
 import RightSideFicheMission from './RightSideFicheMission';
 import ComboboxMission from '../../_components/ComboboxMission';
+import Link from 'next/link';
+import { empty } from '@/data/constant';
 
 export default function FicheMissionTable({
   missionDetails,
@@ -22,7 +24,9 @@ export default function FicheMissionTable({
     referent_mail,
     referent_mobile,
     company_name,
+    supplier,
     postal_code,
+    xpert,
     city,
     xpert_associated_id,
   } = missionDetails;
@@ -59,37 +63,45 @@ export default function FicheMissionTable({
               INFORMATIONS FOURNISSEUR
             </h3>
             <p>
-              N° d’identification :{' '}
-              <span className="font-bold text-primary">{created_by}</span>
+              N° d'identification :{' '}
+              <Link
+                href={`/fournisseur?id=${supplier?.generated_id}`}
+                className="whitespace-nowrap font-bold text-primary"
+              >
+                {supplier?.generated_id}
+              </Link>
             </p>
-            <p>Société : {company_name}</p>
-            <p>Contact : {referent_name}</p>
+            <p>Société : {supplier?.company_name ?? empty}</p>
+            <p>Contact : {referent_name ?? empty}</p>
           </div>
           <div>
             <h3 className="text-sm font-bold text-black">
               RÉFÉRENTS FOURNISSEUR
             </h3>
-            <p>Nom : {referent_name}</p>
-            <p>Mail : {referent_mail}</p>
+            <p>Nom : {referent_name ?? empty}</p>
+            <p>Mail : {supplier?.email ?? empty}</p>
             <p>Téléphone : {referent_mobile}</p>
           </div>
           <div>
             <h3 className="text-sm font-bold text-black">INFORMATIONS XPERT</h3>
             <p>
-              N° d’identification :{' '}
-              <span className="font-bold text-primary">
-                {xpert_associated_id}
-              </span>
+              N° d’identification : {''}
+              <Link
+                href={`/xpert?id=${xpert?.generated_id}`}
+                className="whitespace-nowrap font-bold text-primary"
+              >
+                {xpert?.generated_id}
+              </Link>
             </p>
             <p>Contact : {referent_name}</p>
-            <p>Auto Évaluation : -/5</p>
-            <p>Évaluation moyenne : -/5</p>
+            <p>Auto Évaluation : {empty}</p>
+            <p>Évaluation moyenne : {empty}</p>
           </div>
           <div>
             <h3 className="text-sm font-bold text-black">
               RÉFÉRENTS XPERT ONE
             </h3>
-            <p>{referent_name}</p>
+            <p>{referent_name ?? empty}</p>
           </div>
         </div>
       </div>

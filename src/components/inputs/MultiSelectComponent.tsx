@@ -55,7 +55,7 @@ export default function MultiSelectComponent({
           classNameLabel
         )}
       >
-        <div className="h-6" />
+        <div className="" />
         {label}
       </label>
 

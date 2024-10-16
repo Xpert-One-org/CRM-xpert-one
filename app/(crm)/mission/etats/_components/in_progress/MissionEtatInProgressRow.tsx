@@ -53,7 +53,9 @@ export default function MissionEtatInProgressRow({
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
         primary
-        onClick={() => handleRedirectFournisseur(mission.created_by)}
+        onClick={() =>
+          handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
+        }
       >
         {mission.supplier?.generated_id}
       </Box>
@@ -71,7 +73,7 @@ export default function MissionEtatInProgressRow({
           'cursor-pointer': mission.xpert?.id,
         })}
         primary
-        onClick={() => handleRedirectXpert(mission.xpert?.id ?? '')}
+        onClick={() => handleRedirectXpert(mission.xpert?.generated_id ?? '')}
       >
         {mission.xpert?.generated_id ?? empty}
       </Box>

@@ -13,6 +13,7 @@ const config = {
       },
     },
     extend: {
+      
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -27,6 +28,7 @@ const config = {
         black: "hsl(var(--black))",
         dark_hard: "hsl(var(--dark-hard))",
         white: "hsl(var(--white))",
+        inactive: "hsl(var(--inactive))",
         important: "hsl(var(--important))",
         lightgray: "hsl(var(--lightgray))",
         filter: "hsl(var(--filter))",

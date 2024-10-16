@@ -30,8 +30,12 @@ export default function FournisseurMissionRow({
   return (
     <>
       <div className="flex flex-row gap-2">
-        <Box className="col-span-1 bg-lightgray-secondary">{startDate}</Box>
-        <Box className="col-span-1 bg-lightgray-secondary">{endDate}</Box>
+        <Box className="col-span-1 w-full bg-lightgray-secondary">
+          {startDate}
+        </Box>
+        <Box className="col-span-1 w-full bg-lightgray-secondary">
+          {endDate}
+        </Box>
       </div>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"

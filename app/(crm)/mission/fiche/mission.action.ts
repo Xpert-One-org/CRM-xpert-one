@@ -7,7 +7,10 @@ export const getMissionDetails = async (missionId: string) => {
 
   const { data, error } = await supabase
     .from('mission')
-    .select('*')
+    .select(
+      '*, xpert:profile!mission_xpert_associated_id_fkey(*), supplier:profile!mission_created_by_fkey(*)'
+    )
+
     .eq('mission_number', missionId);
 
   if (error) {

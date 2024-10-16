@@ -397,7 +397,7 @@ const MultipleSelector = React.forwardRef<
       >
         <div
           className={cn(
-            'min-h-10 rounded-xs border border-input text-sm',
+            'min-h-10 rounded-xs border border-border-gray border-input text-sm',
             {
               'px-3 py-2': selected.length !== 0,
               'cursor-text': !disabled && selected.length !== 0,

@@ -28,7 +28,9 @@ export default function MissionEtatDeletedRow({
       <Box
         className="col-span-1 cursor-pointer text-white"
         primary
-        onClick={() => handleRedirectFournisseur(mission.created_by)}
+        onClick={() =>
+          handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
+        }
       >
         {mission.supplier?.generated_id}
       </Box>

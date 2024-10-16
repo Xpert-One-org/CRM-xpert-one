@@ -3,8 +3,10 @@ import { getCountries } from '@functions/select/countries';
 import { getDiplomas } from '@functions/select/diploma';
 import { getExpertises } from '@functions/select/expertises';
 import { getHabilitations } from '@functions/select/habilitations';
+import { getInfrastructures } from '@functions/select/ionfrastructures';
 import { getJobTitles } from '@functions/select/job-titles';
 import { getLanguages } from '@functions/select/languages';
+import { getPosts } from '@functions/select/posts';
 import { getRegions } from '@functions/select/regions';
 import { getSectors } from '@functions/select/sectors';
 import { getSpecialties } from '@functions/select/specialties';
@@ -27,6 +29,8 @@ type SelectStore = {
   countries: Select[];
   regions: Select[];
   companyRoles: Select[];
+  posts: Select[];
+  infrastructures: Select[];
   fetchSpecialties: () => Promise<void>;
   fetchExpertises: () => Promise<void>;
   fetchHabilitations: () => Promise<void>;
@@ -37,6 +41,8 @@ type SelectStore = {
   fetchCountries: () => Promise<void>;
   fetchRegions: () => Promise<void>;
   fetchCompanyRoles: () => Promise<void>;
+  fetchPosts: () => Promise<void>;
+  fetchInfrastructures: () => Promise<void>;
 };
 
 export const useSelect = create<SelectStore>((set, get) => ({
@@ -50,6 +56,8 @@ export const useSelect = create<SelectStore>((set, get) => ({
   regions: [],
   countries: [],
   companyRoles: [],
+  posts: [],
+  infrastructures: [],
   fetchSpecialties: async () => {
     if (get().specialities.length) {
       return;
@@ -141,7 +149,6 @@ export const useSelect = create<SelectStore>((set, get) => ({
       set({ jobTitles: data });
     }
   },
-
   fetchCountries: async () => {
     if (get().countries.length) {
       return;
@@ -181,6 +188,33 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ companyRoles: data });
+    }
+  },
+
+  fetchPosts: async () => {
+    if (get().posts.length) {
+      return;
+    }
+    const { data, error } = await getPosts();
+    if (error) {
+      console.error('Error fetching posts:', error);
+      return;
+    }
+    if (data) {
+      set({ posts: data });
+    }
+  },
+  fetchInfrastructures: async () => {
+    if (get().infrastructures.length) {
+      return;
+    }
+    const { data, error } = await getInfrastructures();
+    if (error) {
+      console.error('Error fetching infrastructures:', error);
+      return;
+    }
+    if (data) {
+      set({ infrastructures: data });
     }
   },
 }));
