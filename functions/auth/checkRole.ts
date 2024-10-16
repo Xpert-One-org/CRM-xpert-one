@@ -7,10 +7,14 @@ export const checkAuthRole = async () => {
 
   const { user } = (await supabase.auth.getUser()).data;
 
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   const { data: userData, error: userError } = await supabase
     .from('profile')
     .select('*')
-    .eq('id', user?.id);
+    .eq('id', user.id);
 
   if (userError) {
     throw userError;
