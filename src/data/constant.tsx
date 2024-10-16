@@ -1,0 +1,11 @@
+export const DESKTOP = '(min-width: 1024px)';
+export const MOBILE = '(max-width: 640px)';
+export const minProfilCompletionXpert = 90;
+export const minProfilCompletionClient = 100;
+export const articlePerPage = 8;
+export const msgPerPage = 5;
+export const notifPerPage = 5;
+export const defaultAvatar = '/static/avatar.png';
+export const totaleCompletion = 100;
+export const mediumCompletion = 60;
+export const empty = 'Non renseigné';
