@@ -502,7 +502,7 @@ const MultipleSelector = React.forwardRef<
         <div className="relative">
           {open && (
             <CommandList
-              className="border-colors-border-gray bg-popover text-popover-foreground absolute top-1 z-10 w-full rounded-md border shadow-md outline-none animate-in"
+              className="bg-popover text-popover-foreground absolute top-1 z-10 w-full rounded-md border border-border-gray shadow-md outline-none animate-in"
               onMouseLeave={() => {
                 mouseOn.current = false;
               }}

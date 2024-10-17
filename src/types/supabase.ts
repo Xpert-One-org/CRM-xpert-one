@@ -20,6 +20,7 @@ export type Database = {
           id: number;
           image: string | null;
           slug: string | null;
+          status: Database['public']['Enums']['article_status'];
           title: string | null;
         };
         Insert: {
@@ -32,6 +33,7 @@ export type Database = {
           id?: number;
           image?: string | null;
           slug?: string | null;
+          status?: Database['public']['Enums']['article_status'];
           title?: string | null;
         };
         Update: {
@@ -44,6 +46,7 @@ export type Database = {
           id?: number;
           image?: string | null;
           slug?: string | null;
+          status?: Database['public']['Enums']['article_status'];
           title?: string | null;
         };
         Relationships: [
@@ -66,6 +69,7 @@ export type Database = {
           title: string;
           topic: string;
           type: Database['public']['Enums']['chat_type'];
+          updated_at: string | null;
           xpert_recipient_id: string | null;
         };
         Insert: {
@@ -77,6 +81,7 @@ export type Database = {
           title: string;
           topic: string;
           type?: Database['public']['Enums']['chat_type'];
+          updated_at?: string | null;
           xpert_recipient_id?: string | null;
         };
         Update: {
@@ -88,6 +93,7 @@ export type Database = {
           title?: string;
           topic?: string;
           type?: Database['public']['Enums']['chat_type'];
+          updated_at?: string | null;
           xpert_recipient_id?: string | null;
         };
         Relationships: [
@@ -96,6 +102,13 @@ export type Database = {
             columns: ['created_by'];
             isOneToOne: false;
             referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
+            referencedRelation: 'mission';
             referencedColumns: ['id'];
           },
           {
@@ -823,13 +836,6 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'profile_id_fkey';
-            columns: ['id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
             foreignKeyName: 'profile_referent_id_fkey';
             columns: ['referent_id'];
             isOneToOne: false;
@@ -1358,6 +1364,7 @@ export type Database = {
       };
     };
     Enums: {
+      article_status: 'published' | 'draft';
       categories:
         | 'energy_and_nuclear'
         | 'renewable_energy'
@@ -1479,4 +1486,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema['CompositeTypes']
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database;
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
+    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

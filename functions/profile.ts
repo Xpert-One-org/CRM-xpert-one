@@ -1,5 +1,6 @@
 'use server';
 
+import { minQuerySearch } from '@/data/constant';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getUserBase = async () => {
@@ -20,4 +21,37 @@ export const getUserBase = async () => {
     data,
     error: null,
   };
+};
+
+export const searchUsers = async (query: string) => {
+  const supabase = createSupabaseAppServerClient();
+
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return {
+      data: null,
+      error: 'User not found',
+    };
+  }
+
+  if (!query) {
+    return {
+      data: null,
+      error: 'Query not found',
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('profile')
+    .select('firstname, lastname, generated_id, id')
+    .or(
+      `username.ilike.%${query}%,generated_id.ilike.%${query}%,firstname.ilike.%${query}%,lastname.ilike.%${query}%`
+    );
+
+  console.log(data, error);
+
+  if (error) {
+    return { data: null, error: error.message };
+  }
+  return { data, error: null };
 };

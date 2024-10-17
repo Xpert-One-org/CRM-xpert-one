@@ -24,7 +24,7 @@ import { getLabel } from '@/utils/getLabel';
 type MsgCardProps = {
   message: DBMessage;
   user_id: string;
-} & React.HTMLAttributes<HTMLDivElement>
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
   const {
@@ -65,8 +65,8 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
       style={style}
       className={cn(
         'relative flex w-full flex-col gap-y-spaceSmall rounded-[10px] bg-white p-spaceMediumContainer shadow-msg',
-        { 'bg-colors-chat-selected': isCreatorMsgNotUser },
-        { 'bg-colors-primary text-white': isUserMsg }
+        { 'bg-chat-selected': isCreatorMsgNotUser },
+        { 'bg-primary text-white': isUserMsg }
       )}
     >
       {isPinMsg && (
@@ -84,9 +84,9 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
       {base_msg && (
         <div
           className={cn(
-            'text-colors-dark relative flex w-full flex-col gap-y-spaceSmall rounded-[10px] border bg-white p-spaceMediumContainer shadow-msg',
-            { 'bg-colors-chat-selected': isCreatorBaseMsg },
-            { 'bg-colors-secondary text-white': isUserBaseMsg }
+            'relative flex w-full flex-col gap-y-spaceSmall rounded-[10px] border bg-white p-spaceMediumContainer text-dark shadow-msg',
+            { 'bg-chat-selected': isCreatorBaseMsg },
+            { 'bg-secondary text-white': isUserBaseMsg }
           )}
         >
           <Card
@@ -199,7 +199,7 @@ const Card = ({
           <Logo className="fill-white transition" />
         </div>
       ) : (
-        <div className="border-1 border-colors-primary rounded-full bg-white">
+        <div className="border-1 rounded-full border-primary bg-white">
           <Image
             src={avatar_url ?? defaultAvatar}
             alt="avatar"

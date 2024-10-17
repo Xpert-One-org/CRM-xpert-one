@@ -77,12 +77,12 @@ export const useRealtimeChat = ({
             setChats(newChats);
             setChatSelected(payload.new);
           }
-          if (payload.eventType === 'UPDATE') {
-            const updatedChats = chats.map((chat) =>
-              chat.id === payload.new.id ? payload.new : chat
-            );
-            setChats(updatedChats);
-          }
+          // if (payload.eventType === 'UPDATE') {
+          //   const updatedChats = chats.map((chat) =>
+          //     chat.id === payload.new.id ? payload.new : chat
+          //   );
+          //   setChats(updatedChats);
+          // }
         }
       )
       .subscribe();
@@ -110,32 +110,33 @@ export const useRealtimeChat = ({
             );
             setChats(chatWithoutOld);
           }
-          if (payload.eventType === 'INSERT') {
-            // setChats((prev) => [...(prev || []), payload.new] as DBChat[])
-            const getNewChat = () => {
-              if (chats.length === 0) return [payload.new];
-              const sortedChats = [...chats, payload.new].sort((a, b) => {
-                const aLastMessage =
-                  a.messages[a.messages.length - 1]?.created_at || a.created_at;
-                const bLastMessage =
-                  b.messages[b.messages.length - 1]?.created_at || b.created_at;
-                return (
-                  new Date(bLastMessage).getTime() -
-                  new Date(aLastMessage).getTime()
-                );
-              });
-              return sortedChats;
-            };
-            const newChats = getNewChat();
-            setChats(newChats);
-            setChatSelected(payload.new);
-          }
-          if (payload.eventType === 'UPDATE') {
-            const updatedChats = chats.map((chat) =>
-              chat.id === payload.new.id ? payload.new : chat
-            );
-            setChats(updatedChats);
-          }
+          // if (payload.eventType === 'INSERT') {
+          //   // setChats((prev) => [...(prev || []), payload.new] as DBChat[])
+          //   const getNewChat = () => {
+          //     if (chats.length === 0) return [payload.new];
+          //     const sortedChats = [...chats, payload.new].sort((a, b) => {
+          //       console.log(payload.new);
+          //       const aLastMessage =
+          //         a.messages[a?.messages?.length - 1]?.created_at || a.created_at;
+          //       const bLastMessage =
+          //         b.messages[b?.messages?.length - 1]?.created_at || b.created_at;
+          //       return (
+          //         new Date(bLastMessage).getTime() -
+          //         new Date(aLastMessage).getTime()
+          //       );
+          //     });
+          //     return sortedChats;
+          //   };
+          //   const newChats = getNewChat();
+          //   setChats(newChats);
+          //   setChatSelected(payload.new);
+          // }
+          // if (payload.eventType === 'UPDATE') {
+          //   const updatedChats = chats.map((chat) =>
+          //     chat.id === payload.new.id ? payload.new : chat
+          //   );
+          //   setChats(updatedChats);
+          // }
         }
       )
       .on(

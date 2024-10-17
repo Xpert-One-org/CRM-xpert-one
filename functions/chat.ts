@@ -2,7 +2,7 @@
 
 import { msgPerPage } from '@/data/constant';
 import type { Reaction } from '@/types/types';
-import type { DBMessage, MsgFiles } from '@/types/typesDb';
+import type { DBChat, DBMessage, MsgFiles } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const handleReadNewMessage = async ({
@@ -40,9 +40,11 @@ export const getUserChats = async () => {
   const { data: chats, error } = await supabase
     .from('chat')
     .select('*, messages:message(*), mission(mission_number)')
-    .eq('created_by', user.id)
+    .order('updated_at', { ascending: false })
+
     .eq('type', 'chat')
     .order('created_at', { referencedTable: 'message', ascending: false })
+
     .limit(1, { referencedTable: 'message' });
 
   const chatsWithSingleMission = chats?.map((chat) => ({
@@ -143,4 +145,68 @@ export const insertMessage = async ({
     return { id: null, error };
   }
   return { id: data.id, error: null };
+};
+
+export const addFileToMessage = async ({
+  message_id,
+  files,
+}: {
+  message_id: number;
+  files: MsgFiles[];
+}) => {
+  const supabase = createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return { error: 'User not found' };
+  }
+  const { error } = await supabase
+    .from('message')
+    .update({ files })
+    .eq('id', message_id);
+  if (error) {
+    return { error };
+  }
+  return { error: null };
+};
+
+export const postChat = async ({
+  chat,
+  message,
+  receiver_id,
+}: {
+  chat: DBChat;
+  message: DBMessage;
+  receiver_id: string;
+}) => {
+  const supabase = createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return { data: null, messageData: null, error: 'User not found' };
+  }
+  const { data, error } = await supabase
+    .from('chat')
+    .insert({
+      title: chat.title,
+      topic: chat.topic,
+      category: chat.category,
+      mission_id: chat.mission_id,
+      type: chat.type,
+    })
+    .select('id')
+    .single();
+  if (error) {
+    return { data: null, messageData: null, error: error.message };
+  }
+  const { data: messageData, error: error2 } = await supabase
+    .from('message')
+    .insert({
+      content: message.content,
+      chat_id: data.id,
+    })
+    .select('id')
+    .single();
+  if (error2) {
+    return { data: null, messageData: null, error: error2.message };
+  }
+  return { data: data, messageData: messageData, error: null };
 };

@@ -6,6 +6,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "gen-supabase-types": "npx supabase gen types --lang=typescript --project-id gcybwruhwuiaecucsroi --schema public > types/supabase.ts",
+    
     "config": {
       "commitizen": {
         "path": "@commitlint/cz-commitlint"

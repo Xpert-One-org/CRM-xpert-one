@@ -311,7 +311,7 @@ export default function XpertExperience({ xpert }: { xpert: DBXpert }) {
               <div className="flex items-center justify-end gap-x-spaceSmall">
                 {/* {isNotFirstExperience && (
                   <Button
-                    className="text-colors-important mt-spaceSmall self-end bg-transparent px-0 lg:w-fit"
+                    className="text-important mt-spaceSmall self-end bg-transparent px-0 lg:w-fit"
                     onClick={() => ({})}
                   >
                     Supprimer l'expérience

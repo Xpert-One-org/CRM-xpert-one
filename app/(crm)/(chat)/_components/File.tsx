@@ -12,7 +12,7 @@ type Props = {
     type: string | null;
     url: string | null;
   } | null;
-}
+};
 
 export default function File({ file }: Props) {
   const [isFileLoading, setIsFileLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function File({ file }: Props) {
       <DialogTrigger>
         <div className="relative flex h-[100px] items-center">
           {isFileLoading && (
-            <div className="bg-colors-fond-gray absolute flex size-full items-center justify-center rounded-lg border">
+            <div className="absolute flex size-full items-center justify-center rounded-lg border bg-fond-gray">
               <Loader />{' '}
             </div>
           )}
@@ -65,9 +65,7 @@ export default function File({ file }: Props) {
         className="flex h-full w-[100px] flex-col items-center"
       >
         <FileText strokeWidth={1} size={58} />
-        <p className="truncate pt-2 text-xxs font-light">
-          {file.name}
-        </p>
+        <p className="truncate pt-2 text-xxs font-light">{file.name}</p>
       </Link>
     )
   );

@@ -1,5 +1,5 @@
 import type { DBChat, DBMessage } from '@/types/typesDb';
-import { getUserChats, handleReadNewMessage } from '@functions/chat';
+import { getUserChats, handleReadNewMessage, postChat } from '@functions/chat';
 import { SetStateAction } from 'react';
 import { create } from 'zustand';
 
@@ -18,6 +18,7 @@ type ChatState = {
   setIsFileLoading: (isFileLoading: boolean) => void;
   answeringMsg: DBMessage | null;
   setAnsweringMsg: (isAnsweringMsg: DBMessage | null) => void;
+  insertChat: (chat: DBChat, message: DBMessage, receiver_id: string) => void;
   updateMessageRead: ({
     chat_id,
     read_by,
@@ -34,7 +35,7 @@ type ChatState = {
       | ((prevMessages: DBMessage[]) => DBMessage[])
   ) => void;
   reset: () => void;
-}
+};
 
 const useChat = create<ChatState>((set) => ({
   inputScrollHeight: '58px',
@@ -50,6 +51,13 @@ const useChat = create<ChatState>((set) => ({
   answeringMsg: null,
   setAnsweringMsg: (answeringMsg) => set({ answeringMsg: answeringMsg }),
   messages: [],
+  insertChat: async (chat, message, receiver_id) => {
+    const { data, error } = await postChat({ chat, message, receiver_id });
+    if (error) {
+      set({ errorMsg: error });
+    }
+  },
+
   fetchChats: async () => {
     set({ isLoading: true });
     const { data, error } = await getUserChats();

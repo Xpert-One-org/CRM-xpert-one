@@ -12,7 +12,7 @@ import React, { useEffect } from 'react';
 type TabContentProps = {
   type: ChatType;
   user_id: string;
-} & React.HTMLAttributes<HTMLDivElement>
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export default function TabContent({
   className,
@@ -38,14 +38,14 @@ export default function TabContent({
   return (
     <div
       className={cn(
-        'border-colors-fond-gray hidden w-full max-w-full flex-col overflow-auto border lg:flex lg:max-h-[calc(100vh_-_232px)] lg:max-w-[342px] lg:rounded-l-lg lg:border-[1px]',
+        'hidden w-full max-w-full flex-col overflow-auto border border-fond-gray lg:flex lg:max-h-[calc(100vh_-_232px)] lg:max-w-[342px] lg:rounded-l-lg lg:border-[1px]',
         className,
         { 'lg:max-h-[calc(100vh_-_295px)]': type === 'forum' },
         { 'flex rounded-none border-[0px]': !isDektop && !chatSelected }
       )}
     >
       {chats.length === 0 && (
-        <p className="text-colors-light-gray-third p-spaceMedium text-center">
+        <p className="p-spaceMedium text-center text-light-gray-third">
           Aucun message
         </p>
       )}
@@ -91,7 +91,6 @@ const TabChat = ({
   const handleChangeTab = () => {
     if (!chat) return;
     setChatSelected(chat);
-
     updateMessageRead({ chat_id: chat.id, read_by: read_by ?? [] });
   };
 
@@ -99,12 +98,12 @@ const TabChat = ({
     <button
       disabled={disabled}
       className={cn(
-        'border-colors-fond-gray flex items-center gap-x-spaceMedium border-y-[1px] px-spaceMedium py-spaceContainer text-left lg:border-t-0',
+        'flex items-center gap-x-spaceMedium border-y-[1px] border-fond-gray px-spaceMedium py-spaceContainer text-left lg:border-t-0',
         {
-          'lg:bg-colors-chat-selected':
+          'lg:bg-chat-selected':
             chatSelected == null ? index === 0 : chatSelected.id === chat?.id,
         },
-        { 'bg-colors-chat-selected': chatSelected?.id === chat?.id }
+        { 'bg-chat-selected': chatSelected?.id === chat?.id }
       )}
       onClick={handleChangeTab}
     >
@@ -113,20 +112,17 @@ const TabChat = ({
           className={cn(
             'z-20 flex h-3 w-3 animate-pulse items-center justify-center rounded-full border-2 border-transparent bg-[#FFA800] font-bold text-white group-hover:scale-110',
             {
-              'bg-colors-primary animate-none':
-                isReadByMe || isReadByMe == null,
+              'animate-none bg-primary': isReadByMe || isReadByMe == null,
             }
           )}
         />
       </div>
       <div className="flex flex-col">
-        <p className="text-colors-light-gray-third text-xs font-[400]">
+        <p className="text-xs font-[400] text-light-gray-third">
           Reçu{' '}
           {getTimeFromNow(sent_at ?? new Date().toISOString()).toLowerCase()}
         </p>
-        <p className="max-w-[200px] truncate font-[700]">
-          {title}
-        </p>
+        <p className="max-w-[200px] truncate font-[700]">{title}</p>
       </div>
     </button>
   );

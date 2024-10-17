@@ -6,7 +6,7 @@ import { DESKTOP } from '@/data/constant';
 import { ChevronLeft } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import useChat from '@/store/chat/chat';
-import type { ChatType, DBChat} from '@/types/typesDb';
+import type { ChatType, DBChat } from '@/types/typesDb';
 import { DBProfile } from '@/types/typesDb';
 import { useChatContent } from '@/store/chat/content';
 import { MsgCard } from './MsgCard';
@@ -52,7 +52,7 @@ export default function ChatContent({
   return (
     <div
       className={cn(
-        'lg:bg-colors-background relative w-[calc(100%_-_342px)] rounded-r-lg shadow-container lg:block',
+        'relative w-[calc(100%_-_342px)] rounded-r-lg shadow-container lg:block lg:bg-background',
         className,
         { hidden: !isDesktop && !chatSelected },
         { 'w-full': !isDesktop && chatSelected }
@@ -60,7 +60,7 @@ export default function ChatContent({
     >
       <div className="relative h-[112px] w-full rounded-tr-lg">
         <Image
-          src="/static/confirm-email.jpg"
+          src="/static/background.jpg"
           fill
           objectFit="cover"
           alt="confirm-popup"
