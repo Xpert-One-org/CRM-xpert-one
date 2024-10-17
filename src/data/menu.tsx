@@ -7,7 +7,7 @@ import PeopleCircle from '@/components/svg/PeopleCircle';
 import Supplier from '@/components/svg/Supplier';
 import Xpert from '@/components/svg/Xpert';
 import { cn } from '@/lib/utils';
-import { ChartColumn, LayoutDashboard } from 'lucide-react';
+import { ChartColumn, LayoutDashboard, Mail } from 'lucide-react';
 
 export const menuCrm = [
   {
@@ -149,7 +149,7 @@ export const menuCrm = [
   },
   {
     id: 6,
-    title: 'Messagerie externe',
+    title: 'Messagerie',
     icon: (
       <ChatBubbles
         width={32}
@@ -161,6 +161,18 @@ export const menuCrm = [
   },
   {
     id: 7,
+    title: 'Messagerie externe',
+    icon: (
+      <Mail
+        width={32}
+        height={32}
+        className="stroke-white stroke-1 transition group-hover:stroke-accent"
+      />
+    ),
+    url: '/messagerie-externe',
+  },
+  {
+    id: 8,
     title: 'Communauté',
     icon: (
       <PeopleCircle
@@ -172,7 +184,7 @@ export const menuCrm = [
     url: '/communaute',
   },
   {
-    id: 8,
+    id: 9,
     title: 'Admin',
     icon: (
       <Admin
@@ -194,7 +206,7 @@ export const menuCrm = [
     ],
   },
   {
-    id: 9,
+    id: 10,
     title: 'Statistiques',
     icon: (
       <ChartColumn
@@ -207,7 +219,7 @@ export const menuCrm = [
     url: '/stats',
   },
   {
-    id: 10,
+    id: 11,
     title: 'Paramètres',
     icon: (
       <Cog
