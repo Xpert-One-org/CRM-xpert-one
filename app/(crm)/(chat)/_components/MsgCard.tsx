@@ -39,7 +39,7 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
   const { setAnsweringMsg, chatSelected } = useChat();
   const { type } = chatSelected ?? {};
 
-  const { reactions, addReaction, open, setOpen } = useReaction({
+  const { addReaction, open, setOpen } = useReaction({
     reaction_db,
     user_id,
     message_id: message.id,
@@ -133,7 +133,7 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
           </PopoverContent>
         </Popover>
 
-        {(reactions as Reaction[] | undefined)?.map((r: any, i: number) => (
+        {(reaction_db as Reaction[] | undefined)?.map((r: any, i: number) => (
           <div key={r?.emoji} className="relative">
             <div className="z-10 flex items-center gap-x-spaceXXSmall">
               <button

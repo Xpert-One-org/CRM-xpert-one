@@ -17,7 +17,6 @@ export const handleReadNewMessage = async ({
   if (!user) {
     return { error: 'User not found' };
   }
-  console.log('read_by', read_by);
   const { data, error } = await supabase
     .from('message')
     .update({
@@ -165,7 +164,6 @@ export const addFileToMessage = async ({
   if (!user) {
     return { error: 'User not found' };
   }
-  console.log('files', files);
   const { error } = await supabase
     .from('message')
     .update({ files })
@@ -260,4 +258,22 @@ export const selectBaseMsg = async (message_id: number) => {
     .eq('id', message_id)
     .single();
   return { data, error };
+};
+
+export const getUniqueMsgChat = async (chat_id: number) => {
+  const supabase = createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return { error: 'User not found' };
+  }
+  const { data, error } = await supabase
+    .from('message')
+    .select(
+      '*, profile(role, company_name, generated_id, firstname, lastname, avatar_url, username)'
+    )
+    .eq('id', chat_id);
+  if (error) {
+    return { data: null, error: error.message };
+  }
+  return { data, error: null };
 };

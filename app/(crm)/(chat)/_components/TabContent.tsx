@@ -26,7 +26,7 @@ export default function TabContent({
     isLoading,
   } = useChat();
 
-  const { chats } = useRealtimeChat({ type, user_id: user_id });
+  const { chats } = useRealtimeChat({ type, user_id });
 
   const isDektop = useMediaQuery(DESKTOP);
 

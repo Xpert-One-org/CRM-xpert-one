@@ -1,12 +1,5 @@
 import type { DBChat, DBMessage } from '@/types/typesDb';
-import {
-  addFileToMessage,
-  getUserChats,
-  handleReadNewMessage,
-  postChat,
-  uploadFileChat,
-} from '@functions/chat';
-import { SetStateAction } from 'react';
+import { getUserChats, handleReadNewMessage, postChat } from '@functions/chat';
 import { toast } from 'sonner';
 import { create } from 'zustand';
 import useUser from '../useUser';
@@ -70,6 +63,7 @@ const useChat = create<ChatState>((set) => ({
   setIsFileLoading: (isFileLoading) => set({ isFileLoading: isFileLoading }),
   answeringMsg: null,
   popupOpen: false,
+
   setPopupOpen: (popupOpen) => set({ popupOpen: popupOpen }),
   setAnsweringMsg: (answeringMsg) => set({ answeringMsg: answeringMsg }),
   messages: [],
@@ -89,6 +83,8 @@ const useChat = create<ChatState>((set) => ({
       return;
     }
     if (data && data.id) {
+      // FILE NOT USED HERE ATM
+
       // if (file) {
       //     const filePath = `${chat.type}/${data.id}/${file.type}_${new Date().getTime()}`;
       //     const reader = new FileReader();

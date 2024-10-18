@@ -3,8 +3,9 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import useChat from './chat';
 import type { DBChat, DBMessage } from '@/types/typesDb';
-import { selectBaseMsg } from '@functions/chat';
+import { getUniqueMsgChat, selectBaseMsg } from '@functions/chat';
 import { getUserChatProfile } from '@functions/profile';
+import { useReaction } from '@/hooks/useReaction';
 
 export const useRealtimeChat = ({
   type,
@@ -19,6 +20,7 @@ export const useRealtimeChat = ({
     setMessages,
     updateMessageRead,
     fetchChats,
+    setChatSelected,
     chats,
     setChats,
   } = useChat();
@@ -28,7 +30,8 @@ export const useRealtimeChat = ({
       case 'echo_community':
         return `type=eq.${type}`;
       case 'chat':
-        return `created_by=eq.${user_id}`;
+        // created_by or receiver_id =
+        return `type=eq.${type}`;
       case 'xpert_to_xpert':
         return `created_by=eq.${user_id}`;
       default:
@@ -44,51 +47,32 @@ export const useRealtimeChat = ({
   useEffect(() => {
     const channel = supabase
       .channel('chats')
-      // .on(
-      //   'postgres_changes',
-      //   {
-      //     event: '*',
-      //     schema: 'public',
-      //     table: 'chat',
-      //     filter: chatFilter,
-      //   },
-      //   (payload: RealtimePostgresChangesPayload<DBChat>) => {
-      //     console.log('payload', payload);
-      //     if (payload.eventType === 'DELETE') {
-      //       const chatWithoutOld = chats.filter(
-      //         (chat) => chat.id != payload.old.id
-      //       );
-      //       setChats(chatWithoutOld);
-      //     }
-      //     // if (payload.eventType === 'INSERT') {
-      //     //   // setChats((prev) => [...(prev || []), payload.new] as DBChat[])
-      //     //   const getNewChat = () => {
-      //     //     if (chats.length === 0) return [payload.new];
-      //     //     const sortedChats = [...chats, payload.new].sort((a, b) => {
-      //     //       console.log(payload.new);
-      //     //       const aLastMessage =
-      //     //         a.messages[a?.messages?.length - 1]?.created_at || a.created_at;
-      //     //       const bLastMessage =
-      //     //         b.messages[b?.messages?.length - 1]?.created_at || b.created_at;
-      //     //       return (
-      //     //         new Date(bLastMessage).getTime() -
-      //     //         new Date(aLastMessage).getTime()
-      //     //       );
-      //     //     });
-      //     //     return sortedChats;
-      //     //   };
-      //     //   const newChats = getNewChat();
-      //     //   setChats(newChats);
-      //     //   setChatSelected(payload.new);
-      //     // }
-      //     // if (payload.eventType === 'UPDATE') {
-      //     //   const updatedChats = chats.map((chat) =>
-      //     //     chat.id === payload.new.id ? payload.new : chat
-      //     //   );
-      //     //   setChats(updatedChats);
-      //     // }
-      //   }
-      // )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat',
+          filter: chatFilter,
+        },
+        async (payload: RealtimePostgresChangesPayload<DBChat>) => {
+          if (payload.eventType === 'INSERT') {
+            const { data, error } = await getUniqueMsgChat(payload.new.id);
+            if (error) {
+              console.error('Error fetching unique message:', error);
+              return;
+            }
+            if (!data) {
+              console.error('No data found for unique message');
+              return;
+            }
+            const newChats = [{ ...payload.new, messages: data }, ...chats];
+
+            setChats(newChats);
+            if (!chatSelected) setChatSelected(newChats[0]);
+          }
+        }
+      )
       .on(
         'postgres_changes',
         {
@@ -98,8 +82,6 @@ export const useRealtimeChat = ({
           filter: msgFilter,
         },
         async (payload: RealtimePostgresChangesPayload<DBMessage>) => {
-          console.log('payload', payload);
-
           const userId = (payload.new as DBMessage).send_by;
 
           // GET PROFILE ASSOCIATED WITH MESSAGE
@@ -112,11 +94,11 @@ export const useRealtimeChat = ({
           }
           if (payload.eventType === 'UPDATE') {
             setMessages((prev) =>
-              prev.map((message) =>
-                message.id === payload.new.id
+              prev.map((message) => {
+                return message.id === payload.new.id
                   ? { ...message, reactions: payload.new.reactions }
-                  : message
-              )
+                  : message;
+              })
             );
           }
           if (payload.eventType === 'INSERT') {
