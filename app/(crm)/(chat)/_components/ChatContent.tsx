@@ -14,6 +14,10 @@ import Loader from '@/components/Loader';
 import SkeletonChat from './skeletons/SkeletonChat';
 import InputSend from './InputSend';
 import useUser from '@/store/useUser';
+import { handleReadNewMessage } from '@functions/chat';
+import { createSupabaseFrontendClient } from '@/utils/supabase/client';
+import type { RealtimePresenceState } from '@supabase/supabase-js';
+import { RealtimePresence } from '@supabase/supabase-js';
 
 export default function ChatContent({
   user_id,
@@ -33,6 +37,7 @@ export default function ChatContent({
     isLoading,
     messages,
     reset,
+    updateMessageRead,
   } = useChat();
   const { mission_number } = chatSelected?.mission ?? {};
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -40,6 +45,7 @@ export default function ChatContent({
 
   const isDesktop = useMediaQuery(DESKTOP);
   const { isMoreDataLoading } = useChatContent({ type, scrollRef });
+  const supabase = createSupabaseFrontendClient();
 
   useEffect(() => {
     fetchMinimalProfile();
@@ -48,6 +54,42 @@ export default function ChatContent({
       setChatSelected(chat);
     }
   }, []);
+
+  useEffect(() => {
+    const channel = supabase.channel(`conversation:${chatSelected}`);
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state: RealtimePresenceState<{ user_id: string }> =
+          channel.presenceState();
+
+        const currentUserPresence = Object.values(state)
+          .flat()
+          .find((presence) => presence.user_id === user_id);
+        if (currentUserPresence && chatSelected) {
+          chatSelected.messages.map((m) => {
+            if (!m.read_by.includes(user_id)) {
+              handleReadNewMessage({
+                chat_id: chatSelected.id,
+                read_by: m.read_by,
+              });
+            }
+          });
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: user_id,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [chatSelected]);
 
   return (
     <div

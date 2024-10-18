@@ -3,6 +3,8 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import useChat from './chat';
 import type { DBChat, DBMessage } from '@/types/typesDb';
+import { selectBaseMsg } from '@functions/chat';
+import { getUserChatProfile } from '@functions/profile';
 
 export const useRealtimeChat = ({
   type,
@@ -13,7 +15,6 @@ export const useRealtimeChat = ({
 }) => {
   const supabase = createSupabaseFrontendClient();
   const {
-    setChatSelected,
     chatSelected,
     setMessages,
     updateMessageRead,
@@ -41,104 +42,53 @@ export const useRealtimeChat = ({
   }, []);
 
   useEffect(() => {
-    const xpert_channel = supabase
-      .channel('chat_xpert_to_xpert')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chat',
-          filter: `xpert_recipient_id=eq.${user_id}`,
-        },
-        (payload: RealtimePostgresChangesPayload<DBChat>) => {
-          if (payload.eventType === 'DELETE') {
-            const chatWithoutOld = chats.filter(
-              (chat) => chat.id != payload.old.id
-            );
-            setChats(chatWithoutOld);
-          }
-          if (payload.eventType === 'INSERT') {
-            const getNewChat = () => {
-              if (chats.length === 0) return [payload.new];
-              const sortedChats = [...chats, payload.new].sort((a, b) => {
-                const aLastMessage =
-                  a.messages[a.messages.length - 1]?.created_at || a.created_at;
-                const bLastMessage =
-                  b.messages[b.messages.length - 1]?.created_at || b.created_at;
-                return (
-                  new Date(bLastMessage).getTime() -
-                  new Date(aLastMessage).getTime()
-                );
-              });
-              return sortedChats;
-            };
-            const newChats = getNewChat();
-            setChats(newChats);
-            setChatSelected(payload.new);
-          }
-          // if (payload.eventType === 'UPDATE') {
-          //   const updatedChats = chats.map((chat) =>
-          //     chat.id === payload.new.id ? payload.new : chat
-          //   );
-          //   setChats(updatedChats);
-          // }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(xpert_channel);
-    };
-  }, [supabase, chatSelected?.id]);
-
-  useEffect(() => {
     const channel = supabase
       .channel('chats')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chat',
-          filter: chatFilter,
-        },
-        (payload: RealtimePostgresChangesPayload<DBChat>) => {
-          if (payload.eventType === 'DELETE') {
-            const chatWithoutOld = chats.filter(
-              (chat) => chat.id != payload.old.id
-            );
-            setChats(chatWithoutOld);
-          }
-          // if (payload.eventType === 'INSERT') {
-          //   // setChats((prev) => [...(prev || []), payload.new] as DBChat[])
-          //   const getNewChat = () => {
-          //     if (chats.length === 0) return [payload.new];
-          //     const sortedChats = [...chats, payload.new].sort((a, b) => {
-          //       console.log(payload.new);
-          //       const aLastMessage =
-          //         a.messages[a?.messages?.length - 1]?.created_at || a.created_at;
-          //       const bLastMessage =
-          //         b.messages[b?.messages?.length - 1]?.created_at || b.created_at;
-          //       return (
-          //         new Date(bLastMessage).getTime() -
-          //         new Date(aLastMessage).getTime()
-          //       );
-          //     });
-          //     return sortedChats;
-          //   };
-          //   const newChats = getNewChat();
-          //   setChats(newChats);
-          //   setChatSelected(payload.new);
-          // }
-          // if (payload.eventType === 'UPDATE') {
-          //   const updatedChats = chats.map((chat) =>
-          //     chat.id === payload.new.id ? payload.new : chat
-          //   );
-          //   setChats(updatedChats);
-          // }
-        }
-      )
+      // .on(
+      //   'postgres_changes',
+      //   {
+      //     event: '*',
+      //     schema: 'public',
+      //     table: 'chat',
+      //     filter: chatFilter,
+      //   },
+      //   (payload: RealtimePostgresChangesPayload<DBChat>) => {
+      //     console.log('payload', payload);
+      //     if (payload.eventType === 'DELETE') {
+      //       const chatWithoutOld = chats.filter(
+      //         (chat) => chat.id != payload.old.id
+      //       );
+      //       setChats(chatWithoutOld);
+      //     }
+      //     // if (payload.eventType === 'INSERT') {
+      //     //   // setChats((prev) => [...(prev || []), payload.new] as DBChat[])
+      //     //   const getNewChat = () => {
+      //     //     if (chats.length === 0) return [payload.new];
+      //     //     const sortedChats = [...chats, payload.new].sort((a, b) => {
+      //     //       console.log(payload.new);
+      //     //       const aLastMessage =
+      //     //         a.messages[a?.messages?.length - 1]?.created_at || a.created_at;
+      //     //       const bLastMessage =
+      //     //         b.messages[b?.messages?.length - 1]?.created_at || b.created_at;
+      //     //       return (
+      //     //         new Date(bLastMessage).getTime() -
+      //     //         new Date(aLastMessage).getTime()
+      //     //       );
+      //     //     });
+      //     //     return sortedChats;
+      //     //   };
+      //     //   const newChats = getNewChat();
+      //     //   setChats(newChats);
+      //     //   setChatSelected(payload.new);
+      //     // }
+      //     // if (payload.eventType === 'UPDATE') {
+      //     //   const updatedChats = chats.map((chat) =>
+      //     //     chat.id === payload.new.id ? payload.new : chat
+      //     //   );
+      //     //   setChats(updatedChats);
+      //     // }
+      //   }
+      // )
       .on(
         'postgres_changes',
         {
@@ -148,33 +98,51 @@ export const useRealtimeChat = ({
           filter: msgFilter,
         },
         async (payload: RealtimePostgresChangesPayload<DBMessage>) => {
+          console.log('payload', payload);
+
           const userId = (payload.new as DBMessage).send_by;
-          let userProfile;
 
-          if (userId) {
-            const { data, error } = await supabase
-              .from('profile')
-              .select(
-                'firstname, lastname, avatar_url, role, company_name, generated_id, username'
-              )
-              .eq('id', userId)
-              .single();
-
-            if (error) {
-              console.error('Error fetching user profile:', error);
-            } else {
-              userProfile = data;
-            }
-          }
+          // GET PROFILE ASSOCIATED WITH MESSAGE
+          const { data: userProfile } = await getUserChatProfile(userId);
 
           if (payload.eventType === 'DELETE') {
             setMessages((prev) =>
               prev.filter((message) => message.id !== payload.old.id)
             );
           }
+          if (payload.eventType === 'UPDATE') {
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === payload.new.id
+                  ? { ...message, reactions: payload.new.reactions }
+                  : message
+              )
+            );
+          }
           if (payload.eventType === 'INSERT') {
+            const getBaseMsg = async (msg: DBMessage) => {
+              // IF MESSAGE IS A REPLY, SELECT BASE MESSAGE
+              if (msg.answer_to) {
+                const { data, error } = await selectBaseMsg(msg.answer_to);
+                if (error) {
+                  console.error('Error fetching base message:', error);
+                  return;
+                }
+                if (!data) {
+                  console.error('No data found for base message');
+                  return;
+                }
+                return data;
+              }
+              return null;
+            };
+
+            const base_msg = await getBaseMsg(payload.new);
+
+            // CREATE OBJECT WITH MESSAGE, USER PROFILE AND BASE MESSAGE
             const newMessageWithUser = {
               ...payload.new,
+              base_msg: base_msg,
               user: userProfile,
             };
 
@@ -215,10 +183,11 @@ export const useRealtimeChat = ({
                 read_by: payload.new.read_by,
               });
 
-              setMessages((prev) => [
-                ...prev,
-                { ...newMessageWithUser, read: true },
-              ]);
+              const msgToSet = {
+                ...newMessageWithUser,
+                read: true,
+              };
+              setMessages((prev) => [...prev, msgToSet]);
             }
           }
         }

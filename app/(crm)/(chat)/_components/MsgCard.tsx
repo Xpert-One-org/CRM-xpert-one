@@ -38,14 +38,11 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
   const { setAnsweringMsg, chatSelected } = useChat();
   const { type } = chatSelected ?? {};
 
-  const { reaction, addReaction, open, setOpen, postReaction } = useReaction({
+  const { reactions, addReaction, open, setOpen } = useReaction({
     reaction_db,
     user_id,
     message_id: message.id,
   });
-  useEffect(() => {
-    postReaction(reaction);
-  }, [reaction]);
 
   const isCreatorMsgNotUser =
     chatSelected?.created_by === message.send_by &&
@@ -135,7 +132,7 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
           </PopoverContent>
         </Popover>
 
-        {reaction.map((r: any, i: number) => (
+        {reactions.map((r: any, i: number) => (
           <div key={r?.emoji} className="relative">
             <div className="z-10 flex items-center gap-x-spaceXXSmall">
               <button

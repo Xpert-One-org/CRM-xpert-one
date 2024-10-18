@@ -36,7 +36,6 @@ export default function PopupNewChat({
   text?: string;
 }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery(DESKTOP);
   const [file, setFile] = useState<File | null>(null);
   const [newMsg, setNewMsg] = useState<DBMessage>({
@@ -62,13 +61,13 @@ export default function PopupNewChat({
     messages: [],
     mission: null,
     category: null,
-    xpert_recipient_id: null,
+    receiver_id: null,
     type: type,
   });
 
   const { subjects, fetchSubjects } = useSelect();
 
-  const { chatSelected } = useChat();
+  const { chatSelected, insertChat, popupOpen, setPopupOpen } = useChat();
   const { searchUserSelected, clearSearchUserSelected } = useUser();
   const supabase = createSupabaseFrontendClient();
 
@@ -84,7 +83,6 @@ export default function PopupNewChat({
 
   const handleFileChange = ({
     e,
-    file_name,
   }: {
     e: React.ChangeEvent<HTMLInputElement>;
     file_name: string;
@@ -103,60 +101,16 @@ export default function PopupNewChat({
   };
 
   const handleSend = async () => {
-    setIsLoading(true);
     if (!searchUserSelected) {
-      toast.error('Veuillez sélectionner un destinataire');
-      setIsLoading(false);
+      toast.warning('Veuillez sélectionner un destinataire');
       return;
     }
-
-    const { error, messageData, data } = await postChat({
+    insertChat({
       chat: newChat,
       message: newMsg,
       receiver_id: searchUserSelected.id,
+      file,
     });
-    if (error) {
-      console.error(error);
-      toast.error("Erreur lors de l'envoi du message");
-      setIsLoading(false);
-      return;
-    }
-    if (data && data.id) {
-      if (file) {
-        const newFile = async () => {
-          const filePath = `${type}/${data.id}/${
-            file.type
-          }_${new Date().getTime()}`;
-
-          const { data: filesData, error: fileError } = await supabase.storage
-            .from('chat')
-            .upload(filePath, file);
-          if (fileError) {
-            console.error(`Failed to upload file: ${file.name}`, fileError);
-            return;
-          }
-          const publicURL = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF}.supabase.in/storage/v1/object/public/${filesData.fullPath}`;
-          return {
-            name: file.name,
-            type: file.type,
-            url: publicURL,
-          };
-        };
-        const fileToUpload = await newFile();
-        if (fileToUpload) {
-          await addFileToMessage({
-            message_id: messageData.id,
-            files: [fileToUpload],
-          });
-          window.location.reload();
-        }
-      }
-    }
-
-    toast.success('Message envoyé avec succès');
-    setIsLoading(false);
-    clearSearchUserSelected();
-    setOpen(false);
   };
 
   useEffect(() => {
@@ -176,7 +130,7 @@ export default function PopupNewChat({
     isLoading;
 
   return (
-    <Credenza open={open} onOpenChange={setOpen}>
+    <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
       <Button
         className={cn(
           'h-auto w-fit px-spaceMedium py-spaceMediumContainer text-white lg:block',
@@ -184,7 +138,7 @@ export default function PopupNewChat({
             hidden: !isDesktop && chatSelected,
           }
         )}
-        onClick={() => setOpen(true)}
+        onClick={() => setPopupOpen(true)}
       >
         {text}
       </Button>

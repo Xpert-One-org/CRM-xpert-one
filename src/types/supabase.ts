@@ -66,11 +66,11 @@ export type Database = {
           created_by: string | null;
           id: number;
           mission_id: number | null;
+          receiver_id: string | null;
           title: string;
           topic: string;
           type: Database['public']['Enums']['chat_type'];
           updated_at: string | null;
-          xpert_recipient_id: string | null;
         };
         Insert: {
           category?: string | null;
@@ -78,11 +78,11 @@ export type Database = {
           created_by?: string | null;
           id?: number;
           mission_id?: number | null;
+          receiver_id?: string | null;
           title: string;
           topic: string;
           type?: Database['public']['Enums']['chat_type'];
           updated_at?: string | null;
-          xpert_recipient_id?: string | null;
         };
         Update: {
           category?: string | null;
@@ -90,11 +90,11 @@ export type Database = {
           created_by?: string | null;
           id?: number;
           mission_id?: number | null;
+          receiver_id?: string | null;
           title?: string;
           topic?: string;
           type?: Database['public']['Enums']['chat_type'];
           updated_at?: string | null;
-          xpert_recipient_id?: string | null;
         };
         Relationships: [
           {
@@ -112,8 +112,8 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'chat_xpert_recipient_id_fkey';
-            columns: ['xpert_recipient_id'];
+            foreignKeyName: 'chat_receiver_id_fkey';
+            columns: ['receiver_id'];
             isOneToOne: false;
             referencedRelation: 'profile';
             referencedColumns: ['id'];

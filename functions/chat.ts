@@ -17,17 +17,21 @@ export const handleReadNewMessage = async ({
   if (!user) {
     return { error: 'User not found' };
   }
-
-  const { error } = await supabase
+  console.log('read_by', read_by);
+  const { data, error } = await supabase
     .from('message')
     .update({
       read_by: read_by.includes(user.id) ? read_by : [...read_by, user.id],
     })
-    .eq('chat_id', chat_id);
+    .eq('chat_id', chat_id)
+    .not('read_by', 'cs', `{${user.id}}`)
+    .select('*');
 
   if (error) {
+    console.log('error', error);
     return { error: error.message };
   }
+  console.log('data', data);
   return { error: null };
 };
 
@@ -106,12 +110,15 @@ export const insertReaction = async ({
   if (!user) {
     return { error: 'User not found' };
   }
-  const { error } = await supabase
+
+  const { data, error } = await supabase
     .from('message')
     .update({
       reactions: reaction,
     })
-    .eq('id', message_id);
+    .eq('id', message_id)
+    .select('*');
+
   if (error) {
     return { error };
   }
@@ -159,6 +166,7 @@ export const addFileToMessage = async ({
   if (!user) {
     return { error: 'User not found' };
   }
+  console.log('files', files);
   const { error } = await supabase
     .from('message')
     .update({ files })
@@ -191,6 +199,7 @@ export const postChat = async ({
       category: chat.category,
       mission_id: chat.mission_id,
       type: chat.type,
+      receiver_id,
     })
     .select('id')
     .single();
@@ -209,4 +218,47 @@ export const postChat = async ({
     return { data: null, messageData: null, error: error2.message };
   }
   return { data: data, messageData: messageData, error: null };
+};
+
+export const uploadFileChat = async ({
+  file,
+  filePath,
+}: {
+  file: string;
+  filePath: string;
+}) => {
+  const supabase = createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return { error: 'User not found' };
+  }
+
+  const base64Data = file.split(',')[1];
+  const binaryData = Buffer.from(base64Data, 'base64');
+
+  const { data, error } = await supabase.storage
+    .from('chat')
+    .upload(filePath, binaryData, {
+      upsert: true,
+    });
+  if (error) {
+    return { error };
+  }
+  return { data, error: null };
+};
+
+export const selectBaseMsg = async (message_id: number) => {
+  const supabase = createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return { error: 'User not found' };
+  }
+  const { data, error } = await supabase
+    .from('message')
+    .select(
+      '*, profile(role, company_name, generated_id, firstname, lastname, avatar_url, username)'
+    )
+    .eq('id', message_id)
+    .single();
+  return { data, error };
 };

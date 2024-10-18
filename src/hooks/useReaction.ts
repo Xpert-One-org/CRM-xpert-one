@@ -16,7 +16,7 @@ export const useReaction = ({
 }) => {
   const [isRateLimited, setIsRateLimited] = useState(false);
 
-  const [reaction, setReaction] = useState<Reaction[]>(
+  const [reactions, setReactions] = useState<Reaction[]>(
     reaction_db as Reaction[]
   );
   const { setAnsweringMsg } = useChat();
@@ -32,19 +32,23 @@ export const useReaction = ({
     }
 
     // IF NO REACTION
-    if (!reaction) {
-      setReaction([{ emoji: emoji.native, count: 1, user_id: [user_id] }]);
+    if (!reactions) {
+      const newReaction = [
+        { emoji: emoji.native, count: 1, user_id: [user_id] },
+      ];
+      setReactions(newReaction);
+      postReaction(newReaction);
       setOpen(false);
       return;
     }
 
     // IF REACTION EXISTS AND USER REACTED
     if (
-      reaction.find(
+      reactions.find(
         (r) => r.emoji === emoji.native && r.user_id.includes(user_id)
       )
     ) {
-      const newReactionsArray = reaction.map((r) =>
+      const newReactionsArray = reactions.map((r) =>
         r.emoji === emoji.native
           ? {
               ...r,
@@ -53,34 +57,41 @@ export const useReaction = ({
             }
           : r
       );
-      setReaction(newReactionsArray.filter((r) => r.count > 0));
+      const newReations = newReactionsArray.filter((r) => r.count > 0);
+      setReactions(newReactionsArray.filter((r) => r.count > 0));
+      postReaction(newReations);
       setOpen(false);
       return;
     }
 
     // IF REACTION EXISTS AND USER DIDN'T REACTED
-    if (reaction.find((r) => r.emoji === emoji.native)) {
-      setReaction(
-        reaction.map((r) =>
-          r.emoji === emoji.native
-            ? { ...r, count: r.count + 1, user_id: [...r.user_id, user_id] }
-            : r
-        )
+    if (reactions.find((r) => r.emoji === emoji.native)) {
+      const newReactions = reactions.map((r) =>
+        r.emoji === emoji.native
+          ? { ...r, count: r.count + 1, user_id: [...r.user_id, user_id] }
+          : r
       );
+      setReactions(newReactions);
+      postReaction(newReactions);
       setOpen(false);
 
       return;
     }
 
-    setReaction((prev) => [
+    setReactions((prev) => [
       ...prev,
+      { emoji: emoji.native, count: 1, user_id: [user_id] },
+    ]);
+    postReaction([
+      ...reactions,
       { emoji: emoji.native, count: 1, user_id: [user_id] },
     ]);
     setOpen(false);
   };
 
   const postReaction = async (reaction: Reaction[]) => {
-    if (!reaction) return;
+    console.log('Post reaction', reaction);
+
     const { error } = await insertReaction({
       reaction,
       message_id: message_id,
@@ -94,8 +105,8 @@ export const useReaction = ({
     addReaction,
     postReaction,
     isRateLimited,
-    reaction,
-    setReaction,
+    reactions,
+    setReactions,
     setAnsweringMsg,
     setOpen,
     open,

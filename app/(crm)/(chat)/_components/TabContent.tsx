@@ -74,7 +74,6 @@ const TabChat = ({
   index,
   chatSelected,
   isReadByMe,
-
   disabled = false,
 }: {
   chat?: DBChat;

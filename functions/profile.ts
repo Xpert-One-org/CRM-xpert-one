@@ -55,3 +55,27 @@ export const searchUsers = async (query: string) => {
   }
   return { data, error: null };
 };
+
+export const getUserChatProfile = async (userId: string | null) => {
+  const supabase = createSupabaseAppServerClient();
+
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return {
+      data: null,
+      error: 'User not found',
+    };
+  }
+  if (userId) {
+    const { data, error } = await supabase
+      .from('profile')
+      .select(
+        'firstname, lastname, avatar_url, role, company_name, generated_id, username'
+      )
+      .eq('id', userId)
+      .single();
+
+    return { data, error };
+  }
+  return { data: null, error: 'User not found' };
+};
