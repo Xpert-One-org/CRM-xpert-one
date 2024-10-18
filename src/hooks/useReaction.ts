@@ -90,8 +90,6 @@ export const useReaction = ({
   };
 
   const postReaction = async (reaction: Reaction[]) => {
-    console.log('Post reaction', reaction);
-
     const { error } = await insertReaction({
       reaction,
       message_id: message_id,
