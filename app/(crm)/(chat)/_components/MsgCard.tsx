@@ -20,6 +20,7 @@ import { formatDate, formatHour } from '@/utils/formatDates';
 import type { ChatType, DBMessage, DBProfile } from '@/types/typesDb';
 import { useReaction } from '@/hooks/useReaction';
 import { getLabel } from '@/utils/getLabel';
+import type { Reaction } from '@/types/types';
 
 type MsgCardProps = {
   message: DBMessage;
@@ -132,7 +133,7 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
           </PopoverContent>
         </Popover>
 
-        {reactions.map((r: any, i: number) => (
+        {(reactions as Reaction[] | undefined)?.map((r: any, i: number) => (
           <div key={r?.emoji} className="relative">
             <div className="z-10 flex items-center gap-x-spaceXXSmall">
               <button

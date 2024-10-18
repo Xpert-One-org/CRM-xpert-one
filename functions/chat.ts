@@ -31,7 +31,6 @@ export const handleReadNewMessage = async ({
     console.log('error', error);
     return { error: error.message };
   }
-  console.log('data', data);
   return { error: null };
 };
 
