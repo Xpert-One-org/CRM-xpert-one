@@ -5,6 +5,8 @@ import { formatDate } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import { getTimeBeforeMission, uppercaseFirstLetter } from '@/utils/string';
 import { empty } from '@/data/constant';
+import { getLabel } from '@/utils/getLabel';
+import { useSelect } from '@/store/select';
 
 export default function MissionEtatOpenRow({
   mission,
@@ -44,6 +46,8 @@ export default function MissionEtatOpenRow({
     router.push(`/fournisseur?id=${fournisseurId}`);
   };
 
+  const { posts } = useSelect();
+
   return (
     <>
       <Box className="col-span-1">{createdAt}</Box>
@@ -71,7 +75,8 @@ export default function MissionEtatOpenRow({
         {timeBeforeDeadlineApplication}
       </Box>
       <Box className="col-span-1">
-        {uppercaseFirstLetter(mission.job_title?.replaceAll('_', ' ') ?? '')}
+        {getLabel({ value: mission.job_title ?? empty, select: posts }) ??
+          empty}
       </Box>
       <Box className="col-span-1">{'0'}</Box>
       <Box className="col-span-1">{'0'}</Box>

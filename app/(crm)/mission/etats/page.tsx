@@ -15,6 +15,7 @@ import MissionEtatInProgressTableSkeleton from './_components/in_progress/skelet
 import MissionEtatDeletedTableSkeleton from './_components/deleted/skeleton/MissionEtatDeletedTableSkeleton';
 import MissionEtatFinishedTableSkeleton from './_components/finished/skeleton/MissionEtatFinishedTableSkeleton';
 import type { DBMissionState } from '@/types/typesDb';
+import { useSelect } from '@/store/select';
 
 export default function MissionEtatPage() {
   const { fetchMissions, isLoading } = useMissionStore();
@@ -39,6 +40,12 @@ export default function MissionEtatPage() {
     newSearchParams.set('etat', state);
     router.push(`/mission/etats?${newSearchParams.toString()}`);
   };
+
+  const { fetchPosts } = useSelect();
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   return (
     <div className="mb-2 flex flex-wrap items-center gap-[15px]">
