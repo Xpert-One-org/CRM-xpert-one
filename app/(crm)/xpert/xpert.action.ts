@@ -25,7 +25,6 @@ export const getSpecificXpert = async (
         profile_expertise(*)
       `
       )
-      .eq('generated_id', xpertId)
       .eq('role', 'xpert')
       .single();
 
@@ -77,7 +76,7 @@ export const getAllXperts = async ({
         { count: 'exact' }
       )
       .eq('role', 'xpert')
-      .order('generated_id', { ascending: true })
+      .order('created_at', { ascending: false })
       .range(offset, offset + limitXpert - 1);
 
     if (error) {

@@ -8,10 +8,10 @@ export const notifPerPage = 5;
 export const defaultAvatar = '/static/avatar.png';
 export const totaleCompletion = 100;
 export const mediumCompletion = 60;
-export const empty = 'Non renseigné';
+export const empty = '';
 export const minQuerySearch = 2;
 export const ageMax = 35;
-export const limitXpert = 10;
+export const limitXpert = 15;
 export const limitFournisseur = 10;
 export const signUpDateOptions = [
   { label: 'Toutes', value: '' },

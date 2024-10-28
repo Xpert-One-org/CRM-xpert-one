@@ -31,7 +31,7 @@ export default function XpertTable() {
     fetchCountries,
   } = useSelect();
 
-  const { fetchXperts, xperts, loading, totalXperts, fetchSpecificXpert } =
+  const { fetchXperts, xperts, totalXperts, fetchSpecificXpert } =
     useXpertStore();
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');

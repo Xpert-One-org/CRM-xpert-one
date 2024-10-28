@@ -55,11 +55,11 @@ export default function FournisseurRow({
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}
-        {isOpen ? (
+        {/* {isOpen ? (
           <X size={18} strokeWidth={4} />
         ) : (
           <Eye size={18} strokeWidth={1} />
-        )}
+        )} */}
       </Button>
     </>
   );
