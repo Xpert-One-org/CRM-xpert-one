@@ -33,6 +33,7 @@ export default function ConnexionForm() {
             Connectez vous !
           </h3>
           <Input
+            classNameLabel="text-white"
             type="email"
             label="Adresse e-mail"
             name="email"
@@ -42,6 +43,7 @@ export default function ConnexionForm() {
             placeholder="Adresse e-mail"
           />
           <Input
+            classNameLabel="text-white"
             label="Mot de passe"
             type="password"
             showPasswordToggle

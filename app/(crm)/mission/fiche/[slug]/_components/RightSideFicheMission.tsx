@@ -1,5 +1,7 @@
 import Input from '@/components/inputs/Input';
+import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
 import { empty } from '@/data/constant';
+import { postTypesSelect, profilSearchedSelect } from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
@@ -23,28 +25,50 @@ export default function RightSideFicheMission({
     referent_name,
     referent_mail,
     referent_mobile,
+    diplomas_other,
+    languages_other,
     referent_fix,
     profile_searched,
     job_title,
     post_type,
     expertises,
+    expertises_other,
     languages,
     sector,
     specialties,
+    specialties_other,
     diplomas,
-    mission_number,
-    mission_application,
-    description,
   } = missionDetails;
 
   const startDate = formatDate(start_date ?? '');
   const endDate = formatDate(end_date ?? '');
   const deadlineApplication = formatDate(deadline_application ?? '');
 
-  const { jobTitles, fetchJobTitles } = useSelect();
+  const {
+    jobTitles,
+    sectors,
+    specialities,
+    diplomas: diplomaSelect,
+    languages: languageSelect,
+    fetchLanguages,
+    fetchDiplomas,
+    expertises: expertisesSelect,
+    fetchJobTitles,
+    fetchSectors,
+    fetchSpecialties,
+    fetchExpertises,
+  } = useSelect();
+
+  const loadingText = 'Chargement...';
 
   useEffect(() => {
     fetchJobTitles();
+    fetchSpecialties();
+    fetchDiplomas();
+    fetchExpertises();
+    fetchDiplomas();
+    fetchLanguages();
+    fetchSectors();
   }, []);
 
   return (
@@ -170,7 +194,12 @@ export default function RightSideFicheMission({
           <Input
             className="w-full max-w-[200px]"
             label="Profil recherché"
-            value={profile_searched ?? ''}
+            value={
+              getLabel({
+                value: profile_searched ?? '',
+                select: profilSearchedSelect,
+              }) ?? empty
+            }
             disabled
           />
           <Input
@@ -178,49 +207,110 @@ export default function RightSideFicheMission({
             label="Intitulé de mission"
             disabled
             value={
-              getLabel({ value: job_title ?? '', select: jobTitles }) ?? empty
+              jobTitles.length
+                ? (getLabel({ value: job_title ?? '', select: jobTitles }) ??
+                  empty)
+                : loadingText
             }
           />
-          <Input
+
+          <MultiSelectComponent
             className="w-[280px]"
             disabled
             label="Type de poste"
-            value={post_type ?? ''}
+            name=""
+            defaultSelectedKeys={post_type}
+            onValueChange={() => ({})}
+            options={postTypesSelect}
           />
         </div>
-        <div className="gap flex w-full flex-row gap-4">
+        <div className="gap flex w-full flex-row flex-wrap gap-4">
           <Input
             className="w-1/3"
             label="Secteur d’activité"
-            value={sector ?? ''}
+            value={
+              sectors.length
+                ? (getLabel({ value: sector ?? '', select: sectors }) ?? empty)
+                : loadingText
+            }
             disabled
           />
-          <Input
-            className="w-1/3"
+
+          <MultiSelectComponent
+            className="w-[280px]"
+            disabled
             label="Spécialité"
-            value={specialties ?? ''}
-            disabled
+            name=""
+            placeholder={loadingText}
+            defaultSelectedKeys={specialties}
+            onValueChange={() => ({})}
+            options={specialities ?? []}
           />
-          <Input
-            className="w-1/3"
+          {specialties_other && (
+            <Input
+              className="w-1/3"
+              label="Détails de la spécialité"
+              value={specialties_other}
+              disabled
+            />
+          )}
+          <MultiSelectComponent
+            className="w-[280px]"
+            disabled
             label="Expertise"
-            value={expertises ?? ''}
-            disabled
+            name=""
+            placeholder={loadingText}
+            defaultSelectedKeys={expertises}
+            onValueChange={() => ({})}
+            options={expertisesSelect ?? []}
           />
+          {expertises_other && (
+            <Input
+              className="w-1/3"
+              label="Détails de l'expertise"
+              value={expertises_other}
+              disabled
+            />
+          )}
         </div>
         <div className="gap flex w-full flex-row gap-4">
-          <Input
-            className="w-1/3"
+          <MultiSelectComponent
+            className="w-[280px]"
+            disabled
             label="Diplôme / Niveau d’étude"
-            value={diplomas ?? ''}
-            disabled
+            name=""
+            placeholder={loadingText}
+            defaultSelectedKeys={diplomas}
+            onValueChange={() => ({})}
+            options={diplomaSelect ?? []}
           />
-          <Input
-            className="w-1/3"
+          {diplomas_other && (
+            <Input
+              className="w-1/3"
+              label="Détails du diplôme"
+              value={diplomas_other}
+              disabled
+            />
+          )}
+
+          <MultiSelectComponent
+            className="w-[280px]"
+            disabled
             label="Langues"
-            value={languages ?? ''}
-            disabled
+            name=""
+            placeholder={loadingText}
+            defaultSelectedKeys={languages}
+            onValueChange={() => ({})}
+            options={languageSelect ?? []}
           />
+          {languages_other && (
+            <Input
+              className="w-1/3"
+              label="Détails du diplôme"
+              value={languages_other}
+              disabled
+            />
+          )}
           <Input
             className="w-1/3"
             label="TJM cible MAX"

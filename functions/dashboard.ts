@@ -10,9 +10,16 @@ export const getLastSignUpNewUsersWeek = async () => {
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
+    // get from last 7 days
     const { data, error } = await supabase
       .from('profile')
       .select('*')
+      .gte(
+        'created_at',
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('en-US', {
+          timeZone: 'Europe/Paris',
+        })
+      )
       .order('created_at', { ascending: false });
 
     if (error) {

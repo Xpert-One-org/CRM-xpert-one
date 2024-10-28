@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
+import { empty } from '@/data/constant';
 import type { DBXpert } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';
@@ -20,32 +21,32 @@ export default function XpertRow({
   const dateSignUp = formatDate(xpert.created_at);
 
   const postTypes = xpert.profile_mission
-    ? xpert.profile_mission.job_titles?.map((job) => {
+    ? xpert.profile_mission.job_titles?.map((job, i) => {
         const jobTitle = uppercaseFirstLetter(job.replaceAll('_', ' '));
 
-        const otherJobTitle = xpert.profile_mission?.job_titles_other
-          ? xpert.profile_mission.job_titles_other
-          : '';
+        // const otherJobTitle = xpert.profile_mission?.job_titles_other
+        //   ? xpert.profile_mission.job_titles_other
+        //   : '';
 
         if (job === 'other') {
           return (
-            <Badge className="m-1" key={job}>
-              {otherJobTitle}
+            <Badge className="m-1" key={i}>
+              Autre
             </Badge>
           );
         } else {
           return (
-            <Badge className="m-1" key={job}>
-              {jobTitle}
+            <Badge className="m-1" key={i}>
+              {jobTitle.length ? jobTitle : empty}
             </Badge>
           );
         }
       })
-    : '';
+    : empty;
 
   const availableDate = xpert.profile_mission
     ? formatDate(xpert.profile_mission.availability ?? '')
-    : '';
+    : empty;
 
   return (
     <>

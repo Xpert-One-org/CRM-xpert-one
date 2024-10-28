@@ -17,27 +17,13 @@ import {
 import { profileDataExperience } from '@/data/profile';
 import { cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
-import { UserType } from '@/types/types';
 import type { DBXpert } from '@/types/typesDb';
-import { Plus } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 export default function XpertExperience({ xpert }: { xpert: DBXpert }) {
   const { experiences } = xpert.profile_expertise ?? {};
   const [experienceSelected, setExperienceSelected] = useState(0);
-  const {
-    posts,
-    sectors,
-    infrastructures,
-    fetchPosts,
-    fetchSectors,
-    fetchInfrastructures,
-  } = useSelect();
-  useEffect(() => {
-    fetchPosts();
-    fetchSectors();
-    fetchInfrastructures();
-  }, []);
+  const { posts, sectors, infrastructures } = useSelect();
 
   return (
     <div>
@@ -71,7 +57,6 @@ export default function XpertExperience({ xpert }: { xpert: DBXpert }) {
       <div className="rounded-r-s bg-white p-spaceSmall shadow-container">
         {experiences?.map((experience, index) => {
           const isNotLastExperience = index !== experiences.length - 1;
-          const isNotFirstExperience = index !== 0;
           return (
             <div
               key={experience.id}

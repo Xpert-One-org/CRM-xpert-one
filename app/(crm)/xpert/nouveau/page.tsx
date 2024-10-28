@@ -4,9 +4,11 @@ import { FilterButton } from '@/components/FilterButton';
 import React, { useEffect } from 'react';
 import { useDashboardStore } from '@/store/dashboard';
 import NewXpertsRow from './_components/NewXpertsRow';
+import { useRouter } from 'next/navigation';
 
 export default function XpertNouveauPage() {
   const { newUsers, fetchLastSignUpNewUsersWeek } = useDashboardStore();
+  const router = useRouter();
 
   useEffect(() => {
     if (newUsers.length === 0) {
@@ -40,8 +42,8 @@ export default function XpertNouveauPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-row gap-4">
+    <div className="grid grid-cols-1 flex-col gap-4">
+      <div className="grid grid-cols-7 gap-3">
         <FilterButton
           options={signUpDateOptions}
           defaultSelectedKeys=""
@@ -85,13 +87,13 @@ export default function XpertNouveauPage() {
           placeholder="Référent Xpert One"
         />
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="grid gap-4">
         {newUsers.map((user) => (
           <NewXpertsRow
             key={user.id}
             user={user}
             isOpen={false}
-            onClick={() => {}}
+            onClick={() => router.push(`/xpert?id=${user.generated_id}`)}
           />
         ))}
       </div>

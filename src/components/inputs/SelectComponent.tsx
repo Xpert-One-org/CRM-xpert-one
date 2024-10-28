@@ -89,9 +89,9 @@ export default function SelectComponent({
           <SelectGroup>
             {options
               .filter((item) => item.value)
-              .map((item) => (
+              .map((item, i) => (
                 <SelectItem
-                  key={item.value || ''}
+                  key={`${item.value}-${i}`}
                   value={item.value || ''}
                   className="hover:bg-hover transition duration-150"
                 >

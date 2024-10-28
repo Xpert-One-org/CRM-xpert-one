@@ -1,7 +1,10 @@
 import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
+import { empty } from '@/data/constant';
+import { useSelect } from '@/store/select';
 import type { DBFournisseur } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
+import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
 import { Eye } from 'lucide-react';
 import { X } from 'lucide-react';
@@ -18,6 +21,7 @@ export default function FournisseurRow({
 }) {
   const dateSignUp = formatDate(fournisseur.created_at);
   const missions = fournisseur.mission;
+  const { companyRoles } = useSelect();
 
   const fournisseurMissionsCount = missions.length > 0 ? missions.length : 0;
 
@@ -33,7 +37,12 @@ export default function FournisseurRow({
         {uppercaseFirstLetter(fournisseur.firstname ?? '')}
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>
-        {uppercaseFirstLetter(fournisseur.company_role ?? '')}
+        {uppercaseFirstLetter(
+          getLabel({
+            value: fournisseur.company_role ?? '',
+            select: companyRoles,
+          }) ?? empty
+        )}
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>
         {fournisseur.generated_id}
