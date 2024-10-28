@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
 import { empty } from '@/data/constant';
+import { cn } from '@/lib/utils';
 import type { DBXpert } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';
@@ -60,7 +61,11 @@ export default function XpertRow({
         {uppercaseFirstLetter(xpert.firstname ?? '')}
       </Box>
       <Box className="col-span-1 flex flex-col p-2" isSelected={isOpen}>
-        <div className="flex size-full flex-col items-center justify-center border bg-white">
+        <div
+          className={cn('flex size-full flex-col items-center justify-center', {
+            'border bg-white': postTypes?.length,
+          })}
+        >
           {postTypes}
         </div>
       </Box>
@@ -72,11 +77,11 @@ export default function XpertRow({
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}
-        {isOpen ? (
+        {/* {isOpen ? (
           <X size={18} strokeWidth={4} />
         ) : (
           <Eye size={18} strokeWidth={1} />
-        )}
+        )} */}
       </Button>
     </>
   );

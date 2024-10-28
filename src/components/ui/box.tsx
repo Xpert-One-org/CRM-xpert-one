@@ -35,9 +35,9 @@ export const Box = ({
   return (
     <div
       className={cn(
-        'flex items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap text-wrap rounded-xs bg-[#E1E1E1] px-2 py-6 text-center text-sm font-medium text-dark transition',
+        'flex items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap text-wrap rounded-xs bg-[#E1E1E1] px-2 py-3 text-center text-sm font-medium text-dark transition',
         className,
-        { 'bg-background': isSelected },
+        { 'bg-background font-bold text-red-600': isSelected },
         { 'bg-primary': primary }
       )}
       onClick={onClick}

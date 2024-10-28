@@ -13,12 +13,14 @@ type MissionState = {
   searchMissions: (missionId: string) => Promise<void>;
   updateMission: (missionId: string, state: DBMissionState) => Promise<void>;
   isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
 };
 
 export const useMissionStore = create<MissionState>((set, get) => ({
   missions: [],
   missionsNumbers: [],
   isLoading: false,
+  setIsLoading: (isLoading) => set({ isLoading }),
   searchMissions: async (missionId) => {
     set({ isLoading: true });
     const { data } = await searchMission(missionId);

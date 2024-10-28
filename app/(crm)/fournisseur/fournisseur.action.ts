@@ -50,7 +50,7 @@ export const getAllFournisseurs = async ({
       .from('profile')
       .select('*, mission!mission_created_by_fkey(*)', { count: 'exact' })
       .eq('role', 'company')
-      .order('generated_id', { ascending: true })
+      .order('created_at', { ascending: false })
       .range(offset, offset + limitFournisseur - 1);
     if (error) {
       console.error(error);
