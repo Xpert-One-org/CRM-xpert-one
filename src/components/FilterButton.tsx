@@ -41,7 +41,7 @@ export const FilterButton = ({
     <>
       {filter ? (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild disabled>
             <Button
               className={cn(
                 `flex h-auto items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected/80`,
