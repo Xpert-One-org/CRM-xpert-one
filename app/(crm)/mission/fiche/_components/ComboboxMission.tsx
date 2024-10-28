@@ -13,7 +13,7 @@ export default function ComboboxMission() {
   const { missionsNumbers, searchMissions, isLoading } = useMissionStore();
   const pathname = usePathname();
   const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
-  const [currentValue, setCurrentValue] = useState(
+  const [currentValue] = useState(
     currentMissionNumber !== 'fiche' ? currentMissionNumber : ''
   );
 

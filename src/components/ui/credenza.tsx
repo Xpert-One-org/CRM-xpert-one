@@ -37,6 +37,7 @@ type RootCredenzaProps = {
 type CredenzaProps = {
   className?: string;
   asChild?: true;
+  classNameX?: string;
 } & BaseProps;
 
 const desktop = '(min-width: 768px)';
@@ -70,12 +71,21 @@ const CredenzaClose = ({ className, children, ...props }: CredenzaProps) => {
   );
 };
 
-const CredenzaContent = ({ className, children, ...props }: CredenzaProps) => {
+const CredenzaContent = ({
+  className,
+  classNameX,
+  children,
+  ...props
+}: CredenzaProps) => {
   const isDesktop = useMediaQuery(desktop);
   const CredenzaContent = isDesktop ? DialogContent : DrawerContent;
 
   return (
-    <CredenzaContent className={className} {...props}>
+    <CredenzaContent
+      className={className}
+      classNameX={cn('bg-black rounded-full p-1 text-white', classNameX)}
+      {...props}
+    >
       {children}
     </CredenzaContent>
   );

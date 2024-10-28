@@ -20,6 +20,7 @@ export type Database = {
           id: number;
           image: string | null;
           slug: string | null;
+          status: Database['public']['Enums']['article_status'];
           title: string | null;
         };
         Insert: {
@@ -32,6 +33,7 @@ export type Database = {
           id?: number;
           image?: string | null;
           slug?: string | null;
+          status?: Database['public']['Enums']['article_status'];
           title?: string | null;
         };
         Update: {
@@ -44,6 +46,7 @@ export type Database = {
           id?: number;
           image?: string | null;
           slug?: string | null;
+          status?: Database['public']['Enums']['article_status'];
           title?: string | null;
         };
         Relationships: [
@@ -63,10 +66,11 @@ export type Database = {
           created_by: string | null;
           id: number;
           mission_id: number | null;
+          receiver_id: string | null;
           title: string;
           topic: string;
           type: Database['public']['Enums']['chat_type'];
-          xpert_recipient_id: string | null;
+          updated_at: string | null;
         };
         Insert: {
           category?: string | null;
@@ -74,10 +78,11 @@ export type Database = {
           created_by?: string | null;
           id?: number;
           mission_id?: number | null;
+          receiver_id?: string | null;
           title: string;
           topic: string;
           type?: Database['public']['Enums']['chat_type'];
-          xpert_recipient_id?: string | null;
+          updated_at?: string | null;
         };
         Update: {
           category?: string | null;
@@ -85,10 +90,11 @@ export type Database = {
           created_by?: string | null;
           id?: number;
           mission_id?: number | null;
+          receiver_id?: string | null;
           title?: string;
           topic?: string;
           type?: Database['public']['Enums']['chat_type'];
-          xpert_recipient_id?: string | null;
+          updated_at?: string | null;
         };
         Relationships: [
           {
@@ -99,8 +105,15 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'chat_xpert_recipient_id_fkey';
-            columns: ['xpert_recipient_id'];
+            foreignKeyName: 'chat_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_receiver_id_fkey';
+            columns: ['receiver_id'];
             isOneToOne: false;
             referencedRelation: 'profile';
             referencedColumns: ['id'];
@@ -823,13 +836,6 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'profile_id_fkey';
-            columns: ['id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
             foreignKeyName: 'profile_referent_id_fkey';
             columns: ['referent_id'];
             isOneToOne: false;
@@ -1358,6 +1364,7 @@ export type Database = {
       };
     };
     Enums: {
+      article_status: 'published' | 'draft';
       categories:
         | 'energy_and_nuclear'
         | 'renewable_energy'
@@ -1479,4 +1486,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema['CompositeTypes']
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database;
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
+    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

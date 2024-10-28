@@ -23,7 +23,7 @@ const Slider = React.forwardRef<
       <SliderPrimitive.Range className="absolute h-full bg-primary" />
       <p>Ok</p>
     </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block size-5 cursor-pointer rounded-full bg-accent transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
+    <SliderPrimitive.Thumb className="block size-5 cursor-pointer rounded-full bg-accent transition focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
       {textValue && (
         <span className="absolute left-[50%] top-5 w-fit -translate-x-[50%] whitespace-nowrap text-xs">
           {textValue}

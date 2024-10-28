@@ -55,7 +55,7 @@ export default function FicheMissionTable({
             <p>État : {stateValue}</p>
             <p>Lieu : {address}</p>
             <p>
-              {city} ({postal_code})
+              {city} {postal_code}
             </p>
           </div>
           <div>

@@ -149,3 +149,14 @@ export type DBJuridicStatus =
 export type DBSubject = Database['public']['Tables']['subjects']['Row'];
 export type DBJobTitles = Database['public']['Tables']['job_titles']['Row'];
 export type DBLanguages = Database['public']['Tables']['languages']['Row'];
+
+export type DBUserChat = Pick<
+  Database['public']['Tables']['profile']['Row'],
+  | 'firstname'
+  | 'lastname'
+  | 'avatar_url'
+  | 'role'
+  | 'company_name'
+  | 'generated_id'
+  | 'username'
+>;

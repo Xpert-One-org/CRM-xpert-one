@@ -1,342 +1,59 @@
 import type { User } from '@/types/types';
 import { create } from 'zustand';
 import type { DBProfile } from '@/types/typesDb';
+import { getUserBase, searchUsers } from '@functions/profile';
 
 type UserState = {
-  user: User;
-  userDb: User;
-  userProfile: DBProfile | null;
-  profileProgress: number;
-  setUser: (user: User) => void;
-  setProfileProgress: (progress: number) => void;
-}
+  user: User | null;
+  error: string | null;
+  minimal_profile: Pick<DBProfile, 'role' | 'firstname' | 'lastname'> | null;
+  fetchMinimalProfile: () => void;
+  searchUsers: (query: string) => void;
+  searchUsersResults: { label: string; id: string }[];
+  searchUserSelected: { label: string; id: string } | null;
+  clearSearchUserSelected: () => void;
+  loading: boolean;
+};
 
 const useUser = create<UserState>((set) => ({
-  userProfile: null,
-  user: {
-    avatar_url: '',
-    has_seen_my_missions: false,
-    has_seen_available_missions: false,
-    has_seen_blog: false,
-    has_seen_my_profile: false,
-    has_seen_community: false,
-    company_role_other: null,
-    sector_other: null,
-    has_seen_messaging: false,
-    has_seen_newsletter: false,
-    sector: null,
-    service_dependance: null,
-    cv_name: null,
-    has_seen_missions: false,
-    sector_renewable_energy_other: null,
-    sector_energy: null,
-    sector_infrastructure: null,
-    sector_renewable_energy: null,
-    sector_infrastructure_other: null,
-    sector_waste_treatment: null,
-    area: null,
-    france_detail: null,
-    regions: null,
-    siret: null,
-    username: null,
-    zone: null,
-    totale_progression: 0,
-    profile_progression: 0,
-    status_progression: 0,
-    expertise_progression: 0,
-    mission_progression: 0,
-    id: '',
-    has_seen_created_missions: false,
-    company_name: null,
-    role: 'xpert',
-    company_role: null,
-    how_did_you_hear_about_us: null,
-    mission: {
-      student_contract: null,
-      expertises_others: null,
-      posts_type_other: null,
-      sector_other: null,
-      job_titles_other: null,
-      job_titles: null,
-      specialties_others: null,
-      sector: null,
-      revenu_type: null,
-      france_detail: null,
-      regions: null,
-      posts_type: null,
-      specialties: [],
-      expertises: [],
-      others: null,
-      availability: null,
-
-      area: null,
-      desired_tjm: null,
-      desired_monthly_brut: null,
-      workstation_needed: 'false',
-      workstation_description: null,
-      id: 0,
-      profile_id: '',
-    },
-    expertise: {
-      seniority: 5,
-      id: 0,
-      degree_other: null,
-      maternal_language_other: null,
-      habilitations_details: null,
-      specialties_other: null,
-      expertises_other: null,
-      habilitations_other: null,
-      profile_id: null,
-      cv_name: null,
-      degree: null,
-      other_language_detail: null,
-      expertises: null,
-
-      habilitations: null,
-      diploma: null,
-      maternal_language: null,
-      other_language: [
-        {
-          language: null,
-          level: null,
-        },
-      ],
-      others: null,
-      specialties: null,
-      educations: [
-        {
-          profile_id: '',
-          department: null,
-          detail_diploma: null,
-          education_diploma: null,
-          id: 0,
-          education_others: null,
-          school: null,
-        },
-      ],
-      experiences: [
-        {
-          profile_id: '',
-          sector_energy: null,
-          post_other: null,
-          sector_other: null,
-          sector_infrastructure_other: null,
-          sector_infrastructure: null,
-          sector_renewable_energy: null,
-          sector_waste_treatment: null,
-          id: 0,
-          post: null,
-          company: null,
-          is_last: 'true',
-          duree: null,
-          sector_renewable_energy_other: null,
-          has_led_team: 'false',
-          how_many_people_led: null,
-          sector: null,
-          post_type: null,
-          comments: null,
-        },
-      ],
-    },
-    civility: null,
-    birthdate: null,
-    firstname: null,
-    lastname: null,
-    generated_id: '',
-    mobile: null,
-    fix: null,
-    email: null,
-    street_number: null,
-    address: null,
-    city: null,
-    postal_code: null,
-    country: null,
-    linkedin: null,
-    how_did_you_hear_about_us_other: null,
-
-    status: {
-      iam: null,
-      status: null,
-      rib_name: null,
-      juridic_status_other: null,
-      civil_responsability_name: null,
-      id: 0,
-      profile_id: '',
-      kbis_name: null,
-      urssaf_name: null,
-      company_name: null,
-      juridic_status: '',
-      siret: null,
-
-      has_portage: null,
-      portage_name: null,
-    },
-    created_at: '',
-    referent_id: null,
+  user: null,
+  minimal_profile: null,
+  error: null,
+  loading: false,
+  searchUsersResults: [],
+  searchUserSelected: null,
+  clearSearchUserSelected: () => {
+    set({ searchUserSelected: null });
   },
-
-  userDb: {
-    has_seen_my_missions: false,
-    has_seen_blog: false,
-    cv_name: null,
-    has_seen_my_profile: false,
-    has_seen_available_missions: false,
-    sector_renewable_energy_other: null,
-    sector_energy: null,
-    sector_infrastructure: null,
-    sector_infrastructure_other: null,
-    sector_renewable_energy: null,
-    sector_waste_treatment: null,
-    company_role_other: null,
-    sector_other: null,
-    has_seen_community: false,
-    has_seen_messaging: false,
-    has_seen_newsletter: false,
-    has_seen_created_missions: false,
-    sector: null,
-    service_dependance: null,
-    avatar_url: '',
-    username: null,
-    siret: null,
-    area: null,
-    france_detail: null,
-    regions: null,
-    totale_progression: 0,
-    expertise_progression: 0,
-    mission_progression: 0,
-    profile_progression: 0,
-    status_progression: 0,
-    id: '',
-    company_name: null,
-    role: 'xpert',
-    company_role: null,
-    how_did_you_hear_about_us: null,
-    mission: {
-      student_contract: null,
-      expertises_others: null,
-      posts_type_other: null,
-      job_titles: null,
-      job_titles_other: null,
-      sector_other: null,
-      specialties_others: null,
-      sector: null,
-      revenu_type: null,
-      posts_type: null,
-      specialties: [],
-      expertises: [],
-      others: null,
-      availability: null,
-      area: null,
-      desired_tjm: null,
-      france_detail: null,
-      regions: null,
-      desired_monthly_brut: null,
-      workstation_needed: 'false',
-      workstation_description: null,
-      id: 0,
-      profile_id: '',
-    },
-    expertise: {
-      specialties_other: null,
-      degree_other: null,
-      habilitations_details: null,
-      maternal_language_other: null,
-      expertises_other: null,
-      other_language_detail: null,
-      habilitations_other: null,
-      seniority: 5,
-      id: 0,
-      profile_id: null,
-
-      cv_name: null,
-      degree: null,
-      expertises: null,
-      habilitations: null,
-      diploma: null,
-      maternal_language: null,
-      other_language: [
-        {
-          language: null,
-          level: null,
-        },
-      ],
-      others: null,
-      specialties: null,
-      educations: [
-        {
-          profile_id: '',
-          department: null,
-          detail_diploma: null,
-          education_diploma: null,
-          id: 0,
-          education_others: null,
-          school: null,
-        },
-      ],
-      experiences: [
-        {
-          profile_id: '',
-          id: 0,
-          post: null,
-          sector_infrastructure_other: null,
-          post_other: null,
-          sector_other: null,
-          sector_energy: null,
-          sector_infrastructure: null,
-          sector_renewable_energy: null,
-          sector_waste_treatment: null,
-          company: null,
-          is_last: 'true',
-          duree: null,
-          has_led_team: 'false',
-          how_many_people_led: null,
-          sector: null,
-          post_type: null,
-          sector_renewable_energy_other: null,
-          comments: null,
-        },
-      ],
-    },
-    civility: null,
-    birthdate: null,
-    firstname: null,
-    lastname: null,
-    generated_id: '',
-    mobile: null,
-    fix: null,
-    email: null,
-    street_number: null,
-    address: null,
-    city: null,
-    postal_code: null,
-    country: null,
-    linkedin: null,
-    how_did_you_hear_about_us_other: null,
-
-    status: {
-      juridic_status_other: null,
-      iam: null,
-      status: null,
-      rib_name: null,
-      civil_responsability_name: null,
-      id: 0,
-      profile_id: '',
-      kbis_name: null,
-      urssaf_name: null,
-      company_name: null,
-      juridic_status: '',
-      siret: null,
-
-      has_portage: false,
-      portage_name: null,
-    },
-    created_at: '',
-    referent_id: null,
+  searchUsers: async (query) => {
+    set({ loading: true });
+    const { data, error } = await searchUsers(query);
+    if (error) {
+      set({ error, loading: false });
+      return;
+    }
+    if (data) {
+      const result = data.map((user) => {
+        return {
+          label: `${user.firstname} ${user.lastname} - ${user.generated_id}`,
+          id: user.id,
+        };
+      });
+      set({ searchUsersResults: result, error: null, loading: false });
+    } else {
+      set({ loading: false, searchUsersResults: [] });
+    }
   },
-
-  profileProgress: 0,
-  setProfileProgress: (progress) => set({ profileProgress: progress }),
-  setUser: (user) => set({ user }),
+  fetchMinimalProfile: async () => {
+    const { data, error } = await getUserBase();
+    if (error) {
+      set({ error });
+      return;
+    }
+    if (data) {
+      set({ minimal_profile: data, error: null });
+    }
+  },
 }));
 
 export default useUser;

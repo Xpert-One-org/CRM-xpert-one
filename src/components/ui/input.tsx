@@ -13,12 +13,14 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   hasPreIcon?: boolean;
   hasError?: boolean;
   showPasswordToggle?: boolean;
+  classNameLabel?: string;
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
       className,
+      classNameLabel,
       label,
       required,
       hasPreIcon,
@@ -43,7 +45,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <>
         {label && (
-          <Label className="-mb-2">
+          <Label className={cn('-mb-2', classNameLabel)}>
             {label} {required && <span className="text-accent">*</span>}
           </Label>
         )}

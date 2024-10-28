@@ -78,8 +78,8 @@ export default function SelectComponent({
           className={cn(
             'h-[42px] rounded-md border border-border-gray bg-white shadow-sm transition duration-200 ease-in-out',
             {
-              'border-colors-important': hasError,
-              'hover:border-colors-primary': !hasError,
+              'border-important': hasError,
+              'hover:border-primary': !hasError,
             }
           )}
         >
@@ -89,11 +89,11 @@ export default function SelectComponent({
           <SelectGroup>
             {options
               .filter((item) => item.value)
-              .map((item) => (
+              .map((item, i) => (
                 <SelectItem
-                  key={item.value || ''}
+                  key={`${item.value}-${i}`}
                   value={item.value || ''}
-                  className="hover:bg-colors-hover transition duration-150"
+                  className="hover:bg-hover transition duration-150"
                 >
                   {item.label}
                 </SelectItem>

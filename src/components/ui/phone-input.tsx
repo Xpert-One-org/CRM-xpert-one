@@ -135,10 +135,10 @@ const CountrySelect = ({
               <CommandGroup>
                 {options
                   .filter((x) => x.value)
-                  .map((option) => (
+                  .map((option, i) => (
                     <CommandItem
                       className="gap-2"
-                      key={option.value}
+                      key={`${option.value}-${i}`}
                       onSelect={() => handleSelect(option.value)}
                     >
                       <FlagComponent

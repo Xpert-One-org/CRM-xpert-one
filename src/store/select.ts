@@ -10,6 +10,7 @@ import { getPosts } from '@functions/select/posts';
 import { getRegions } from '@functions/select/regions';
 import { getSectors } from '@functions/select/sectors';
 import { getSpecialties } from '@functions/select/specialties';
+import { getSubjects } from '@functions/select/subjects';
 
 import { create } from 'zustand';
 
@@ -30,6 +31,7 @@ type SelectStore = {
   regions: Select[];
   companyRoles: Select[];
   posts: Select[];
+  subjects: Select[];
   infrastructures: Select[];
   fetchSpecialties: () => Promise<void>;
   fetchExpertises: () => Promise<void>;
@@ -43,6 +45,7 @@ type SelectStore = {
   fetchCompanyRoles: () => Promise<void>;
   fetchPosts: () => Promise<void>;
   fetchInfrastructures: () => Promise<void>;
+  fetchSubjects: () => Promise<void>;
 };
 
 export const useSelect = create<SelectStore>((set, get) => ({
@@ -52,6 +55,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
   diplomas: [],
   languages: [],
   sectors: [],
+  subjects: [],
   jobTitles: [],
   regions: [],
   countries: [],
@@ -202,6 +206,19 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ posts: data });
+    }
+  },
+  fetchSubjects: async () => {
+    if (get().subjects.length) {
+      return;
+    }
+    const { data, error } = await getSubjects();
+    if (error) {
+      console.error('Error fetching subjects:', error);
+      return;
+    }
+    if (data) {
+      set({ subjects: data });
     }
   },
   fetchInfrastructures: async () => {
