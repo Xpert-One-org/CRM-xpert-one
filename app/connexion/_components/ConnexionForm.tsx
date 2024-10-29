@@ -8,13 +8,17 @@ import { Button } from '@components/ui/button';
 import { signIn } from '@functions/auth/signIn';
 import { Input } from '@components/ui/input';
 import LogoXpertCRM from '@components/svg/LogoXpertCRM';
+import { useState } from 'react';
 
 export default function ConnexionForm() {
+  const [isLoading, setIsLoading] = useState(false);
   const handleSignIn = async (formData: FormData) => {
+    setIsLoading(true);
     const { error } = await signIn(formData);
 
     if (error) {
       toast.error(error);
+      setIsLoading(false);
     } else {
       redirect('/dashboard');
     }
@@ -27,6 +31,7 @@ export default function ConnexionForm() {
         <LogoXpertCRM className="absolute top-[84px]" />
         <form
           action={handleSignIn}
+          onSubmit={() => setIsLoading(true)}
           className="flex w-full max-w-[320px] flex-col gap-y-[14px] px-4 text-white"
         >
           <h3 className="font-khand text-xl uppercase text-white">
@@ -63,8 +68,8 @@ export default function ConnexionForm() {
               className="scale-90 border-white data-[state=checked]:text-white"
             />
           </Label>{' '}
-          <Button type="submit" variant={'accent'}>
-            Se connecter
+          <Button type="submit" disabled={isLoading} variant={'accent'}>
+            {isLoading ? 'Chargement...' : 'Se connecter'}
           </Button>
         </form>
       </div>
