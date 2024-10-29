@@ -3,7 +3,7 @@
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getExpertises = async () => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { data, error } = await supabase
     .from('expertises')
     .select('label, value');

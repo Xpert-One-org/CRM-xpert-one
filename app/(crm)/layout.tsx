@@ -17,7 +17,7 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { data: null, error: 'User not found' };

@@ -4,7 +4,7 @@ import { minQuerySearch } from '@/data/constant';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getUserBase = async () => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return {
@@ -24,7 +24,7 @@ export const getUserBase = async () => {
 };
 
 export const searchUsers = async (query: string) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
@@ -55,7 +55,7 @@ export const searchUsers = async (query: string) => {
 };
 
 export const getUserChatProfile = async (userId: string | null) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {

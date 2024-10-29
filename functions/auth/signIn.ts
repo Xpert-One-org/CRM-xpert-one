@@ -4,11 +4,11 @@ import { redirect } from 'next/navigation';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const signIn = async (formData: FormData) => {
-  const origin = headers().get('origin');
+  const origin = (await headers()).get('origin');
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const {
     data: { user },

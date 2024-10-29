@@ -47,7 +47,7 @@ export default function XpertRowContentBis({
           onValueChange={() => ({})}
         />
 
-        {xpert.profile_mission?.sector?.includes('other') && (
+        {xpert.profile_mission?.sector_other && (
           <Input
             label="Détails du secteur"
             value={xpert.profile_mission.sector_other ?? empty}
@@ -76,14 +76,18 @@ export default function XpertRowContentBis({
           className="xl:max-w-full"
           disabled
           label="Dans quelles spécialités"
-          defaultSelectedKeys={[
-            ...(xpert.profile_mission?.specialties ?? []),
-            xpert.profile_mission?.specialties_others ?? empty,
-          ]}
+          defaultSelectedKeys={[...(xpert.profile_mission?.specialties ?? [])]}
           options={specialities}
           name=""
           onValueChange={() => ({})}
         />
+        {xpert.profile_mission?.specialties_others && (
+          <Input
+            label="Détails de la spécialité"
+            value={xpert.profile_mission.specialties_others}
+            disabled={true}
+          />
+        )}
 
         {/* <Input
                       label="Dans quelles expertises"

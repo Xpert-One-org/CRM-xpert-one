@@ -10,7 +10,7 @@ export const getChatNotification = async ({
   from?: number;
   to?: number;
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { error: 'User not found' };

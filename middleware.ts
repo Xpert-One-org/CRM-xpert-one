@@ -1,10 +1,10 @@
-import { type NextRequest, NextResponse } from "next/server";
 import { createSupabaseAppServerClient } from "@/utils/supabase/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const res = NextResponse.next();
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const {
     data: { user },
