@@ -12,7 +12,7 @@ export const handleReadNewMessage = async ({
   chat_id: number;
   read_by: string[];
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { error: 'User not found' };
@@ -34,7 +34,7 @@ export const handleReadNewMessage = async ({
 };
 
 export const getUserChats = async () => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { data: null, error: 'User not found' };
@@ -69,7 +69,7 @@ export const getMessages = async ({
   from?: number;
   to?: number;
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { data: null, error: 'User not found', count: 0 };
@@ -103,7 +103,7 @@ export const insertReaction = async ({
   reaction: Reaction[];
   message_id: number;
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { error: 'User not found' };
@@ -130,7 +130,7 @@ export const insertMessage = async ({
   message: DBMessage;
   files: MsgFiles[];
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { id: null, error: 'User not found' };
@@ -159,7 +159,7 @@ export const addFileToMessage = async ({
   message_id: number;
   files: MsgFiles[];
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { error: 'User not found' };
@@ -183,7 +183,7 @@ export const postChat = async ({
   message: DBMessage;
   receiver_id: string;
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { data: null, messageData: null, error: 'User not found' };
@@ -224,7 +224,7 @@ export const uploadFileChat = async ({
   file: string;
   filePath: string;
 }) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { error: 'User not found' };
@@ -245,7 +245,7 @@ export const uploadFileChat = async ({
 };
 
 export const selectBaseMsg = async (message_id: number) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { error: 'User not found' };
@@ -261,7 +261,7 @@ export const selectBaseMsg = async (message_id: number) => {
 };
 
 export const getUniqueMsgChat = async (chat_id: number) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { error: 'User not found' };

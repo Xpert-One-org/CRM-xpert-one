@@ -3,7 +3,7 @@
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getJobTitles = async () => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { data, error } = await supabase
     .from('job_titles')
     .select('label, value');

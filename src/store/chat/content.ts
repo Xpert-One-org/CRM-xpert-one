@@ -1,4 +1,4 @@
-import type { RefObject} from 'react';
+import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { DESKTOP, msgPerPage } from '@/data/constant';
 import { toast } from 'sonner';
@@ -12,7 +12,7 @@ export const useChatContent = ({
   scrollRef,
 }: {
   type: ChatType;
-  scrollRef: RefObject<HTMLDivElement>;
+  scrollRef: RefObject<HTMLDivElement | null>;
 }) => {
   const isDesktop = useMediaQuery(DESKTOP);
   const {

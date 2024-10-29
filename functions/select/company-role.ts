@@ -3,7 +3,7 @@
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getCompanyRoles = async () => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
   const { data, error } = await supabase
     .from('company_roles')
     .select('label, value');

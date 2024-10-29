@@ -8,7 +8,7 @@ import { checkAuthRole } from '@functions/auth/checkRole';
 export const getSpecificXpert = async (
   xpertId: string
 ): Promise<DBXpert | null> => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 
@@ -57,7 +57,7 @@ export const getAllXperts = async ({
 }: {
   offset: number;
 }): Promise<{ data: DBXpert[]; count: number | null }> => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 

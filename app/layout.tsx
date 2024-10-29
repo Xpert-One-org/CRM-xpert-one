@@ -38,6 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
+      suppressHydrationWarning
       lang="fr"
       className={`${khand.variable} ${firaSans.variable} overflow-hidden`}
     >

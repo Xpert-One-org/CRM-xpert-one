@@ -5,7 +5,8 @@ import ChatContent from '../_components/ChatContent';
 import PopupNewChat from '../_components/PopupNewChat';
 
 export default async function page() {
-  const { user } = (await createSupabaseAppServerClient().auth.getUser()).data;
+  const supabase = await createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
     return { redirect: '/login' };
   }

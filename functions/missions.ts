@@ -6,7 +6,7 @@ import { checkAuthRole } from '@functions/auth/checkRole';
 export const getMissionState = async (
   state: DBMissionState
 ): Promise<DBMission[]> => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 
@@ -38,7 +38,7 @@ export const getMissionState = async (
 };
 
 export const searchMission = async (missionId: string) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   let query = supabase.from('mission').select('mission_number');
 
@@ -59,7 +59,7 @@ export const updateMissionState = async (
   missionId: string,
   state: DBMissionState
 ) => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const { data, error } = await supabase
     .from('mission')

@@ -8,7 +8,7 @@ import { checkAuthRole } from '@functions/auth/checkRole';
 export const getSpecificFournisseur = async (
   fournisseurId: string
 ): Promise<DBFournisseur | null> => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 
@@ -41,7 +41,7 @@ export const getAllFournisseurs = async ({
 }: {
   offset: number;
 }): Promise<{ data: DBFournisseur[]; count: number | null }> => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 

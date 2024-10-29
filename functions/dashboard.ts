@@ -5,7 +5,7 @@ import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from './auth/checkRole';
 
 export const getLastSignUpNewUsersWeek = async () => {
-  const supabase = createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 
