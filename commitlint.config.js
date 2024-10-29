@@ -1,1 +1,33 @@
-module.exports = {extends: ['gitmoji']};
+module.exports = {
+  extends: ['gitmoji'],
+  rules: {
+    'type-enum': [
+      2,
+      'always',
+      [
+        'build',
+        'chore',
+        'ci',
+        'docs',
+        'feat',
+        'upgrade',
+        'fix',
+        'hotfix',
+        'types',
+        'perf',
+        'refactor',
+        'revert',
+        'style',
+        'test',
+        'merge',
+        'text',
+        'wip',
+        'config',
+        'setup',
+        'i18n',
+        'deploy',
+        'improve',
+      ],
+    ],
+  },
+};
