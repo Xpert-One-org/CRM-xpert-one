@@ -41,10 +41,10 @@ export const FilterButton = ({
     <>
       {filter ? (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled>
+          <DropdownMenuTrigger asChild>
             <Button
               className={cn(
-                `flex h-auto items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected/80`,
+                `flex h-auto cursor-default items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
                 className
               )}
             >
@@ -74,9 +74,10 @@ export const FilterButton = ({
         <>
           <Button
             className={cn(
-              `flex h-auto cursor-default items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
+              `flex h-auto cursor-default items-center gap-x-2 text-wrap px-spaceContainer`,
               className
             )}
+            disabled
           >
             {selected || placeholder}
           </Button>
