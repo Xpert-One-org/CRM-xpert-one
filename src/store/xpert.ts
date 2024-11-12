@@ -13,7 +13,7 @@ type XpertState = {
   offset: number;
   fetchXperts: () => void;
   fetchSpecificXpert: (xpertId: string) => void;
-}
+};
 
 export const useXpertStore = create<XpertState>((set, get) => ({
   loading: false,
@@ -38,7 +38,6 @@ export const useXpertStore = create<XpertState>((set, get) => ({
   fetchXperts: async () => {
     set({ loading: true });
     const offset = get().xperts?.length || 0;
-    console.log(offset, limitXpert);
 
     const { data, count } = await getAllXperts({ offset: offset - 1 });
     const xperts = get().xperts || [];
