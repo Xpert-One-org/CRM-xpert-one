@@ -95,15 +95,6 @@ CREATE TYPE "public"."article_status" AS ENUM (
 ALTER TYPE "public"."article_status" OWNER TO "postgres";
 
 
-CREATE TYPE "public"."article_type" AS ENUM (
-    'web',
-    'press'
-);
-
-
-ALTER TYPE "public"."article_type" OWNER TO "postgres";
-
-
 CREATE TYPE "public"."categories" AS ENUM (
     'energy_and_nuclear',
     'renewable_energy',
@@ -404,48 +395,50 @@ ALTER FUNCTION "public"."get_profile_other_languages"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    AS $$BEGIN
-  -- Insert into the profile table
-  insert into public.profile (
-    id, role, firstname, lastname, email, mobile, 
-    company_name, company_role, referent_id, generated_id
-  )
-  values (
-    new.id,
-    new.raw_user_meta_data->>'role',
-    new.raw_user_meta_data->>'firstname',
-    new.raw_user_meta_data->>'lastname',
-    new.email,
-    new.raw_user_meta_data->>'default_phone',
-    new.raw_user_meta_data->>'company_name',
-    new.raw_user_meta_data->>'company_role',
-    new.raw_user_meta_data->>'referent_generated_id',
-    CASE
-      WHEN new.raw_user_meta_data->>'role' = 'xpert' THEN public.generate_unique_id()
-      ELSE public.generate_unique_id_f()
-    END  
-  );
-  
-  -- Insert into the user_alert table
-  insert into public.user_alerts (
-    user_id
-  )
-  values (
-    new.id
-  );
-  
-  -- Check if the user is a student and insert into profile_status table
-  IF new.raw_user_meta_data->>'is_student' = 'true' THEN
-    insert into public.profile_status (
-      profile_id, iam
-    )
-    values (
-      new.id, 'student_apprentice'
-    );
-  END IF;
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+    v_role TEXT;
+    v_is_student BOOLEAN;
+BEGIN
+    -- Déterminer le rôle
+    v_role := COALESCE(NEW.raw_user_meta_data->>'role', 'NULL');
+    
+    -- Déterminer si c'est un étudiant
+    v_is_student := (NEW.raw_user_meta_data->>'is_student')::boolean;
 
-  return new;
-END;$$;
+    -- Insérer dans public.profile avec toutes les métadonnées pertinentes
+    INSERT INTO public.profile (
+        id, firstname, lastname, email, mobile, role, 
+        company_role, company_name, referent_id, 
+        generated_id, username
+    )
+    VALUES (
+        NEW.id,
+        NEW.raw_user_meta_data->>'firstname',
+        NEW.raw_user_meta_data->>'lastname',
+        NEW.email,
+        NEW.raw_user_meta_data->>'default_phone',
+        CASE 
+            WHEN v_is_student THEN 'xpert'
+            ELSE v_role
+        END,
+        CASE 
+            WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_role'
+            ELSE NULL
+        END,
+        CASE 
+            WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_name'
+            ELSE NULL
+        END,
+        NEW.raw_user_meta_data->>'referent_generated_id',
+        gen_random_uuid()::text, -- Utilise gen_random_uuid() au lieu de uuid_generate_v4()
+        NEW.raw_user_meta_data->>'username'
+    );
+
+    RETURN NEW;
+END;
+$$;
 
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
@@ -480,6 +473,23 @@ $$;
 ALTER FUNCTION "public"."set_unique_slug"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_chat_timestamp"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  -- Update the updated_at column in the related chat
+  UPDATE public.chat
+  SET updated_at = NOW()
+  WHERE id = NEW.chat_id;
+  
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_chat_timestamp"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_progression"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -508,8 +518,7 @@ CREATE TABLE IF NOT EXISTS "public"."article" (
     "slug" "text",
     "category" "text",
     "categories" "public"."categories"[],
-    "status" "public"."article_status" DEFAULT 'draft'::"public"."article_status" NOT NULL,
-    "type" "public"."article_type" DEFAULT 'web'::"public"."article_type" NOT NULL
+    "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL
 );
 
 
@@ -536,8 +545,9 @@ CREATE TABLE IF NOT EXISTS "public"."chat" (
     "mission_id" bigint,
     "category" "text",
     "type" "public"."chat_type" DEFAULT 'chat'::"public"."chat_type" NOT NULL,
-    "xpert_recipient_id" "uuid",
-    CONSTRAINT "chk_xpert_recipient_id" CHECK ((("type" <> 'xpert_to_xpert'::"public"."chat_type") OR ("xpert_recipient_id" IS NOT NULL)))
+    "receiver_id" "uuid",
+    "updated_at" timestamp without time zone DEFAULT "now"(),
+    CONSTRAINT "chk_xpert_recipient_id" CHECK ((("type" <> 'xpert_to_xpert'::"public"."chat_type") OR ("receiver_id" IS NOT NULL)))
 );
 
 
@@ -896,7 +906,7 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "start_date" timestamp with time zone,
     "end_date" timestamp with time zone,
     "deadline_application" timestamp with time zone,
-    "state" "text" DEFAULT 'in_review'::"text" NOT NULL,
+    "state" "public"."mission_state" DEFAULT 'to_validate'::"public"."mission_state" NOT NULL,
     "xpert_associated_id" "uuid",
     "job_title_other" "text",
     "sector_energy" "text",
@@ -962,7 +972,7 @@ ALTER TABLE "public"."mission_canceled" ALTER COLUMN "id" ADD GENERATED BY DEFAU
 
 
 
-ALTER TABLE "public"."mission" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+ALTER TABLE "public"."mission" ALTER COLUMN "id" ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME "public"."mission_id_seq"
     START WITH 1
     INCREMENT BY 1
@@ -1075,7 +1085,9 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "sector_infrastructure" "text",
     "sector_infrastructure_other" "text",
     "sector_renewable_energy_other" "text",
-    "cv_name" "text"
+    "cv_name" "text",
+    "is_banned_from_community" boolean DEFAULT false NOT NULL,
+    "community_banning_explanations" "text"
 );
 
 
@@ -1587,11 +1599,11 @@ ALTER TABLE ONLY "public"."user_alerts"
 
 
 
-CREATE OR REPLACE TRIGGER "mission_application_webhook" AFTER INSERT ON "public"."mission_application" FOR EACH ROW EXECUTE FUNCTION "supabase_functions"."http_request"('https://wxjnrjakjwjhvsiwhelt.supabase.co/functions/v1/new-mission-application', 'POST', '{"Content-type":"application/json"}', '{}', '1000');
-
-
-
 CREATE OR REPLACE TRIGGER "slugify_title_unique" BEFORE INSERT OR UPDATE ON "public"."article" FOR EACH ROW EXECUTE FUNCTION "public"."set_unique_slug"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_chat_updated_at" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."update_chat_timestamp"();
 
 
 
@@ -1615,7 +1627,7 @@ ALTER TABLE ONLY "public"."chat"
 
 
 ALTER TABLE ONLY "public"."chat"
-    ADD CONSTRAINT "chat_xpert_recipient_id_fkey" FOREIGN KEY ("xpert_recipient_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE SET NULL;
+    ADD CONSTRAINT "chat_receiver_id_fkey" FOREIGN KEY ("receiver_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 
@@ -1794,6 +1806,14 @@ CREATE POLICY "Enable insert for authenticated users only" ON "public"."message"
 
 
 
+CREATE POLICY "Enable insert for authenticated users only" ON "public"."mission" FOR INSERT TO "authenticated" WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "created_by"));
+
+
+
+CREATE POLICY "Enable insert for authenticated users only" ON "public"."mission_application" FOR INSERT TO "authenticated" WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "candidate_id"));
+
+
+
 CREATE POLICY "Enable insert for authenticated users only" ON "public"."posts" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -1807,14 +1827,6 @@ CREATE POLICY "Enable insert for authenticated users only" ON "public"."specialt
 
 
 CREATE POLICY "Enable insert for authenticated users only" ON "public"."subjects" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for users based on user_id" ON "public"."mission" FOR INSERT WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "created_by"));
-
-
-
-CREATE POLICY "Enable insert for users based on user_id" ON "public"."mission_application" FOR INSERT WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "candidate_id"));
 
 
 
@@ -1982,10 +1994,6 @@ CREATE POLICY "Enable update for users based on email" ON "public"."mission" FOR
 
 
 
-CREATE POLICY "Enable update for users based on email" ON "public"."profile" FOR UPDATE USING ((( SELECT "auth"."uid"() AS "uid") = "id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "id"));
-
-
-
 CREATE POLICY "Enable update for users based on email" ON "public"."profile_education" FOR UPDATE USING ((( SELECT "auth"."uid"() AS "uid") = "profile_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "profile_id"));
 
 
@@ -2003,6 +2011,14 @@ CREATE POLICY "Enable update for users based on email" ON "public"."profile_miss
 
 
 CREATE POLICY "Enable update for users based on email" ON "public"."profile_status" FOR UPDATE USING ((( SELECT "auth"."uid"() AS "uid") = "profile_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "profile_id"));
+
+
+
+CREATE POLICY "Enable update for users based on email or admin" ON "public"."profile" FOR UPDATE USING (((( SELECT "auth"."uid"() AS "uid") = "id") OR (( SELECT "profile_1"."role"
+   FROM "public"."profile" "profile_1"
+  WHERE ("profile_1"."id" = ( SELECT "auth"."uid"() AS "uid"))) = 'admin'::"text"))) WITH CHECK (((( SELECT "auth"."uid"() AS "uid") = "id") OR (( SELECT "profile_1"."role"
+   FROM "public"."profile" "profile_1"
+  WHERE ("profile_1"."id" = ( SELECT "auth"."uid"() AS "uid"))) = 'admin'::"text")));
 
 
 
@@ -2040,9 +2056,6 @@ ALTER TABLE "public"."languages" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."message" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."mission" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."mission_application" ENABLE ROW LEVEL SECURITY;
@@ -2098,6 +2111,12 @@ GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
+
+
+
+
+
+
 
 
 
@@ -2426,6 +2445,12 @@ GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "intern
 GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "internal", "internal") TO "anon";
 GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "internal", "internal") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "internal", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_chat_timestamp"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_chat_timestamp"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_chat_timestamp"() TO "service_role";
 
 
 
