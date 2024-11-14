@@ -1348,8 +1348,6 @@ drop type "public"."chat_files";
 
 drop function if exists "public"."generate_mission_unique_id"();
 
-drop function if exists "public"."generate_new_mission_number"();
-
 drop function if exists "public"."generate_unique_id"();
 
 drop function if exists "public"."generate_unique_id_f"();
