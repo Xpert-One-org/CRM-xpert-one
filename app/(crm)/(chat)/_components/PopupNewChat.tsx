@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import TextArea from '@/components/inputs/TextArea';
 import SelectComponent from '@/components/inputs/SelectComponent';
 import FileInput from '@/components/inputs/FileInput';
-import type { DBChat, DBMessage } from '@/types/typesDb';
+import type { ChatType, DBChat, DBMessage } from '@/types/typesDb';
 import { useSelect } from '@/store/select';
 import useChat from '@/store/chat/chat';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -32,7 +32,7 @@ export default function PopupNewChat({
   text = 'Nouveau message',
   type = 'chat',
 }: {
-  type?: 'forum' | 'chat';
+  type?: ChatType;
   text?: string;
 }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -153,10 +153,12 @@ export default function PopupNewChat({
           />
         </div>
         <div className="flex flex-col gap-y-spaceContainer p-6">
-          <div className="flex flex-col gap-y-1">
-            <Label className="">Destinataire</Label>
-            <ComboboxChat />
-          </div>
+          {type === 'chat' && (
+            <div className="flex flex-col gap-y-1">
+              <Label className="">Destinataire</Label>
+              <ComboboxChat />
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-x-spaceContainer gap-y-spaceSmall md:grid-cols-3">
             <Input
               label="Titre"
@@ -174,19 +176,21 @@ export default function PopupNewChat({
               onValueChange={handleChangeSelect}
             />
 
-            {!isForum && newChat.topic == 'mission' && (
-              <SelectComponent
-                label="Mission"
-                name={'mission'}
-                placeholder="Sélectionner une mission"
-                options={topicSelect}
-                defaultSelectedKeys={
-                  newChat.mission_id ? String(newChat.mission_id) : ''
-                }
-                onValueChange={handleChangeSelect}
-              />
-            )}
-            {isForum && (
+            {type != 'forum' &&
+              type != 'echo_community' &&
+              newChat.topic == 'mission' && (
+                <SelectComponent
+                  label="Mission"
+                  name={'mission'}
+                  placeholder="Sélectionner une mission"
+                  options={topicSelect}
+                  defaultSelectedKeys={
+                    newChat.mission_id ? String(newChat.mission_id) : ''
+                  }
+                  onValueChange={handleChangeSelect}
+                />
+              )}
+            {(type === 'echo_community' || type === 'forum') && (
               <FileInput
                 label="Joindre un fichier"
                 name={'files'}

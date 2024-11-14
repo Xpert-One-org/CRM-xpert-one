@@ -29,6 +29,7 @@ import InfiniteScroll from '@/components/ui/infinite-scroll';
 import Loader from '@/components/Loader';
 import { profileDataExperience } from '@/data/profile';
 import SelectComponent from '@/components/inputs/SelectComponent';
+import TextArea from '@/components/inputs/TextArea';
 
 export default function FournisseurTable() {
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
@@ -192,7 +193,7 @@ export default function FournisseurTable() {
                     disabled
                   />
                   {fournisseur.company_role_other && (
-                    <Input
+                    <TextArea
                       label="Détails de votre fonction"
                       value={
                         getLabel({

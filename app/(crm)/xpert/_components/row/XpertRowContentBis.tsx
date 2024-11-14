@@ -1,5 +1,6 @@
 import Input from '@/components/inputs/Input';
 import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import TextArea from '@/components/inputs/TextArea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { empty } from '@/data/constant';
 import { areaSelect, franceSelect } from '@/data/mocked_select';
@@ -48,7 +49,7 @@ export default function XpertRowContentBis({
         />
 
         {xpert.profile_mission?.sector_other && (
-          <Input
+          <TextArea
             label="Détails du secteur"
             value={xpert.profile_mission.sector_other ?? empty}
             disabled={true}
@@ -63,13 +64,14 @@ export default function XpertRowContentBis({
           name=""
           onValueChange={() => ({})}
         />
-        {xpert.profile_mission?.job_titles?.includes('other') && (
-          <Input
-            label="Détails du poste"
-            value={xpert.profile_mission.job_titles_other ?? empty}
-            disabled={true}
-          />
-        )}
+        {xpert.profile_mission?.job_titles?.includes('other') &&
+          xpert.profile_mission.job_titles_other && (
+            <TextArea
+              label="Détails du poste"
+              value={xpert.profile_mission.job_titles_other ?? empty}
+              disabled={true}
+            />
+          )}
       </div>
       <div className="grid w-full grid-cols-2 gap-4">
         <MultiSelectComponent
@@ -82,7 +84,7 @@ export default function XpertRowContentBis({
           onValueChange={() => ({})}
         />
         {xpert.profile_mission?.specialties_others && (
-          <Input
+          <TextArea
             label="Détails de la spécialité"
             value={xpert.profile_mission.specialties_others}
             disabled={true}
@@ -110,6 +112,13 @@ export default function XpertRowContentBis({
           name=""
           onValueChange={() => ({})}
         />
+        {xpert.profile_mission?.expertises_others && (
+          <TextArea
+            label="Détails de l'expertise"
+            value={xpert.profile_mission.expertises_others}
+            disabled={true}
+          />
+        )}
       </div>
       <div className="mb-spaceSmall mt-[36px] h-px w-full bg-[#BEBEC0]" />
       <p className="text-lg font-medium text-black">Mes disponibilités</p>
