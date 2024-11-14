@@ -4,26 +4,23 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { DESKTOP } from '@/data/constant';
 import { ChevronLeft } from 'lucide-react';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import type { RealtimePresenceState } from '@supabase/supabase-js';
+import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import useChat from '@/store/chat/chat';
 import type { ChatType, DBChat } from '@/types/typesDb';
-import { DBProfile } from '@/types/typesDb';
-import { useChatContent } from '@/store/chat/content';
-import { MsgCard } from './MsgCard';
-import Loader from '@/components/Loader';
-import SkeletonChat from './skeletons/SkeletonChat';
-import InputSend from './InputSend';
 import useUser from '@/store/useUser';
+import { useChatContent } from '@/store/chat/content';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { handleReadNewMessage } from '@functions/chat';
-import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import type { RealtimePresenceState } from '@supabase/supabase-js';
-import { RealtimePresence } from '@supabase/supabase-js';
+import SkeletonChat from './skeletons/SkeletonChat';
+import Loader from '@/components/Loader';
+import { MsgCard } from './MsgCard';
+import InputSend from './InputSend';
 
 export default function ChatContent({
   user_id,
   className,
   type,
-  chat,
 }: Readonly<{
   user_id: string;
   type: ChatType;
@@ -32,13 +29,15 @@ export default function ChatContent({
 }>) {
   const {
     inputScrollHeight,
-    chatSelected,
-    setChatSelected,
+    getChatSelectedWithRightType,
     isLoading,
-    messages,
-    reset,
-    updateMessageRead,
+    getMessagesRightType,
+    setCurrentChatSelected,
+    getChatWithRightType,
   } = useChat();
+
+  const chatSelected = getChatSelectedWithRightType(type);
+  const chats = getChatWithRightType(type);
   const { mission_number } = chatSelected?.mission ?? {};
   const scrollRef = useRef<HTMLDivElement>(null);
   const { minimal_profile, fetchMinimalProfile } = useUser();
@@ -49,11 +48,14 @@ export default function ChatContent({
 
   useEffect(() => {
     fetchMinimalProfile();
-    reset();
-    if (chat) {
-      setChatSelected(chat);
-    }
   }, []);
+
+  useEffect(() => {
+    if (!chats) return;
+    if (!chatSelected) {
+      setCurrentChatSelected(chats[0]);
+    }
+  }, [chats]);
 
   useEffect(() => {
     const channel = supabase.channel(`conversation:${chatSelected}`);
@@ -91,6 +93,8 @@ export default function ChatContent({
     };
   }, [chatSelected]);
 
+  const messages = getMessagesRightType(type);
+
   return (
     <div
       className={cn(
@@ -111,7 +115,7 @@ export default function ChatContent({
         <div className="absolute left-0 top-0 size-full rounded-tr-lg bg-black opacity-50" />
         <button
           className="absolute left-spaceContainer top-1/2 z-10 -translate-y-1/2 cursor-pointer lg:hidden"
-          onClick={() => setChatSelected(null)}
+          onClick={() => setCurrentChatSelected(null)}
         >
           <ChevronLeft color="white" />
         </button>
@@ -135,13 +139,15 @@ export default function ChatContent({
           >
             {isMoreDataLoading && <Loader />}
             {messages.map((m, i) => {
-              return <MsgCard user_id={user_id} key={m.id} message={m} />;
+              return (
+                <MsgCard user_id={user_id} type={type} key={m.id} message={m} />
+              );
             })}
           </div>
         </div>
       )}
       {/* Input */}
-      <InputSend user_id={user_id} profile={minimal_profile} />
+      <InputSend user_id={user_id} profile={minimal_profile} type={type} />
     </div>
   );
 }

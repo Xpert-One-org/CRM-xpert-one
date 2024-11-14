@@ -181,7 +181,21 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/communaute',
+    url: '/communaute/echo-de-la-communaute',
+    sub: [
+      {
+        title: 'Écho',
+        url: '/communaute/echo-de-la-communaute',
+      },
+      {
+        title: 'Forum',
+        url: '/communaute/forum',
+      },
+      {
+        title: 'Xpert / Xpert',
+        url: '/communaute/xpert-to-xpert',
+      },
+    ],
   },
   {
     id: 9,

@@ -2,7 +2,7 @@
 
 import { msgPerPage } from '@/data/constant';
 import type { Reaction } from '@/types/types';
-import type { DBChat, DBMessage, MsgFiles } from '@/types/typesDb';
+import type { ChatType, DBChat, DBMessage, MsgFiles } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const handleReadNewMessage = async ({
@@ -33,7 +33,7 @@ export const handleReadNewMessage = async ({
   return { error: null };
 };
 
-export const getUserChats = async () => {
+export const getUserChats = async (type: ChatType) => {
   const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
@@ -44,7 +44,7 @@ export const getUserChats = async () => {
     .select('*, messages:message(*), mission(mission_number)')
     .order('updated_at', { ascending: false })
 
-    .eq('type', 'chat')
+    .eq('type', type)
     .order('created_at', { referencedTable: 'message', ascending: false })
 
     .limit(1, { referencedTable: 'message' });

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FileText } from 'lucide-react';
 import Loader from '@/components/Loader';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 type Props = {
   file: {
@@ -41,6 +42,7 @@ export default function File({ file }: Props) {
         className="flex w-fit max-w-full items-center justify-center border-0 bg-transparent"
         classNameX=" text-white top-0 right-0 hidden"
       >
+        <DialogTitle />
         {isZoomedImgLoading && (
           <div className="absolute flex w-full items-center justify-center">
             <Loader />

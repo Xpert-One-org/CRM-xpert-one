@@ -1,5 +1,6 @@
 import Input from '@/components/inputs/Input';
 import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import TextArea from '@/components/inputs/TextArea';
 import { empty } from '@/data/constant';
 import { postTypesSelect, profilSearchedSelect } from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
@@ -247,7 +248,7 @@ export default function RightSideFicheMission({
             options={specialities ?? []}
           />
           {specialties_other && (
-            <Input
+            <TextArea
               className="w-1/3"
               label="Détails de la spécialité"
               value={specialties_other}
@@ -265,7 +266,7 @@ export default function RightSideFicheMission({
             options={expertisesSelect ?? []}
           />
           {expertises_other && (
-            <Input
+            <TextArea
               className="w-1/3"
               label="Détails de l'expertise"
               value={expertises_other}
@@ -285,7 +286,7 @@ export default function RightSideFicheMission({
             options={diplomaSelect ?? []}
           />
           {diplomas_other && (
-            <Input
+            <TextArea
               className="w-1/3"
               label="Détails du diplôme"
               value={diplomas_other}
@@ -304,7 +305,7 @@ export default function RightSideFicheMission({
             options={languageSelect ?? []}
           />
           {languages_other && (
-            <Input
+            <TextArea
               className="w-1/3"
               label="Détails du diplôme"
               value={languages_other}

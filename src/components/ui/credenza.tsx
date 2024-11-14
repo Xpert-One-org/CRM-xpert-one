@@ -79,6 +79,7 @@ const CredenzaContent = ({
 }: CredenzaProps) => {
   const isDesktop = useMediaQuery(desktop);
   const CredenzaContent = isDesktop ? DialogContent : DrawerContent;
+  const CredenzaTitle = isDesktop ? DialogTitle : DrawerTitle;
 
   return (
     <CredenzaContent
@@ -86,6 +87,7 @@ const CredenzaContent = ({
       classNameX={cn('bg-black rounded-full p-1 text-white', classNameX)}
       {...props}
     >
+      <CredenzaTitle className="pointer-events-auto absolute" />
       {children}
     </CredenzaContent>
   );

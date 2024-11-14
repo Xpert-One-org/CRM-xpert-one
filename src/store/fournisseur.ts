@@ -1,4 +1,4 @@
-import type { DBFournisseur} from '@/types/typesDb';
+import type { DBFournisseur } from '@/types/typesDb';
 import { DBXpert } from '@/types/typesDb';
 import { create } from 'zustand';
 import {
@@ -18,7 +18,7 @@ type XpertState = {
   offset: number;
   fetchFournisseurs: () => void;
   fetchSpecificFournisseur: (id: string) => void;
-}
+};
 
 export const useFournisseurStore = create<XpertState>((set, get) => ({
   loading: false,
@@ -43,7 +43,6 @@ export const useFournisseurStore = create<XpertState>((set, get) => ({
   fetchFournisseurs: async () => {
     set({ loading: true });
     const offset = get().fournisseurs?.length || 0;
-    console.log(offset, limitXpert);
 
     const { data, count } = await getAllFournisseurs({ offset: offset - 1 });
     const fournisseurs = get().fournisseurs || [];

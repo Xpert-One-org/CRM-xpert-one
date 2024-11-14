@@ -1,29 +1,64 @@
+import type { ChatType, DBChat, DBMessage } from '@/types/typesDb';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
-import useChat from './chat';
-import type { DBChat, DBMessage } from '@/types/typesDb';
 import { getUniqueMsgChat, selectBaseMsg } from '@functions/chat';
 import { getUserChatProfile } from '@functions/profile';
-import { useReaction } from '@/hooks/useReaction';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { useEffect } from 'react';
+import useChat from './chat';
 
 export const useRealtimeChat = ({
   type,
   user_id,
 }: {
-  type: string;
+  type: ChatType;
   user_id: string;
 }) => {
   const supabase = createSupabaseFrontendClient();
   const {
-    chatSelected,
+    getChatSelectedWithRightType,
+    setCurrentChatSelected,
+    setCurrentChat,
     setMessages,
+    setForumMessages,
+    setXpertMessages,
+    setEchoMessages,
     updateMessageRead,
-    fetchChats,
-    setChatSelected,
     chats,
-    setChats,
+    getChatWithRightType,
+    fetchChats,
+    echoChats,
+    xpertChats,
+    forumChats,
   } = useChat();
+
+  const chatSelected = getChatSelectedWithRightType(type);
+
+  const setCurrentMessages = (
+    type: string,
+    messagesOrUpdater:
+      | DBMessage[]
+      | ((prevMessages: DBMessage[]) => DBMessage[])
+  ): void => {
+    switch (type) {
+      case 'echo_community':
+        setEchoMessages(messagesOrUpdater);
+        break;
+      case 'chat':
+        setMessages(messagesOrUpdater);
+        break;
+      case 'xpert_to_xpert':
+        setXpertMessages(messagesOrUpdater);
+        break;
+      case 'forum':
+        setForumMessages(messagesOrUpdater);
+        break;
+      default:
+        setMessages(messagesOrUpdater);
+        break;
+    }
+  };
+
+  const currentChat = getChatWithRightType(type);
 
   const chatFilter = (() => {
     switch (type) {
@@ -32,17 +67,87 @@ export const useRealtimeChat = ({
       case 'chat':
         // created_by or receiver_id =
         return `type=eq.${type}`;
+      case 'forum':
+        return `type=eq.${type}`;
       case 'xpert_to_xpert':
         return `created_by=eq.${user_id}`;
       default:
         return `created_by=eq.${user_id}`;
     }
   })();
-  const msgFilter = `chat_id=in.(${chats.map((chat) => chat.id).join(',')})`;
+  const msgFilter = `chat_id=in.(${currentChat.map((chat) => chat.id).join(',')})`;
 
   useEffect(() => {
-    fetchChats();
+    switch (type) {
+      case 'chat':
+        if (!chats.length) fetchChats(type);
+        break;
+      case 'echo_community':
+        if (!echoChats.length) fetchChats(type);
+        break;
+      case 'xpert_to_xpert':
+        if (!xpertChats.length) fetchChats(type);
+        break;
+      case 'forum':
+        if (!forumChats.length) fetchChats(type);
+        break;
+      default:
+    }
   }, []);
+
+  // useEffect(() => {
+  //   const xpert_channel = supabase
+  //     .channel("chat_xpert_to_xpert")
+  //     .on(
+  //       "postgres_changes",
+  //       {
+  //         event: "*",
+  //         schema: "public",
+  //         table: "chat",
+  //         filter: "xpert_recipient_id=eq." + user_id,
+  //       },
+  //       (payload: RealtimePostgresChangesPayload<DBChat>) => {
+  //         if (payload.eventType === "DELETE") {
+  //           setChats((prev) =>
+  //             prev?.filter((chat) => chat.id !== payload.old.id)
+  //           );
+  //         }
+  //         if (payload.eventType === "INSERT") {
+  //           // setChats((prev) => [...(prev || []), payload.new] as DBChat[])
+  //           setChats((prev) => {
+  //             if (!prev) return prev;
+  //             const sortedChats = [...prev, payload.new].sort((a, b) => {
+  //               const aLastMessage =
+  //                 a.messages?.[a.messages.length - 1]?.created_at ||
+  //                 a.created_at;
+  //               const bLastMessage =
+  //                 b.messages?.[b.messages.length - 1]?.created_at ||
+  //                 b.created_at;
+  //               return (
+  //                 new Date(bLastMessage).getTime() -
+  //                 new Date(aLastMessage).getTime()
+  //               );
+  //             });
+  //             return sortedChats;
+  //           });
+  //           setChatSelected(payload.new);
+  //         }
+  //         if (payload.eventType === "UPDATE") {
+  //           setChats((prev) => {
+  //             if (!prev) return prev;
+  //             return prev.map((chat) =>
+  //               chat.id === payload.new.id ? payload.new : chat
+  //             );
+  //           });
+  //         }
+  //       }
+  //     )
+  //     .subscribe();
+
+  //   return () => {
+  //     supabase.removeChannel(xpert_channel);
+  //   };
+  // }, [supabase, chatSelected?.id]);
 
   useEffect(() => {
     const channel = supabase
@@ -55,6 +160,7 @@ export const useRealtimeChat = ({
           table: 'chat',
           filter: chatFilter,
         },
+
         async (payload: RealtimePostgresChangesPayload<DBChat>) => {
           if (payload.eventType === 'INSERT') {
             const { data, error } = await getUniqueMsgChat(payload.new.id);
@@ -66,10 +172,13 @@ export const useRealtimeChat = ({
               console.error('No data found for unique message');
               return;
             }
-            const newChats = [{ ...payload.new, messages: data }, ...chats];
+            const newChats = [
+              { ...payload.new, messages: data },
+              ...currentChat,
+            ];
 
-            setChats(newChats);
-            if (!chatSelected) setChatSelected(newChats[0]);
+            setCurrentChat(newChats);
+            if (!chatSelected) setCurrentChatSelected(newChats[0]);
           }
         }
       )
@@ -88,17 +197,17 @@ export const useRealtimeChat = ({
           const { data: userProfile } = await getUserChatProfile(userId);
 
           if (payload.eventType === 'DELETE') {
-            setMessages((prev) =>
+            setCurrentMessages(type, (prev) =>
               prev.filter((message) => message.id !== payload.old.id)
             );
           }
           if (payload.eventType === 'UPDATE') {
-            setMessages((prev) =>
-              prev.map((message) => {
-                return message.id === payload.new.id
+            setCurrentMessages(type, (prev) =>
+              prev.map((message) =>
+                message.id === payload.new.id
                   ? { ...message, reactions: payload.new.reactions }
-                  : message;
-              })
+                  : message
+              )
             );
           }
           if (payload.eventType === 'INSERT') {
@@ -130,8 +239,8 @@ export const useRealtimeChat = ({
 
             // SET CHATS WITH NEW MESSAGE
             const getChatWithNewMsg = () => {
-              if (chats.length === 0) return [];
-              const updatedChats = chats.map((chat) => {
+              if (currentChat.length === 0) return [];
+              const updatedChats = currentChat.map((chat) => {
                 if (chat.id === newMessageWithUser.chat_id) {
                   return {
                     ...chat,
@@ -152,7 +261,7 @@ export const useRealtimeChat = ({
               });
             };
             const updatedChats = getChatWithNewMsg();
-            setChats(updatedChats);
+            setCurrentChat(updatedChats);
 
             // IF NEW MESSAGE IS NOT SENT BY ME AND THE CHAT IS SELECTED
             if (
@@ -169,7 +278,7 @@ export const useRealtimeChat = ({
                 ...newMessageWithUser,
                 read: true,
               };
-              setMessages((prev) => [...prev, msgToSet]);
+              setCurrentMessages(type, (prev) => [...prev, msgToSet]);
             }
           }
         }
@@ -181,5 +290,5 @@ export const useRealtimeChat = ({
     };
   }, [supabase, chatSelected?.id]);
 
-  return { chats, setChats };
+  return { chats: currentChat, setChats: setCurrentChat };
 };
