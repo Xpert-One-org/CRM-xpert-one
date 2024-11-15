@@ -95,6 +95,16 @@ CREATE TYPE "public"."article_status" AS ENUM (
 ALTER TYPE "public"."article_status" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."article_type" AS ENUM (
+    'web',
+    'link',
+    'press'
+);
+
+
+ALTER TYPE "public"."article_type" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."categories" AS ENUM (
     'energy_and_nuclear',
     'renewable_energy',
@@ -396,8 +406,7 @@ ALTER FUNCTION "public"."get_profile_other_languages"() OWNER TO "postgres";
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
-    AS $$
-DECLARE
+    AS $$DECLARE
     v_role TEXT;
     v_is_student BOOLEAN;
 BEGIN
@@ -432,13 +441,15 @@ BEGIN
             ELSE NULL
         END,
         NEW.raw_user_meta_data->>'referent_generated_id',
-        gen_random_uuid()::text, -- Utilise gen_random_uuid() au lieu de uuid_generate_v4()
+        CASE
+            WHEN new.raw_user_meta_data->>'role' = 'xpert' THEN public.generate_unique_id()::text
+            ELSE public.generate_unique_id_f()::text
+        END,  
         NEW.raw_user_meta_data->>'username'
     );
 
     RETURN NEW;
-END;
-$$;
+END;$$;
 
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
@@ -518,7 +529,9 @@ CREATE TABLE IF NOT EXISTS "public"."article" (
     "slug" "text",
     "category" "text",
     "categories" "public"."categories"[],
-    "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL
+    "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL,
+    "type" "public"."article_type" DEFAULT 'web'::"public"."article_type" NOT NULL,
+    "url" "text"
 );
 
 
