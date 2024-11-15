@@ -18,6 +18,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_net" WITH SCHEMA "extensions";
 
 
 
+
 CREATE EXTENSION IF NOT EXISTS "pgsodium" WITH SCHEMA "pgsodium";
 
 
@@ -92,6 +93,16 @@ CREATE TYPE "public"."article_status" AS ENUM (
 
 
 ALTER TYPE "public"."article_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."article_type" AS ENUM (
+    'web',
+    'link',
+    'press'
+);
+
+
+ALTER TYPE "public"."article_type" OWNER TO "postgres";
 
 
 CREATE TYPE "public"."categories" AS ENUM (
@@ -517,7 +528,9 @@ CREATE TABLE IF NOT EXISTS "public"."article" (
     "slug" "text",
     "category" "text",
     "categories" "public"."categories"[],
-    "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL
+    "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL,
+    "type" "public"."article_type" DEFAULT 'web'::"public"."article_type" NOT NULL,
+    "url" "text"
 );
 
 
@@ -1347,7 +1360,8 @@ CREATE TABLE IF NOT EXISTS "public"."user_alerts" (
     "show_profile_picture" boolean DEFAULT true NOT NULL,
     "categories" "text"[],
     "topics" "text"[],
-    "center_of_interest" "text"[]
+    "center_of_interest" "text"[],
+    "new_test" "text"
 );
 
 
