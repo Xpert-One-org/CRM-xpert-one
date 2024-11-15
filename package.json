@@ -7,8 +7,9 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "db-pull-remote": "supabase db pull && supabase db pull --schema auth,storage",
-    
-    "gen-supabase-types": "npx supabase gen types --lang=typescript --project-id gcybwruhwuiaecucsroi --schema public > src/types/supabase.ts",
+    "db-seed": "supabase link && supabase db dump --data-only -f supabase/seed.sql",
+    "db-diff": "supabase db diff --use-migra -f",                      
+    "gen-db-types": "npx supabase gen types --lang=typescript --project-id gcybwruhwuiaecucsroi --schema public > src/types/supabase.ts",
     "config": {
       "commitizen": {
         "path": "@commitlint/cz-commitlint"
