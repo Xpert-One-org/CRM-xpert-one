@@ -1,0 +1,3 @@
+alter table "public"."user_alerts" add column "new_test" text;
+
+
