@@ -1351,8 +1351,6 @@ ALTER TABLE "public"."subjects_id_seq" OWNER TO "postgres";
 
 ALTER SEQUENCE "public"."subjects_id_seq" OWNED BY "public"."subjects"."id";
 
-
-
 CREATE TABLE IF NOT EXISTS "public"."user_alerts" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
