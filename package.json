@@ -6,6 +6,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "db-pull-remote": "supabase db pull && supabase db pull --schema auth,storage",
+    
     "gen-supabase-types": "npx supabase gen types --lang=typescript --project-id gcybwruhwuiaecucsroi --schema public > src/types/supabase.ts",
     "config": {
       "commitizen": {
