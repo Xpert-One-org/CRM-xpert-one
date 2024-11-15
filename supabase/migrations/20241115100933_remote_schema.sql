@@ -906,7 +906,6 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "start_date" timestamp with time zone,
     "end_date" timestamp with time zone,
     "deadline_application" timestamp with time zone,
-    "state" "public"."mission_state" DEFAULT 'to_validate'::"public"."mission_state" NOT NULL,
     "xpert_associated_id" "uuid",
     "job_title_other" "text",
     "sector_energy" "text",
@@ -921,7 +920,8 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "sector_infrastructure_other" "text",
     "sector_renewable_energy_other" "text",
     "signed_quote_file_name" "text",
-    "contract_file_name" "text"
+    "contract_file_name" "text",
+    "state" "public"."mission_state" DEFAULT 'to_validate'::"public"."mission_state" NOT NULL
 );
 
 
@@ -1086,8 +1086,8 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "sector_infrastructure_other" "text",
     "sector_renewable_energy_other" "text",
     "cv_name" "text",
-    "is_banned_from_community" boolean DEFAULT false NOT NULL,
-    "community_banning_explanations" "text"
+    "community_banning_explanations" "text",
+    "is_banned_from_community" boolean DEFAULT false NOT NULL
 );
 
 
@@ -2111,12 +2111,6 @@ GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
-
-
-
-
-
-
 
 
 
