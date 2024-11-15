@@ -71,6 +71,3 @@ as permissive
 for insert
 to authenticated
 with check ((bucket_id = 'chat'::text));
-
-
-
