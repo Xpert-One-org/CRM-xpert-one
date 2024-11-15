@@ -406,8 +406,7 @@ ALTER FUNCTION "public"."get_profile_other_languages"() OWNER TO "postgres";
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
-    AS $$
-DECLARE
+    AS $$DECLARE
     v_role TEXT;
     v_is_student BOOLEAN;
 BEGIN
@@ -442,13 +441,15 @@ BEGIN
             ELSE NULL
         END,
         NEW.raw_user_meta_data->>'referent_generated_id',
-        gen_random_uuid()::text, -- Utilise gen_random_uuid() au lieu de uuid_generate_v4()
+        CASE
+            WHEN new.raw_user_meta_data->>'role' = 'xpert' THEN public.generate_unique_id()::text
+            ELSE public.generate_unique_id_f()::text
+        END,  
         NEW.raw_user_meta_data->>'username'
     );
 
     RETURN NEW;
-END;
-$$;
+END;$$;
 
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
