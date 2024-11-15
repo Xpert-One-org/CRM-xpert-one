@@ -2,10 +2,10 @@ import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { DESKTOP, msgPerPage } from '@/data/constant';
 import { toast } from 'sonner';
-import { getMessages } from '@functions/chat';
-import type { ChatType } from '@/types/typesDb';
-import useChat from './chat';
+import type { ChatType, DBMessage } from '@/types/typesDb';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { getMessages } from '@functions/chat';
+import useChat from './chat';
 
 export const useChatContent = ({
   type,
@@ -16,15 +16,46 @@ export const useChatContent = ({
 }) => {
   const isDesktop = useMediaQuery(DESKTOP);
   const {
-    chatSelected,
+    getChatSelectedWithRightType,
     setIsLoading,
-    messages,
     setMessages,
+    setEchoMessages,
+    setXpertMessages,
+    setForumMessages,
     setIsFileLoading,
+    getMessagesRightType,
   } = useChat();
   const [totalMessages, setTotalMessages] = useState<number | null>(null);
   const isInitialLoad = useRef(true);
   const [isMoreDataLoading, setIsMoreDataLoading] = useState(false);
+
+  const messages = getMessagesRightType(type);
+  const chatSelected = getChatSelectedWithRightType(type);
+
+  const setCurrentMessages = (
+    type: string,
+    messagesOrUpdater:
+      | DBMessage[]
+      | ((prevMessages: DBMessage[]) => DBMessage[])
+  ): void => {
+    switch (type) {
+      case 'echo_community':
+        setEchoMessages(messagesOrUpdater);
+        break;
+      case 'chat':
+        setMessages(messagesOrUpdater);
+        break;
+      case 'xpert_to_xpert':
+        setXpertMessages(messagesOrUpdater);
+        break;
+      case 'forum':
+        setForumMessages(messagesOrUpdater);
+        break;
+      default:
+        setMessages(messagesOrUpdater);
+        break;
+    }
+  };
 
   const fetchMessages = async () => {
     !isDesktop && !chatSelected && setIsLoading(false);
@@ -49,7 +80,7 @@ export const useChatContent = ({
     isInitialLoad.current = true;
     setIsLoading(false);
     setIsFileLoading(false);
-    data && setMessages(data);
+    data && setCurrentMessages(type, data);
   };
 
   const fetchMoreMessages = async () => {
@@ -71,7 +102,7 @@ export const useChatContent = ({
     if (data) {
       setIsMoreDataLoading(false);
 
-      setMessages((prev) => [...data, ...prev]);
+      setCurrentMessages(type, (prev) => [...data, ...prev]);
       setTimeout(() => {
         const newScrollHeight = scrollRef.current?.scrollHeight ?? 0;
         scrollRef.current?.scrollTo(0, newScrollHeight - currentScrollHeight);

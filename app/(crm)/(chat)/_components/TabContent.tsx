@@ -4,36 +4,33 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import useChat from '@/store/chat/chat';
 import { useRealtimeChat } from '@/store/chat/realtime';
-import useUser from '@/store/useUser';
 import type { ChatType, DBChat } from '@/types/typesDb';
 import { getTimeFromNow } from '@/utils/getTimeFromNow';
+import { handleReadNewMessage } from '@functions/chat';
 import React, { useEffect } from 'react';
 
 type TabContentProps = {
-  type: ChatType;
   user_id: string;
+  type: ChatType;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export default function TabContent({
+  user_id,
   className,
   type,
-  user_id,
 }: Readonly<TabContentProps>) {
   const {
-    setChatSelected,
-    chatSelected,
-    setChats: setStoreChats,
+    setCurrentChatSelected,
+    getChatSelectedWithRightType,
+
     isLoading,
+    getChatWithRightType,
   } = useChat();
 
-  const { chats } = useRealtimeChat({ type, user_id });
-
+  useRealtimeChat({ type, user_id });
   const isDektop = useMediaQuery(DESKTOP);
-
-  useEffect(() => {
-    setStoreChats(chats);
-    !chatSelected && isDektop && setChatSelected(chats[0]);
-  }, [chats, isDektop]);
+  const chats = getChatWithRightType(type);
+  const chatSelected = getChatSelectedWithRightType(type);
 
   return (
     <div
@@ -61,6 +58,7 @@ export default function TabContent({
             isReadByMe={isReadByMe}
             chat={chat}
             chatSelected={chatSelected}
+            setChatSelected={setCurrentChatSelected}
             disabled={isDektop ? isLoading : false}
           />
         );
@@ -74,6 +72,7 @@ const TabChat = ({
   index,
   chatSelected,
   isReadByMe,
+  setChatSelected,
   disabled = false,
 }: {
   chat?: DBChat;
@@ -81,16 +80,15 @@ const TabChat = ({
   chatSelected: DBChat | null;
   disabled: boolean;
   isReadByMe: boolean;
+  setChatSelected: (chat: DBChat | null) => void;
 }) => {
   const { title } = chat ?? {};
   const { created_at: sent_at, read_by } = chat?.messages[0] ?? {};
 
-  const { updateMessageRead, setChatSelected, setChats } = useChat();
-
   const handleChangeTab = () => {
     if (!chat) return;
     setChatSelected(chat);
-    updateMessageRead({ chat_id: chat.id, read_by: read_by ?? [] });
+    handleReadNewMessage({ chat_id: chat.id, read_by: read_by ?? [] });
   };
 
   return (

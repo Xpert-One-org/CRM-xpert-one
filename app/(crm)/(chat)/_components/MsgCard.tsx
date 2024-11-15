@@ -13,21 +13,23 @@ import Picker from '@emoji-mart/react';
 import { MessageSquareMore, Pin } from 'lucide-react';
 import { useEffect } from 'react';
 import Image from 'next/image';
-import File from './File';
 import { defaultAvatar } from '@/data/constant';
-import useChat from '@/store/chat/chat';
-import { formatDate, formatHour } from '@/utils/formatDates';
+import type { Reaction } from '@/types/types';
 import type { ChatType, DBMessage, DBProfile } from '@/types/typesDb';
 import { useReaction } from '@/hooks/useReaction';
+import useChat from '@/store/chat/chat';
+import File from './File';
+import { formatDate } from '@/utils/date';
+import { formatHour } from '@/utils/formatDates';
 import { getLabel } from '@/utils/getLabel';
-import type { Reaction } from '@/types/types';
 
 type MsgCardProps = {
   message: DBMessage;
   user_id: string;
+  type: ChatType;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
+export const MsgCard = ({ style, message, user_id, type }: MsgCardProps) => {
   const {
     content,
     user,
@@ -36,14 +38,15 @@ export const MsgCard = ({ style, message, user_id }: MsgCardProps) => {
     base_msg,
     files,
   } = message;
-  const { setAnsweringMsg, chatSelected } = useChat();
-  const { type } = chatSelected ?? {};
+  const { setAnsweringMsg, getChatSelectedWithRightType } = useChat();
 
   const { addReaction, open, setOpen } = useReaction({
     reaction_db,
     user_id,
     message_id: message.id,
   });
+
+  const chatSelected = getChatSelectedWithRightType(type);
 
   const isCreatorMsgNotUser =
     chatSelected?.created_by === message.send_by &&

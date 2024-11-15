@@ -5,15 +5,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import useChat from '@/store/chat/chat';
+import type {
+  ChatType,
+  DBBaseMsg,
+  DBMessage,
+  DBProfile,
+} from '@/types/typesDb';
 import { insertMessage } from '@functions/chat';
-import type { DBBaseMsg, DBMessage, DBProfile } from '@/types/typesDb';
+import useChat from '@/store/chat/chat';
 
 export default function InputSend({
   user_id,
   profile,
+  type,
 }: {
   user_id: string;
+  type: ChatType;
   profile: Pick<DBProfile, 'role' | 'firstname' | 'lastname'> | null;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -21,8 +28,11 @@ export default function InputSend({
   const answerRef = useRef<HTMLDivElement>(null);
   const [files, setFiles] = useState<File[]>([]);
   const {
-    chatSelected,
+    getChatSelectedWithRightType,
     setMessages,
+    setForumMessages,
+    setEchoMessages,
+    setXpertMessages,
     setInputScrollHeight,
     answeringMsg,
     setIsFileLoading,
@@ -30,11 +40,36 @@ export default function InputSend({
     messages,
   } = useChat();
   const supabase = createSupabaseFrontendClient();
-
+  const chatSelected = getChatSelectedWithRightType(type);
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     setFiles((prev) => [...prev, ...Array.from(files)]);
+  };
+
+  const setCurrentMessages = (
+    type: string,
+    messagesOrUpdater:
+      | DBMessage[]
+      | ((prevMessages: DBMessage[]) => DBMessage[])
+  ): void => {
+    switch (type) {
+      case 'echo_community':
+        setEchoMessages(messagesOrUpdater);
+        break;
+      case 'chat':
+        setMessages(messagesOrUpdater);
+        break;
+      case 'xpert_to_xpert':
+        setXpertMessages(messagesOrUpdater);
+        break;
+      case 'forum':
+        setForumMessages(messagesOrUpdater);
+        break;
+      default:
+        setMessages(messagesOrUpdater);
+        break;
+    }
   };
 
   const handleSend = async () => {
@@ -81,7 +116,7 @@ export default function InputSend({
     textarea.value = '';
 
     // ADD INSTANT TO CLIENT
-    setMessages((prev: DBMessage[]) => [...prev, message]);
+    setCurrentMessages(type, (prev: DBMessage[]) => [...prev, message]);
 
     const filesUrl: any[] = [{}];
 
@@ -117,7 +152,7 @@ export default function InputSend({
           }
 
           if (id) {
-            setMessages((prev: DBMessage[]) =>
+            setCurrentMessages(type, (prev: DBMessage[]) =>
               prev.map((msg) => (msg.id === 0 ? { ...msg, id } : msg))
             );
           }
@@ -136,7 +171,7 @@ export default function InputSend({
       }
 
       if (id) {
-        setMessages((prev: DBMessage[]) =>
+        setCurrentMessages(type, (prev: DBMessage[]) =>
           prev.map((msg) => (msg.id === 0 ? { ...msg, id } : msg))
         );
       }
@@ -182,7 +217,7 @@ export default function InputSend({
   return (
     <div className="absolute bottom-0 left-0 w-full lg:bg-background">
       <div className="relative mx-[30px] my-spaceSmall flex items-center justify-between">
-        <div className="w-full border-border-gray">
+        <div className="w-full border-border-gray lg:border">
           {answeringMsg && (
             <div
               ref={answerRef}
@@ -204,7 +239,7 @@ export default function InputSend({
               </div>
               <button
                 onClick={() => setAnsweringMsg(null)}
-                className="rounded-full p-px transition hover:bg-light-gray-third"
+                className="rounded-full p-px transition-colors hover:bg-light-gray-third"
               >
                 <X size={14} color="white" />
               </button>
@@ -244,7 +279,7 @@ export default function InputSend({
                   onClick={() =>
                     setFiles((prev) => prev.filter((_, index) => index !== i))
                   }
-                  className="absolute -right-2 -top-2 rounded-full bg-fond-gray p-px transition hover:bg-light-gray-third"
+                  className="absolute -right-2 -top-2 rounded-full bg-fond-gray p-px transition-colors hover:bg-light-gray-third"
                 >
                   <X size={14} color="white" />
                 </button>
