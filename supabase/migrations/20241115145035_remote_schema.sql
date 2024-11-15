@@ -18,6 +18,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_net" WITH SCHEMA "extensions";
 
 
 
+
 CREATE EXTENSION IF NOT EXISTS "pgsodium" WITH SCHEMA "pgsodium";
 
 
@@ -1347,7 +1348,8 @@ CREATE TABLE IF NOT EXISTS "public"."user_alerts" (
     "show_profile_picture" boolean DEFAULT true NOT NULL,
     "categories" "text"[],
     "topics" "text"[],
-    "center_of_interest" "text"[]
+    "center_of_interest" "text"[],
+    "new_test" "text"
 );
 
 
