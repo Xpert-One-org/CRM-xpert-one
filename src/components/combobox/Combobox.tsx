@@ -57,7 +57,7 @@ export function Combobox({
         {label && (
           <Label htmlFor={id} className="flex items-center">
             {label}
-            {required && <span className="text-colors-accent">*</span>}
+            {required && <span className="text-accent">*</span>}
             {explain ? (
               <Info className="ml-2 w-fit">{explain}</Info>
             ) : (
@@ -69,8 +69,8 @@ export function Combobox({
         <PopoverTrigger asChild>
           <div
             className={cn(
-              'border-colors-border-gray flex h-[42px] items-center justify-between rounded-md border bg-white px-4 py-2 text-sm font-light',
-              { 'border-colors-important': hasError }
+              'flex h-[42px] items-center justify-between rounded-md border border-border-gray bg-white px-4 py-2 text-sm font-light',
+              { 'border-important': hasError }
             )}
           >
             {defaultSelectedKeys

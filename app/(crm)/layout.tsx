@@ -32,10 +32,11 @@ export default async function Layout({
       <Sidebar />
 
       <section className="flex h-screen w-full flex-col overflow-auto bg-lightgray-secondary p-spaceContainer sm:rounded-xl lg:pt-[11px]">
-        <div className="relative grid grid-cols-3 items-center justify-between gap-x-spaceContainer px-spaceContainer lg:flex lg:items-end lg:px-0">
+        <div className="relative grid grid-cols-3 items-center justify-end gap-x-spaceContainer px-spaceContainer lg:flex lg:items-end lg:px-0">
           {/* BURGER MOBILE SHEET */}
           <MenuBurger />
-          <Tooltip>
+          {/* //! For the moment disabled the searchbar, maybe we will work on it later for the v2 */}
+          {/* <Tooltip>
             <TooltipTrigger className="w-full max-w-[280px]" asChild>
               <Input
                 type="search"
@@ -46,7 +47,7 @@ export default async function Layout({
             <TooltipContent>
               <p>La recherche est actuellement en cours de re-développement</p>
             </TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
 
           <ActualPageTitle className="flex items-center justify-center" />
           <div className="flex items-center justify-end gap-x-spaceSmall sm:gap-x-spaceContainer lg:items-end">

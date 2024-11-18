@@ -239,7 +239,7 @@ export default function InputSend({
               </div>
               <button
                 onClick={() => setAnsweringMsg(null)}
-                className="rounded-full p-px transition-colors hover:bg-light-gray-third"
+                className="rounded-full p-px transition hover:bg-light-gray-third"
               >
                 <X size={14} color="white" />
               </button>
@@ -279,7 +279,7 @@ export default function InputSend({
                   onClick={() =>
                     setFiles((prev) => prev.filter((_, index) => index !== i))
                   }
-                  className="absolute -right-2 -top-2 rounded-full bg-fond-gray p-px transition-colors hover:bg-light-gray-third"
+                  className="absolute -right-2 -top-2 rounded-full bg-fond-gray p-px transition hover:bg-light-gray-third"
                 >
                   <X size={14} color="white" />
                 </button>

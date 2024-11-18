@@ -90,3 +90,29 @@ export const insertMission = async ({ mission }: { mission: any }) => {
   }
   return { error: null };
 };
+
+export const deleteMission = async (missionId: number, reason: string) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  //! maybe later we will add table called history_mission
+  //! to keep history queries of the mission
+
+  // const { error: errorMissionsCanceled } =
+  //   await supabase.from('history_mission').insert({
+  //     mission_id: missionId,
+  //     reason,
+  //     comment,
+  //     created_at: new Date().toISOString(),
+  //   });
+
+  const { error: errorMission } = await supabase
+    .from('mission')
+    .delete()
+    .eq('id', missionId);
+
+  if (errorMission) {
+    return { errorMission };
+  }
+
+  return { error: null };
+};

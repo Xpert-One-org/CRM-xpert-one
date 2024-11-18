@@ -7,7 +7,5 @@ type Props = {
 } & ComponentProps<'div'>;
 
 export default function Separator({ className }: Props) {
-  return (
-    <div className={cn('bg bg-colors-light-gray-third h-[1px]', className)} />
-  );
+  return <div className={cn('bg h-[1px] bg-light-gray-third', className)} />;
 }

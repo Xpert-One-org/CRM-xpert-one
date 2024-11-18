@@ -54,7 +54,7 @@ export default function MultiSelectComponent({
       {label && (
         <Label htmlFor={id} className={cn('flex items-center', classNameLabel)}>
           {label}
-          {required && <span className="text-colors-accent">*</span>}
+          {required && <span className="text-accent">*</span>}
           {explain ? (
             <Info className="ml-2 w-fit">{explain}</Info>
           ) : (
@@ -68,8 +68,8 @@ export default function MultiSelectComponent({
         onChange={handleOnChange}
         className={cn(
           'bg-white pr-4 transition',
-          { 'border-colors-important': hasError },
-          { 'hover:border-colors-primary': !hasError }
+          { 'border-important': hasError },
+          { 'hover:border-primary': !hasError }
         )}
         badgeClassName=""
         value={defaultsOptions}

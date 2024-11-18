@@ -13,6 +13,7 @@ import {
   calculateProjectedRevenue,
 } from '../../utils/tjm';
 import { Button } from '@/components/ui/button';
+import DeleteMissionDialog from '../../_components/DeleteMissionDialog';
 
 export default function RightSideFicheMission({
   missionDetails,
@@ -448,7 +449,9 @@ export default function RightSideFicheMission({
           />
         </div>
       </div>
-      <Button variant={'destructive'}>Supprimer</Button>
+      <div className="flex w-full flex-row justify-end gap-4">
+        <DeleteMissionDialog missionId={missionDetails.id} />
+      </div>
     </div>
   );
 }

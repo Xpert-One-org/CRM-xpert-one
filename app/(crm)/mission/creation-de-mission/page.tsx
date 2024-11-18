@@ -214,13 +214,18 @@ export default function Page() {
       profileData: creationMissionData,
     });
 
+    let missionState = 'to_validate';
+    if (openAllToValidate && !isValidated) {
+      missionState = 'open_all_to_validate';
+    } else if (isValidated && !openAllToValidate) {
+      missionState = 'open';
+    } else if (isValidated && openAllToValidate) {
+      missionState = 'open_all';
+    }
+
     const missionData = {
       ...usedDataJson,
-      state: openAllToValidate
-        ? 'open_all_to_validate'
-        : isValidated
-          ? 'open'
-          : 'to_validate',
+      state: missionState,
     };
 
     if (elementMissings.length) {

@@ -70,7 +70,7 @@ export default function SelectComponent({
           className={cn('mb-2 flex items-center', classNameLabel)}
         >
           {label}
-          {required && <span className="text-colors-accent ml-1">*</span>}
+          {required && <span className="ml-1 text-accent">*</span>}
           {explain && <Info className="ml-2 w-fit">{explain}</Info>}
         </Label>
       )}
@@ -79,8 +79,8 @@ export default function SelectComponent({
           className={cn(
             'h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out',
             {
-              'border-colors-important': hasError,
-              'hover:border-colors-primary': !hasError,
+              'border-important': hasError,
+              'hover:border-primary': !hasError,
             }
           )}
         >
@@ -94,7 +94,7 @@ export default function SelectComponent({
                 <SelectItem
                   key={item.value || ''}
                   value={item.value || ''}
-                  className="hover:bg-colors-hover transition duration-150"
+                  className="hover:bg-hover transition duration-150"
                 >
                   {item.label}
                 </SelectItem>
