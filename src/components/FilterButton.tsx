@@ -18,6 +18,7 @@ type FilterButtonProps = {
   placeholder?: string;
   filter?: boolean;
   className?: string;
+  disabled?: boolean;
 };
 
 export const FilterButton = ({
@@ -27,6 +28,7 @@ export const FilterButton = ({
   placeholder,
   filter = true,
   className,
+  disabled = true,
 }: FilterButtonProps) => {
   const [selected, setSelected] = useState<string>(defaultSelectedKeys ?? '');
 
@@ -77,7 +79,7 @@ export const FilterButton = ({
               `flex h-auto cursor-default items-center gap-x-2 text-wrap px-spaceContainer`,
               className
             )}
-            disabled
+            disabled={disabled}
           >
             {selected || placeholder}
           </Button>

@@ -1,4 +1,2 @@
-
 npx lint-staged
 npx tsc --noEmit
-pnpm db-push

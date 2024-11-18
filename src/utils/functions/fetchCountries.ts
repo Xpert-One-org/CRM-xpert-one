@@ -1,6 +1,6 @@
 import type { Country } from '@/types/types';
 
-export const getCountries = async () => {
+export const fetchCountries = async () => {
   const response = await fetch(
     'https://restcountries.com/v3.1/all?fields=translations,cca2'
   );
@@ -14,6 +14,5 @@ export const getCountries = async () => {
   const sortedCountries = countries.sort((a: Country, b: Country) =>
     a.label.localeCompare(b.label)
   );
-
-  return { data: sortedCountries, error: null };
+  return sortedCountries;
 };

@@ -7,7 +7,10 @@ import React from 'react';
 export default function ActualPageTitle({ className }: { className?: string }) {
   const menuEls = menuCrm;
   const pathnameSegments = usePathname().split('/').filter(Boolean);
-  const lastSegment = pathnameSegments[pathnameSegments.length - 1];
+  const lastSegment = pathnameSegments[pathnameSegments.length - 1].replace(
+    /-/g,
+    ' '
+  );
 
   const findMenuTitle = (segments: string[]) => {
     const parent = menuEls.find((el) => el.url === `/${segments[0]}`);

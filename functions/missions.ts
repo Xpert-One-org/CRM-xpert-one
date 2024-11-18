@@ -74,3 +74,19 @@ export const updateMissionState = async (
 
   return { data: data![0], error: error };
 };
+
+export const insertMission = async ({ mission }: { mission: any }) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return { error: 'User not found' };
+  }
+
+  const { error } = await supabase.from('mission').insert([mission]);
+
+  if (error) {
+    return { error };
+  }
+  return { error: null };
+};

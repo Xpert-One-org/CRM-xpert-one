@@ -5,12 +5,12 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+} from './ui/select';
+import { Label } from './ui/label';
 import { cn } from '@/lib/utils';
+import Info from './Info';
 
 type Props = {
   label?: string;
@@ -70,16 +70,17 @@ export default function SelectComponent({
           className={cn('mb-2 flex items-center', classNameLabel)}
         >
           {label}
-          {required && <span className="ml-1 text-accent">*</span>}
+          {required && <span className="text-colors-accent ml-1">*</span>}
+          {explain && <Info className="ml-2 w-fit">{explain}</Info>}
         </Label>
       )}
       <Select onValueChange={handleValueChange} name={name} disabled={disabled}>
         <SelectTrigger
           className={cn(
-            'h-[42px] rounded-md border border-border-gray bg-white shadow-sm transition duration-200 ease-in-out',
+            'h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out',
             {
-              'border-important': hasError,
-              'hover:border-primary': !hasError,
+              'border-colors-important': hasError,
+              'hover:border-colors-primary': !hasError,
             }
           )}
         >
@@ -89,11 +90,11 @@ export default function SelectComponent({
           <SelectGroup>
             {options
               .filter((item) => item.value)
-              .map((item, i) => (
+              .map((item) => (
                 <SelectItem
-                  key={`${item.value}-${i}`}
+                  key={item.value || ''}
                   value={item.value || ''}
-                  className="hover:bg-hover transition duration-150"
+                  className="hover:bg-colors-hover transition duration-150"
                 >
                   {item.label}
                 </SelectItem>

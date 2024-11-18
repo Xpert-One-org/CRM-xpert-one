@@ -12,6 +12,7 @@ import {
   calculateFinalRevenue,
   calculateProjectedRevenue,
 } from '../../utils/tjm';
+import { Button } from '@/components/ui/button';
 
 export default function RightSideFicheMission({
   missionDetails,
@@ -447,6 +448,7 @@ export default function RightSideFicheMission({
           />
         </div>
       </div>
+      <Button variant={'destructive'}>Supprimer</Button>
     </div>
   );
 }

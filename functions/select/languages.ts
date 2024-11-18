@@ -1,5 +1,6 @@
 'use server';
 
+import type { DBLanguages } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getLanguages = async () => {
@@ -19,4 +20,23 @@ export const getLanguages = async () => {
   }
 
   return { data };
+};
+
+export const insertLanguage = async (language: DBLanguages) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { data, error } = await supabase
+    .from('languages')
+    .insert({
+      label: language.label,
+      value: language.value,
+      json_key: language.json_key,
+    })
+    .select('*');
+
+  if (error) {
+    console.error('Error inserting language:', error);
+    return { data: null, error: error };
+  }
+
+  return { data: data[0] };
 };
