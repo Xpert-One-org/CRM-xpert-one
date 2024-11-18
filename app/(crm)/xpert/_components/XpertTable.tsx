@@ -15,6 +15,7 @@ import XpertRowContent from './row/XpertRowContent';
 import XpertMissionFilter from './row/mission/XpertMissionFilter';
 import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
+import ComboBoxXpert from './ComboBoxXpert';
 
 export default function XpertTable() {
   const {
@@ -117,7 +118,8 @@ export default function XpertTable() {
 
   return (
     <>
-      <div className="mb-2 flex items-center justify-end gap-2">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <ComboBoxXpert />
         {/* <Button className="py-spaceXSmall pl-spaceContainer text-white">
           Créer un xpert
         </Button> */}

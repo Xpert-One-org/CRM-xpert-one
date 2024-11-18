@@ -4,7 +4,6 @@ import {
   getAllXperts,
   getSpecificXpert,
 } from '../../app/(crm)/xpert/xpert.action';
-import { limitXpert } from '@/data/constant';
 
 type XpertState = {
   loading: boolean;

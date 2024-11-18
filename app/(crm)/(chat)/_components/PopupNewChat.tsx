@@ -169,7 +169,7 @@ export default function PopupNewChat({
             />
             <SelectComponent
               label="Catégorie de discussion"
-              placeholder="Sélectionner une catégorie"
+              placeholder="Sélectionner un catégorie"
               name={selectName}
               options={selectContent}
               defaultSelectedKeys={selectDefault ?? ''}

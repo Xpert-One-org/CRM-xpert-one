@@ -26,6 +26,7 @@ export const getSpecificXpert = async (
       `
       )
       .eq('role', 'xpert')
+      .eq('referent_id', xpertId)
       .single();
 
     if (error) {

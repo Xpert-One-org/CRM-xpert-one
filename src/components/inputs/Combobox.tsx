@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { Select } from '@/types/types';
+
 import {
   Command,
   CommandEmpty,
@@ -45,7 +45,7 @@ export default function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-[200px] justify-between', className)}
+          className={cn('w-full justify-between', className)}
         >
           {value && data.find((d) => d === value)
             ? data.find((d) => d === value)
@@ -53,7 +53,7 @@ export default function Combobox({
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className={cn('w-[200px] p-0', classNamePopover)}>
+      <PopoverContent className={cn('w-full p-0', classNamePopover)}>
         <Command>
           <CommandInput
             placeholder={placeholder}

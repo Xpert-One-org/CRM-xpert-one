@@ -1,11 +1,6 @@
 import type { DBFournisseur } from '@/types/typesDb';
-import { DBXpert } from '@/types/typesDb';
+
 import { create } from 'zustand';
-import {
-  getAllXperts,
-  getSpecificXpert,
-} from '../../app/(crm)/xpert/xpert.action';
-import { limitXpert } from '@/data/constant';
 import {
   getAllFournisseurs,
   getSpecificFournisseur,
