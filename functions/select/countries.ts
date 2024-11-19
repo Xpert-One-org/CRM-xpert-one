@@ -1,5 +1,4 @@
 import type { Country } from '@/types/types';
-import { error } from 'console';
 
 export const getCountries = async () => {
   const response = await fetch(

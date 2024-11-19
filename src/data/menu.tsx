@@ -60,7 +60,7 @@ export const menuCrm = [
       },
       {
         title: 'Nouveau inscrits',
-        url: '/xpert/nouveau',
+        url: '/nouveau-inscrits?role=xpert',
       },
     ],
   },
@@ -83,7 +83,7 @@ export const menuCrm = [
       },
       {
         title: 'Nouveau inscrits',
-        url: '/fournisseur/nouveau',
+        url: '/nouveau-inscrits?role=company',
       },
     ],
   },
@@ -116,8 +116,8 @@ export const menuCrm = [
         url: '/mission/selection',
       },
       {
-        title: 'Calls à réaliser',
-        url: '/mission/calls',
+        title: 'Suivi de mission',
+        url: '/mission/suivi-de-missions',
       },
       {
         title: 'Activation des missions',

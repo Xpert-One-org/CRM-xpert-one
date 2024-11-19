@@ -1,10 +1,11 @@
 import type { DBXpert } from '@/types/typesDb';
 import { create } from 'zustand';
 import {
+  deleteXpert,
   getAllXperts,
   getSpecificXpert,
 } from '../../app/(crm)/xpert/xpert.action';
-import { limitXpert } from '@/data/constant';
+import { toast } from 'sonner';
 
 type XpertState = {
   loading: boolean;
@@ -13,6 +14,7 @@ type XpertState = {
   offset: number;
   fetchXperts: () => void;
   fetchSpecificXpert: (xpertId: string) => void;
+  deleteXpert: (xpertId: string, xpertGeneratedId: string) => void;
 };
 
 export const useXpertStore = create<XpertState>((set, get) => ({
@@ -49,5 +51,20 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       totalXperts: count,
       loading: false,
     });
+  },
+  deleteXpert: async (xpertId: string, xpertGeneratedId: string) => {
+    set({ loading: true });
+    const { errorMessage } = await deleteXpert(xpertId);
+    if (errorMessage) {
+      toast.error("Une erreur est survenue lors de la suppression de l'XPERT");
+    } else {
+      toast.success(`L'XPERT ${xpertGeneratedId} a été supprimé avec succès`);
+      set((state) => ({
+        xperts: state.xperts?.filter(
+          (xpert) => xpert.generated_id !== xpertGeneratedId
+        ),
+      }));
+    }
+    set({ loading: false });
   },
 }));

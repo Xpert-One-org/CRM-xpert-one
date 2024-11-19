@@ -1,5 +1,6 @@
 'use server';
 
+import type { DBSectors } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getSectors = async () => {
@@ -17,4 +18,23 @@ export const getSectors = async () => {
   }
 
   return { data };
+};
+
+export const insertSector = async (sector: DBSectors) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { data, error } = await supabase
+    .from('sectors')
+    .insert({
+      json_key: sector.json_key,
+      label: sector.label,
+      value: sector.value,
+    })
+    .select('*');
+
+  if (error) {
+    console.error('Error inserting sector:', error);
+    return { data: null, error: error };
+  }
+
+  return { data: data[0] };
 };

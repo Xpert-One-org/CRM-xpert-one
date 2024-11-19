@@ -1,45 +1,59 @@
-'use client';
+'use server';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import DashBoardCards from './_components/DashBoardCards';
 import BriefCase from '@/components/svg/BriefCase';
-import FacturationLogo from '@/components/svg/Facturation';
-import ChatBubbles from '@/components/svg/ChatBubbles';
-import { Phone, SquarePen } from 'lucide-react';
+// import FacturationLogo from '@/components/svg/Facturation';
+// import ChatBubbles from '@/components/svg/ChatBubbles';
+import {
+  Phone,
+  //  SquarePen
+} from 'lucide-react';
 import BriefCaseAdd from '@/components/svg/BriefCaseAdd';
 import PeopleUsersAdd from '@/components/svg/PeopleUsersAdd';
-import { useDashboardStore } from '@/store/dashboard';
+import {
+  getCountMissions,
+  getCountMissionsState,
+  getLastSignupNewUsers,
+  getLastSignUpNewUsersWeek,
+} from '@functions/dashboard';
 
-export default function DashboardPage() {
-  const { newUsers, fetchLastSignUpNewUsersWeek } = useDashboardStore();
+export default async function DashboardPage() {
+  const { data: newUsers } = await getLastSignupNewUsers();
+  const { newUsersLastWeek } = await getLastSignUpNewUsersWeek();
 
-  useEffect(() => {
-    if (newUsers.length === 0) {
-      fetchLastSignUpNewUsersWeek();
-    }
-  }, []);
+  const { data: missionsOpen } = await getCountMissionsState('open');
+  const { data: missionInProgress } =
+    await getCountMissionsState('in_progress');
+
+  const { data: missions } = await getCountMissions();
+
+  const { data: missionsToValidate } =
+    await getCountMissionsState('to_validate');
+
+  const { data: missionsClosed } = await getCountMissionsState('finished');
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       <DashBoardCards
-        count={newUsers.length}
+        count={missionsOpen.length}
         title="Missions ouvertes"
         urgentTitle="Urgentes"
         urgentCount={0}
         buttonTitle="Missions ouvertes"
         iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to_validate"
+        link="/mission/etats?etat=open"
       />
       <DashBoardCards
-        count={newUsers.length}
+        count={missionInProgress.length}
         title="Missions placées"
         urgentTitle="Urgentes"
         urgentCount={0}
         buttonTitle="Missions placées"
         iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to_validate"
+        link="/mission/etats?etat=in_progress"
       />
-      <DashBoardCards
+      {/* <DashBoardCards
         count={newUsers.length}
         title="Gestion de facturations"
         urgentTitle="Retards"
@@ -67,9 +81,9 @@ export default function DashboardPage() {
         buttonTitle="Messagerie"
         iconButton={<ChatBubbles width={24} height={24} />}
         link="/messagerie"
-      />
+      /> */}
       <DashBoardCards
-        count={newUsers.length}
+        count={missionsToValidate.length}
         title="Missions à valider"
         urgentTitle="Urgentes"
         urgentCount={0}
@@ -83,7 +97,7 @@ export default function DashboardPage() {
         count={newUsers.length}
         title="Total inscrits"
         urgentTitle="Semaine"
-        urgentCount={newUsers.length}
+        urgentCount={newUsersLastWeek.length || 0}
         buttonTitle="Nouveaux inscrits"
         iconButton={
           <PeopleUsersAdd className="fill-white" width={24} height={24} />
@@ -91,7 +105,7 @@ export default function DashboardPage() {
         link="/xpert/nouveau"
       />
       <DashBoardCards
-        count={newUsers.length}
+        count={missions.length}
         title="Suivi des missions"
         urgentTitle="Urgentes"
         urgentCount={0}
@@ -100,13 +114,13 @@ export default function DashboardPage() {
         link="/mission/etats?etat=to_validate"
       />
       <DashBoardCards
-        count={newUsers.length}
+        count={missionsClosed.length}
         title="Missions arrêtées"
         urgentTitle="Non cloturées"
         urgentCount={0}
         buttonTitle="Missions arrêtées"
         iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to_validate"
+        link="/mission/etats?etat=finished"
       />
     </div>
   );

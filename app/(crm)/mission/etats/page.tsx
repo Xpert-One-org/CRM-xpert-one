@@ -9,14 +9,11 @@ import MissionEtatDeletedTable from './_components/deleted/MissionEtatDeletedTab
 import MissionEtatFinishedTable from './_components/finished/MissionEtatFinishedTable';
 import { MissionEtatToValidateTable } from './_components/to_validate/MissionEtatToValidateTable';
 import { useMissionStore } from '@/store/mission';
-import MissionEtatToValidateTableSkeleton from './_components/to_validate/skeleton/MissionEtatToValidateTableSkeleton';
-import MissionEtatOpenTableSkeleton from './_components/open/skeleton/MissionEtatOpenTableSkeleton';
-import MissionEtatInProgressTableSkeleton from './_components/in_progress/skeleton/MissionEtatInProgressTableSkeleton';
-import MissionEtatDeletedTableSkeleton from './_components/deleted/skeleton/MissionEtatDeletedTableSkeleton';
-import MissionEtatFinishedTableSkeleton from './_components/finished/skeleton/MissionEtatFinishedTableSkeleton';
+
 import type { DBMissionState } from '@/types/typesDb';
 import { useSelect } from '@/store/select';
 import Loader from '@/components/Loader';
+import Link from 'next/link';
 
 export default function MissionEtatPage() {
   const { fetchMissions, isLoading, setIsLoading } = useMissionStore();
@@ -53,43 +50,43 @@ export default function MissionEtatPage() {
     <>
       <div className="mb-2 grid grid-cols-6 items-center gap-[15px]">
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to_validate' ? 'bg-accent hover:bg-accent' : ''}`}
+          className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to_validate' ? 'bg-accent hover:bg-accent' : ''}`}
           onClick={() => handleButtonClick('to_validate')}
         >
           Mission à valider
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'open' ? 'bg-accent hover:bg-accent' : ''}`}
+          className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'open' ? 'bg-accent hover:bg-accent' : ''}`}
           onClick={() => handleButtonClick('open')}
         >
           Missions ouvertes / ouvertes à tous
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in_progress' ? 'bg-accent hover:bg-accent' : ''}`}
+          className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in_progress' ? 'bg-accent hover:bg-accent' : ''}`}
           onClick={() => handleButtonClick('in_progress')}
         >
           Missions en cours / placées
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'deleted' ? 'bg-accent hover:bg-accent' : ''}`}
+          className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'deleted' ? 'bg-accent hover:bg-accent' : ''}`}
           onClick={() => handleButtonClick('deleted')}
         >
           Missions perdues / supprimées
         </Button>
         <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'finished' ? 'bg-accent hover:bg-accent' : ''}`}
+          className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'finished' ? 'bg-accent hover:bg-accent' : ''}`}
           onClick={() => handleButtonClick('finished')}
         >
           Missions terminées / clôturées
         </Button>
-        <div />
-        <div />
+        <Link href="/mission/creation-de-mission">
+          <Button
+            className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white`}
+          >
+            Créer une mission
+          </Button>
+        </Link>
       </div>
-      {/* <Button
-          className={`max-w-[240px] text-wrap px-spaceLarge py-spaceMedium text-white`}
-        >
-          Créer une mission
-        </Button> */}
       <MissionContent isLoading={isLoading} selectedState={selectedState} />
     </>
   );

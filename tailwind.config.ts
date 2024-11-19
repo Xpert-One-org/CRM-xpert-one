@@ -22,6 +22,10 @@ const config = {
         foreground: "hsl(var(--foreground))",
         primary: "hsl(var(--primary))",
         secondary: "hsl(var(--secondary))",
+        destructive: {
+					DEFAULT: 'hsl(var(--destructive))',
+					foreground: 'hsl(var(--destructive-foreground))',
+				},
         tertiary: "hsl(var(--tertiary))",
         accent: "hsl(var(--accent))",
         dark: "hsl(var(--dark))",

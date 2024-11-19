@@ -27,7 +27,7 @@ type MsgCardProps = {
   message: DBMessage;
   user_id: string;
   type: ChatType;
-} & React.HTMLAttributes<HTMLDivElement>
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export const MsgCard = ({ style, message, user_id, type }: MsgCardProps) => {
   const {

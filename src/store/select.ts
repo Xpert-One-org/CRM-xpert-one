@@ -1,18 +1,46 @@
-import { getCompanyRoles } from '@functions/select/company-role';
+import {
+  getCompanyRoles,
+  insertCompanyRole,
+} from '@functions/select/company-role';
 import { getCountries } from '@functions/select/countries';
-import { getDiplomas } from '@functions/select/diploma';
-import { getExpertises } from '@functions/select/expertises';
-import { getHabilitations } from '@functions/select/habilitations';
-import { getInfrastructures } from '@functions/select/ionfrastructures';
-import { getJobTitles } from '@functions/select/job-titles';
-import { getLanguages } from '@functions/select/languages';
-import { getPosts } from '@functions/select/posts';
+import { getDiplomas, insertDiploma } from '@functions/select/diploma';
+import { getExpertises, insertExpertise } from '@functions/select/expertises';
+import {
+  getHabilitations,
+  insertHabilitation,
+} from '@functions/select/habilitations';
+import {
+  getInfrastructures,
+  insertInfrastructure,
+} from '@functions/select/infrastructures';
+import { getJobTitles, insertJobTitle } from '@functions/select/job-titles';
+import { getLanguages, insertLanguage } from '@functions/select/languages';
+import { getPosts, insertPost } from '@functions/select/posts';
 import { getRegions } from '@functions/select/regions';
-import { getSectors } from '@functions/select/sectors';
-import { getSpecialties } from '@functions/select/specialties';
-import { getSubjects } from '@functions/select/subjects';
+import { getSectors, insertSector } from '@functions/select/sectors';
+import { getSpecialties, insertSpecialty } from '@functions/select/specialties';
+import { getSubjects, insertSubject } from '@functions/select/subjects';
+
+import type {
+  DBCompanyRoles,
+  DBDiploma,
+  DBExpertise,
+  DBHabilitation,
+  DBInfrastructures,
+  DBPosts,
+  DBSectors,
+  DBSpecialties,
+  DBSubject,
+  DBJobTitles,
+  DBLanguages,
+  DBJuridicStatus,
+} from '@/types/typesDb';
 
 import { create } from 'zustand';
+import {
+  getJuridicStatus,
+  insertJuridicStatus,
+} from '@functions/select/juridic-status';
 
 type Select = {
   value: string | null;
@@ -33,6 +61,23 @@ type SelectStore = {
   posts: Select[];
   subjects: Select[];
   infrastructures: Select[];
+  juridicStatus: Select[];
+
+  loadingCompanyRoles: boolean;
+  loadingDiplomas: boolean;
+  loadingExpertises: boolean;
+  loadingHabilitations: boolean;
+  loadingInfrastructures: boolean;
+  loadingJuridicStatus: boolean;
+  loadingPosts: boolean;
+  loadingSectors: boolean;
+  loadingSpecialties: boolean;
+  loadingSubjects: boolean;
+  loadingJobTitles: boolean;
+  loadingLanguages: boolean;
+  loadingCountries: boolean;
+  loadingRegions: boolean;
+
   fetchSpecialties: () => Promise<void>;
   fetchExpertises: () => Promise<void>;
   fetchHabilitations: () => Promise<void>;
@@ -46,6 +91,20 @@ type SelectStore = {
   fetchPosts: () => Promise<void>;
   fetchInfrastructures: () => Promise<void>;
   fetchSubjects: () => Promise<void>;
+  fetchJuridicStatus: () => Promise<void>;
+
+  addCompanyRole: (role: DBCompanyRoles) => Promise<void>;
+  addDiploma: (diploma: DBDiploma) => Promise<void>;
+  addExpertise: (expertise: DBExpertise) => Promise<void>;
+  addHabilitation: (habilitation: DBHabilitation) => Promise<void>;
+  addInfrastructure: (infrastructure: DBInfrastructures) => Promise<void>;
+  addJuridicStatus: (status: DBJuridicStatus) => Promise<void>;
+  addPost: (post: DBPosts) => Promise<void>;
+  addSector: (sector: DBSectors) => Promise<void>;
+  addSpecialty: (specialty: DBSpecialties) => Promise<void>;
+  addSubject: (subject: DBSubject) => Promise<void>;
+  addJobTitle: (jobTitle: DBJobTitles) => Promise<void>;
+  addLanguage: (language: DBLanguages) => Promise<void>;
 };
 
 export const useSelect = create<SelectStore>((set, get) => ({
@@ -62,6 +121,23 @@ export const useSelect = create<SelectStore>((set, get) => ({
   companyRoles: [],
   posts: [],
   infrastructures: [],
+  juridicStatus: [],
+
+  loadingCompanyRoles: true,
+  loadingDiplomas: true,
+  loadingExpertises: true,
+  loadingHabilitations: true,
+  loadingInfrastructures: true,
+  loadingJuridicStatus: true,
+  loadingPosts: true,
+  loadingSectors: true,
+  loadingSpecialties: false,
+  loadingSubjects: true,
+  loadingJobTitles: true,
+  loadingLanguages: true,
+  loadingCountries: true,
+  loadingRegions: true,
+
   fetchSpecialties: async () => {
     if (get().specialities.length) {
       return;
@@ -86,6 +162,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ expertises: data });
+      set({ loadingExpertises: false });
     }
   },
   fetchHabilitations: async () => {
@@ -99,6 +176,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ habilitations: data });
+      set({ loadingHabilitations: false });
     }
   },
   fetchDiplomas: async () => {
@@ -112,6 +190,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ diplomas: data });
+      set({ loadingDiplomas: false });
     }
   },
   fetchLanguages: async () => {
@@ -125,6 +204,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ languages: data });
+      set({ loadingLanguages: false });
     }
   },
   fetchSectors: async () => {
@@ -138,6 +218,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ sectors: data });
+      set({ loadingSectors: false });
     }
   },
   fetchJobTitles: async () => {
@@ -151,6 +232,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ jobTitles: data });
+      set({ loadingJobTitles: false });
     }
   },
   fetchCountries: async () => {
@@ -164,6 +246,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ countries: data });
+      set({ loadingCountries: false });
     }
   },
 
@@ -178,6 +261,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ regions: data });
+      set({ loadingRegions: false });
     }
   },
 
@@ -192,6 +276,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ companyRoles: data });
+      set({ loadingCompanyRoles: false });
     }
   },
 
@@ -206,6 +291,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ posts: data });
+      set({ loadingPosts: false });
     }
   },
   fetchSubjects: async () => {
@@ -219,6 +305,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ subjects: data });
+      set({ loadingSubjects: false });
     }
   },
   fetchInfrastructures: async () => {
@@ -232,6 +319,244 @@ export const useSelect = create<SelectStore>((set, get) => ({
     }
     if (data) {
       set({ infrastructures: data });
+      set({ loadingInfrastructures: false });
     }
+  },
+
+  fetchJuridicStatus: async () => {
+    if (get().juridicStatus.length) {
+      return;
+    }
+    const { data, error } = await getJuridicStatus();
+    if (error) {
+      console.error('Error fetching juridic status:', error);
+      return;
+    }
+    if (data) {
+      set({ juridicStatus: data });
+      set({ loadingJuridicStatus: false });
+    }
+  },
+
+  addCompanyRole: async (role: DBCompanyRoles) => {
+    const { data, error } = await insertCompanyRole(role);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentRoles = get().companyRoles || [];
+
+    const updatedRoles = [...currentRoles, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ companyRoles: updatedRoles });
+  },
+
+  addDiploma: async (diploma: DBDiploma) => {
+    const { data, error } = await insertDiploma(diploma);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentDiplomas = get().diplomas || [];
+
+    const updatedDiplomas = [...currentDiplomas, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ diplomas: updatedDiplomas });
+  },
+
+  addExpertise: async (expertise: DBExpertise) => {
+    const { data, error } = await insertExpertise(expertise);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentExpertises = get().expertises || [];
+
+    const updatedExpertises = [...currentExpertises, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ expertises: updatedExpertises });
+  },
+
+  addHabilitation: async (habilitation: DBHabilitation) => {
+    const { data, error } = await insertHabilitation(habilitation);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentHabilitations = get().habilitations || [];
+
+    const updatedHabilitations = [...currentHabilitations, data].sort(
+      (a, b) => {
+        const labelA = a.label ?? '';
+        const labelB = b.label ?? '';
+        return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+      }
+    );
+
+    set({ habilitations: updatedHabilitations });
+  },
+
+  addInfrastructure: async (infrastructure: DBInfrastructures) => {
+    const { data, error } = await insertInfrastructure(infrastructure);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentInfrastructures = get().infrastructures || [];
+
+    const updatedInfrastructures = [...currentInfrastructures, data].sort(
+      (a, b) => {
+        const labelA = a.label ?? '';
+        const labelB = b.label ?? '';
+        return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+      }
+    );
+
+    set({ infrastructures: updatedInfrastructures });
+  },
+
+  addJuridicStatus: async (status: DBJuridicStatus) => {
+    const { data, error } = await insertJuridicStatus(status);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentJuridicStatus = get().juridicStatus || [];
+
+    const updatedJuridicStatus = [...currentJuridicStatus, data].sort(
+      (a, b) => {
+        const labelA = a.label ?? '';
+        const labelB = b.label ?? '';
+        return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+      }
+    );
+
+    set({ juridicStatus: updatedJuridicStatus });
+  },
+
+  addPost: async (post: DBPosts) => {
+    const { data, error } = await insertPost(post);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentPosts = get().posts || [];
+
+    const updatedPosts = [...currentPosts, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ posts: updatedPosts });
+  },
+
+  addSector: async (sector: DBSectors) => {
+    const { data, error } = await insertSector(sector);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentSectors = get().sectors || [];
+
+    const updatedSectors = [...currentSectors, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ sectors: updatedSectors });
+  },
+
+  addSpecialty: async (specialty: DBSpecialties) => {
+    const { data, error } = await insertSpecialty(specialty);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentSpecialties = get().specialities || [];
+
+    const updatedSpecialties = [...currentSpecialties, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ specialities: updatedSpecialties });
+  },
+
+  addSubject: async (subject: DBSubject) => {
+    const { data, error } = await insertSubject(subject);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentSubjects = get().subjects || [];
+
+    const updatedSubjects = [...currentSubjects, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ subjects: updatedSubjects });
+  },
+
+  addJobTitle: async (jobTitle: DBJobTitles) => {
+    const { data, error } = await insertJobTitle(jobTitle);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentJobTitles = get().jobTitles || [];
+
+    const updatedJobTitles = [...currentJobTitles, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ jobTitles: updatedJobTitles });
+  },
+
+  addLanguage: async (language: DBLanguages) => {
+    const { data, error } = await insertLanguage(language);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const currentLanguages = get().languages || [];
+
+    const updatedLanguages = [...currentLanguages, data].sort((a, b) => {
+      const labelA = a.label ?? '';
+      const labelB = b.label ?? '';
+      return labelA === 'Autre' ? 1 : labelA.localeCompare(labelB);
+    });
+
+    set({ languages: updatedLanguages });
   },
 }));
