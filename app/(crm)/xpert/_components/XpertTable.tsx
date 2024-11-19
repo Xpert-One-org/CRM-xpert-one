@@ -17,7 +17,7 @@ import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import ComboBoxXpert from './ComboBoxXpert';
 import DeleteXpertDialog from './DeleteXpertDialog';
-import CreateXpertDialog from './CreateXpertDialog';
+import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 
 export default function XpertTable() {
   const {
@@ -122,9 +122,9 @@ export default function XpertTable() {
     <>
       <div className="mb-2 flex items-center justify-between gap-2">
         <ComboBoxXpert />
-        <div>
-          <CreateXpertDialog />
-        </div>
+        {/* <div>
+          <CreateFournisseurXpertDialog role="xpert" />
+        </div> */}
         {/* 
           {xpertIdOpened !== '0' && (
             <Button className="px-spaceContainer py-spaceXSmall text-white">

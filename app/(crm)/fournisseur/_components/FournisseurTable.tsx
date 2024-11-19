@@ -1,7 +1,6 @@
 'use client';
 
 import { FilterButton } from '@/components/FilterButton';
-import type { DBFournisseur } from '@/types/typesDb';
 import React, { useState, useEffect } from 'react';
 import FournisseurRow from './FournisseurRow';
 import { cn } from '@/lib/utils';
@@ -17,12 +16,10 @@ import {
   energySelect,
   franceSelect,
   genres,
-  iamSelect,
   wasteTreatmentSelect,
 } from '@/data/mocked_select';
-import { PhoneInput } from '@/components/ui/phone-input';
 import PhoneInputComponent from '@/components/inputs/PhoneInputComponent';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFournisseurStore } from '@/store/fournisseur';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
@@ -30,6 +27,7 @@ import Loader from '@/components/Loader';
 import { profileDataExperience } from '@/data/profile';
 import SelectComponent from '@/components/inputs/SelectComponent';
 import TextArea from '@/components/inputs/TextArea';
+import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 
 export default function FournisseurTable() {
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
@@ -80,9 +78,7 @@ export default function FournisseurTable() {
   return (
     <>
       <div className="mb-2 flex items-center justify-between gap-2">
-        {/* <Button className="py-spaceXSmall pl-spaceContainer text-white">
-          Créer un fournisseur
-        </Button> */}
+        {/* <CreateFournisseurXpertDialog role="company" /> */}
         {/* {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
           <Button className="py-spaceXSmall pl-spaceContainer text-white">
             Enregistrer
@@ -133,7 +129,12 @@ export default function FournisseurTable() {
           onValueChange={() => {}}
           placeholder="Nombre de missions"
         />
-        <FilterButton placeholder="Fiche détaillée" filter={false} />
+        <FilterButton
+          placeholder="Fiche détaillée"
+          filter={false}
+          disabled={false}
+          className="bg-chat-selected font-bold hover:bg-chat-selected"
+        />
 
         {fournisseurs?.map((fournisseur) => (
           <React.Fragment key={fournisseur.id}>

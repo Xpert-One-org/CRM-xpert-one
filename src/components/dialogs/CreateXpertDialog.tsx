@@ -14,7 +14,11 @@ import Button from '@/components/Button';
 // import { useField } from '@/hooks/useField';
 // import { toast } from 'sonner';
 
-export default function CreateXpertDialog() {
+export default function CreateFournisseurXpertDialog({
+  role,
+}: {
+  role: 'company' | 'xpert';
+}) {
   const [popupOpen, setPopupOpen] = useState(false);
 
   return (
@@ -24,7 +28,7 @@ export default function CreateXpertDialog() {
           className="px-spaceContainer py-spaceXSmall text-white"
           onClick={() => setPopupOpen(true)}
         >
-          Créer un xpert
+          {role === 'company' ? 'Créer un fournisseur' : 'Créer un xpert'}
         </Button>
         <CredenzaContent className="mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white bg-opacity-70 p-0 backdrop-blur-sm">
           <div className="flex flex-col gap-y-spaceContainer p-6">

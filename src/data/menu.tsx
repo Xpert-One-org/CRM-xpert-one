@@ -60,7 +60,7 @@ export const menuCrm = [
       },
       {
         title: 'Nouveau inscrits',
-        url: '/xpert/nouveau',
+        url: '/nouveau-inscrits?role=xpert',
       },
     ],
   },
@@ -83,7 +83,7 @@ export const menuCrm = [
       },
       {
         title: 'Nouveau inscrits',
-        url: '/fournisseur/nouveau',
+        url: '/nouveau-inscrits?role=company',
       },
     ],
   },

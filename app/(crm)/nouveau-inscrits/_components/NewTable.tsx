@@ -1,29 +1,25 @@
 'use client';
 
 import { FilterButton } from '@/components/FilterButton';
-import React from 'react';
-import NewXpertsRow from './NewXpertsRow';
+import React, { useEffect, useState } from 'react';
 import type { DBProfile } from '@/types/typesDb';
 import { useRouter } from 'next/navigation';
+import { signUpDateOptions } from '@/data/constant';
+import { getNewUsersLastWeek } from '../action';
+import NewRow from './NewRow';
 
-type NewXpertsTableProps = {
-  signUpDateOptions: { label: string; value: string }[];
-  identificationNumberOptions: { label: string; value: string }[];
-  roleOptions: { label: string; value: string }[];
-  totaleProgressionOptions: { label: string; value: string }[];
-  referantXpertOneOptions: { label: string; value: string }[];
-  newUsersLastWeek: DBProfile[];
-};
-
-export default function NewXpertsTable({
-  signUpDateOptions,
-  identificationNumberOptions,
-  roleOptions,
-  totaleProgressionOptions,
-  referantXpertOneOptions,
-  newUsersLastWeek,
-}: NewXpertsTableProps) {
+export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const router = useRouter();
+  const [newUsersLastWeek, setNewUsersLastWeek] = useState<DBProfile[]>([]);
+
+  const getLastWeekNewUsers = async (role: string) => {
+    const { newUsersLastWeek } = await getNewUsersLastWeek(role);
+    setNewUsersLastWeek(newUsersLastWeek);
+  };
+
+  useEffect(() => {
+    getLastWeekNewUsers(role);
+  }, [role]);
 
   return (
     <div className="grid grid-cols-1 flex-col gap-4">
@@ -35,42 +31,42 @@ export default function NewXpertsTable({
           placeholder="Date d'inscription"
         />
         <FilterButton
-          options={identificationNumberOptions}
+          options={signUpDateOptions}
           defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="N° identification"
         />
         <FilterButton
-          options={roleOptions}
+          options={signUpDateOptions}
           defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Rôle"
         />
         <FilterButton
-          options={totaleProgressionOptions}
+          options={signUpDateOptions}
           defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="État de la fiche"
         />
         <FilterButton
-          options={totaleProgressionOptions}
+          options={signUpDateOptions}
           defaultSelectedKeys=""
           placeholder="Call de bienvenue"
         />
         <FilterButton
-          options={totaleProgressionOptions}
+          options={signUpDateOptions}
           defaultSelectedKeys=""
           placeholder="Éléments supplémentaires à nous communiquer"
         />
         <FilterButton
-          options={referantXpertOneOptions}
+          options={signUpDateOptions}
           defaultSelectedKeys=""
           placeholder="Référent Xpert One"
         />
       </div>
       <div className="grid gap-4">
         {newUsersLastWeek.map((user) => (
-          <NewXpertsRow
+          <NewRow
             key={user.id}
             user={user}
             isOpen={false}
