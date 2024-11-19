@@ -19,8 +19,8 @@ export const getMissionState = async (
 
     if (state === 'open') {
       query = query.in('state', ['open', 'open_all']);
-    } else if (state === 'to_validate') {
-      query = query.in('state', ['to_validate', 'open_all_to_validate']);
+    } else if (state === 'in_process') {
+      query = query.in('state', ['in_process', 'open_all_to_validate']);
     } else {
       query = query.eq('state', state);
     }

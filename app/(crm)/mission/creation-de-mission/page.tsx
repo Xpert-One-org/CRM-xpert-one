@@ -107,10 +107,14 @@ export default function Page() {
 
   const toValidateOptions = [
     { label: 'OUI', value: 'open' },
-    { label: 'NON', value: 'to_validate' },
+    { label: 'NON', value: 'refused' },
+    { label: 'En cours de traitement', value: 'in_process' },
   ];
 
+  const [validationState, setValidationState] = useState<string>('in_process');
+
   const handleValidationChange = (value: string) => {
+    setValidationState(value);
     const newIsValidated = value === 'open';
     setIsValidated(newIsValidated);
   };
@@ -221,6 +225,8 @@ export default function Page() {
       missionState = 'open';
     } else if (isValidated && openAllToValidate) {
       missionState = 'open_all';
+    } else if (validationState === 'in_process') {
+      missionState = 'in_process';
     }
 
     const missionData = {
@@ -342,7 +348,7 @@ export default function Page() {
 
   useEffect(() => {
     if (isCompleted) {
-      router.push('/mission/etats?etat=to_validate');
+      router.push('/mission/etats?etat=in_process');
     }
   }, [isCompleted]);
 
@@ -861,13 +867,21 @@ export default function Page() {
           </Box>
           <Box
             className={`col-span-1 ${
-              isValidated ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+              validationState === 'open'
+                ? 'bg-[#92C6B0]'
+                : validationState === 'in_process'
+                  ? 'bg-[#67b6c1]'
+                  : 'bg-[#D64242]'
             } text-white`}
             isSelectable
             options={toValidateOptions}
             onValueChange={handleValidationChange}
           >
-            {isValidated ? 'OUI' : 'NON'}
+            {validationState === 'open'
+              ? 'OUI'
+              : validationState === 'in_process'
+                ? 'En cours de traitement'
+                : 'NON'}
           </Box>
         </div>
       </div>

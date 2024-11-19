@@ -10,7 +10,7 @@
     "db-reset": "supabase db reset",
     "db-diff": "supabase db diff --use-migra -f",
     "db-push": "supabase db push",
-    "gen-db-types": "npx supabase gen types --lang=typescript --project-id gcybwruhwuiaecucsroi --schema public > src/types/supabase.ts",
+    "gen-db-types": "pnpm supabase gen types typescript --local --lang=typescript --schema public > src/types/supabase.ts",
     "config": {
       "commitizen": {
         "path": "@commitlint/cz-commitlint"
