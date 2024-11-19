@@ -67,7 +67,7 @@ export default function SelectComponent({
       {label && (
         <Label
           htmlFor={id}
-          className={cn('mb-1 flex items-center', classNameLabel)}
+          className={cn('mb-2 flex items-center', classNameLabel)}
         >
           {label}
           {required && <span className="ml-1 text-accent">*</span>}

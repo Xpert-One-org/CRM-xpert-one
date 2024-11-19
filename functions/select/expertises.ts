@@ -1,5 +1,6 @@
 'use server';
 
+import type { DBExpertise } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getExpertises = async () => {
@@ -19,4 +20,23 @@ export const getExpertises = async () => {
   }
 
   return { data };
+};
+
+export const insertExpertise = async (expertise: DBExpertise) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { data, error } = await supabase
+    .from('expertises')
+    .insert({
+      label: expertise.label,
+      value: expertise.value,
+      json_key: expertise.json_key,
+    })
+    .select('*');
+
+  if (error) {
+    console.error('Error inserting expertise:', error);
+    return { data: null, error: error };
+  }
+
+  return { data: data[0] };
 };

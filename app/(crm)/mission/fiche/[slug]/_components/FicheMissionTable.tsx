@@ -1,8 +1,6 @@
-import { Button } from '@/components/ui/button';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { convertStateValue } from '@/utils/stateMissionConverter';
-import { Search } from 'lucide-react';
 import React from 'react';
 import RightSideFicheMission from './RightSideFicheMission';
 import ComboboxMission from '../../_components/ComboboxMission';
@@ -15,20 +13,15 @@ export default function FicheMissionTable({
   missionDetails: DBMission;
 }) {
   const {
-    mission_number,
     created_at,
     state,
     address,
-    created_by,
     referent_name,
-    referent_mail,
     referent_mobile,
-    company_name,
     supplier,
     postal_code,
     xpert,
     city,
-    xpert_associated_id,
   } = missionDetails;
 
   const createdAt = formatDate(created_at);

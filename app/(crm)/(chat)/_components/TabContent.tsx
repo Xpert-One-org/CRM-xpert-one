@@ -12,7 +12,7 @@ import React, { useEffect } from 'react';
 type TabContentProps = {
   user_id: string;
   type: ChatType;
-} & React.HTMLAttributes<HTMLDivElement>
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export default function TabContent({
   user_id,
@@ -48,9 +48,7 @@ export default function TabContent({
       )}
       {chats.map((chat, index) => {
         const isReadByMe =
-          chat.messages[chat.messages.length - 1]?.read_by.includes(
-            user_id
-          ) ||
+          chat.messages[chat.messages.length - 1]?.read_by.includes(user_id) ||
           chat.messages[chat.messages.length - 1]?.send_by === user_id ||
           !chat.messages.length;
         return (
@@ -121,9 +119,7 @@ const TabChat = ({
           Reçu{' '}
           {getTimeFromNow(sent_at ?? new Date().toISOString()).toLowerCase()}
         </p>
-        <p className="max-w-[200px] truncate font-[700]">
-          {title}
-        </p>
+        <p className="max-w-[200px] truncate font-[700]">{title}</p>
       </div>
     </button>
   );

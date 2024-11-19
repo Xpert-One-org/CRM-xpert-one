@@ -1,5 +1,6 @@
 'use server';
 
+import type { DBPosts } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getPosts = async () => {
@@ -17,4 +18,23 @@ export const getPosts = async () => {
   }
 
   return { data };
+};
+
+export const insertPost = async (post: DBPosts) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { data, error } = await supabase
+    .from('posts')
+    .insert({
+      label: post.label,
+      value: post.value,
+      json_key: post.json_key,
+    })
+    .select('*');
+
+  if (error) {
+    console.error('Error inserting post:', error);
+    return { data: null, error: error };
+  }
+
+  return { data: data[0] };
 };

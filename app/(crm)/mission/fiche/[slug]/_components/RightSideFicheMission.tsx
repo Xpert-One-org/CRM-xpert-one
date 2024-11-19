@@ -8,6 +8,12 @@ import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import React, { useEffect } from 'react';
+import {
+  calculateFinalRevenue,
+  calculateProjectedRevenue,
+} from '../../utils/tjm';
+import { Button } from '@/components/ui/button';
+import DeleteMissionDialog from '../../_components/DeleteMissionDialog';
 
 export default function RightSideFicheMission({
   missionDetails,
@@ -44,6 +50,16 @@ export default function RightSideFicheMission({
   const startDate = formatDate(start_date ?? '');
   const endDate = formatDate(end_date ?? '');
   const deadlineApplication = formatDate(deadline_application ?? '');
+
+  const projectedRevenue = calculateProjectedRevenue(
+    22,
+    parseInt(tjm ?? '0'),
+    30
+  );
+
+  const finalRevenue = calculateFinalRevenue(22, parseInt(tjm ?? '0'), 30);
+
+  const selledTjmGd = parseInt(tjm ?? '0') + 30 * 1.55;
 
   const {
     jobTitles,
@@ -116,14 +132,14 @@ export default function RightSideFicheMission({
             type="number"
             label="CA prévisionnel de la mission"
             disabled
-            value={tjm ?? ''}
+            value={projectedRevenue}
           />
           <Input
             className="max-max-w-[320px] w-full"
             type="number"
             label="CA définitif de la mission"
             disabled
-            value={tjm ?? ''}
+            value={finalRevenue}
           />
           <Input
             className="w-full max-w-[220px]"
@@ -153,7 +169,7 @@ export default function RightSideFicheMission({
             type="number"
             label="Statut définitif"
             disabled
-            value={tjm ?? ''}
+            value={projectedRevenue}
           />
           <Input
             className="max-w-[160px]"
@@ -176,7 +192,7 @@ export default function RightSideFicheMission({
             type="number"
             label="TJM vendu GD + charge incluse"
             disabled
-            value={tjm ?? ''}
+            value={selledTjmGd}
           />
           <Input
             className="max-w-[320px]"
@@ -432,6 +448,9 @@ export default function RightSideFicheMission({
             disabled
           />
         </div>
+      </div>
+      <div className="flex w-full flex-row justify-end gap-4">
+        <DeleteMissionDialog missionId={missionDetails.id} />
       </div>
     </div>
   );

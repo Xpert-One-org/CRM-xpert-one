@@ -3,7 +3,6 @@ import Input from '@/components/inputs/Input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import React from 'react';
-import MissionFichePage from './[slug]/page';
 import ComboboxMission from './_components/ComboboxMission';
 
 export default function page() {

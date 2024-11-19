@@ -25,7 +25,7 @@ export default function ComboboxMission() {
 
   const handleSetValue = (value: string) => {
     setValue(value);
-    router.push(`/mission/fiche/${value.split(' ').join('-')}`);
+    router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
   };
 
   useEffect(() => {

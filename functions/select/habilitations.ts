@@ -1,5 +1,6 @@
 'use server';
 
+import type { DBHabilitation } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getHabilitations = async () => {
@@ -19,4 +20,23 @@ export const getHabilitations = async () => {
   }
 
   return { data };
+};
+
+export const insertHabilitation = async (habilitation: DBHabilitation) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { data, error } = await supabase
+    .from('habilitations')
+    .insert({
+      label: habilitation.label,
+      value: habilitation.value,
+      json_key: habilitation.json_key,
+    })
+    .select('*');
+
+  if (error) {
+    console.error('Error inserting habilitation:', error);
+    return { data: null, error: error };
+  }
+
+  return { data: data[0] };
 };

@@ -18,6 +18,7 @@ type FilterButtonProps = {
   placeholder?: string;
   filter?: boolean;
   className?: string;
+  disabled?: boolean;
 };
 
 export const FilterButton = ({
@@ -27,6 +28,7 @@ export const FilterButton = ({
   placeholder,
   filter = true,
   className,
+  disabled = false,
 }: FilterButtonProps) => {
   const [selected, setSelected] = useState<string>(defaultSelectedKeys ?? '');
 
@@ -41,10 +43,10 @@ export const FilterButton = ({
     <>
       {filter ? (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled>
+          <DropdownMenuTrigger asChild>
             <Button
               className={cn(
-                `flex h-auto items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected/80`,
+                `flex h-auto cursor-default items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
                 className
               )}
             >
@@ -74,9 +76,10 @@ export const FilterButton = ({
         <>
           <Button
             className={cn(
-              `flex h-auto cursor-default items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
+              `flex h-auto cursor-default items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer hover:bg-chat-selected`,
               className
             )}
+            disabled={disabled}
           >
             {selected || placeholder}
           </Button>
