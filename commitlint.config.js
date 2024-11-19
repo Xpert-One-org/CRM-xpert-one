@@ -27,6 +27,7 @@ module.exports = {
         'i18n',
         'deploy',
         'improve',
+        'database',
       ],
     ],
   },
