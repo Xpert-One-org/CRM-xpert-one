@@ -1,7 +1,6 @@
 import { Box } from '@/components/ui/box';
 import type { DBProfile } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
-import { uppercaseFirstLetter } from '@/utils/string';
 import { EyeIcon } from 'lucide-react';
 import React from 'react';
 
@@ -27,7 +26,7 @@ export default function NewRow({ user, isOpen, onClick }: Props) {
           <p>{user.generated_id ?? 'Non renseigné'}</p>
         </Box>
         <Box isSelected={isOpen}>
-          <p>{uppercaseFirstLetter(user.role) ?? 'Non renseigné'}</p>
+          <p>{user.role === 'company' ? 'F' : 'X'}</p>
         </Box>
         <Box isSelected={isOpen}>
           <p>{`${user.totale_progression ?? '0'}%`}</p>

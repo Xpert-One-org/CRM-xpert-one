@@ -116,8 +116,8 @@ export const menuCrm = [
         url: '/mission/selection',
       },
       {
-        title: 'Calls à réaliser',
-        url: '/mission/calls',
+        title: 'Suivi de mission',
+        url: '/mission/suivi-de-missions',
       },
       {
         title: 'Activation des missions',

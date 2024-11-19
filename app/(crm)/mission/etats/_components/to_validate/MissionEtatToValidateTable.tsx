@@ -102,7 +102,6 @@ export function MissionEtatToValidateTable() {
         <FilterButton placeholder="Poste" filter={false} />
         <FilterButton placeholder="Ouverte à tous" filter={false} />
         <FilterButton placeholder="Valider la mission ?" filter={false} />
-
         {missions
           .filter(
             (mission) =>

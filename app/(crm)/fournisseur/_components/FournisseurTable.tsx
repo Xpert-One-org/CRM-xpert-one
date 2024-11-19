@@ -129,12 +129,7 @@ export default function FournisseurTable() {
           onValueChange={() => {}}
           placeholder="Nombre de missions"
         />
-        <FilterButton
-          placeholder="Fiche détaillée"
-          filter={false}
-          disabled={false}
-          className="bg-chat-selected font-bold hover:bg-chat-selected"
-        />
+        <FilterButton placeholder="Fiche détaillée" filter={false} />
 
         {fournisseurs?.map((fournisseur) => (
           <React.Fragment key={fournisseur.id}>

@@ -849,18 +849,8 @@ export default function Page() {
 
       <div className="flex w-full flex-wrap">
         <div className="grid grid-cols-2 gap-3">
-          <FilterButton
-            placeholder="Ouverte à tous"
-            filter={false}
-            disabled={false}
-            className="bg-chat-selected hover:bg-chat-selected"
-          />
-          <FilterButton
-            placeholder="Valider la mission ?"
-            filter={false}
-            disabled={false}
-            className="bg-chat-selected hover:bg-chat-selected"
-          />
+          <FilterButton placeholder="Ouverte à tous" filter={false} />
+          <FilterButton placeholder="Valider la mission ?" filter={false} />
           <Box
             className="col-span-1"
             isSelectable

@@ -28,7 +28,7 @@ export const FilterButton = ({
   placeholder,
   filter = true,
   className,
-  disabled = true,
+  disabled = false,
 }: FilterButtonProps) => {
   const [selected, setSelected] = useState<string>(defaultSelectedKeys ?? '');
 
@@ -76,7 +76,7 @@ export const FilterButton = ({
         <>
           <Button
             className={cn(
-              `flex h-auto cursor-default items-center gap-x-2 text-wrap px-spaceContainer`,
+              `flex h-auto cursor-default items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer hover:bg-chat-selected`,
               className
             )}
             disabled={disabled}

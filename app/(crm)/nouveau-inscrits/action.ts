@@ -3,7 +3,7 @@ import type { DBProfile } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
-export const getNewUsersLastWeek = async (role: string) => {
+export const getNewUsersLastMonth = async (role: string) => {
   const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
@@ -15,25 +15,29 @@ export const getNewUsersLastWeek = async (role: string) => {
       .eq('role', role)
       .gte(
         'created_at',
-        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('en-US', {
-          timeZone: 'Europe/Paris',
-        })
+        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleString(
+          'en-US',
+          {
+            timeZone: 'Europe/Paris',
+          }
+        )
       )
+      .gt('totale_progression', 50)
       .order('created_at', { ascending: false });
 
     if (error) {
       throw error;
     }
 
-    const lastWeek = new Date();
-    lastWeek.setDate(lastWeek.getDate() - 7);
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-    const newUsersLastWeek = data.filter(
-      (user: DBProfile) => new Date(user.created_at) > lastWeek
+    const newUsersLastMonth = data.filter(
+      (user: DBProfile) => new Date(user.created_at) > lastMonth
     );
 
-    return { newUsersLastWeek };
+    return { newUsersLastMonth };
   }
 
-  return { newUsersLastWeek: [] };
+  return { newUsersLastMonth: [] };
 };
