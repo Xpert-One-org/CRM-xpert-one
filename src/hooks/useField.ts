@@ -40,7 +40,8 @@ type PageAllowed =
   | 'experience'
   | 'education'
   | 'profile_company'
-  | 'creation_mission';
+  | 'creation_mission'
+  | 'creation_xpert';
 
 export const useField = ({
   user,
@@ -57,7 +58,8 @@ export const useField = ({
     | 'experience'
     | 'education'
     | 'profile_company'
-    | 'creation_mission';
+    | 'creation_mission'
+    | 'creation_xpert';
 }) => {
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -70,6 +72,7 @@ export const useField = ({
     mission: profileDataMission,
     profile_company: profileDataCompany,
     creation_mission: creationMissionData,
+    creation_xpert: profileData,
   };
 
   const currentProfileData = dataMap[page];

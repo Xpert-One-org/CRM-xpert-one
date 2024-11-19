@@ -1,8 +1,23 @@
 'use server';
 
-import type { DBProfile } from '@/types/typesDb';
+import type { DBMissionState, DBProfile } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from './auth/checkRole';
+
+export const getLastSignupNewUsers = async () => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('profile')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return { data };
+};
 
 export const getLastSignUpNewUsersWeek = async () => {
   const supabase = await createSupabaseAppServerClient();
@@ -10,7 +25,6 @@ export const getLastSignUpNewUsersWeek = async () => {
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
-    // get from last 7 days
     const { data, error } = await supabase
       .from('profile')
       .select('*')
@@ -29,10 +43,39 @@ export const getLastSignUpNewUsersWeek = async () => {
     const lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() - 7);
 
-    const newUsers = data.filter(
+    const newUsersLastWeek = data.filter(
       (user: DBProfile) => new Date(user.created_at) > lastWeek
     );
 
-    return { data: newUsers };
+    return { newUsersLastWeek };
   }
+
+  return { newUsersLastWeek: [] };
+};
+
+export const getCountMissions = async () => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase.from('mission').select('*');
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { data };
+};
+
+export const getCountMissionsState = async (state: DBMissionState) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('mission')
+    .select('*')
+    .eq('state', state);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { data };
 };

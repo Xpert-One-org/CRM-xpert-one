@@ -113,3 +113,64 @@ export const getAllXperts = async ({
     count: null,
   };
 };
+
+export const createXpert = async ({
+  email,
+  password,
+  firstname,
+  lastname,
+  phone,
+  civility,
+  birthdate,
+}: {
+  email: string;
+  password: string;
+  firstname: string;
+  lastname: string;
+  phone: string;
+  civility: string;
+  birthdate: string;
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        lastname,
+        role: 'xpert',
+        default_phone: phone,
+        firstname,
+        referent_generated_id: 'XEE',
+        civility,
+        birthdate,
+      },
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { error: null };
+};
+
+export const deleteXpert = async (xpertId: string) => {
+  try {
+    const supabase = await createSupabaseAppServerClient('deleteXpert');
+
+    const { error: deleteError } =
+      await supabase.auth.admin.deleteUser(xpertId);
+    if (deleteError) throw deleteError;
+
+    return { errorMessage: null };
+  } catch (error) {
+    let errorMessage = "Impossible de supprimer l'XPERT";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    return { errorMessage };
+  }
+};

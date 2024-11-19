@@ -16,6 +16,8 @@ import XpertMissionFilter from './row/mission/XpertMissionFilter';
 import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import ComboBoxXpert from './ComboBoxXpert';
+import DeleteXpertDialog from './DeleteXpertDialog';
+import CreateXpertDialog from './CreateXpertDialog';
 
 export default function XpertTable() {
   const {
@@ -120,14 +122,16 @@ export default function XpertTable() {
     <>
       <div className="mb-2 flex items-center justify-between gap-2">
         <ComboBoxXpert />
-        {/* <Button className="py-spaceXSmall pl-spaceContainer text-white">
-          Créer un xpert
-        </Button> */}
-        {/* {xpertIdOpened !== '0' && (
-          <Button className="py-spaceXSmall pl-spaceContainer text-white">
-            Enregistrer
-          </Button>
-        )} */}
+        <div>
+          <CreateXpertDialog />
+        </div>
+        {/* 
+          {xpertIdOpened !== '0' && (
+            <Button className="px-spaceContainer py-spaceXSmall text-white">
+              Enregistrer
+            </Button>
+          )} 
+        */}
       </div>
 
       <div className="grid grid-cols-7 gap-3">
@@ -150,11 +154,11 @@ export default function XpertTable() {
               </div>
               <div
                 className={cn(
-                  'col-span-4 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
+                  'col-span-4 hidden h-full max-h-0 w-full overflow-hidden',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
-                <div className="grid grid-cols-5 gap-3 p-[14px]">
+                <div className="grid grid-cols-5 gap-3 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
                   <XpertMissionFilter />
                   <div className="flex flex-col">
                     {xpert.mission.length > 0 ? (
@@ -177,6 +181,12 @@ export default function XpertTable() {
                   isLoading={isLoading}
                   cvUrl={cvUrl}
                 />
+                <div className="flex w-full justify-end py-2">
+                  <DeleteXpertDialog
+                    xpertId={xpert.id}
+                    xpertGeneratedId={xpert.generated_id}
+                  />
+                </div>
               </div>
             </React.Fragment>
           );
