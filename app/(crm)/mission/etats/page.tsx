@@ -3,11 +3,11 @@
 import { Button } from '@/components/ui/button';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { MissionEtatInProcessTable } from './_components/to_process/MissionEtatInProcessTable';
 import MissionEtatOpenTable from './_components/open/MissionEtatOpenTable';
 import MissionEtatInProgressTable from './_components/in_progress/MissionEtatInProgressTable';
 import MissionEtatDeletedTable from './_components/deleted/MissionEtatDeletedTable';
 import MissionEtatFinishedTable from './_components/finished/MissionEtatFinishedTable';
-import { MissionEtatToValidateTable } from './_components/to_validate/MissionEtatToValidateTable';
 import { useMissionStore } from '@/store/mission';
 
 import type { DBMissionState } from '@/types/typesDb';
@@ -50,8 +50,8 @@ export default function MissionEtatPage() {
     <>
       <div className="mb-2 grid grid-cols-6 items-center gap-[15px]">
         <Button
-          className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'to_validate' ? 'bg-accent hover:bg-accent' : ''}`}
-          onClick={() => handleButtonClick('to_validate')}
+          className={`col-span-1 text-wrap px-spaceLarge py-spaceMedium text-white ${selectedState === 'in_process' ? 'bg-accent hover:bg-accent' : ''}`}
+          onClick={() => handleButtonClick('in_process')}
         >
           Mission à valider
         </Button>
@@ -103,8 +103,8 @@ const MissionContent = ({
     return <Loader className="flex w-full justify-center" />;
   }
   switch (selectedState) {
-    case 'to_validate':
-      return <MissionEtatToValidateTable />;
+    case 'in_process':
+      return <MissionEtatInProcessTable />;
     case 'open':
       return <MissionEtatOpenTable />;
     case 'in_progress':
