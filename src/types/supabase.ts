@@ -679,6 +679,7 @@ export type Database = {
           birthdate: string | null;
           city: string | null;
           civility: string | null;
+          community_banning_explanations: string | null;
           company_name: string | null;
           company_role: string | null;
           company_role_other: string | null;
@@ -702,6 +703,7 @@ export type Database = {
           how_did_you_hear_about_us: string | null;
           how_did_you_hear_about_us_other: string | null;
           id: string;
+          is_banned_from_community: boolean;
           lastname: string | null;
           linkedin: string | null;
           mission_progression: number;
@@ -733,6 +735,7 @@ export type Database = {
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
           company_role_other?: string | null;
@@ -756,6 +759,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id: string;
+          is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
           mission_progression?: number;
@@ -787,6 +791,7 @@ export type Database = {
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
           company_role_other?: string | null;
@@ -810,6 +815,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id?: string;
+          is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
           mission_progression?: number;
@@ -835,6 +841,13 @@ export type Database = {
           username?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'profile_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'profile_referent_id_fkey';
             columns: ['referent_id'];
@@ -1247,6 +1260,7 @@ export type Database = {
           mission_state_change_alert: boolean;
           new_message_alert: boolean;
           new_mission_alert: boolean;
+          new_test: string | null;
           newsletter: boolean;
           show_on_website: boolean;
           show_profile_picture: boolean;
@@ -1264,6 +1278,7 @@ export type Database = {
           mission_state_change_alert?: boolean;
           new_message_alert?: boolean;
           new_mission_alert?: boolean;
+          new_test?: string | null;
           newsletter?: boolean;
           show_on_website?: boolean;
           show_profile_picture?: boolean;
@@ -1281,6 +1296,7 @@ export type Database = {
           mission_state_change_alert?: boolean;
           new_message_alert?: boolean;
           new_mission_alert?: boolean;
+          new_test?: string | null;
           newsletter?: boolean;
           show_on_website?: boolean;
           show_profile_picture?: boolean;
@@ -1383,7 +1399,10 @@ export type Database = {
         | 'open_all'
         | 'in_progress'
         | 'deleted'
-        | 'finished';
+        | 'finished'
+        | 'in_process'
+        | 'validated'
+        | 'refused';
       revenu_type: 'tjm' | 'brut';
     };
     CompositeTypes: {
@@ -1486,19 +1505,4 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
-    : never;
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database;
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

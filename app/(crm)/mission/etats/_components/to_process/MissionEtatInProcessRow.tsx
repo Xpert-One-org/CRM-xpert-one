@@ -1,24 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getTimeBeforeMission, uppercaseFirstLetter } from '@/utils/string';
 import { useRouter } from 'next/navigation';
 
-export default function MissionEtatToValidateRow({
+export default function MissionEtatInProcessRow({
   mission,
   onValidationChange,
   onValidationChangeAll,
 }: {
   mission: DBMission;
-  onValidationChange: (missionId: string, isValidated: boolean) => void;
+  onValidationChange: (missionId: string, state: string | null) => void;
   onValidationChangeAll: (missionId: string, isValidated: boolean) => void;
 }) {
   const router = useRouter();
-  const [isValidated, setIsValidated] = useState(mission.state === 'open');
-  const [openAllToValidate, setOpenAllToValidate] = useState(
+
+  const [validationState, setValidationState] = useState<string>(
+    mission.state === 'in_process' || mission.state === 'open_all_to_validate'
+      ? 'in_process'
+      : mission.state
+  );
+
+  const [openAllInProcess, setOpenAllInProcess] = useState(
     mission.state === 'open_all_to_validate'
   );
+
+  useEffect(() => {
+    setValidationState(
+      mission.state === 'in_process' || mission.state === 'open_all_to_validate'
+        ? 'in_process'
+        : mission.state
+    );
+    setOpenAllInProcess(mission.state === 'open_all_to_validate');
+  }, [mission.state]);
 
   const createdAt = formatDate(mission.created_at);
   const timeBeforeMission = getTimeBeforeMission(mission.start_date ?? '');
@@ -47,25 +62,40 @@ export default function MissionEtatToValidateRow({
   };
 
   const handleValidationChange = (value: string) => {
-    const newIsValidated = value === 'open';
-    setIsValidated(newIsValidated);
-    onValidationChange(mission.id.toString(), newIsValidated);
+    let newState: string | null;
+
+    switch (value) {
+      case 'open':
+        newState = 'open';
+        break;
+      case 'refused':
+        newState = 'refused';
+        break;
+      default: // 'in_process'
+        newState = 'in_process';
+        break;
+    }
+
+    setValidationState(newState);
+    onValidationChange(mission.id.toString(), newState);
   };
 
   const handleOpenAllValidationChange = (value: string) => {
     const newIsValidated = value === 'open_all_to_validate';
-    setOpenAllToValidate(newIsValidated);
+
+    setOpenAllInProcess(newIsValidated);
     onValidationChangeAll(mission.id.toString(), newIsValidated);
   };
 
-  const openAllToValidateOptions = [
+  const openAllInProcessOptions = [
     { label: 'OUI', value: 'open_all_to_validate' },
     { label: 'NON', value: 'to_validate' },
   ];
 
-  const toValidateOptions = [
+  const InProcessOptions = [
     { label: 'OUI', value: 'open' },
-    { label: 'NON', value: 'to_validate' },
+    { label: 'NON', value: 'refused' },
+    { label: 'En cours de traitement', value: 'in_process' },
   ];
 
   return (
@@ -95,20 +125,28 @@ export default function MissionEtatToValidateRow({
       <Box
         className="col-span-1"
         isSelectable
-        options={openAllToValidateOptions}
+        options={openAllInProcessOptions}
         onValueChange={handleOpenAllValidationChange}
       >
-        {openAllToValidate ? 'OUI' : 'NON'}
+        {openAllInProcess ? 'OUI' : 'NON'}
       </Box>
       <Box
         className={`col-span-1 ${
-          isValidated ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+          validationState === 'open'
+            ? 'bg-[#92C6B0]'
+            : validationState === 'in_process'
+              ? 'bg-[#67b6c1]'
+              : 'bg-[#D64242]'
         } text-white`}
         isSelectable
-        options={toValidateOptions}
+        options={InProcessOptions}
         onValueChange={handleValidationChange}
       >
-        {isValidated ? 'OUI' : 'NON'}
+        {validationState === 'open'
+          ? 'OUI'
+          : validationState === 'in_process'
+            ? 'En cours de traitement'
+            : 'NON'}
       </Box>
     </>
   );

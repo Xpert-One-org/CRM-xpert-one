@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { FilterButton } from '@/components/FilterButton';
-import MissionEtatToValidateRow from './MissionEtatToValidateRow';
 import { Button } from '@/components/ui/button';
 import { useMissionStore } from '@/store/mission';
 import { toast } from 'sonner';
+import MissionEtatInProcessRow from './MissionEtatInProcessRow';
+import type { DBMissionState } from '@/types/typesDb';
 
-export function MissionEtatToValidateTable() {
+export function MissionEtatInProcessTable() {
   const { missions, updateMission } = useMissionStore();
 
   const [validatedOpenAll, setValidatedOpenAll] = useState<
@@ -13,7 +14,7 @@ export function MissionEtatToValidateTable() {
   >({});
 
   const [validatedMissions, setValidatedMissions] = useState<
-    Record<string, boolean>
+    Record<string, string | null>
   >({});
 
   const signUpDateOptions = [
@@ -24,10 +25,10 @@ export function MissionEtatToValidateTable() {
     { label: '4 semaines', value: '4_weeks' },
   ];
 
-  const handleValidationChange = (missionId: string, isValidated: boolean) => {
+  const handleValidationChange = (missionId: string, state: string | null) => {
     setValidatedMissions((prev) => ({
       ...prev,
-      [missionId]: isValidated,
+      [missionId]: state,
     }));
   };
 
@@ -43,36 +44,59 @@ export function MissionEtatToValidateTable() {
 
   const handleSaveAll = async () => {
     for (const [missionId, isValidated] of Object.entries(validatedOpenAll)) {
+      const currentMissions = useMissionStore.getState().missions;
+      const mission = currentMissions.find(
+        (m) => m.id.toString() === missionId
+      );
       if (isValidated) {
         await updateMission(missionId, 'open_all_to_validate');
+        toast.success(
+          `Vous avez mise à jour le statut de la mission ${mission?.mission_number} à ouvrir à tous`
+        );
+      } else {
+        await updateMission(missionId, 'in_process');
+        toast.success(
+          `Vous avez mise à jour le statut de la mission ${mission?.mission_number} à ne pas ouvrir à tous`
+        );
       }
     }
 
-    for (const [missionId, isValidated] of Object.entries(validatedMissions)) {
-      if (isValidated) {
+    for (const [missionId, state] of Object.entries(validatedMissions)) {
+      if (state) {
         const currentMissions = useMissionStore.getState().missions;
         const mission = currentMissions.find(
           (m) => m.id.toString() === missionId
         );
-        if (mission?.state === 'open_all_to_validate') {
-          await updateMission(missionId, 'open_all');
-        } else {
-          await updateMission(missionId, 'open');
+
+        let updateState: DBMissionState;
+        switch (state) {
+          case 'open':
+            updateState =
+              mission?.state === 'open_all_to_validate' ? 'open_all' : 'open';
+            toast.success(
+              `Vous avez validé la mission ${mission?.mission_number} ${
+                updateState === 'open' ? 'à ouvrir' : 'à ouvrir à tous'
+              }`
+            );
+            break;
+          case 'refused':
+            updateState = 'refused';
+            toast.success(
+              `Vous avez refusé la mission ${mission?.mission_number}`
+            );
+            break;
+          default:
+            updateState = 'in_process';
+            toast.success(
+              `Vous avez mise à jour le statut de la mission ${mission?.mission_number} en cours de traitement`
+            );
         }
+
+        await updateMission(missionId, updateState);
       }
     }
 
-    if (Object.keys(validatedOpenAll).length > 0) {
-      toast.success(
-        `Vous avez mis ${Object.keys(validatedOpenAll).length} missions à ouvrir à tous`
-      );
-    }
-    if (Object.keys(validatedMissions).length > 0) {
-      toast.success(
-        `Vous avez validé ${Object.keys(validatedMissions).length} missions`
-      );
-    }
-
+    // Reset validation states
     setValidatedOpenAll({});
     setValidatedMissions({});
   };
@@ -105,11 +129,11 @@ export function MissionEtatToValidateTable() {
         {missions
           .filter(
             (mission) =>
-              mission.state === 'to_validate' ||
+              mission.state === 'in_process' ||
               mission.state === 'open_all_to_validate'
           )
           .map((mission) => (
-            <MissionEtatToValidateRow
+            <MissionEtatInProcessRow
               key={mission.id}
               mission={mission}
               onValidationChange={handleValidationChange}

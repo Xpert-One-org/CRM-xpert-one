@@ -91,7 +91,7 @@ export default async function DashboardPage() {
         iconButton={
           <BriefCaseAdd className="fill-white" width={24} height={24} />
         }
-        link="/mission/etats?etat=to_validate"
+        link="/mission/etats?etat=in_process"
       />
       <DashBoardCards
         count={newUsers.length}
@@ -111,7 +111,7 @@ export default async function DashboardPage() {
         urgentCount={0}
         buttonTitle="Suivi des missions"
         iconButton={<Phone className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=to_validate"
+        link="/mission/suivi-de-missions"
       />
       <DashBoardCards
         count={missionsClosed.length}
