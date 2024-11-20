@@ -445,6 +445,21 @@ export const topicSelect = [
   },
 ];
 
+export const topicEchoSelect = [
+  {
+    label: 'Missions',
+    value: 'mission',
+  },
+  {
+    label: 'Profil',
+    value: 'profil',
+  },
+  {
+    label: 'Autre',
+    value: 'other',
+  },
+];
+
 export const revenusSalarialSelect: { label: string; value: DBRevenuType }[] = [
   {
     label: 'TJM',
