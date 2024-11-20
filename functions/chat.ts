@@ -181,7 +181,7 @@ export const postChat = async ({
 }: {
   chat: DBChat;
   message: DBMessage;
-  receiver_id: string;
+  receiver_id?: string;
 }) => {
   const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;

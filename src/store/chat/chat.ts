@@ -52,7 +52,7 @@ type ChatState = {
   }: {
     chat: DBChat;
     message: DBMessage;
-    receiver_id: string;
+    receiver_id?: string;
     file?: File | null;
   }) => void;
   updateMessageRead: ({

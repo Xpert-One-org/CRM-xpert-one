@@ -159,15 +159,14 @@ CREATE TYPE "public"."mission_state" AS ENUM (
     'open_all',
     'in_progress',
     'deleted',
-    'finished'
+    'finished',
+    'in_process',
+    'validated',
+    'refused'
 );
 
 
 ALTER TYPE "public"."mission_state" OWNER TO "postgres";
-
-
-COMMENT ON TYPE "public"."mission_state" IS 'Les différents états pour une mission : En cours de validation, Ouverte / Ouverte à tous, En cours / Placée, Supprimées / Perdues, Terminées / Clôturées';
-
 
 
 CREATE TYPE "public"."msg_files" AS (
@@ -530,7 +529,7 @@ CREATE TABLE IF NOT EXISTS "public"."article" (
     "category" "text",
     "categories" "public"."categories"[],
     "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL,
-    "type" "public"."article_type" DEFAULT 'web'::"public"."article_type" NOT NULL,
+    "type" "public"."article_type" DEFAULT 'web'::"public"."article_type",
     "url" "text"
 );
 
@@ -2856,3 +2855,54 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 RESET ALL;
+
+--
+-- Dumped schema changes for auth and storage
+--
+
+CREATE OR REPLACE TRIGGER "on_auth_user_created" AFTER INSERT ON "auth"."users" FOR EACH ROW EXECUTE FUNCTION "public"."handle_new_user"();
+
+
+
+CREATE OR REPLACE TRIGGER "on_email_confirmation" AFTER UPDATE OF "confirmed_at" ON "auth"."users" FOR EACH ROW WHEN (("new"."confirmed_at" IS NOT NULL)) EXECUTE FUNCTION "public"."notify_email_confirmation"();
+
+
+
+CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0" ON "storage"."objects" FOR SELECT USING (("bucket_id" = 'profile_files'::"text"));
+
+
+
+CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_0" ON "storage"."objects" FOR INSERT WITH CHECK (("bucket_id" = 'mission_files'::"text"));
+
+
+
+CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_1" ON "storage"."objects" FOR SELECT USING (("bucket_id" = 'mission_files'::"text"));
+
+
+
+CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_2" ON "storage"."objects" FOR UPDATE USING (("bucket_id" = 'mission_files'::"text"));
+
+
+
+CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_1" ON "storage"."objects" FOR INSERT WITH CHECK (("bucket_id" = 'profile_files'::"text"));
+
+
+
+CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_2" ON "storage"."objects" FOR UPDATE USING (("bucket_id" = 'profile_files'::"text"));
+
+
+
+CREATE POLICY "Allow Select  1zbfv_0" ON "storage"."objects" FOR SELECT USING (("bucket_id" = 'logo'::"text"));
+
+
+
+CREATE POLICY "Allow select and insert for auth 1tf88_0" ON "storage"."objects" FOR INSERT TO "authenticated" WITH CHECK (("bucket_id" = 'chat'::"text"));
+
+
+
+CREATE POLICY "Allow select and insert for auth 1tf88_1" ON "storage"."objects" FOR SELECT TO "authenticated" USING (("bucket_id" = 'chat'::"text"));
+
+
+
+GRANT ALL ON TABLE "storage"."s3_multipart_uploads" TO "postgres";
+GRANT ALL ON TABLE "storage"."s3_multipart_uploads_parts" TO "postgres";
