@@ -18,7 +18,6 @@ export default function MissionEtatInProgressTable() {
       <div className="grid grid-cols-9 gap-3">
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Créer le"
         />

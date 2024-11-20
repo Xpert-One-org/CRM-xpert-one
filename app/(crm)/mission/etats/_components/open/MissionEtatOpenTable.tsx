@@ -17,7 +17,6 @@ export default function MissionEtatOpenTable() {
     <div className="grid grid-cols-11 gap-3">
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Créer le"
       />
@@ -27,7 +26,6 @@ export default function MissionEtatOpenTable() {
       <FilterButton placeholder="Temps avant début de mission" filter={false} />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Remise des candidatures"
       />

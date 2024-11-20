@@ -106,7 +106,6 @@ export function MissionEtatInProcessTable() {
       <div className="grid grid-cols-8 gap-3">
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Créer le"
         />
@@ -114,7 +113,6 @@ export function MissionEtatInProcessTable() {
         <FilterButton placeholder="N° de mission" filter={false} />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Référent Xpert One"
           filter={false}

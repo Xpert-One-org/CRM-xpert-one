@@ -14,6 +14,7 @@ import {
 } from '../../utils/tjm';
 import { Button } from '@/components/ui/button';
 import DeleteMissionDialog from '../../_components/DeleteMissionDialog';
+import Link from 'next/link';
 
 export default function RightSideFicheMission({
   missionDetails,
@@ -449,7 +450,10 @@ export default function RightSideFicheMission({
           />
         </div>
       </div>
-      <div className="flex w-full flex-row justify-end gap-4">
+      <div className="flex w-full flex-row justify-between gap-4">
+        <Link href={`/mission/matching/${missionDetails.mission_number}`}>
+          <Button className="px-12 py-3 text-white">Vers le matching</Button>
+        </Link>
         <DeleteMissionDialog missionId={missionDetails.id} />
       </div>
     </div>

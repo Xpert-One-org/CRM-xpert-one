@@ -7,33 +7,28 @@ export default function XpertMissionFilter() {
     <>
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Date de début/fin"
       />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="N° de mission"
         filter={false}
       />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Titre"
         filter={false}
       />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Situation"
       />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="TJM XPERT GD inclus"
         filter={false}

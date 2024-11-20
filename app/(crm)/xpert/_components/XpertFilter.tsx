@@ -1,47 +1,75 @@
 import { FilterButton } from '@/components/FilterButton';
 import { signUpDateOptions } from '@/data/constant';
 import React from 'react';
+import type { DBXpert } from '@/types/typesDb';
 
-export default function XpertFilter() {
+const sortStringOptions = [
+  { label: 'Ascendant', value: 'asc' },
+  { label: 'Descendant', value: 'desc' },
+  { label: 'Aucun tri', value: '' },
+];
+
+const sortDateOptions = [
+  { label: 'Du plus ancien au plus recent', value: 'asc' },
+  { label: 'Du plus recent au plus ancien', value: 'desc' },
+  { label: 'Aucun tri', value: '' },
+];
+
+export default function XpertFilter({
+  xperts,
+  onSortedDataChange,
+}: {
+  xperts: DBXpert[];
+  onSortedDataChange: (data: DBXpert[]) => void;
+}) {
   return (
     <>
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={sortDateOptions}
         onValueChange={() => {}}
         placeholder="Date d'inscription"
+        sortable
+        data={xperts}
+        sortKey="created_at"
+        onSort={onSortedDataChange}
       />
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
-        onValueChange={() => {}}
+        options={sortStringOptions}
         placeholder="Nom"
+        sortable
+        data={xperts}
+        sortKey="lastname"
+        onSort={onSortedDataChange}
       />
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
-        onValueChange={() => {}}
+        options={sortStringOptions}
         placeholder="Prénom"
+        sortable
+        data={xperts}
+        sortKey="firstname"
+        onSort={onSortedDataChange}
       />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Poste"
+        className="col-span-2"
       />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="N° identification"
       />
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Disponible le"
       />
-      <FilterButton placeholder="Fiche détaillée" filter={true} />
+      <FilterButton
+        className="font-bold"
+        placeholder="Fiche détaillée"
+        filter={false}
+      />
     </>
   );
 }

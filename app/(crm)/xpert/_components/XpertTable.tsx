@@ -17,7 +17,9 @@ import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import ComboBoxXpert from './ComboBoxXpert';
 import DeleteXpertDialog from './DeleteXpertDialog';
-import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+// import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+
+export type SortOrder = 'asc' | 'desc' | null;
 
 export default function XpertTable() {
   const {
@@ -36,6 +38,7 @@ export default function XpertTable() {
 
   const { fetchXperts, xperts, totalXperts, fetchSpecificXpert } =
     useXpertStore();
+  const [filteredXperts, setFilteredXperts] = useState<DBXpert[]>([]);
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');
   const [cvUrl, setCvUrl] = useState('');
@@ -116,6 +119,12 @@ export default function XpertTable() {
     fetchSpecialties,
   ]);
 
+  useEffect(() => {
+    if (xperts) {
+      setFilteredXperts(xperts);
+    }
+  }, [xperts]);
+
   const hasMore = xperts && totalXperts ? xperts.length < totalXperts : true;
 
   return (
@@ -134,9 +143,12 @@ export default function XpertTable() {
         */}
       </div>
 
-      <div className="grid grid-cols-7 gap-3">
-        <XpertFilter />
-        {xperts?.map((xpert, i) => {
+      <div className="grid grid-cols-8 gap-3">
+        <XpertFilter
+          xperts={xperts || []}
+          onSortedDataChange={setFilteredXperts}
+        />
+        {filteredXperts.map((xpert, i) => {
           return (
             <React.Fragment key={`${xpert.id} - ${i}`}>
               <XpertRow

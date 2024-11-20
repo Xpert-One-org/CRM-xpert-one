@@ -89,47 +89,44 @@ export default function FournisseurTable() {
       <div className="grid grid-cols-8 gap-3">
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Date d'inscription"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Nom"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Prénom"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Poste"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="N° identification"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Société"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Nombre de missions"
         />
-        <FilterButton placeholder="Fiche détaillée" filter={false} />
+        <FilterButton
+          className="font-bold"
+          placeholder="Fiche détaillée"
+          filter={false}
+        />
 
         {fournisseurs?.map((fournisseur) => (
           <React.Fragment key={fournisseur.id}>
@@ -439,25 +436,21 @@ export default function FournisseurTable() {
               <div className="grid grid-cols-4 gap-3 p-[14px]">
                 <FilterButton
                   options={signUpDateOptions}
-                  defaultSelectedKeys=""
                   onValueChange={() => {}}
                   placeholder="Date de début/fin"
                 />
                 <FilterButton
                   options={signUpDateOptions}
-                  defaultSelectedKeys=""
                   onValueChange={() => {}}
                   placeholder="N° de mission"
                 />
                 <FilterButton
                   options={signUpDateOptions}
-                  defaultSelectedKeys=""
                   onValueChange={() => {}}
                   placeholder="Intitulé de poste"
                 />
                 <FilterButton
                   options={signUpDateOptions}
-                  defaultSelectedKeys=""
                   onValueChange={() => {}}
                   placeholder="État de la mission"
                 />

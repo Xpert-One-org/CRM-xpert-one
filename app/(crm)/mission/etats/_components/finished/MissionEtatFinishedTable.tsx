@@ -17,7 +17,6 @@ export default function MissionEtatFinishedTable() {
     <div className="grid grid-cols-8 gap-3">
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Créer le"
       />
@@ -29,13 +28,11 @@ export default function MissionEtatFinishedTable() {
         className="col-span-2"
         placeholder="Terminée le"
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
       />
       <FilterButton
         placeholder="Mission dupliquée"
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
       />
       {missions.map((mission) => (

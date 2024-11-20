@@ -17,7 +17,6 @@ export default function MissionEtatDeletedTable() {
     <div className="grid grid-cols-8 gap-3">
       <FilterButton
         options={signUpDateOptions}
-        defaultSelectedKeys=""
         onValueChange={() => {}}
         placeholder="Créer le"
       />

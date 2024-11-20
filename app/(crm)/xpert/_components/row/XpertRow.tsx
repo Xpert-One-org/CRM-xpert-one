@@ -6,8 +6,6 @@ import { cn } from '@/lib/utils';
 import type { DBXpert } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';
-import { Eye } from 'lucide-react';
-import { X } from 'lucide-react';
 import React from 'react';
 
 export default function XpertRow({
@@ -22,26 +20,27 @@ export default function XpertRow({
   const dateSignUp = formatDate(xpert.created_at);
 
   const postTypes = xpert.profile_mission
-    ? xpert.profile_mission.job_titles?.map((job, i) => {
+    ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
         const jobTitle = uppercaseFirstLetter(job.replaceAll('_', ' '));
+        const badge = (
+          <Badge
+            variant="secondary"
+            className="m-1 max-w-[95%] font-normal"
+            key={`badge-${i}`}
+          >
+            {job === 'other' ? 'Autre' : jobTitle.length ? jobTitle : empty}
+          </Badge>
+        );
 
-        // const otherJobTitle = xpert.profile_mission?.job_titles_other
-        //   ? xpert.profile_mission.job_titles_other
-        //   : '';
-
-        if (job === 'other') {
+        if (i < arr.length - 1) {
           return (
-            <Badge className="m-1" key={i}>
-              Autre
-            </Badge>
-          );
-        } else {
-          return (
-            <Badge className="m-1" key={i}>
-              {jobTitle.length ? jobTitle : empty}
-            </Badge>
+            <React.Fragment key={i}>
+              {badge}
+              <span className="text-gray-400">|</span>
+            </React.Fragment>
           );
         }
+        return badge;
       })
     : empty;
 
@@ -60,9 +59,9 @@ export default function XpertRow({
       <Box className="col-span-1" isSelected={isOpen}>
         {uppercaseFirstLetter(xpert.firstname ?? '')}
       </Box>
-      <Box className="col-span-1 flex flex-col p-2" isSelected={isOpen}>
+      <Box className="col-span-2 flex flex-col p-2" isSelected={isOpen}>
         <div
-          className={cn('flex size-full flex-col items-center justify-center', {
+          className={cn('flex size-full flex-row flex-wrap items-center', {
             'border bg-white': postTypes?.length,
           })}
         >
@@ -77,11 +76,6 @@ export default function XpertRow({
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}
-        {/* {isOpen ? (
-          <X size={18} strokeWidth={4} />
-        ) : (
-          <Eye size={18} strokeWidth={1} />
-        )} */}
       </Button>
     </>
   );

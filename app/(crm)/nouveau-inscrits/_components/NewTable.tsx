@@ -46,13 +46,11 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
       <div className="grid grid-cols-7 gap-3">
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="Date d'inscription"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="N° identification"
         />
@@ -67,29 +65,24 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
               value: 'Xpert',
             },
           ]}
-          defaultSelectedKeys={selectedRole}
           onValueChange={handleRoleChange}
           placeholder="Rôle"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           onValueChange={() => {}}
           placeholder="État de la fiche"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           placeholder="Call de bienvenue"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           placeholder="Éléments supplémentaires à nous communiquer"
         />
         <FilterButton
           options={signUpDateOptions}
-          defaultSelectedKeys=""
           placeholder="Référent Xpert One"
         />
       </div>
