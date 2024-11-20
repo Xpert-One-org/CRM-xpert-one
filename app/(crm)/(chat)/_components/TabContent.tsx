@@ -35,9 +35,9 @@ export default function TabContent({
   return (
     <div
       className={cn(
-        'hidden w-full max-w-full flex-col overflow-auto border border-fond-gray lg:flex lg:max-h-[calc(100vh_-_232px)] lg:max-w-[342px] lg:rounded-l-lg lg:border-[1px]',
+        'hidden w-full max-w-full flex-col overflow-auto border border-fond-gray lg:flex lg:max-h-[calc(100vh_-_330px)] lg:max-w-[342px] lg:rounded-l-lg lg:border-[1px]',
         className,
-        { 'lg:max-h-[calc(100vh_-_295px)]': type === 'forum' },
+        { 'lg:max-h-[calc(100vh_-_330px)]': type === 'forum' },
         { 'flex rounded-none border-[0px]': !isDektop && !chatSelected }
       )}
     >
