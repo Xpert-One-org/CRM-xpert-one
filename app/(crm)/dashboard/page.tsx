@@ -102,7 +102,7 @@ export default async function DashboardPage() {
         iconButton={
           <PeopleUsersAdd className="fill-white" width={24} height={24} />
         }
-        link="/xpert/nouveau"
+        link="/nouveau-inscrits?role=xpert"
       />
       <DashBoardCards
         count={missions.length}

@@ -814,24 +814,28 @@ export default function Page() {
         Référent de mission{' '}
         <span className="flex items-center gap-x-1 whitespace-nowrap font-bold">
           <Info side="right">
-            <p>À renseigner</p>
+            <p>
+              Indiquez ici les informations de la personne qui sera en charge de
+              l’accueil de votre Xpert
+            </p>
           </Info>
         </span>{' '}
       </p>
 
-      <div className="flex w-full flex-wrap gap-x-spaceContainer gap-y-spaceSmall">
+      <div className="grid grid-cols-4 gap-4">
         <Input
           name={creationMissionData.referent_name?.name}
           label={creationMissionData.referent_name?.label}
           placeholder="Nom"
           defaultValue={''}
           onChange={handleChange}
+          classNameLabel="h-[24px]"
         />
         <PhoneInputComponent
           defaultSelectedKeys={'FR'}
           placeholder="Tel"
           label={creationMissionData.referent_mobile?.label}
-          className="text-black"
+          className="max-w-full text-black"
           name={creationMissionData.referent_mobile?.name ?? ''}
           onValueChange={handleValueChange}
         />
@@ -839,7 +843,7 @@ export default function Page() {
           defaultSelectedKeys={'FR'}
           placeholder="Tel"
           label={creationMissionData.referent_fix?.label}
-          className="text-black"
+          className="max-w-full text-black"
           name={creationMissionData.referent_fix?.name ?? ''}
           onValueChange={handleValueChange}
         />
@@ -850,6 +854,7 @@ export default function Page() {
           defaultValue={''}
           placeholder="Adresse mail"
           onChange={handleChange}
+          classNameLabel="h-[24px]"
         />
       </div>
 
