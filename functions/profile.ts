@@ -48,6 +48,7 @@ export const searchUsers = async (query: string) => {
       `username.ilike.%${query}%,generated_id.ilike.%${query}%,firstname.ilike.%${query}%,lastname.ilike.%${query}%`
     );
 
+  console.log(data, error);
   if (error) {
     return { data: null, error: error.message };
   }

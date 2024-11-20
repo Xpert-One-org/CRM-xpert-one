@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/credenza';
 import Image from 'next/image';
 
-import { topicSelect } from '@/data/mocked_select';
+import { topicEchoSelect, topicSelect } from '@/data/mocked_select';
 import { toast } from 'sonner';
 import { DESKTOP } from '@/data/constant';
 import { cn } from '@/lib/utils';
@@ -101,14 +101,15 @@ export default function PopupNewChat({
   };
 
   const handleSend = async () => {
-    if (!searchUserSelected) {
+    if (!searchUserSelected && isChat) {
       toast.warning('Veuillez sélectionner un destinataire');
       return;
     }
     insertChat({
       chat: newChat,
       message: newMsg,
-      receiver_id: searchUserSelected.id,
+      receiver_id:
+        isChat && searchUserSelected ? searchUserSelected.id : undefined,
       file,
     });
   };
@@ -118,7 +119,13 @@ export default function PopupNewChat({
   }, []);
 
   const isForum = type === 'forum';
-  const selectContent = isForum ? subjects : topicSelect;
+  const isEcho = type === 'echo_community';
+  const isChat = type === 'chat';
+  const selectContent = isForum
+    ? subjects
+    : isEcho
+      ? topicEchoSelect
+      : topicSelect;
   const selectDefault = isForum ? newChat.category : newChat.topic;
   const selectName = isForum ? 'category' : 'topic';
 
@@ -126,7 +133,7 @@ export default function PopupNewChat({
     !newChat.title ||
     (isForum ? !newChat.category : !newChat.topic) ||
     !newMsg.content ||
-    !searchUserSelected ||
+    (isChat && !searchUserSelected) ||
     isLoading;
 
   return (
@@ -190,7 +197,7 @@ export default function PopupNewChat({
                   onValueChange={handleChangeSelect}
                 />
               )}
-            {(type === 'echo_community' || type === 'forum') && (
+            {/* {(type === 'echo_community' || type === 'forum') && (
               <FileInput
                 label="Joindre un fichier"
                 name={'files'}
@@ -198,7 +205,7 @@ export default function PopupNewChat({
                 placeholder="Charger une image pour le topic"
                 onChange={(e) => handleFileChange({ e, file_name: 'files' })}
               />
-            )}
+            )} */}
           </div>
 
           <TextArea
