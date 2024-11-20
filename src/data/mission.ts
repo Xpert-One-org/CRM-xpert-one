@@ -123,22 +123,22 @@ export const creationMissionData: CreationMission = {
     required: 'false',
   },
   referent_name: {
-    label: 'Nom du référent',
+    label: 'Nom du référent de mission',
     name: 'referent_name',
     required: 'false',
   },
   referent_mail: {
-    label: 'Email du référent',
+    label: 'Mail du référent de mission',
     name: 'referent_mail',
     required: 'false',
   },
   referent_mobile: {
-    label: 'Téléphone mobile du référent',
+    label: 'Téléphone mobile du référent de mission',
     name: 'referent_mobile',
     required: 'false',
   },
   referent_fix: {
-    label: 'Téléphone fixe du référent',
+    label: 'Téléphone fixe du référent de mission',
     name: 'referent_fix',
     required: 'false',
   },
