@@ -95,16 +95,6 @@ CREATE TYPE "public"."article_status" AS ENUM (
 ALTER TYPE "public"."article_status" OWNER TO "postgres";
 
 
-CREATE TYPE "public"."article_type" AS ENUM (
-    'web',
-    'link',
-    'press'
-);
-
-
-ALTER TYPE "public"."article_type" OWNER TO "postgres";
-
-
 CREATE TYPE "public"."categories" AS ENUM (
     'energy_and_nuclear',
     'renewable_energy',
@@ -159,7 +149,10 @@ CREATE TYPE "public"."mission_state" AS ENUM (
     'open_all',
     'in_progress',
     'deleted',
-    'finished'
+    'finished',
+    'in_process',
+    'validated',
+    'refused'
 );
 
 
@@ -402,7 +395,8 @@ ALTER FUNCTION "public"."get_profile_other_languages"() OWNER TO "postgres";
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
-    AS $$DECLARE
+    AS $$
+DECLARE
     v_role TEXT;
     v_is_student BOOLEAN;
 BEGIN
@@ -437,15 +431,13 @@ BEGIN
             ELSE NULL
         END,
         NEW.raw_user_meta_data->>'referent_generated_id',
-        CASE
-            WHEN new.raw_user_meta_data->>'role' = 'xpert' THEN public.generate_unique_id()::text
-            ELSE public.generate_unique_id_f()::text
-        END,  
+        gen_random_uuid()::text, -- Utilise gen_random_uuid() au lieu de uuid_generate_v4()
         NEW.raw_user_meta_data->>'username'
     );
 
     RETURN NEW;
-END;$$;
+END;
+$$;
 
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
@@ -525,9 +517,7 @@ CREATE TABLE IF NOT EXISTS "public"."article" (
     "slug" "text",
     "category" "text",
     "categories" "public"."categories"[],
-    "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL,
-    "type" "public"."article_type" DEFAULT 'web'::"public"."article_type" NOT NULL,
-    "url" "text"
+    "status" "public"."article_status" DEFAULT 'published'::"public"."article_status" NOT NULL
 );
 
 
@@ -2852,54 +2842,3 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 RESET ALL;
-
---
--- Dumped schema changes for auth and storage
---
-
-CREATE OR REPLACE TRIGGER "on_auth_user_created" AFTER INSERT ON "auth"."users" FOR EACH ROW EXECUTE FUNCTION "public"."handle_new_user"();
-
-
-
-CREATE OR REPLACE TRIGGER "on_email_confirmation" AFTER UPDATE OF "confirmed_at" ON "auth"."users" FOR EACH ROW WHEN (("new"."confirmed_at" IS NOT NULL)) EXECUTE FUNCTION "public"."notify_email_confirmation"();
-
-
-
-CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0" ON "storage"."objects" FOR SELECT USING (("bucket_id" = 'profile_files'::"text"));
-
-
-
-CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_0" ON "storage"."objects" FOR INSERT WITH CHECK (("bucket_id" = 'mission_files'::"text"));
-
-
-
-CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_1" ON "storage"."objects" FOR SELECT USING (("bucket_id" = 'mission_files'::"text"));
-
-
-
-CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_2" ON "storage"."objects" FOR UPDATE USING (("bucket_id" = 'mission_files'::"text"));
-
-
-
-CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_1" ON "storage"."objects" FOR INSERT WITH CHECK (("bucket_id" = 'profile_files'::"text"));
-
-
-
-CREATE POLICY " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_2" ON "storage"."objects" FOR UPDATE USING (("bucket_id" = 'profile_files'::"text"));
-
-
-
-CREATE POLICY "Allow Select  1zbfv_0" ON "storage"."objects" FOR SELECT USING (("bucket_id" = 'logo'::"text"));
-
-
-
-CREATE POLICY "Allow select and insert for auth 1tf88_0" ON "storage"."objects" FOR INSERT TO "authenticated" WITH CHECK (("bucket_id" = 'chat'::"text"));
-
-
-
-CREATE POLICY "Allow select and insert for auth 1tf88_1" ON "storage"."objects" FOR SELECT TO "authenticated" USING (("bucket_id" = 'chat'::"text"));
-
-
-
-GRANT ALL ON TABLE "storage"."s3_multipart_uploads" TO "postgres";
-GRANT ALL ON TABLE "storage"."s3_multipart_uploads_parts" TO "postgres";
