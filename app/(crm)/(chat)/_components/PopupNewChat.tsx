@@ -121,11 +121,8 @@ export default function PopupNewChat({
   const isForum = type === 'forum';
   const isEcho = type === 'echo_community';
   const isChat = type === 'chat';
-  const selectContent = isForum
-    ? subjects
-    : isEcho
-      ? topicEchoSelect
-      : topicSelect;
+  const selectContent = isForum ? subjects : topicEchoSelect;
+
   const selectDefault = isForum ? newChat.category : newChat.topic;
   const selectName = isForum ? 'category' : 'topic';
 
@@ -183,7 +180,7 @@ export default function PopupNewChat({
               onValueChange={handleChangeSelect}
             />
 
-            {type != 'forum' &&
+            {/* {type != 'forum' &&
               type != 'echo_community' &&
               newChat.topic == 'mission' && (
                 <SelectComponent
@@ -196,7 +193,7 @@ export default function PopupNewChat({
                   }
                   onValueChange={handleChangeSelect}
                 />
-              )}
+              )} */}
             {/* {(type === 'echo_community' || type === 'forum') && (
               <FileInput
                 label="Joindre un fichier"
