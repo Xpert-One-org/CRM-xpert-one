@@ -20,7 +20,10 @@ export default function ComboboxChat() {
   };
 
   const handleSetValue = (value: string) => {
-    const selected = searchUsersResults.find((user) => user.label === value);
+    console.log('value', value);
+    console.log('data', data);
+    const selected = data.find((user) => user.label.toLowerCase() === value);
+    console.log('selected', selected);
     if (!selected) return;
     useUser.setState({ searchUserSelected: selected });
   };
