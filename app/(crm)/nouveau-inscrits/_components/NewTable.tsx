@@ -110,7 +110,7 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
         ) : (
           <p className="text-center text-sm text-gray-500">
             Aucun nouveaux {role === 'company' ? 'Fournisseur' : 'Xpert'} se
-            sont inscrits les 7 derniers jours
+            sont inscrits le dernier mois avec une
           </p>
         )}
       </div>

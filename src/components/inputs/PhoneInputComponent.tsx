@@ -19,6 +19,7 @@ type Props = {
   disabled?: boolean;
   value?: string;
   hasError?: boolean;
+  className?: string;
 } & ComponentProps<'div'>;
 
 export default function PhoneInputComponent({
