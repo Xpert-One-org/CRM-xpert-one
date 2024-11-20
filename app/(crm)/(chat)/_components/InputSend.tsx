@@ -217,7 +217,7 @@ export default function InputSend({
   return (
     <div className="absolute bottom-0 left-0 w-full lg:bg-background">
       <div className="relative mx-[30px] my-spaceSmall flex items-center justify-between">
-        <div className="w-full border-border-gray lg:border">
+        <div className="w-full">
           {answeringMsg && (
             <div
               ref={answerRef}
