@@ -81,18 +81,6 @@ export default function PopupNewChat({
     setNewChat((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = ({
-    e,
-  }: {
-    e: React.ChangeEvent<HTMLInputElement>;
-    file_name: string;
-  }) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFile(file);
-    }
-  };
-
   const handleChangeMsg = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
