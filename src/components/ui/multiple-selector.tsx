@@ -397,7 +397,7 @@ const MultipleSelector = React.forwardRef<
       >
         <div
           className={cn(
-            'min-h-10 rounded-xs border border-border-gray border-input text-sm',
+            'min-h-10 rounded-md border border-input text-sm',
             {
               'px-3 py-2': selected.length !== 0,
               'cursor-text': !disabled && selected.length !== 0,
@@ -413,7 +413,7 @@ const MultipleSelector = React.forwardRef<
             {selected.map((option, index) => {
               return (
                 <Badge
-                  key={`${option.value}-${index}`}
+                  key={option.value}
                   className={cn(
                     'data-[disabled]:bg-muted-foreground data-[disabled]:hover:bg-muted-foreground font-light data-[disabled]:text-muted',
                     'data-[fixed]:bg-muted-foreground data-[fixed]:hover:bg-muted-foreground data-[fixed]:text-muted',
@@ -522,17 +522,17 @@ const MultipleSelector = React.forwardRef<
                   {!selectFirstItem && (
                     <CommandItem value="-" className="hidden" />
                   )}
-                  {Object.entries(selectables).map(([key, dropdowns], i) => (
+                  {Object.entries(selectables).map(([key, dropdowns]) => (
                     <CommandGroup
-                      key={`${key}-${i}`}
+                      key={key}
                       heading={key}
                       className="h-full overflow-auto bg-white"
                     >
                       <>
-                        {dropdowns.map((option, i) => {
+                        {dropdowns.map((option) => {
                           return (
                             <CommandItem
-                              key={`${option.value}-${i}`}
+                              key={option.value}
                               value={option.label}
                               disabled={option.disable}
                               onMouseDown={(e) => {

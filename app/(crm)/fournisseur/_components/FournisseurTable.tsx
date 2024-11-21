@@ -9,7 +9,7 @@ import Input from '@/components/inputs/Input';
 import { empty, signUpDateOptions } from '@/data/constant';
 import { getLabel } from '@/utils/getLabel';
 import { useSelect } from '@/store/select';
-import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
 import {
   areaSelect,
   energyRenewableSelect,
@@ -380,7 +380,6 @@ export default function FournisseurTable() {
                     label="Tél portable"
                     name=""
                     placeholder={empty}
-                    className="xl:max-w-full"
                     value={fournisseur.mobile ?? ''}
                     defaultSelectedKeys={fournisseur.mobile ?? ''}
                     disabled
@@ -388,7 +387,6 @@ export default function FournisseurTable() {
                   <PhoneInputComponent
                     label="Tél fixe"
                     name=""
-                    className="xl:max-w-full"
                     placeholder={empty}
                     value={fournisseur.fix ?? ''}
                     defaultSelectedKeys={fournisseur.fix ?? ''}

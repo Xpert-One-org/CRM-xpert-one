@@ -23,11 +23,7 @@ export default function XpertRow({
     ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
         const jobTitle = uppercaseFirstLetter(job.replaceAll('_', ' '));
         const badge = (
-          <Badge
-            variant="secondary"
-            className="m-1 max-w-[95%] font-normal"
-            key={`badge-${i}`}
-          >
+          <Badge className="m-1 max-w-[95%] font-normal" key={`badge-${i}`}>
             {job === 'other' ? 'Autre' : jobTitle.length ? jobTitle : empty}
           </Badge>
         );

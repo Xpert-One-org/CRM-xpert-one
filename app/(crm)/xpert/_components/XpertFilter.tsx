@@ -10,9 +10,9 @@ const sortStringOptions = [
 ];
 
 const sortDateOptions = [
-  { label: 'Du plus ancien au plus recent', value: 'asc' },
-  { label: 'Du plus recent au plus ancien', value: 'desc' },
-  { label: 'Aucun tri', value: '' },
+  { label: 'Ancien', value: 'asc' },
+  { label: 'Recent', value: 'desc' },
+  { label: 'Aucun filtre', value: '' },
 ];
 
 export default function XpertFilter({

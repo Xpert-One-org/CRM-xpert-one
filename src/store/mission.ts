@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { DBMission, DBMissionState } from '@/types/typesDb';
 import {
+  getAllMissions,
   getMissionState,
   searchMission,
   updateMissionState,
@@ -9,7 +10,8 @@ import {
 type MissionState = {
   missions: DBMission[];
   missionsNumbers: { mission_number: string | null }[];
-  fetchMissions: (selectedState: DBMissionState | null) => Promise<void>;
+  fetchMissions: () => Promise<void>;
+  fetchMissionsState: (selectedState: DBMissionState | null) => Promise<void>;
   searchMissions: (missionId: string) => Promise<void>;
   updateMission: (missionId: string, state: DBMissionState) => Promise<void>;
   isLoading: boolean;
@@ -26,7 +28,12 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     const { data } = await searchMission(missionId);
     set({ missionsNumbers: data, isLoading: false });
   },
-  fetchMissions: async (selectedState) => {
+  fetchMissions: async () => {
+    set({ isLoading: true });
+    const fetchedMissions = await getAllMissions();
+    set({ missions: fetchedMissions, isLoading: false });
+  },
+  fetchMissionsState: async (selectedState) => {
     if (selectedState) {
       set({ isLoading: true });
 

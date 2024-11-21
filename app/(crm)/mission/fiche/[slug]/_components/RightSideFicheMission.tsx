@@ -1,5 +1,5 @@
 import Input from '@/components/inputs/Input';
-import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
 import TextArea from '@/components/inputs/TextArea';
 import { empty } from '@/data/constant';
 import { postTypesSelect, profilSearchedSelect } from '@/data/mocked_select';
@@ -451,7 +451,12 @@ export default function RightSideFicheMission({
         </div>
       </div>
       <div className="flex w-full flex-row justify-between gap-4">
-        <Link href={`/mission/matching/${missionDetails.mission_number}`}>
+        <Link
+          href={`/mission/matching/${missionDetails.mission_number?.replace(
+            ' ',
+            '-'
+          )}`}
+        >
           <Button className="px-12 py-3 text-white">Vers le matching</Button>
         </Link>
         <DeleteMissionDialog missionId={missionDetails.id} />

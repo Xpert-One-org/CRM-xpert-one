@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
-export default function ComboboxMission() {
+export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
   const [value, setValue] = useState('');
   const [text] = useDebounce(value, 500);
   const [data, setData] = useState<string[]>([]);
@@ -25,7 +25,13 @@ export default function ComboboxMission() {
 
   const handleSetValue = (value: string) => {
     setValue(value);
-    router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
+    if (redirect) {
+      router.push(
+        `/mission/matching/${value.split(' ').join('-').toUpperCase()}`
+      );
+    } else {
+      router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
+    }
   };
 
   useEffect(() => {

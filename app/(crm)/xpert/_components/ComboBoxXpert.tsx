@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { useXpertStore } from '@/store/xpert';
+import React, { useEffect, useState } from 'react';
 import Combobox from '@/components/inputs/Combobox';
 import { useRouter } from 'next/navigation';
+import { searchXpert } from '../xpert.action';
+import type { DBXpert } from '@/types/typesDb';
 
 export default function ComboBoxXpert() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { xperts } = useXpertStore();
+  const [xperts, setXperts] = useState<DBXpert[] | null>(null);
+
+  const fetchAllXperts = async () => {
+    const { data } = await searchXpert();
+    setXperts(data);
+  };
+
   const router = useRouter();
 
   const handleSearch = (value: string) => {
@@ -20,6 +27,10 @@ export default function ComboBoxXpert() {
       xpert.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       xpert.lastname?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    fetchAllXperts();
+  }, []);
 
   return (
     <Combobox

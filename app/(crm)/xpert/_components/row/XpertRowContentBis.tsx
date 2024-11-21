@@ -1,5 +1,5 @@
 import Input from '@/components/inputs/Input';
-import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
 import TextArea from '@/components/inputs/TextArea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { empty } from '@/data/constant';

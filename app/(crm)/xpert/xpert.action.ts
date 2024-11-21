@@ -53,6 +53,21 @@ export const getSpecificXpert = async (
   return null;
 };
 
+export const searchXpert = async (): Promise<{ data: DBXpert[] }> => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('role', 'xpert');
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { data: data as DBXpert[] };
+};
+
 export const getAllXperts = async ({
   offset,
 }: {

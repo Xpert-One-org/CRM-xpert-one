@@ -14,7 +14,7 @@ import {
 import { ageMax, empty } from '@/data/constant';
 import { Slider } from '@/components/ui/slider';
 import XpertExperience from '../XpertExperience';
-import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { getYears } from '@/utils/string';
 import TextArea from '@/components/inputs/TextArea';
 
