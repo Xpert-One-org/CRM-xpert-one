@@ -18,6 +18,7 @@ export const getSpecificFournisseur = async (
       .select('*, mission!mission_created_by_fkey(*)')
       .eq('generated_id', fournisseurId)
       .eq('role', 'company')
+      .order('created_at', { ascending: false })
       .single();
 
     if (error) {

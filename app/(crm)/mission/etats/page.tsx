@@ -16,7 +16,7 @@ import Loader from '@/components/Loader';
 import Link from 'next/link';
 
 export default function MissionEtatPage() {
-  const { fetchMissions, isLoading, setIsLoading } = useMissionStore();
+  const { fetchMissionsState, isLoading, setIsLoading } = useMissionStore();
   const [selectedState, setSelectedState] = useState<DBMissionState | null>(
     null
   );
@@ -26,11 +26,9 @@ export default function MissionEtatPage() {
 
   useEffect(() => {
     const etat = searchParams.get('etat') as DBMissionState;
-    if (etat) {
-      setSelectedState(etat);
-      fetchMissions(etat);
-    }
-  }, [searchParams, fetchMissions]);
+    setSelectedState(etat);
+    fetchMissionsState(etat);
+  }, [searchParams, fetchMissionsState]);
 
   const handleButtonClick = (state: DBMissionState) => {
     setIsLoading(true);

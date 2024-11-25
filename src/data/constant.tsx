@@ -13,10 +13,3 @@ export const minQuerySearch = 2;
 export const ageMax = 35;
 export const limitXpert = 15;
 export const limitFournisseur = 10;
-export const signUpDateOptions = [
-  { label: 'Toutes', value: '' },
-  { label: '1 semaine', value: '1_week' },
-  { label: '2 semaines', value: '2_weeks' },
-  { label: '3 semaines', value: '3_weeks' },
-  { label: '4 semaines', value: '4_weeks' },
-];

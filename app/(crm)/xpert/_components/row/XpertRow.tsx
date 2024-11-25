@@ -3,12 +3,12 @@ import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
 import { empty } from '@/data/constant';
 import { cn } from '@/lib/utils';
+import { useSelect } from '@/store/select';
 import type { DBXpert } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
+import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
-import { Eye } from 'lucide-react';
-import { X } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 export default function XpertRow({
   xpert,
@@ -20,34 +20,47 @@ export default function XpertRow({
   onClick: () => void;
 }) {
   const dateSignUp = formatDate(xpert.created_at);
+  const { jobTitles, fetchJobTitles } = useSelect();
+
+  useEffect(() => {
+    fetchJobTitles();
+  }, []);
 
   const postTypes = xpert.profile_mission
-    ? xpert.profile_mission.job_titles?.map((job, i) => {
-        const jobTitle = uppercaseFirstLetter(job.replaceAll('_', ' '));
-
-        // const otherJobTitle = xpert.profile_mission?.job_titles_other
-        //   ? xpert.profile_mission.job_titles_other
-        //   : '';
-
-        if (job === 'other') {
-          return (
-            <Badge className="m-1" key={i}>
-              Autre
+    ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
+        const badge = (
+          <div key={`${xpert.generated_id}-${i}`}>
+            <Badge
+              variant="secondary"
+              className="m-1 max-w-[95%] font-normal"
+              key={`${xpert.generated_id}-${i}`}
+            >
+              {getLabel({ value: job, select: jobTitles }) ?? empty}
             </Badge>
-          );
-        } else {
-          return (
-            <Badge className="m-1" key={i}>
-              {jobTitle.length ? jobTitle : empty}
-            </Badge>
-          );
-        }
+            {i < arr.length - 1 && <span className="text-gray-400">|</span>}
+          </div>
+        );
+        return badge;
       })
     : empty;
 
   const availableDate = xpert.profile_mission
     ? formatDate(xpert.profile_mission.availability ?? '')
     : empty;
+
+  const availabilityStatus = (() => {
+    if (xpert.profile_mission?.availability) {
+      return 'bg-[#92C6B0]';
+    } else if (
+      xpert.mission
+        .map((mission) => mission.xpert_associated_id)
+        .some((xpertId) => xpertId === xpert.id)
+    ) {
+      return 'bg-accent';
+    } else {
+      return 'bg-[#D64242]';
+    }
+  })();
 
   return (
     <>
@@ -60,9 +73,9 @@ export default function XpertRow({
       <Box className="col-span-1" isSelected={isOpen}>
         {uppercaseFirstLetter(xpert.firstname ?? '')}
       </Box>
-      <Box className="col-span-1 flex flex-col p-2" isSelected={isOpen}>
+      <Box className="col-span-2 flex flex-col p-2" isSelected={isOpen}>
         <div
-          className={cn('flex size-full flex-col items-center justify-center', {
+          className={cn('flex size-full flex-row flex-wrap items-center', {
             'border bg-white': postTypes?.length,
           })}
         >
@@ -72,16 +85,11 @@ export default function XpertRow({
       <Box className="col-span-1" isSelected={isOpen}>
         {xpert.generated_id}
       </Box>
-      <Box className="col-span-1" isSelected={isOpen}>
+      <Box className={`col-span-1 ${availabilityStatus} text-white`}>
         {availableDate}
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}
-        {/* {isOpen ? (
-          <X size={18} strokeWidth={4} />
-        ) : (
-          <Eye size={18} strokeWidth={1} />
-        )} */}
       </Button>
     </>
   );

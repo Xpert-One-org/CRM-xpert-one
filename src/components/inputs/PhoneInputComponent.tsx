@@ -40,7 +40,7 @@ export default function PhoneInputComponent({
     onValueChange && onValueChange(value, name);
   };
   return (
-    <div className={cn('w-full font-light xl:max-w-[280px]', className)}>
+    <div className={cn('w-full font-light', className)}>
       {label && (
         <>
           <Label
