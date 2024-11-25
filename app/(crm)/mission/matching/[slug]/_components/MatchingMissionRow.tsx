@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import type { DBMission } from '@/types/typesDb';
 import { uppercaseFirstLetter } from '@/utils/string';
-import ComboboxMission from '../../../fiche/_components/ComboboxMission';
+import ComboboxMission from '@/components/combobox/ComboboxMission';
 
 export default function MatchingMissionRow({
   mission,
