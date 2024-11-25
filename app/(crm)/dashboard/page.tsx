@@ -111,7 +111,7 @@ export default async function DashboardPage() {
         urgentCount={0}
         buttonTitle="Suivi des missions"
         iconButton={<Phone className="fill-white" width={24} height={24} />}
-        link="/mission/suivi-de-missions"
+        link="/mission/suivi-des-missions"
       />
       <DashBoardCards
         count={missionsClosed.length}

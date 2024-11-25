@@ -5,19 +5,11 @@ import { useMissionStore } from '@/store/mission';
 
 export default function MissionEtatOpenTable() {
   const { missions } = useMissionStore();
-  const signUpDateOptions = [
-    { label: 'Toutes', value: '' },
-    { label: '1 semaine', value: '1_week' },
-    { label: '2 semaines', value: '2_weeks' },
-    { label: '3 semaines', value: '3_weeks' },
-    { label: '4 semaines', value: '4_weeks' },
-  ];
 
   return (
     <div className="grid grid-cols-11 gap-3">
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={[]}
         onValueChange={() => {}}
         placeholder="Créer le"
       />
@@ -26,8 +18,7 @@ export default function MissionEtatOpenTable() {
       <FilterButton placeholder="Référent Xpert One" filter={false} />
       <FilterButton placeholder="Temps avant début de mission" filter={false} />
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={[]}
         onValueChange={() => {}}
         placeholder="Remise des candidatures"
       />

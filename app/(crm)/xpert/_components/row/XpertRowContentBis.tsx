@@ -1,5 +1,5 @@
 import Input from '@/components/inputs/Input';
-import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
 import TextArea from '@/components/inputs/TextArea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { empty } from '@/data/constant';
@@ -26,7 +26,7 @@ export default function XpertRowContentBis({
       {isLoading ? (
         <Skeleton className="size-full" />
       ) : (
-        <div className="flex items-start justify-start">
+        <div className="flex items-start justify-start py-3">
           {cvUrl ? (
             <iframe src={cvUrl} className="h-[90vh] w-full" />
           ) : (

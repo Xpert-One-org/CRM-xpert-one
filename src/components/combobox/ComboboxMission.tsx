@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
-export default function ComboboxMission() {
+export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
   const [value, setValue] = useState('');
   const [text] = useDebounce(value, 500);
   const [data, setData] = useState<string[]>([]);
@@ -14,7 +14,9 @@ export default function ComboboxMission() {
   const pathname = usePathname();
   const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
   const [currentValue] = useState(
-    currentMissionNumber !== 'fiche' ? currentMissionNumber : ''
+    currentMissionNumber !== 'fiche' && currentMissionNumber !== 'matching'
+      ? currentMissionNumber
+      : ''
   );
 
   const router = useRouter();
@@ -24,8 +26,19 @@ export default function ComboboxMission() {
   };
 
   const handleSetValue = (value: string) => {
+    //! check if the value is the same as the current mission number
+    if (value.toUpperCase() === currentMissionNumber?.toUpperCase()) {
+      return;
+    }
+
     setValue(value);
-    router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
+    if (redirect) {
+      router.push(
+        `/mission/matching/${value.split(' ').join('-').toUpperCase()}`
+      );
+    } else {
+      router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
+    }
   };
 
   useEffect(() => {
@@ -48,7 +61,9 @@ export default function ComboboxMission() {
       isLoading={isLoading}
       handleValueChange={handleValueChange}
       placeholder={
-        currentMissionNumber !== 'fiche' ? currentMissionNumber : 'Rechercher'
+        currentMissionNumber !== 'fiche' && currentMissionNumber !== 'matching'
+          ? currentMissionNumber
+          : 'Rechercher'
       }
       className="bg-primary py-spaceContainer text-white hover:bg-secondary"
     />

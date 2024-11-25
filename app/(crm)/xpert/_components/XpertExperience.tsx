@@ -1,5 +1,5 @@
 import Input from '@/components/inputs/Input';
-import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
 import SelectComponent from '@/components/inputs/SelectComponent';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
