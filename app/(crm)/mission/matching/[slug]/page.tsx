@@ -1,11 +1,10 @@
 'use client';
 
-import React, { use, useEffect } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import MatchingMissionTable from './_components/MatchingMissionTable';
 import { useMissionStore } from '@/store/mission';
 import MatchingLeftSide from './_components/MatchingLeftSide';
 import LaunchMatching from './_components/LaunchMatching';
-import MatchingLeftSideSecond from './_components/MatchingLeftSideSecond';
 
 export default function MissionMatchingPage(props: {
   params: Promise<{ slug: string }>;
@@ -13,41 +12,41 @@ export default function MissionMatchingPage(props: {
   const { missions, fetchMissions } = useMissionStore();
   const params = use(props.params);
   const { slug } = params;
+  const [excludedCriteria, setExcludedCriteria] = useState<
+    Record<string, string[]>
+  >({});
 
   const missionNumber = slug.replace('-', ' ');
-
   const missionData = missions.find(
     (mission) => mission.mission_number === missionNumber
   );
 
   useEffect(() => {
-    if (missions.length === 0) {
-      fetchMissions();
-    }
-  }, [missions]);
+    fetchMissions();
+  }, [fetchMissions]);
+
+  const handleCriteriaChange = (criteria: Record<string, string[]>) => {
+    setExcludedCriteria(criteria);
+  };
 
   return (
     <>
       {missionData && (
         <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
           <MatchingMissionTable missionData={missionData} />
-          <div className="grid grid-cols-6 gap-x-spaceSmall">
-            <MatchingLeftSide missionData={missionData} />
-            <LaunchMatching />
-          </div>
-          <div className="grid grid-cols-6 gap-x-spaceSmall">
-            <div className="col-span-3">
-              <div className="border-divider border-t border-black" />
-              <p className="my-2 font-bold text-black">
-                Recherche supplémentaire
-              </p>
-              <p className="my-2 font-thin text-black">
-                Missions recherchées par les XPERTS
-              </p>
+          <div className="flex h-[calc(100vh-200px)] w-full gap-3">
+            <div className="flex w-1/2 overflow-y-auto">
+              <MatchingLeftSide
+                missionData={missionData}
+                onCriteriaChange={handleCriteriaChange}
+              />
             </div>
-          </div>
-          <div className="grid grid-cols-6 gap-x-spaceSmall">
-            <MatchingLeftSideSecond missionData={missionData} />
+            <div className="flex w-1/2 overflow-y-auto">
+              <LaunchMatching
+                missionData={missionData}
+                excludedCriteria={excludedCriteria}
+              />
+            </div>
           </div>
         </div>
       )}

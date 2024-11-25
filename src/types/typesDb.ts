@@ -34,6 +34,15 @@ export type DBFournisseur = DBProfile & {
   mission: DBMission[];
 };
 
+export type DBMatchedXpert = DBProfileMission & {
+  id: string;
+  firstname: string;
+  lastname: string;
+  profile_mission: DBProfileMission;
+  profile_education: DBProfileEducation[];
+  profile_expertise: DBProfileExpertise;
+};
+
 export type DBXpert = DBProfile & {
   profile_mission: DBProfileMission | null;
   mission: DBMission[];
