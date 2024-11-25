@@ -1,7 +1,7 @@
 import { FilterButton } from '@/components/FilterButton';
-import { signUpDateOptions } from '@/data/constant';
 import React from 'react';
 import type { DBXpert } from '@/types/typesDb';
+import ComboBoxXpert from '@/components/combobox/ComboBoxXpert';
 
 const sortStringOptions = [
   { label: 'Ascendant', value: 'asc' },
@@ -50,18 +50,16 @@ export default function XpertFilter({
         onSort={onSortedDataChange}
       />
       <FilterButton
-        options={signUpDateOptions}
+        options={[]}
         onValueChange={() => {}}
         placeholder="Poste"
         className="col-span-2"
       />
+      <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
+        <ComboBoxXpert />
+      </div>
       <FilterButton
-        options={signUpDateOptions}
-        onValueChange={() => {}}
-        placeholder="N° identification"
-      />
-      <FilterButton
-        options={signUpDateOptions}
+        options={[]}
         onValueChange={() => {}}
         placeholder="Disponible le"
       />

@@ -4,7 +4,6 @@ import { FilterButton } from '@/components/FilterButton';
 import React, { useEffect, useState } from 'react';
 import type { DBProfile } from '@/types/typesDb';
 import { useRouter } from 'next/navigation';
-import { signUpDateOptions } from '@/data/constant';
 import { getNewUsersLastMonth } from '../action';
 import NewRow from './NewRow';
 import Loader from '@/components/Loader';
@@ -45,12 +44,12 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
     <div className="grid grid-cols-1 flex-col gap-4">
       <div className="grid grid-cols-7 gap-3">
         <FilterButton
-          options={signUpDateOptions}
+          options={[]}
           onValueChange={() => {}}
           placeholder="Date d'inscription"
         />
         <FilterButton
-          options={signUpDateOptions}
+          options={[]}
           onValueChange={() => {}}
           placeholder="N° identification"
         />
@@ -69,22 +68,16 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
           placeholder="Rôle"
         />
         <FilterButton
-          options={signUpDateOptions}
+          options={[]}
           onValueChange={() => {}}
           placeholder="État de la fiche"
         />
+        <FilterButton options={[]} placeholder="Call de bienvenue" />
         <FilterButton
-          options={signUpDateOptions}
-          placeholder="Call de bienvenue"
-        />
-        <FilterButton
-          options={signUpDateOptions}
+          options={[]}
           placeholder="Éléments supplémentaires à nous communiquer"
         />
-        <FilterButton
-          options={signUpDateOptions}
-          placeholder="Référent Xpert One"
-        />
+        <FilterButton options={[]} placeholder="Référent Xpert One" />
       </div>
       <div className="grid gap-4">
         {loading ? (

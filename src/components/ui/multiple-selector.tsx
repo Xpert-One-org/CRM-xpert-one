@@ -529,10 +529,10 @@ const MultipleSelector = React.forwardRef<
                       className="h-full overflow-auto bg-white"
                     >
                       <>
-                        {dropdowns.map((option) => {
+                        {dropdowns.map((option, index) => {
                           return (
                             <CommandItem
-                              key={option.value}
+                              key={`${option.value}-${option.label}-${index}`}
                               value={option.label}
                               disabled={option.disable}
                               onMouseDown={(e) => {

@@ -23,10 +23,12 @@ export const getSpecificXpert = async (
         mission!mission_created_by_fkey(*),
         profile_status(*),
         profile_expertise(*)
-      `
+      `,
+        { count: 'exact' }
       )
       .eq('role', 'xpert')
-      .eq('referent_id', xpertId)
+      .eq('generated_id', xpertId)
+      .order('created_at', { ascending: false })
       .single();
 
     if (error) {

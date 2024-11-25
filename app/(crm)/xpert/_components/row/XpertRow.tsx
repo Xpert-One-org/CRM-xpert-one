@@ -3,10 +3,12 @@ import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
 import { empty } from '@/data/constant';
 import { cn } from '@/lib/utils';
+import { useSelect } from '@/store/select';
 import type { DBXpert } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
+import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 export default function XpertRow({
   xpert,
@@ -18,24 +20,26 @@ export default function XpertRow({
   onClick: () => void;
 }) {
   const dateSignUp = formatDate(xpert.created_at);
+  const { jobTitles, fetchJobTitles } = useSelect();
+
+  useEffect(() => {
+    fetchJobTitles();
+  }, []);
 
   const postTypes = xpert.profile_mission
     ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
-        const jobTitle = uppercaseFirstLetter(job.replaceAll('_', ' '));
         const badge = (
-          <Badge className="m-1 max-w-[95%] font-normal" key={`badge-${i}`}>
-            {job === 'other' ? 'Autre' : jobTitle.length ? jobTitle : empty}
-          </Badge>
+          <div key={`${xpert.generated_id}-${i}`}>
+            <Badge
+              variant="secondary"
+              className="m-1 max-w-[95%] font-normal"
+              key={`${xpert.generated_id}-${i}`}
+            >
+              {getLabel({ value: job, select: jobTitles }) ?? empty}
+            </Badge>
+            {i < arr.length - 1 && <span className="text-gray-400">|</span>}
+          </div>
         );
-
-        if (i < arr.length - 1) {
-          return (
-            <React.Fragment key={i}>
-              {badge}
-              <span className="text-gray-400">|</span>
-            </React.Fragment>
-          );
-        }
         return badge;
       })
     : empty;
@@ -43,6 +47,20 @@ export default function XpertRow({
   const availableDate = xpert.profile_mission
     ? formatDate(xpert.profile_mission.availability ?? '')
     : empty;
+
+  const availabilityStatus = (() => {
+    if (xpert.profile_mission?.availability) {
+      return 'bg-[#92C6B0]';
+    } else if (
+      xpert.mission
+        .map((mission) => mission.xpert_associated_id)
+        .some((xpertId) => xpertId === xpert.id)
+    ) {
+      return 'bg-accent';
+    } else {
+      return 'bg-[#D64242]';
+    }
+  })();
 
   return (
     <>
@@ -67,7 +85,7 @@ export default function XpertRow({
       <Box className="col-span-1" isSelected={isOpen}>
         {xpert.generated_id}
       </Box>
-      <Box className="col-span-1" isSelected={isOpen}>
+      <Box className={`col-span-1 ${availabilityStatus} text-white`}>
         {availableDate}
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>

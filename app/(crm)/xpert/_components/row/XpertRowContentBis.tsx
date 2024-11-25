@@ -26,7 +26,7 @@ export default function XpertRowContentBis({
       {isLoading ? (
         <Skeleton className="size-full" />
       ) : (
-        <div className="flex items-start justify-start">
+        <div className="flex items-start justify-start py-3">
           {cvUrl ? (
             <iframe src={cvUrl} className="h-[90vh] w-full" />
           ) : (

@@ -15,7 +15,6 @@ import XpertRowContent from './row/XpertRowContent';
 import XpertMissionFilter from './row/mission/XpertMissionFilter';
 import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
-import ComboBoxXpert from './ComboBoxXpert';
 import DeleteXpertDialog from './DeleteXpertDialog';
 // import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 
@@ -44,6 +43,8 @@ export default function XpertTable() {
   const [cvUrl, setCvUrl] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
+
+  const hasMore = xperts && totalXperts ? xperts.length < totalXperts : true;
 
   const handleXpertIdOpened = useCallback((xpert: DBXpert) => {
     setXpertIdOpened((prevId) => {
@@ -125,24 +126,20 @@ export default function XpertTable() {
     }
   }, [xperts]);
 
-  const hasMore = xperts && totalXperts ? xperts.length < totalXperts : true;
-
   return (
     <>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <ComboBoxXpert />
-        {/* <div>
-          <CreateFournisseurXpertDialog role="xpert" />
-        </div> */}
-        {/* 
-          {xpertIdOpened !== '0' && (
-            <Button className="px-spaceContainer py-spaceXSmall text-white">
-              Enregistrer
-            </Button>
-          )} 
-        */}
-      </div>
-
+      {/* 
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div>
+            <CreateFournisseurXpertDialog role="xpert" />
+          </div>
+            {xpertIdOpened !== '0' && (
+              <Button className="px-spaceContainer py-spaceXSmall text-white">
+                Enregistrer
+              </Button>
+            )}
+        </div>
+      */}
       <div className="grid grid-cols-8 gap-3">
         <XpertFilter
           xperts={xperts || []}
@@ -150,7 +147,7 @@ export default function XpertTable() {
         />
         {filteredXperts.map((xpert, i) => {
           return (
-            <React.Fragment key={`${xpert.id} - ${i}`}>
+            <React.Fragment key={xpert.generated_id}>
               <XpertRow
                 xpert={xpert}
                 isOpen={xpertIdOpened === xpert.generated_id}
@@ -158,7 +155,7 @@ export default function XpertTable() {
               />
               <div
                 className={cn(
-                  'col-span-3 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
+                  'col-span-4 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >

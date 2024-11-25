@@ -14,7 +14,9 @@ export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
   const pathname = usePathname();
   const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
   const [currentValue] = useState(
-    currentMissionNumber !== 'fiche' ? currentMissionNumber : ''
+    currentMissionNumber !== 'fiche' && currentMissionNumber !== 'matching'
+      ? currentMissionNumber
+      : ''
   );
 
   const router = useRouter();
@@ -24,6 +26,11 @@ export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
   };
 
   const handleSetValue = (value: string) => {
+    //! check if the value is the same as the current mission number
+    if (value.toUpperCase() === currentMissionNumber?.toUpperCase()) {
+      return;
+    }
+
     setValue(value);
     if (redirect) {
       router.push(
@@ -54,7 +61,9 @@ export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
       isLoading={isLoading}
       handleValueChange={handleValueChange}
       placeholder={
-        currentMissionNumber !== 'fiche' ? currentMissionNumber : 'Rechercher'
+        currentMissionNumber !== 'fiche' && currentMissionNumber !== 'matching'
+          ? currentMissionNumber
+          : 'Rechercher'
       }
       className="bg-primary py-spaceContainer text-white hover:bg-secondary"
     />

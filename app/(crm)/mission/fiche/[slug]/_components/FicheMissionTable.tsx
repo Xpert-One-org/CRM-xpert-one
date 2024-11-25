@@ -3,7 +3,7 @@ import { formatDate } from '@/utils/date';
 import { convertStateValue } from '@/utils/stateMissionConverter';
 import React from 'react';
 import RightSideFicheMission from './RightSideFicheMission';
-import ComboboxMission from '../../_components/ComboboxMission';
+import ComboboxMission from '@/components/combobox/ComboboxMission';
 import Link from 'next/link';
 import { empty } from '@/data/constant';
 
