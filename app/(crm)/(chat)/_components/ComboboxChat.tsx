@@ -1,8 +1,6 @@
 'use client';
 import Combobox from '@/components/inputs/Combobox';
-import { useMissionStore } from '@/store/mission';
 import useUser from '@/store/useUser';
-import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
@@ -20,10 +18,7 @@ export default function ComboboxChat() {
   };
 
   const handleSetValue = (value: string) => {
-    console.log('value', value);
-    console.log('data', data);
     const selected = data.find((user) => user.label.toLowerCase() === value);
-    console.log('selected', selected);
     if (!selected) return;
     useUser.setState({ searchUserSelected: selected });
   };

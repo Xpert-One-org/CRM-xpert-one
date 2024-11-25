@@ -3,7 +3,7 @@ import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { useRouter } from 'next/navigation';
-import { getTimeBeforeMission, uppercaseFirstLetter } from '@/utils/string';
+import { getTimeBeforeMission } from '@/utils/string';
 import { empty } from '@/data/constant';
 import { getLabel } from '@/utils/getLabel';
 import { useSelect } from '@/store/select';
@@ -46,7 +46,7 @@ export default function MissionEtatOpenRow({
     router.push(`/fournisseur?id=${fournisseurId}`);
   };
 
-  const { posts } = useSelect();
+  const { jobTitles } = useSelect();
 
   return (
     <>
@@ -75,7 +75,7 @@ export default function MissionEtatOpenRow({
         {timeBeforeDeadlineApplication}
       </Box>
       <Box className="col-span-1">
-        {getLabel({ value: mission.job_title ?? empty, select: posts }) ??
+        {getLabel({ value: mission.job_title ?? empty, select: jobTitles }) ??
           empty}
       </Box>
       <Box className="col-span-1">{'0'}</Box>

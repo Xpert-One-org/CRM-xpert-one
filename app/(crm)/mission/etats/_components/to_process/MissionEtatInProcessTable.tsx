@@ -17,14 +17,6 @@ export function MissionEtatInProcessTable() {
     Record<string, string | null>
   >({});
 
-  const signUpDateOptions = [
-    { label: 'Toutes', value: '' },
-    { label: '1 semaine', value: '1_week' },
-    { label: '2 semaines', value: '2_weeks' },
-    { label: '3 semaines', value: '3_weeks' },
-    { label: '4 semaines', value: '4_weeks' },
-  ];
-
   const handleValidationChange = (missionId: string, state: string | null) => {
     setValidatedMissions((prev) => ({
       ...prev,
@@ -105,14 +97,14 @@ export function MissionEtatInProcessTable() {
     <>
       <div className="grid grid-cols-8 gap-3">
         <FilterButton
-          options={signUpDateOptions}
+          options={[]}
           onValueChange={() => {}}
           placeholder="Créer le"
         />
         <FilterButton placeholder="N° de fournisseur" filter={false} />
         <FilterButton placeholder="N° de mission" filter={false} />
         <FilterButton
-          options={signUpDateOptions}
+          options={[]}
           onValueChange={() => {}}
           placeholder="Référent Xpert One"
           filter={false}

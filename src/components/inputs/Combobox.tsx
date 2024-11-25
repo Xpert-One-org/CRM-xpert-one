@@ -13,6 +13,7 @@ import {
   CommandList,
 } from '../ui/command';
 import { cn } from '@/lib/utils';
+import { Label } from '../ui/label';
 
 type Props = {
   data: string[];
@@ -20,8 +21,13 @@ type Props = {
   handleSetValue: (value: string) => void;
   classNamePopover?: string;
   placeholder?: string;
+  placeholderSearch?: string;
+  label?: string;
   isLoading?: boolean;
   handleValueChange?: (value: string) => void;
+  required?: boolean;
+  name?: string;
+  hasError?: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 export default function Combobox({
@@ -31,8 +37,13 @@ export default function Combobox({
   value,
   handleSetValue,
   placeholder,
+  placeholderSearch,
   handleValueChange,
   classNamePopover,
+  label,
+  required,
+  name,
+  hasError,
   ...props
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -40,23 +51,36 @@ export default function Combobox({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          {...props}
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn('w-full justify-between', className)}
-        >
-          {value && data.find((d) => d === value)
-            ? data.find((d) => d === value)
-            : placeholder}
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
+        <div className="flex flex-col gap-1">
+          {label && (
+            <Label>
+              {label}
+              {required && <span className="text-accent">*</span>}
+            </Label>
+          )}
+          <Button
+            {...props}
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              'w-full justify-between',
+              className,
+              { 'border-important': hasError },
+              { 'hover:border-primary': !hasError }
+            )}
+          >
+            {value && data.find((d) => d === value)
+              ? data.find((d) => d === value)
+              : placeholder}
+            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+          </Button>
+        </div>
       </PopoverTrigger>
       <PopoverContent className={cn('w-full p-0', classNamePopover)}>
         <Command>
           <CommandInput
-            placeholder={placeholder}
+            placeholder={placeholderSearch ?? placeholder}
             onValueChange={handleValueChange}
           />
           <CommandList>

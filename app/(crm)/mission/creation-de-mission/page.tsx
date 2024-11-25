@@ -33,7 +33,7 @@ import InformativePopup from '@/components/InformativePopup';
 import Button from '@/components/Button';
 import { FilterButton } from '@/components/FilterButton';
 import { Box } from '@/components/ui/box';
-import FournisseurInput from '@/components/inputs/FournisseurInput';
+import ComboboxFournisseur from '@/components/combobox/ComboboxFournisseur';
 
 export default function Page() {
   const [mission, setMission] = useState<DBMission>(emptyMission);
@@ -862,11 +862,14 @@ export default function Page() {
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        <FournisseurInput
+        <ComboboxFournisseur
           name={creationMissionData.supplier?.name ?? ''}
           required
           label={creationMissionData.supplier?.label ?? ''}
           onChange={handleChange}
+          hasError={checkIfRequiredAndNotMissing(
+            creationMissionData.supplier?.name as keyof UserType
+          )}
         />
       </div>
 

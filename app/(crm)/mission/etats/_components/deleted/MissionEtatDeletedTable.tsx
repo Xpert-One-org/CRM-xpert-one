@@ -5,18 +5,11 @@ import { useMissionStore } from '@/store/mission';
 
 export default function MissionEtatDeletedTable() {
   const { missions } = useMissionStore();
-  const signUpDateOptions = [
-    { label: 'Toutes', value: '' },
-    { label: '1 semaine', value: '1_week' },
-    { label: '2 semaines', value: '2_weeks' },
-    { label: '3 semaines', value: '3_weeks' },
-    { label: '4 semaines', value: '4_weeks' },
-  ];
 
   return (
     <div className="grid grid-cols-8 gap-3">
       <FilterButton
-        options={signUpDateOptions}
+        options={[]}
         onValueChange={() => {}}
         placeholder="Créer le"
       />
