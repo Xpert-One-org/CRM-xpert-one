@@ -3,6 +3,7 @@ import Combobox from '@/components/inputs/Combobox';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { searchXpert } from '../../../app/(crm)/xpert/xpert.action';
 import type { DBXpert } from '@/types/typesDb';
+import FilterSvg from '../svg/FIlterSvg';
 
 export default function ComboBoxXpert() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,6 +54,7 @@ export default function ComboBoxXpert() {
       placeholder="N° identification"
       placeholderSearch="Rechercher un expert son ID, prénom ou nom"
       className="border-none"
+      icon={<FilterSvg className="ml-2 size-4" />}
     />
   );
 }

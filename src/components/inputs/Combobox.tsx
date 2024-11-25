@@ -28,6 +28,7 @@ type Props = {
   required?: boolean;
   name?: string;
   hasError?: boolean;
+  icon?: React.ReactNode;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 export default function Combobox({
@@ -44,6 +45,7 @@ export default function Combobox({
   required,
   name,
   hasError,
+  icon,
   ...props
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -73,7 +75,11 @@ export default function Combobox({
             {value && data.find((d) => d === value)
               ? data.find((d) => d === value)
               : placeholder}
-            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+            {icon ? (
+              icon
+            ) : (
+              <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+            )}
           </Button>
         </div>
       </PopoverTrigger>
