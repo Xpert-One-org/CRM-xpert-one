@@ -29,12 +29,17 @@ export const getNonMatchingCriteria = (
         .map((exp) => exp.sector || '')
         .filter(Boolean);
     }
-    if (!experience.some((exp) => exp.post_type === missionData.post_type)) {
+
+    if (
+      !experience.some((exp) =>
+        exp.post_type?.some((type) => missionData.post_type?.includes(type))
+      )
+    ) {
       nonMatching.post_type = experience
-        .map((exp) => exp.post_type || '')
-        .filter((postType) => postType !== '')
-        .flat();
+        .flatMap((exp) => exp.post_type || [])
+        .filter(Boolean);
     }
+
     if (
       !expertise.specialties?.some((specialty) =>
         missionData.specialties?.includes(specialty)

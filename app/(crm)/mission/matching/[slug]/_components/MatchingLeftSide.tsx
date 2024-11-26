@@ -94,7 +94,6 @@ export default function MatchingLeftSide({
   };
 
   const handleSave = async () => {
-    console.log('Critères sélectionnés:', selectedCriteria);
     setSelectedCriteria({});
     setHasChanges(false);
     onCriteriaChange({});
@@ -237,8 +236,8 @@ export default function MatchingLeftSide({
             {missionData.expertises?.map((expertise) => (
               <Box
                 key={expertise}
-                className={`cursor-pointer p-3 ${isCriteriaSelected('expertise', expertise) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleCriteriaClick('expertise', expertise)}
+                className={`cursor-pointer p-3 ${isCriteriaSelected('expertises', expertise) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() => handleCriteriaClick('expertises', expertise)}
               >
                 {getLabel({ value: expertise, select: expertises }) ?? empty}
               </Box>

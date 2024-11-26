@@ -39,8 +39,8 @@ export default function MatchingXpertsRow({
   const router = useRouter();
 
   const matchingScore = calculateTotalMatchingScore(matchedXpert, missionData);
-
   const nonMatchingCriteria = getNonMatchingCriteria(matchedXpert, missionData);
+  const hasNonMatchingCriteria = Object.keys(nonMatchingCriteria).length > 0;
 
   const availability =
     matchedXpert.profile_mission && matchedXpert.profile_mission.availability;
@@ -77,67 +77,75 @@ export default function MatchingXpertsRow({
       </Box>
       <Box
         className="col-span-2 flex flex-col divide-y divide-gray-200"
-        collapsible
+        collapsible={hasNonMatchingCriteria ? true : false}
       >
-        {Object.entries(nonMatchingCriteria).map(([key, value], index) => {
-          return (
-            <div
-              key={key}
-              className={`py-2 ${index === 0 ? 'pt-0' : ''} ${index === Object.entries(nonMatchingCriteria).length - 1 ? 'pb-0' : ''}`}
-            >
-              {key === 'job_title' && (
-                <div className="font-medium text-gray-600">Poste :</div>
-              )}
-              {key === 'post_type' && (
-                <div className="font-medium text-gray-600">
-                  Type de postes :
+        {hasNonMatchingCriteria ? (
+          Object.entries(nonMatchingCriteria).map(([key, value], index) => {
+            return (
+              <div
+                key={key}
+                className={`py-2 ${index === 0 ? 'pt-0' : ''} ${
+                  index === Object.entries(nonMatchingCriteria).length - 1
+                    ? 'pb-0'
+                    : ''
+                }`}
+              >
+                {key === 'job_title' && value.length > 0 && (
+                  <div className="font-medium text-gray-600">Poste :</div>
+                )}
+                {key === 'post_type' && value.length > 0 && (
+                  <div className="font-medium text-gray-600">
+                    Type de postes :
+                  </div>
+                )}
+                {key === 'sector' && value.length > 0 && (
+                  <div className="font-medium text-gray-600">
+                    Secteur d'activités :
+                  </div>
+                )}
+                {key === 'specialties' && value.length > 0 && (
+                  <div className="font-medium text-gray-600">Spécialités :</div>
+                )}
+                {key === 'expertises' && value.length > 0 && (
+                  <div className="font-medium text-gray-600">Expertises :</div>
+                )}
+                {key === 'diplomas' && value.length > 0 && (
+                  <div className="font-medium text-gray-600">Diplômes :</div>
+                )}
+                {key === 'languages' && value.length > 0 && (
+                  <div className="font-medium text-gray-600">Langues :</div>
+                )}
+                <div className="text-sm">
+                  {value.map((val) => (
+                    <Badge key={val} className="my-[2px] text-gray-800">
+                      {getLabel({
+                        value: val,
+                        select:
+                          key === 'job_title'
+                            ? jobTitles
+                            : key === 'sector'
+                              ? sectors
+                              : key === 'specialties'
+                                ? specialities
+                                : key === 'expertises'
+                                  ? expertises
+                                  : key === 'diplomas'
+                                    ? diplomas
+                                    : key === 'languages'
+                                      ? languages
+                                      : key === 'post_type'
+                                        ? posts
+                                        : [],
+                      })}
+                    </Badge>
+                  ))}
                 </div>
-              )}
-              {key === 'sector' && (
-                <div className="font-medium text-gray-600">
-                  Secteur d'activités :
-                </div>
-              )}
-              {key === 'specialties' && (
-                <div className="font-medium text-gray-600">Spécialités :</div>
-              )}
-              {key === 'expertises' && (
-                <div className="font-medium text-gray-600">Expertises :</div>
-              )}
-              {key === 'diplomas' && (
-                <div className="font-medium text-gray-600">Diplômes :</div>
-              )}
-              {key === 'languages' && (
-                <div className="font-medium text-gray-600">Langues :</div>
-              )}
-              <div className="text-sm">
-                {value.map((val) => (
-                  <Badge key={val} className="my-[2px] text-gray-800">
-                    {getLabel({
-                      value: val,
-                      select:
-                        key === 'job_title'
-                          ? jobTitles
-                          : key === 'sector'
-                            ? sectors
-                            : key === 'specialties'
-                              ? specialities
-                              : key === 'expertises'
-                                ? expertises
-                                : key === 'diplomas'
-                                  ? diplomas
-                                  : key === 'languages'
-                                    ? languages
-                                    : key === 'post_type'
-                                      ? posts
-                                      : [],
-                    })}
-                  </Badge>
-                ))}
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <p>Tous les critères correspondent parfaitement !</p>
+        )}
       </Box>
       <Box className="col-span-1">{isAvailable ? 'OUI' : 'NON'}</Box>
       <div className="col-span-1 flex items-center justify-center">
