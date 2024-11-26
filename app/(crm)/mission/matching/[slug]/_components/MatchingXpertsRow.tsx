@@ -117,7 +117,7 @@ export default function MatchingXpertsRow({
                       className="mb-1 mr-1 border-none bg-[#D64242]"
                     >
                       {getLabel({
-                        value: val,
+                        value: key === 'post_type' ? val.toUpperCase() : val,
                         select:
                           key === 'job_title'
                             ? jobTitles

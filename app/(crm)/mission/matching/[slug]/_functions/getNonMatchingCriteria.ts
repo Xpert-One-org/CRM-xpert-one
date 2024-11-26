@@ -19,55 +19,71 @@ export const getNonMatchingCriteria = (
   const experience = xpert.profile_experience;
   const nonMatching: NonMatchingCriteria = {};
 
-  if (mission && expertise && experience && missionData) {
-    if (!mission.job_titles?.some((job) => missionData.job_title === job)) {
-      nonMatching.job_title = mission.job_titles || [];
-    }
+  if (!mission || !expertise || !experience || !missionData) {
+    return nonMatching;
+  }
 
-    if (!experience.some((exp) => exp.sector === missionData.sector)) {
-      nonMatching.sector = experience
-        .map((exp) => exp.sector || '')
-        .filter(Boolean);
+  if (mission.job_titles && missionData.job_title) {
+    if (!mission.job_titles.includes(missionData.job_title)) {
+      nonMatching.job_title = [missionData.job_title];
     }
+  }
 
-    if (
-      !experience.some((exp) =>
-        exp.post_type?.some((type) => missionData.post_type?.includes(type))
-      )
-    ) {
-      nonMatching.post_type = experience
-        .flatMap((exp) => exp.post_type || [])
-        .filter(Boolean);
+  if (missionData.post_type) {
+    const experiencePostTypes = experience.flatMap(
+      (exp) => exp.post_type || []
+    );
+
+    const nonMatchingPostTypes = missionData.post_type.filter(
+      (type) => !experiencePostTypes.includes(type)
+    );
+    if (nonMatchingPostTypes.length) {
+      nonMatching.post_type = nonMatchingPostTypes;
     }
+  }
 
-    if (
-      !expertise.specialties?.some((specialty) =>
-        missionData.specialties?.includes(specialty)
-      )
-    ) {
-      nonMatching.specialties = expertise.specialties || [];
+  if (missionData.sector) {
+    const hasMatchingSector = experience.some(
+      (exp) => exp.sector === missionData.sector
+    );
+    if (!hasMatchingSector) {
+      nonMatching.sector = [missionData.sector];
     }
+  }
 
-    if (
-      !expertise.expertises?.some((expertise) =>
-        missionData.expertises?.includes(expertise)
-      )
-    ) {
-      nonMatching.expertises = expertise.expertises || [];
+  if (missionData.specialties) {
+    const nonMatchingSpecialties = missionData.specialties.filter(
+      (specialty) => !expertise.specialties?.includes(specialty)
+    );
+    if (nonMatchingSpecialties.length) {
+      nonMatching.specialties = nonMatchingSpecialties;
     }
+  }
 
-    if (
-      !expertise.diploma ||
-      !missionData.diplomas?.includes(expertise.diploma)
-    ) {
-      nonMatching.diplomas = [expertise.diploma || ''];
+  if (missionData.expertises) {
+    const nonMatchingExpertises = missionData.expertises.filter(
+      (exp) => !expertise.expertises?.includes(exp)
+    );
+    if (nonMatchingExpertises.length) {
+      nonMatching.expertises = nonMatchingExpertises;
     }
+  }
 
-    if (
-      !expertise.maternal_language ||
-      !missionData.languages?.includes(expertise.maternal_language)
-    ) {
-      nonMatching.languages = [expertise.maternal_language || ''];
+  if (missionData.languages) {
+    const nonMatchingLanguages = missionData.languages.filter(
+      (language) => !expertise.maternal_language?.includes(language)
+    );
+    if (nonMatchingLanguages.length) {
+      nonMatching.languages = nonMatchingLanguages;
+    }
+  }
+
+  if (missionData.diplomas) {
+    const nonMatchingDiplomas = missionData.diplomas.filter(
+      (diploma) => !expertise.diploma?.includes(diploma)
+    );
+    if (nonMatchingDiplomas.length) {
+      nonMatching.diplomas = nonMatchingDiplomas;
     }
   }
 

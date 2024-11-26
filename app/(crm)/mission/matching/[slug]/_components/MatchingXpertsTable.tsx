@@ -20,7 +20,11 @@ export default function MatchingXpertsTable({
           />
         </div>
         <div className="col-span-2">
-          <FilterButton className="size-full" placeholder="Non matching" />
+          <FilterButton
+            className="size-full"
+            placeholder="Non matching"
+            filter={false}
+          />
         </div>
         <div className="col-span-1">
           <FilterButton
