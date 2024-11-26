@@ -2,5 +2,5 @@ import ComboboxMission from '@/components/combobox/ComboboxMission';
 import React from 'react';
 
 export default function page() {
-  return <ComboboxMission />;
+  return <ComboboxMission slug="fiche" />;
 }

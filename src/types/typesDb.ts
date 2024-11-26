@@ -38,8 +38,9 @@ export type DBMatchedXpert = DBProfileMission & {
   id: string;
   firstname: string;
   lastname: string;
+  generated_id: string;
   profile_mission: DBProfileMission;
-  profile_education: DBProfileEducation[];
+  profile_experience: DBProfileExperience[];
   profile_expertise: DBProfileExpertise;
 };
 

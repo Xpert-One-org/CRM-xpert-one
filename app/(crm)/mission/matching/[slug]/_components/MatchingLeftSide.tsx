@@ -74,13 +74,21 @@ export default function MatchingLeftSide({
 
       const index = newSelected[type].indexOf(value);
       if (index > -1) {
-        newSelected[type].splice(index, 1);
+        newSelected[type] = newSelected[type].filter((v) => v !== value);
+
+        if (newSelected[type].length === 0) {
+          delete newSelected[type];
+        }
       } else {
-        newSelected[type].push(value);
+        newSelected[type] = [...(newSelected[type] || []), value];
       }
 
-      setHasChanges(Object.values(newSelected).some((arr) => arr.length > 0));
+      const hasRemainingChanges = Object.values(newSelected).some(
+        (arr) => arr.length > 0
+      );
+      setHasChanges(hasRemainingChanges);
       onCriteriaChange(newSelected);
+
       return newSelected;
     });
   };
@@ -112,7 +120,12 @@ export default function MatchingLeftSide({
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
-            <Box className="p-3">
+            <Box
+              className={`cursor-pointer p-3 ${isCriteriaSelected('job_title', missionData.job_title ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
+              onClick={() =>
+                handleCriteriaClick('job_title', missionData.job_title ?? empty)
+              }
+            >
               {getLabel({
                 value: missionData.job_title ?? empty,
                 select: jobTitles,
@@ -185,7 +198,11 @@ export default function MatchingLeftSide({
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.specialties?.map((specialty) => (
-              <Box key={specialty} className="p-3">
+              <Box
+                key={specialty}
+                className={`cursor-pointer p-3 ${isCriteriaSelected('specialties', specialty) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() => handleCriteriaClick('specialties', specialty)}
+              >
                 {getLabel({ value: specialty, select: specialitiesSelect }) ??
                   empty}
               </Box>
@@ -218,7 +235,11 @@ export default function MatchingLeftSide({
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.expertises?.map((expertise) => (
-              <Box key={expertise} className="p-3">
+              <Box
+                key={expertise}
+                className={`cursor-pointer p-3 ${isCriteriaSelected('expertise', expertise) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() => handleCriteriaClick('expertise', expertise)}
+              >
                 {getLabel({ value: expertise, select: expertises }) ?? empty}
               </Box>
             ))}
@@ -288,7 +309,11 @@ export default function MatchingLeftSide({
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.languages?.map((language) => (
-              <Box key={language} className="p-3">
+              <Box
+                key={language}
+                className={`cursor-pointer p-3 ${isCriteriaSelected('languages', language) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() => handleCriteriaClick('languages', language)}
+              >
                 {getLabel({ value: language, select: languages }) ?? empty}
               </Box>
             ))}
@@ -308,7 +333,11 @@ export default function MatchingLeftSide({
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.diplomas?.map((diploma) => (
-              <Box key={diploma} className="p-3">
+              <Box
+                key={diploma}
+                className={`cursor-pointer p-3 ${isCriteriaSelected('diplomas', diploma) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() => handleCriteriaClick('diplomas', diploma)}
+              >
                 {getLabel({ value: diploma, select: diplomas }) ?? empty}
               </Box>
             ))}

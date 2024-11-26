@@ -21,19 +21,19 @@ export default function MissionMatchingPage(props: {
     (mission) => mission.mission_number === missionNumber
   );
 
-  useEffect(() => {
-    fetchMissions();
-  }, [fetchMissions]);
-
   const handleCriteriaChange = (criteria: Record<string, string[]>) => {
     setExcludedCriteria(criteria);
   };
+
+  useEffect(() => {
+    fetchMissions();
+  }, [fetchMissions]);
 
   return (
     <>
       {missionData && (
         <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
-          <MatchingMissionTable missionData={missionData} />
+          <MatchingMissionTable missionData={missionData} slug={'matching'} />
           <div className="flex h-[calc(100vh-200px)] w-full gap-3">
             <div className="flex w-1/2 overflow-y-auto">
               <MatchingLeftSide

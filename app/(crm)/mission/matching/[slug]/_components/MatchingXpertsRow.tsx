@@ -1,160 +1,145 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
 import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
 import { Box } from '@/components/ui/box';
 import { Checkbox } from '@/components/ui/checkbox';
 import { uppercaseFirstLetter } from '@/utils/string';
+import { getLabel } from '@/utils/getLabel';
+import { useSelect } from '@/store/select';
+import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
+import { getNonMatchingCriteria } from '../_functions/getNonMatchingCriteria';
+import { calculateTotalMatchingScore } from '../_functions/calculateMatchingPercentage';
 
 export default function MatchingXpertsRow({
   matchedXpert,
-  mission,
+  missionData,
 }: {
   matchedXpert: DBMatchedXpert;
-  mission: DBMission;
+  missionData: DBMission;
 }) {
-  const getNonMatchingCriteria = () => {
-    const criteriaMapping = [
-      {
-        name: 'Intitulé de poste',
-        mission: mission.job_title,
-        expert:
-          matchedXpert.profile_mission &&
-          matchedXpert.profile_mission.job_titles,
-      },
-      {
-        name: 'Type de poste',
-        mission: mission.post_type,
-        expert:
-          matchedXpert.profile_mission &&
-          matchedXpert.profile_mission.posts_type,
-      },
-      {
-        name: "Secteur d'activité",
-        mission: mission.sector,
-        expert:
-          matchedXpert.profile_mission && matchedXpert.profile_mission.sector,
-      },
-      {
-        name: 'Spécialités',
-        mission: mission.specialties,
-        expert:
-          matchedXpert.profile_mission &&
-          matchedXpert.profile_mission.specialties,
-      },
-      {
-        name: 'Expertises',
-        mission: mission.expertises,
-        expert:
-          matchedXpert.profile_expertise &&
-          matchedXpert.profile_expertise.expertises,
-      },
-      {
-        name: 'Langues',
-        mission: mission.languages,
-        expert:
-          matchedXpert.profile_expertise &&
-          matchedXpert.profile_expertise.maternal_language,
-      },
-      {
-        name: 'Diplômes',
-        mission: mission.diplomas,
-        expert:
-          matchedXpert.profile_education &&
-          matchedXpert.profile_education.map((e) => e.education_diploma),
-      },
-    ];
+  const {
+    jobTitles,
+    sectors,
+    specialities,
+    expertises,
+    diplomas,
+    languages,
+    posts,
+    fetchJobTitles,
+    fetchSectors,
+    fetchSpecialties,
+    fetchExpertises,
+    fetchDiplomas,
+    fetchLanguages,
+    fetchPosts,
+  } = useSelect();
 
-    return criteriaMapping.reduce((nonMatching, criteria) => {
-      const {
-        name,
-        mission: missionCriteria,
-        expert: expertCriteria,
-      } = criteria;
+  const router = useRouter();
 
-      if (!expertCriteria) {
-        nonMatching.push(`${name} : Non renseigné`);
-        return nonMatching;
-      }
+  const matchingScore = calculateTotalMatchingScore(matchedXpert, missionData);
 
-      if (Array.isArray(missionCriteria)) {
-        if (
-          !missionCriteria.some((item) =>
-            Array.isArray(expertCriteria)
-              ? expertCriteria.includes(item)
-              : expertCriteria === item
-          )
-        ) {
-          nonMatching.push(
-            `${name} : ${Array.isArray(expertCriteria) ? expertCriteria.join(', ') : expertCriteria}`
-          );
-        }
-      } else if (missionCriteria !== expertCriteria) {
-        nonMatching.push(
-          `${name} : ${Array.isArray(expertCriteria) ? expertCriteria.join(', ') : expertCriteria}`
-        );
-      }
+  const nonMatchingCriteria = getNonMatchingCriteria(matchedXpert, missionData);
 
-      return nonMatching;
-    }, [] as string[]);
-  };
+  const availability =
+    matchedXpert.profile_mission && matchedXpert.profile_mission.availability;
+  const isAvailable = availability && new Date(availability) > new Date();
 
-  const calculateMatchingPercentage = () => {
-    const missionCriteria = [
-      mission.job_title,
-      mission.post_type,
-      mission.sector,
-      mission.specialties,
-      mission.expertises,
-      mission.languages,
-      mission.diplomas,
-    ];
-
-    const expertCriteria = [
-      matchedXpert.profile_mission && matchedXpert.profile_mission.job_titles,
-      matchedXpert.profile_mission && matchedXpert.profile_mission.posts_type,
-      matchedXpert.profile_mission && matchedXpert.profile_mission.sector,
-      matchedXpert.profile_mission && matchedXpert.profile_mission.specialties,
-      matchedXpert.profile_expertise &&
-        matchedXpert.profile_expertise.expertises,
-      matchedXpert.profile_expertise &&
-        matchedXpert.profile_expertise.maternal_language,
-      matchedXpert.profile_education &&
-        matchedXpert.profile_education.map((e) => e.education_diploma),
-    ];
-
-    const matchingCount = missionCriteria.reduce((count, criterion, index) => {
-      if (Array.isArray(criterion)) {
-        return (
-          count +
-          (criterion.some((item) => expertCriteria[index]?.includes(item))
-            ? 1
-            : 0)
-        );
-      }
-      return count + (criterion === expertCriteria[index] ? 1 : 0);
-    }, 0);
-
-    const totalCriteria = missionCriteria.length;
-    return Math.round((matchingCount / totalCriteria) * 100);
-  };
-
-  const matchingPercentage = calculateMatchingPercentage();
-  const nonMatchingCriteria = getNonMatchingCriteria();
+  useEffect(() => {
+    fetchJobTitles();
+    fetchSectors();
+    fetchSpecialties();
+    fetchExpertises();
+    fetchDiplomas();
+    fetchLanguages();
+    fetchPosts();
+  }, [
+    fetchDiplomas,
+    fetchExpertises,
+    fetchJobTitles,
+    fetchLanguages,
+    fetchSectors,
+    fetchSpecialties,
+    fetchPosts,
+  ]);
 
   return (
     <>
-      <Box className="col-span-2">
+      <Box
+        className="col-span-2 cursor-pointer text-white"
+        primary
+        onClick={() => router.push(`/xpert?id=${matchedXpert.generated_id}`)}
+      >
         <span>
-          {`${uppercaseFirstLetter(matchedXpert.firstname)} ${uppercaseFirstLetter(matchedXpert.lastname)} : ${matchingPercentage}%`}
+          {`${uppercaseFirstLetter(matchedXpert.firstname)} ${uppercaseFirstLetter(matchedXpert.lastname)} : ${matchingScore}%`}
         </span>
       </Box>
-      <Box className="col-span-2">
-        {nonMatchingCriteria.map((criteria, index) => (
-          <p key={index} className="text-wrap text-sm">
-            {criteria}
-          </p>
-        ))}
+      <Box
+        className="col-span-2 flex flex-col divide-y divide-gray-200"
+        collapsible
+      >
+        {Object.entries(nonMatchingCriteria).map(([key, value], index) => {
+          return (
+            <div
+              key={key}
+              className={`py-2 ${index === 0 ? 'pt-0' : ''} ${index === Object.entries(nonMatchingCriteria).length - 1 ? 'pb-0' : ''}`}
+            >
+              {key === 'job_title' && (
+                <div className="font-medium text-gray-600">Poste :</div>
+              )}
+              {key === 'post_type' && (
+                <div className="font-medium text-gray-600">
+                  Type de postes :
+                </div>
+              )}
+              {key === 'sector' && (
+                <div className="font-medium text-gray-600">
+                  Secteur d'activités :
+                </div>
+              )}
+              {key === 'specialties' && (
+                <div className="font-medium text-gray-600">Spécialités :</div>
+              )}
+              {key === 'expertises' && (
+                <div className="font-medium text-gray-600">Expertises :</div>
+              )}
+              {key === 'diplomas' && (
+                <div className="font-medium text-gray-600">Diplômes :</div>
+              )}
+              {key === 'languages' && (
+                <div className="font-medium text-gray-600">Langues :</div>
+              )}
+              <div className="text-sm">
+                {value.map((val) => (
+                  <Badge key={val} className="my-[2px] text-gray-800">
+                    {getLabel({
+                      value: val,
+                      select:
+                        key === 'job_title'
+                          ? jobTitles
+                          : key === 'sector'
+                            ? sectors
+                            : key === 'specialties'
+                              ? specialities
+                              : key === 'expertises'
+                                ? expertises
+                                : key === 'diplomas'
+                                  ? diplomas
+                                  : key === 'languages'
+                                    ? languages
+                                    : key === 'post_type'
+                                      ? posts
+                                      : [],
+                    })}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </Box>
-      <Box className="col-span-1">{'disponible'}</Box>
+      <Box className="col-span-1">{isAvailable ? 'OUI' : 'NON'}</Box>
       <div className="col-span-1 flex items-center justify-center">
         <Checkbox />
       </div>

@@ -43,7 +43,7 @@ export default function MatchingXpertsTable({
             <MatchingXpertsRow
               key={matchedXpert.id}
               matchedXpert={matchedXpert}
-              mission={missionData}
+              missionData={missionData}
             />
           ))}
         </div>
