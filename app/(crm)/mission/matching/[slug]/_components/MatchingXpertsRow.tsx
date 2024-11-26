@@ -44,6 +44,7 @@ export default function MatchingXpertsRow({
 
   const availability =
     matchedXpert.profile_mission && matchedXpert.profile_mission.availability;
+
   const isAvailable = availability && new Date(availability) > new Date();
 
   useEffect(() => {
@@ -82,14 +83,7 @@ export default function MatchingXpertsRow({
         {hasNonMatchingCriteria ? (
           Object.entries(nonMatchingCriteria).map(([key, value], index) => {
             return (
-              <div
-                key={key}
-                className={`py-2 ${index === 0 ? 'pt-0' : ''} ${
-                  index === Object.entries(nonMatchingCriteria).length - 1
-                    ? 'pb-0'
-                    : ''
-                }`}
-              >
+              <div key={key} className="p-1">
                 {key === 'job_title' && value.length > 0 && (
                   <div className="font-medium text-gray-600">Poste :</div>
                 )}
@@ -117,7 +111,11 @@ export default function MatchingXpertsRow({
                 )}
                 <div className="text-sm">
                   {value.map((val) => (
-                    <Badge key={val} className="my-[2px] text-gray-800">
+                    <Badge
+                      key={`${key}-${val}`}
+                      variant={'outline'}
+                      className="mb-1 mr-1 border-none bg-[#D64242]"
+                    >
                       {getLabel({
                         value: val,
                         select:

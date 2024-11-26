@@ -43,7 +43,8 @@ export async function getAllMatchedXperts(
         posts_type,
         sector,
         specialties,
-        expertises
+        expertises,
+        availability
       ),
       profile_experience (
         sector,

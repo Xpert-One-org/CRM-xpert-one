@@ -29,22 +29,25 @@ export default function RecapMissionDialog({
             <div className="gap flex w-full flex-col gap-4">
               <Input
                 label="Descriptif du besoin (Détaillez votre besoin quelques lignes)"
-                value={missionsData.tjm ?? ''}
+                value={missionsData.description ?? ''}
                 disabled
+                multiline
               />
             </div>
             <div className="gap flex w-full flex-col gap-4">
               <Input
                 label="Descriptif du poste (Brief complet de votre recherche)"
-                value={missionsData.tjm ?? ''}
+                value={missionsData.needed ?? ''}
                 disabled
+                multiline
               />
             </div>
             <div className="gap flex w-full flex-col gap-4">
               <Input
                 label="Les + de votre entreprise"
-                value={missionsData.tjm ?? ''}
+                value={missionsData.advantages_company ?? ''}
                 disabled
+                multiline
               />
             </div>
           </div>

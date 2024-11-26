@@ -22,13 +22,13 @@ export default function SelectionPage(props: {
   }, [fetchMissions]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex h-full flex-col gap-6">
       <div className="flex w-full">
         {missionData && (
           <MatchingMissionTable missionData={missionData} slug={'selection'} />
         )}
       </div>
-      <div className="flex w-full">
+      <div className="flex size-full flex-col gap-3">
         <SelectionDragAndDropTable />
       </div>
     </div>
