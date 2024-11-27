@@ -10,7 +10,6 @@ import { useSelect } from '@/store/select';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { getNonMatchingCriteria } from '../_functions/getNonMatchingCriteria';
-import { calculateTotalMatchingScore } from '../_functions/calculateMatchingPercentage';
 
 export default function MatchingXpertsRow({
   matchedXpert,
@@ -38,7 +37,6 @@ export default function MatchingXpertsRow({
 
   const router = useRouter();
 
-  const matchingScore = calculateTotalMatchingScore(matchedXpert, missionData);
   const nonMatchingCriteria = getNonMatchingCriteria(matchedXpert, missionData);
   const hasNonMatchingCriteria = Object.keys(nonMatchingCriteria).length > 0;
 
@@ -73,7 +71,7 @@ export default function MatchingXpertsRow({
         onClick={() => router.push(`/xpert?id=${matchedXpert.generated_id}`)}
       >
         <span>
-          {`${uppercaseFirstLetter(matchedXpert.firstname)} ${uppercaseFirstLetter(matchedXpert.lastname)} : ${matchingScore}%`}
+          {`${uppercaseFirstLetter(matchedXpert.firstname)} ${uppercaseFirstLetter(matchedXpert.lastname)} : ${matchedXpert.matchingScore}%`}
         </span>
       </Box>
       <Box
@@ -145,7 +143,7 @@ export default function MatchingXpertsRow({
           <p>Tous les critères correspondent parfaitement !</p>
         )}
       </Box>
-      <Box className="col-span-1">{isAvailable ? 'OUI' : 'NON'}</Box>
+      <Box className="col-span-2">{isAvailable ? 'OUI' : 'NON'}</Box>
       <div className="col-span-1 flex items-center justify-center">
         <Checkbox />
       </div>

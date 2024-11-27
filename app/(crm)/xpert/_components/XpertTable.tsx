@@ -18,8 +18,6 @@ import InfiniteScroll from '@/components/ui/infinite-scroll';
 import DeleteXpertDialog from './DeleteXpertDialog';
 // import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 
-export type SortOrder = 'asc' | 'desc' | null;
-
 export default function XpertTable() {
   const {
     fetchSpecialties,

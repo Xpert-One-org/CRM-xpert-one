@@ -1,4 +1,3 @@
-'use client';
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import FilterSvg from './svg/FIlterSvg';
@@ -13,7 +12,6 @@ import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
 
 export type SortOrder = 'asc' | 'desc' | null;
-
 export type SelectedOption = { label: string; value: string };
 
 type FilterButtonProps = {
@@ -46,17 +44,35 @@ export const FilterButton = ({
     value: '',
   });
 
+  const compareValues = (valueA: any, valueB: any) => {
+    if (!isNaN(Number(valueA)) && !isNaN(Number(valueB))) {
+      return Number(valueA) - Number(valueB);
+    }
+
+    if (valueA instanceof Date && valueB instanceof Date) {
+      return valueA.getTime() - valueB.getTime();
+    }
+
+    const strA = String(valueA).toLowerCase();
+    const strB = String(valueB).toLowerCase();
+
+    if (strA < strB) return -1;
+    if (strA > strB) return 1;
+    return 0;
+  };
+
   const handleValueChange = (option: SelectedOption) => {
     setSelectedOption(option);
+
     if (sortable && data && sortKey && onSort) {
       const sortedData = [...data].sort((a, b) => {
-        const valueA = (a[sortKey] || '').toLowerCase();
-        const valueB = (b[sortKey] || '').toLowerCase();
+        const valueA = a[sortKey];
+        const valueB = b[sortKey];
 
         if (option.value === 'asc') {
-          return valueA.localeCompare(valueB);
+          return compareValues(valueA, valueB);
         } else if (option.value === 'desc') {
-          return valueB.localeCompare(valueA);
+          return compareValues(valueB, valueA);
         }
         return 0;
       });
