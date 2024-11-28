@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import type { DBMission } from '@/types/typesDb';
 import { Box } from '@/components/ui/box';
@@ -6,17 +8,52 @@ import { getLabel } from '@/utils/getLabel';
 import { empty } from '@/data/constant';
 import { useSelect } from '@/store/select';
 import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
+
+type CriteriaPair = {
+  excluded: Record<string, string[]>;
+  additional: Record<string, string[]>;
+};
 
 export default function MatchingLeftSide({
   missionData,
-  onCriteriaChange,
+  onExcludedCriteriaChange,
+  onAdditionalCriteriaChange,
 }: {
   missionData: DBMission;
-  onCriteriaChange: (criteria: Record<string, string[]>) => void;
+  onExcludedCriteriaChange: (criteria: Record<string, string[]>) => void;
+  onAdditionalCriteriaChange: (criteria: Record<string, string[]>) => void;
 }) {
-  const [selectedCriteria, setSelectedCriteria] = useState<
+  const [excludedCriteria, setExcludedCriteria] = useState<
     Record<string, string[]>
   >({});
+  const [additionalCriteria, setAdditionalCriteria] = useState<
+    Record<string, string[]>
+  >({});
+
+  const [showAdditionalSelects, setShowAdditionalSelects] = useState({
+    jobTitle: false,
+    postType: false,
+    sector: false,
+    specialties: false,
+    expertises: false,
+    languages: false,
+    diplomas: false,
+    location: false,
+  });
+
+  const [criteriaIconShow, setCriteriaIconShow] = useState({
+    jobTitle: false,
+    postType: false,
+    sector: false,
+    specialties: false,
+    expertises: false,
+    languages: false,
+    diplomas: false,
+    location: false,
+  });
+
   const [hasChanges, setHasChanges] = useState(false);
 
   const {
@@ -65,8 +102,23 @@ export default function MatchingLeftSide({
     { label: 'NON', value: 'no' },
   ];
 
-  const handleCriteriaClick = (type: string, value: string) => {
-    setSelectedCriteria((prev) => {
+  const handleAddClick = (criteriaType: keyof typeof showAdditionalSelects) => {
+    setShowAdditionalSelects((prev) => ({
+      ...prev,
+      [criteriaType]: !prev[criteriaType],
+    }));
+    setCriteriaIconShow((prev) => ({
+      ...prev,
+      [criteriaType]: !prev[criteriaType],
+    }));
+  };
+
+  const isExcludedCriteriaSelected = (type: string, value: string) => {
+    return excludedCriteria[type] && excludedCriteria[type].includes(value);
+  };
+
+  const handleExcludedCriteriaClick = (type: string, value: string) => {
+    setExcludedCriteria((prev) => {
       const newSelected = { ...prev };
       if (!newSelected[type]) {
         newSelected[type] = [];
@@ -75,7 +127,6 @@ export default function MatchingLeftSide({
       const index = newSelected[type].indexOf(value);
       if (index > -1) {
         newSelected[type] = newSelected[type].filter((v) => v !== value);
-
         if (newSelected[type].length === 0) {
           delete newSelected[type];
         }
@@ -87,21 +138,52 @@ export default function MatchingLeftSide({
         (arr) => arr.length > 0
       );
       setHasChanges(hasRemainingChanges);
-      onCriteriaChange(newSelected);
 
       return newSelected;
     });
   };
 
-  const handleSave = async () => {
-    setSelectedCriteria({});
-    setHasChanges(false);
-    onCriteriaChange({});
+  const handleAdditionalSelection = (type: string, values: string[]) => {
+    setAdditionalCriteria((prev) => {
+      const newCriteria = {
+        ...prev,
+        [type]: values,
+      };
+      setHasChanges(true);
+      return newCriteria;
+    });
   };
 
-  const isCriteriaSelected = (type: string, value: string) => {
-    return selectedCriteria[type] && selectedCriteria[type].includes(value);
+  const handleSave = async () => {
+    const criteriaToStore: CriteriaPair = {
+      excluded: excludedCriteria,
+      additional: additionalCriteria,
+    };
+    localStorage.setItem(
+      `mission-criteria-${missionData.mission_number}`,
+      JSON.stringify(criteriaToStore)
+    );
+    setHasChanges(false);
   };
+
+  useEffect(() => {
+    const storedCriteria = localStorage.getItem(
+      `mission-criteria-${missionData.mission_number}`
+    );
+    if (storedCriteria) {
+      const { excluded, additional } = JSON.parse(
+        storedCriteria
+      ) as CriteriaPair;
+      setExcludedCriteria(excluded);
+      setAdditionalCriteria(additional);
+      onExcludedCriteriaChange(excluded);
+      onAdditionalCriteriaChange(additional);
+    }
+  }, [
+    missionData.mission_number,
+    onExcludedCriteriaChange,
+    onAdditionalCriteriaChange,
+  ]);
 
   return (
     <>
@@ -110,104 +192,302 @@ export default function MatchingLeftSide({
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Poste
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.jobTitle ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('jobTitle')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('jobTitle')}
+                />
+              )}
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
             <Box
-              className={`cursor-pointer p-3 ${isCriteriaSelected('job_title', missionData.job_title ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
+              className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('job_title', missionData.job_title ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
               onClick={() =>
-                handleCriteriaClick('job_title', missionData.job_title ?? empty)
+                handleExcludedCriteriaClick(
+                  'job_title',
+                  missionData.job_title ?? empty
+                )
               }
             >
               {getLabel({
                 value: missionData.job_title ?? empty,
                 select: jobTitles,
               }) ?? empty}
+              {isExcludedCriteriaSelected(
+                'job_title',
+                missionData.job_title ?? empty
+              ) && (
+                <div className="absolute right-1 top-1">
+                  <X className="size-4" />
+                </div>
+              )}
             </Box>
+            {additionalCriteria.job_title &&
+              additionalCriteria.job_title.map((option) => (
+                <Box
+                  key={option}
+                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                >
+                  {getLabel({
+                    value: option,
+                    select: jobTitles,
+                  }) ?? empty}
+                  <div className="absolute right-1 top-1" onClick={() => {}}>
+                    <X className="size-4" />
+                  </div>
+                </Box>
+              ))}
           </div>
         </div>
+        {showAdditionalSelects.jobTitle && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={jobTitles}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'job_title',
+                  values as unknown as string[]
+                )
+              }
+              name="job_title"
+              defaultSelectedKeys={additionalCriteria.job_title || []}
+              className="w-full"
+            />
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Type de poste
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.postType ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('postType')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('postType')}
+                />
+              )}
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.post_type?.map((post) => (
               <Box
                 key={post}
-                className={`cursor-pointer p-3 ${isCriteriaSelected('post_type', post) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleCriteriaClick('post_type', post)}
+                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('post_type', post) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() => handleExcludedCriteriaClick('post_type', post)}
               >
                 {getLabel({ value: post, select: posts })?.toUpperCase() ??
                   empty}
+                {isExcludedCriteriaSelected('post_type', post) && (
+                  <div className="absolute right-1 top-1">
+                    <X className="size-4" />
+                  </div>
+                )}
               </Box>
             ))}
+            {additionalCriteria.post_type &&
+              additionalCriteria.post_type.map((option) => (
+                <Box
+                  key={option}
+                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                >
+                  {getLabel({
+                    value: option,
+                    select: posts,
+                  })?.toUpperCase() ?? empty}
+                  <div className="absolute right-1 top-1" onClick={() => {}}>
+                    <X className="size-4" />
+                  </div>
+                </Box>
+              ))}
           </div>
         </div>
+        {showAdditionalSelects.postType && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={posts}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'post_type',
+                  values as unknown as string[]
+                )
+              }
+              name="post_type"
+              defaultSelectedKeys={additionalCriteria.post_type || []}
+              className="w-full"
+            />
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Secteur d’activité
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.sector ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('sector')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('sector')}
+                />
+              )}
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
             <Box
-              className={`cursor-pointer p-3 ${isCriteriaSelected('sector', missionData.sector ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
+              className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('sector', missionData.sector ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
               onClick={() =>
-                handleCriteriaClick('sector', missionData.sector ?? empty)
+                handleExcludedCriteriaClick(
+                  'sector',
+                  missionData.sector ?? empty
+                )
               }
             >
               {getLabel({
                 value: missionData.sector ?? empty,
                 select: sectors,
               }) ?? empty}
+              {isExcludedCriteriaSelected(
+                'sector',
+                missionData.sector ?? empty
+              ) && (
+                <div className="absolute right-1 top-1">
+                  <X className="size-4" />
+                </div>
+              )}
             </Box>
+            {additionalCriteria.sector &&
+              additionalCriteria.sector.map((option) => (
+                <Box
+                  key={option}
+                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                >
+                  {getLabel({
+                    value: option,
+                    select: sectors,
+                  }) ?? empty}
+                  <div className="absolute right-1 top-1" onClick={() => {}}>
+                    <X className="size-4" />
+                  </div>
+                </Box>
+              ))}
           </div>
         </div>
+        {showAdditionalSelects.sector && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={sectors}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'sector',
+                  values as unknown as string[]
+                )
+              }
+              name="sector"
+              defaultSelectedKeys={additionalCriteria.sector || []}
+              className="w-full"
+            />
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Spécialité
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.specialties ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('specialties')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('specialties')}
+                />
+              )}
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.specialties?.map((specialty) => (
               <Box
                 key={specialty}
-                className={`cursor-pointer p-3 ${isCriteriaSelected('specialties', specialty) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleCriteriaClick('specialties', specialty)}
+                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('specialties', specialty) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() =>
+                  handleExcludedCriteriaClick('specialties', specialty)
+                }
               >
                 {getLabel({ value: specialty, select: specialitiesSelect }) ??
                   empty}
+                {isExcludedCriteriaSelected('specialties', specialty) && (
+                  <div className="absolute right-1 top-1">
+                    <X className="size-4" />
+                  </div>
+                )}
               </Box>
             ))}
+            {additionalCriteria.specialties &&
+              additionalCriteria.specialties.map((option) => (
+                <Box
+                  key={option}
+                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                >
+                  {getLabel({
+                    value: option,
+                    select: specialitiesSelect,
+                  }) ?? empty}
+                  <div className="absolute right-1 top-1" onClick={() => {}}>
+                    <X className="size-4" />
+                  </div>
+                </Box>
+              ))}
           </div>
         </div>
+        {showAdditionalSelects.specialties && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={specialitiesSelect}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'specialties',
+                  values as unknown as string[]
+                )
+              }
+              name="specialties"
+              defaultSelectedKeys={additionalCriteria.specialties || []}
+              className="w-full"
+            />
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
@@ -224,26 +504,74 @@ export default function MatchingLeftSide({
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Expertise
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.expertises ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('expertises')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('expertises')}
+                />
+              )}
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.expertises?.map((expertise) => (
               <Box
                 key={expertise}
-                className={`cursor-pointer p-3 ${isCriteriaSelected('expertises', expertise) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleCriteriaClick('expertises', expertise)}
+                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('expertises', expertise) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() =>
+                  handleExcludedCriteriaClick('expertises', expertise)
+                }
               >
                 {getLabel({ value: expertise, select: expertises }) ?? empty}
+                {isExcludedCriteriaSelected('expertises', expertise) && (
+                  <div className="absolute right-1 top-1">
+                    <X className="size-4" />
+                  </div>
+                )}
               </Box>
             ))}
+            {additionalCriteria.expertises &&
+              additionalCriteria.expertises.map((option) => (
+                <Box
+                  key={option}
+                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                >
+                  {getLabel({
+                    value: option,
+                    select: expertises,
+                  }) ?? empty}
+                  <div className="absolute right-1 top-1" onClick={() => {}}>
+                    <X className="size-4" />
+                  </div>
+                </Box>
+              ))}
           </div>
         </div>
+        {showAdditionalSelects.expertises && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={expertises}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'expertises',
+                  values as unknown as string[]
+                )
+              }
+              name="expertises"
+              defaultSelectedKeys={additionalCriteria.expertises || []}
+              className="w-full"
+            />
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
@@ -282,12 +610,22 @@ export default function MatchingLeftSide({
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Zone géographique
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.location ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('location')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('location')}
+                />
+              )}
             </Box>
           </div>
           <div>
@@ -298,50 +636,144 @@ export default function MatchingLeftSide({
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Langues
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.languages ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('languages')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('languages')}
+                />
+              )}
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.languages?.map((language) => (
               <Box
                 key={language}
-                className={`cursor-pointer p-3 ${isCriteriaSelected('languages', language) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleCriteriaClick('languages', language)}
+                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('languages', language) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() =>
+                  handleExcludedCriteriaClick('languages', language)
+                }
               >
                 {getLabel({ value: language, select: languages }) ?? empty}
+                {isExcludedCriteriaSelected('languages', language) && (
+                  <div className="absolute right-1 top-1">
+                    <X className="size-4" />
+                  </div>
+                )}
               </Box>
             ))}
+            {additionalCriteria.languages &&
+              additionalCriteria.languages.map((option) => (
+                <Box
+                  key={option}
+                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                >
+                  {getLabel({
+                    value: option,
+                    select: languages,
+                  }) ?? empty}
+                  <div className="absolute right-1 top-1" onClick={() => {}}>
+                    <X className="size-4" />
+                  </div>
+                </Box>
+              ))}
           </div>
         </div>
+        {showAdditionalSelects.languages && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={languages}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'languages',
+                  values as unknown as string[]
+                )
+              }
+              name="languages"
+              defaultSelectedKeys={additionalCriteria.languages || []}
+              className="w-full"
+            />
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Diplômes
-              <AddIcon
-                width={20}
-                height={20}
-                className="rounded bg-primary p-1 hover:cursor-pointer"
-                onClick={() => {}}
-              />
+              {!criteriaIconShow.diplomas ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className="rounded bg-primary p-1 hover:cursor-pointer"
+                  onClick={() => handleAddClick('diplomas')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('diplomas')}
+                />
+              )}
             </Box>
           </div>
           <div className="flex flex-wrap gap-[10px]">
             {missionData.diplomas?.map((diploma) => (
               <Box
                 key={diploma}
-                className={`cursor-pointer p-3 ${isCriteriaSelected('diplomas', diploma) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleCriteriaClick('diplomas', diploma)}
+                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('diplomas', diploma) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() => handleExcludedCriteriaClick('diplomas', diploma)}
               >
                 {getLabel({ value: diploma, select: diplomas }) ?? empty}
+                {isExcludedCriteriaSelected('diplomas', diploma) && (
+                  <div className="absolute right-1 top-1">
+                    <X className="size-4" />
+                  </div>
+                )}
               </Box>
             ))}
+            {additionalCriteria.diplomas &&
+              additionalCriteria.diplomas.map((option) => (
+                <Box
+                  key={option}
+                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                >
+                  {getLabel({
+                    value: option,
+                    select: diplomas,
+                  }) ?? empty}
+                  <div className="absolute right-1 top-1" onClick={() => {}}>
+                    <X className="size-4" />
+                  </div>
+                </Box>
+              ))}
           </div>
         </div>
+        {showAdditionalSelects.diplomas && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={diplomas}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'diplomas',
+                  values as unknown as string[]
+                )
+              }
+              name="diplomas"
+              defaultSelectedKeys={additionalCriteria.diplomas || []}
+              className="w-full"
+            />
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">

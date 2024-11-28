@@ -15,7 +15,7 @@ type Props = {
   onValueChange: (
     value: string | string[],
     name: string,
-    json_key: (string | undefined)[]
+    json_key?: (string | undefined)[]
   ) => void;
   name: string;
   explain?: React.ReactNode;

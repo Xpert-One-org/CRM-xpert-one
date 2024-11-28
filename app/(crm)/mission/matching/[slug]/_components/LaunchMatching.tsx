@@ -12,9 +12,11 @@ import { useRouter } from 'next/navigation';
 export default function LaunchMatching({
   missionData,
   excludedCriteria,
+  additionalCriteria,
 }: {
   missionData: DBMission;
   excludedCriteria: Record<string, string[]>;
+  additionalCriteria: Record<string, string[]>;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [matchingResults, setMatchingResults] = useState<
@@ -25,7 +27,11 @@ export default function LaunchMatching({
 
   const handleLaunchMatching = async () => {
     setIsLoading(true);
-    const { data } = await getAllMatchedXperts(missionData, excludedCriteria);
+    const { data } = await getAllMatchedXperts(
+      missionData,
+      excludedCriteria,
+      additionalCriteria
+    );
     setMatchingResults(data);
     setIsLoading(false);
   };

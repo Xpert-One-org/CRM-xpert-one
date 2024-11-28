@@ -15,15 +15,14 @@ export default function MissionMatchingPage(props: {
   const [excludedCriteria, setExcludedCriteria] = useState<
     Record<string, string[]>
   >({});
+  const [additionalCriteria, setAdditionalCriteria] = useState<
+    Record<string, string[]>
+  >({});
 
   const missionNumber = slug.replace('-', ' ');
   const missionData = missions.find(
     (mission) => mission.mission_number === missionNumber
   );
-
-  const handleCriteriaChange = (criteria: Record<string, string[]>) => {
-    setExcludedCriteria(criteria);
-  };
 
   useEffect(() => {
     fetchMissions();
@@ -38,13 +37,15 @@ export default function MissionMatchingPage(props: {
             <div className="flex w-1/2 overflow-y-auto">
               <MatchingLeftSide
                 missionData={missionData}
-                onCriteriaChange={handleCriteriaChange}
+                onExcludedCriteriaChange={setExcludedCriteria}
+                onAdditionalCriteriaChange={setAdditionalCriteria}
               />
             </div>
             <div className="flex w-1/2 overflow-y-auto">
               <LaunchMatching
                 missionData={missionData}
                 excludedCriteria={excludedCriteria}
+                additionalCriteria={additionalCriteria}
               />
             </div>
           </div>

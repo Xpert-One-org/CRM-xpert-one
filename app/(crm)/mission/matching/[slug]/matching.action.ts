@@ -5,30 +5,44 @@ import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export async function getAllMatchedXperts(
   missionCriteria: DBMission,
-  excludedCriteria: Record<string, string[]>
+  excludedCriteria?: Record<string, string[]>,
+  newCriteria?: Record<string, string[]>
 ): Promise<{ data: DBMatchedXpert[]; error: string }> {
   const supabase = await createSupabaseAppServerClient();
   const { sector, post_type, specialties, expertises, languages, diplomas } =
     missionCriteria;
 
-  const shouldApplyCriteria = (criteriaKey: string) => {
-    return (
-      !excludedCriteria[criteriaKey] ||
-      excludedCriteria[criteriaKey].length === 0
-    );
+  const mergedCriteria = {
+    job_title: [
+      ...(missionCriteria.job_title
+        ? missionCriteria.job_title.split(',')
+        : []),
+      ...(newCriteria?.job_title ? newCriteria.job_title : []),
+    ],
+    sector: [
+      ...(sector ? sector.split(',') : []),
+      ...(newCriteria?.sector ? newCriteria.sector : []),
+    ],
+    post_type: [
+      ...(post_type ? post_type : []),
+      ...(newCriteria?.post_type ? newCriteria.post_type : []),
+    ],
+    specialties: [...(specialties || []), ...(newCriteria?.specialties || [])],
+    expertises: [...(expertises || []), ...(newCriteria?.expertises || [])],
+    languages: [...(languages || []), ...(newCriteria?.languages || [])],
+    diplomas: [...(diplomas || []), ...(newCriteria?.diplomas || [])],
   };
 
-  const finalCriteria = {
-    job_title: shouldApplyCriteria('job_title')
-      ? missionCriteria.job_title
-      : undefined,
-    sector: shouldApplyCriteria('sector') ? sector : undefined,
-    post_type: shouldApplyCriteria('post_type') ? post_type : undefined,
-    specialties: shouldApplyCriteria('specialties') ? specialties : undefined,
-    expertises: shouldApplyCriteria('expertises') ? expertises : undefined,
-    languages: shouldApplyCriteria('languages') ? languages : undefined,
-    diplomas: shouldApplyCriteria('diplomas') ? diplomas : undefined,
-  };
+  // Create final criteria by removing excluded values
+  const finalCriteria = Object.entries(mergedCriteria).reduce(
+    (acc, [key, values]) => {
+      acc[key] = values.filter(
+        (value) => !excludedCriteria?.[key]?.includes(value)
+      );
+      return acc;
+    },
+    {} as Record<string, string[]>
+  );
 
   const { data, error } = await supabase
     .from('profile')
@@ -72,22 +86,31 @@ export async function getAllMatchedXperts(
     const expertise = xpert.profile_expertise;
     const experience = xpert.profile_experience;
     return (
-      mission?.job_titles?.some((job) =>
-        finalCriteria.job_title?.includes(job)
+      mission?.job_titles?.some(
+        (job) =>
+          finalCriteria.job_title && finalCriteria.job_title.includes(job)
       ) ||
-      experience.some((exp) =>
-        finalCriteria.sector?.includes(exp.sector || '')
+      experience.some(
+        (exp) =>
+          finalCriteria.sector &&
+          finalCriteria.sector.includes(exp.sector || '')
       ) ||
-      expertise?.specialties?.some((specialty) =>
-        finalCriteria.specialties?.includes(specialty)
+      expertise?.specialties?.some(
+        (specialty) =>
+          finalCriteria.specialties &&
+          finalCriteria.specialties.includes(specialty)
       ) ||
-      expertise?.expertises?.some((expertise) =>
-        finalCriteria.expertises?.includes(expertise)
+      expertise?.expertises?.some(
+        (expertise) =>
+          finalCriteria.expertises &&
+          finalCriteria.expertises.includes(expertise)
       ) ||
       (expertise?.diploma &&
-        finalCriteria.diplomas?.includes(expertise.diploma)) ||
+        finalCriteria.diplomas &&
+        finalCriteria.diplomas.includes(expertise.diploma)) ||
       (expertise?.maternal_language &&
-        finalCriteria.languages?.includes(expertise.maternal_language))
+        finalCriteria.languages &&
+        finalCriteria.languages.includes(expertise.maternal_language))
     );
   });
 
