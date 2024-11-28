@@ -49,8 +49,12 @@ export default function XpertRow({
     : empty;
 
   const availabilityStatus = (() => {
-    if (xpert.profile_mission?.availability) {
-      return 'bg-[#92C6B0]';
+    if (xpert.profile_mission?.availability === undefined) {
+      return 'bg-[#D64242]';
+    } else if (
+      new Date(xpert.profile_mission.availability ?? '') > new Date()
+    ) {
+      return 'bg-[#D64242]';
     } else if (
       xpert.mission
         .map((mission) => mission.xpert_associated_id)
@@ -58,7 +62,7 @@ export default function XpertRow({
     ) {
       return 'bg-accent';
     } else {
-      return 'bg-[#D64242]';
+      return 'bg-[#92C6B0]';
     }
   })();
 
@@ -83,10 +87,16 @@ export default function XpertRow({
         </div>
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>
+        {xpert.country}
+      </Box>
+      <Box className="col-span-1" isSelected={isOpen}>
         {xpert.generated_id}
       </Box>
       <Box className={`col-span-1 ${availabilityStatus} text-white`}>
         {availableDate}
+      </Box>
+      <Box className="col-span-1" isSelected={isOpen}>
+        {xpert.generated_id}
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}

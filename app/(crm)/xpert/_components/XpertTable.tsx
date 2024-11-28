@@ -18,8 +18,6 @@ import InfiniteScroll from '@/components/ui/infinite-scroll';
 import DeleteXpertDialog from './DeleteXpertDialog';
 // import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 
-export type SortOrder = 'asc' | 'desc' | null;
-
 export default function XpertTable() {
   const {
     fetchSpecialties,
@@ -90,6 +88,8 @@ export default function XpertTable() {
         fetchSpecificXpert(xpertId);
       }
       setXpertIdOpened(xpertId);
+    } else {
+      setXpertIdOpened('');
     }
   }, [handleXpertIdOpened, searchParams, xperts]);
 
@@ -140,7 +140,7 @@ export default function XpertTable() {
             )}
         </div>
       */}
-      <div className="grid grid-cols-8 gap-3">
+      <div className="grid grid-cols-10 gap-3">
         <XpertFilter
           xperts={xperts || []}
           onSortedDataChange={setFilteredXperts}

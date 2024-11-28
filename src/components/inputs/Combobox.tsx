@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 
 import {
   Command,
@@ -14,6 +14,7 @@ import {
 } from '../ui/command';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
+import { Badge } from '../ui/badge';
 
 type Props = {
   data: string[];
@@ -29,6 +30,7 @@ type Props = {
   name?: string;
   hasError?: boolean;
   icon?: React.ReactNode;
+  onClear?: () => void;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 export default function Combobox({
@@ -46,6 +48,7 @@ export default function Combobox({
   name,
   hasError,
   icon,
+  onClear,
   ...props
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -53,7 +56,7 @@ export default function Combobox({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex flex-col gap-1">
+        <div className="flex w-full flex-row items-center justify-center">
           {label && (
             <Label>
               {label}
@@ -66,19 +69,35 @@ export default function Combobox({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              'w-full justify-between',
+              'flex w-full flex-row items-center justify-center gap-2',
               className,
               { 'border-important': hasError },
               { 'hover:border-primary': !hasError }
             )}
           >
-            {value && data.find((d) => d === value)
-              ? data.find((d) => d === value)
-              : placeholder}
-            {icon ? (
-              icon
-            ) : (
-              <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+            <div className="flex items-center gap-1">
+              {placeholder}
+              {icon ? (
+                icon
+              ) : (
+                <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
+              )}
+            </div>
+            {value && (
+              <div>
+                <Badge className="flex items-center justify-center gap-1">
+                  {data.find((d) => d === value)}
+                  {onClear && (
+                    <X
+                      className="size-3 cursor-pointer hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClear();
+                      }}
+                    />
+                  )}
+                </Badge>
+              </div>
             )}
           </Button>
         </div>
