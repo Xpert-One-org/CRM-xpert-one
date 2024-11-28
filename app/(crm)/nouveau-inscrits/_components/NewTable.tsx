@@ -40,6 +40,12 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
     }
   }, [selectedRole]);
 
+  useEffect(() => {
+    if (role) {
+      getLastMonthNewUsers(role);
+    }
+  }, [role]);
+
   return (
     <div className="grid grid-cols-1 flex-col gap-4">
       <div className="grid grid-cols-7 gap-3">
