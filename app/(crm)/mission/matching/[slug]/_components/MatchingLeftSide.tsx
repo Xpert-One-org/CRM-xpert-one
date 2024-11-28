@@ -10,6 +10,7 @@ import { useSelect } from '@/store/select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
+import { toast } from 'sonner';
 
 type CriteriaPair = {
   excluded: Record<string, string[]>;
@@ -133,16 +134,30 @@ export default function MatchingLeftSide({
       } else {
         newSelected[type] = [...(newSelected[type] || []), value];
       }
-
-      const hasRemainingChanges = Object.values(newSelected).some(
-        (arr) => arr.length > 0
-      );
-      setHasChanges(hasRemainingChanges);
-
+      setHasChanges(true);
       return newSelected;
     });
   };
 
+  const handleRemoveAdditionalCriteria = (
+    type: string,
+    valueToRemove: string
+  ) => {
+    setAdditionalCriteria((prev) => {
+      const newCriteria = { ...prev };
+      if (newCriteria[type]) {
+        newCriteria[type] = newCriteria[type].filter(
+          (value) => value !== valueToRemove
+        );
+
+        if (newCriteria[type].length === 0) {
+          delete newCriteria[type];
+        }
+      }
+      setHasChanges(true);
+      return newCriteria;
+    });
+  };
   const handleAdditionalSelection = (type: string, values: string[]) => {
     setAdditionalCriteria((prev) => {
       const newCriteria = {
@@ -164,6 +179,7 @@ export default function MatchingLeftSide({
       JSON.stringify(criteriaToStore)
     );
     setHasChanges(false);
+    toast.success('Critères sauvegardés');
   };
 
   useEffect(() => {
@@ -238,6 +254,9 @@ export default function MatchingLeftSide({
                 <Box
                   key={option}
                   className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                  onClick={() => {
+                    handleRemoveAdditionalCriteria('job_title', option);
+                  }}
                 >
                   {getLabel({
                     value: option,
@@ -309,6 +328,9 @@ export default function MatchingLeftSide({
                 <Box
                   key={option}
                   className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                  onClick={() => {
+                    handleRemoveAdditionalCriteria('post_type', option);
+                  }}
                 >
                   {getLabel({
                     value: option,
@@ -387,6 +409,9 @@ export default function MatchingLeftSide({
                 <Box
                   key={option}
                   className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                  onClick={() => {
+                    handleRemoveAdditionalCriteria('sector', option);
+                  }}
                 >
                   {getLabel({
                     value: option,
@@ -460,6 +485,9 @@ export default function MatchingLeftSide({
                 <Box
                   key={option}
                   className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                  onClick={() => {
+                    handleRemoveAdditionalCriteria('specialties', option);
+                  }}
                 >
                   {getLabel({
                     value: option,
@@ -544,6 +572,9 @@ export default function MatchingLeftSide({
                 <Box
                   key={option}
                   className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                  onClick={() => {
+                    handleRemoveAdditionalCriteria('expertises', option);
+                  }}
                 >
                   {getLabel({
                     value: option,
@@ -676,6 +707,9 @@ export default function MatchingLeftSide({
                 <Box
                   key={option}
                   className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                  onClick={() => {
+                    handleRemoveAdditionalCriteria('languages', option);
+                  }}
                 >
                   {getLabel({
                     value: option,
@@ -746,6 +780,9 @@ export default function MatchingLeftSide({
                 <Box
                   key={option}
                   className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                  onClick={() => {
+                    handleRemoveAdditionalCriteria('diplomas', option);
+                  }}
                 >
                   {getLabel({
                     value: option,
