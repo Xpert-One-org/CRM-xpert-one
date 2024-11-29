@@ -55,11 +55,11 @@ export const menuCrm = [
     url: '/xpert',
     sub: [
       {
-        title: 'XPERT',
+        title: 'Fiche XPERTS',
         url: '/xpert',
       },
       {
-        title: 'Nouveau inscrits',
+        title: 'Nouveaux inscrits',
         url: '/nouveau-inscrits?role=xpert',
       },
     ],
@@ -78,11 +78,11 @@ export const menuCrm = [
     url: '/fournisseur',
     sub: [
       {
-        title: 'Fournisseurs',
+        title: 'Fiche fournisseurs',
         url: '/fournisseur',
       },
       {
-        title: 'Nouveau inscrits',
+        title: 'Nouveaux inscrits',
         url: '/nouveau-inscrits?role=company',
       },
     ],
