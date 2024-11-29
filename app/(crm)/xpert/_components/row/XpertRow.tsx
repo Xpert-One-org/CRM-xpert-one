@@ -9,6 +9,7 @@ import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function XpertRow({
   xpert,
@@ -20,11 +21,12 @@ export default function XpertRow({
   onClick: () => void;
 }) {
   const dateSignUp = formatDate(xpert.created_at);
-  const { jobTitles, fetchJobTitles } = useSelect();
+  const { jobTitles, fetchJobTitles, countries, fetchCountries } = useSelect();
 
   useEffect(() => {
     fetchJobTitles();
-  }, []);
+    fetchCountries();
+  }, [fetchJobTitles, fetchCountries]);
 
   const postTypes = xpert.profile_mission
     ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
@@ -87,7 +89,14 @@ export default function XpertRow({
         </div>
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>
-        {xpert.country}
+        {countries.find((c) => c.value === xpert.country)?.flag && (
+          <Image
+            src={countries.find((c) => c.value === xpert.country)?.flag ?? ''}
+            alt={`${countries.find((c) => c.value === xpert.country)?.label}-flag`}
+            width={24}
+            height={16}
+          />
+        )}
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>
         {xpert.generated_id}
@@ -95,8 +104,10 @@ export default function XpertRow({
       <Box className={`col-span-1 ${availabilityStatus} text-white`}>
         {availableDate}
       </Box>
-      <Box className="col-span-1" isSelected={isOpen}>
-        {xpert.generated_id}
+      <Box
+        className={`col-span-1 ${xpert.cv_name ? 'bg-[#92C6B0]' : 'bg-[#D64242]'} text-white`}
+      >
+        {xpert.cv_name ? 'OUI' : 'NON'}
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}

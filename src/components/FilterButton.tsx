@@ -15,7 +15,7 @@ export type SortOrder = 'asc' | 'desc' | null;
 export type SelectedOption = { label: string; value: string };
 
 type FilterButtonProps = {
-  options?: SelectedOption[];
+  options?: (SelectedOption & { color?: string })[];
   onValueChange?: (value: string) => void;
   placeholder?: string;
   filter?: boolean;
@@ -25,6 +25,8 @@ type FilterButtonProps = {
   data?: any[];
   sortKey?: string;
   onSort?: (sortedData: any[]) => void;
+  coloredOptions?: boolean;
+  selectedOption?: SelectedOption;
 };
 
 export const FilterButton = ({
@@ -38,6 +40,7 @@ export const FilterButton = ({
   data,
   sortKey,
   onSort,
+  coloredOptions = false,
 }: FilterButtonProps) => {
   const [selectedOption, setSelectedOption] = useState<SelectedOption>({
     label: '',
@@ -100,9 +103,24 @@ export const FilterButton = ({
               <div className="size-3">
                 <FilterSvg />
               </div>
-              {selectedOption.value !== '' ? (
-                <Badge>{selectedOption.label}</Badge>
-              ) : null}
+              {selectedOption.value !== '' && (
+                <Badge
+                  style={
+                    coloredOptions &&
+                    options?.find((opt) => opt.value === selectedOption.value)
+                      ?.color
+                      ? {
+                          backgroundColor: options.find(
+                            (opt) => opt.value === selectedOption.value
+                          )?.color,
+                          color: '#fff',
+                        }
+                      : undefined
+                  }
+                >
+                  {selectedOption.label}
+                </Badge>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-white">
