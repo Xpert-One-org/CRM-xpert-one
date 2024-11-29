@@ -9,30 +9,76 @@ import { useSelect } from '@/store/select';
 import type { DBXpert } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
-import React from 'react';
+import React, { useState } from 'react';
+import SelectComponent from '@/components/SelectComponent';
+import type { DocumentInfo } from '../XpertTable';
+
+type XpertRowContentBisProps = {
+  xpert: DBXpert;
+  isLoading: boolean;
+  cvInfo: DocumentInfo;
+  ursaffInfo: DocumentInfo;
+  kbisInfo: DocumentInfo;
+};
 
 export default function XpertRowContentBis({
   xpert,
   isLoading,
-  cvUrl,
-}: {
-  xpert: DBXpert;
-  isLoading: boolean;
-  cvUrl: string;
-}) {
+  cvInfo,
+  ursaffInfo,
+  kbisInfo,
+}: XpertRowContentBisProps) {
   const { sectors, regions, expertises, specialities, jobTitles } = useSelect();
+  const [documentType, setDocumentType] = useState(
+    cvInfo ? 'cv' : ursaffInfo ? 'ursaff' : kbisInfo ? 'kbis' : ''
+  );
+
+  const selectOptions = [
+    ...(cvInfo.created_at
+      ? [{ label: 'Curriculum Vitae', value: 'cv', json_key: null }]
+      : []),
+    ...(ursaffInfo.created_at
+      ? [{ label: 'URSAFF', value: 'ursaff', json_key: null }]
+      : []),
+    ...(kbisInfo.created_at
+      ? [{ label: 'KBIS -3mois', value: 'kbis', json_key: null }]
+      : []),
+  ];
+
+  const onValueChange = (value: string) => {
+    setDocumentType(value);
+  };
+
   return (
     <>
+      {cvInfo.created_at && (
+        <SelectComponent
+          label="Type de documents"
+          placeholder="Sélectionner un type de document"
+          name="document_type"
+          options={selectOptions}
+          defaultSelectedKeys={selectOptions[0]?.value ?? ''}
+          onValueChange={onValueChange}
+          className="p-1"
+        />
+      )}
       {isLoading ? (
         <Skeleton className="size-full" />
       ) : (
-        <div className="flex items-start justify-start py-3">
-          {cvUrl ? (
-            <iframe src={cvUrl} className="h-[90vh] w-full" />
+        <>
+          {documentType === 'cv' && cvInfo.publicUrl ? (
+            <iframe src={cvInfo.publicUrl} className="h-[90vh] w-full py-2" />
+          ) : documentType === 'ursaff' && ursaffInfo.publicUrl ? (
+            <iframe
+              src={ursaffInfo.publicUrl}
+              className="h-[90vh] w-full py-2"
+            />
+          ) : documentType === 'kbis' && kbisInfo.publicUrl ? (
+            <iframe src={kbisInfo.publicUrl} className="h-[90vh] w-full py-2" />
           ) : (
-            <p>Aucun CV uploadé par l'xpert pour le moment</p>
+            <p>Aucun document uploadé par l'xpert pour le moment</p>
           )}
-        </div>
+        </>
       )}
       <div className="flex w-full flex-col gap-4 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
         <p className="text-lg font-medium text-black">
