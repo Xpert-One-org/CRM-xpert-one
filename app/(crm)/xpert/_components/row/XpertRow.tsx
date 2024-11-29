@@ -33,7 +33,6 @@ export default function XpertRow({
         const badge = (
           <div key={`${xpert.generated_id}-${i}`}>
             <Badge
-              variant="secondary"
               className="m-1 max-w-[95%] font-normal"
               key={`${xpert.generated_id}-${i}`}
             >
