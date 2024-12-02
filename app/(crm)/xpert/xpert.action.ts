@@ -1,5 +1,9 @@
 'use server';
 
+import type {
+  ProfileDataPicked,
+  UserData,
+} from '@/components/dialogs/CreateXpertDialog';
 import { limitXpert } from '@/data/constant';
 import type { DBXpert } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
@@ -132,43 +136,70 @@ export const getAllXperts = async ({
 };
 
 export const createXpert = async ({
-  email,
-  password,
-  firstname,
-  lastname,
-  phone,
-  civility,
-  birthdate,
+  user,
+  profile,
 }: {
-  email: string;
-  password: string;
-  firstname: string;
-  lastname: string;
-  phone: string;
-  civility: string;
-  birthdate: string;
+  user: UserData;
+  profile: ProfileDataPicked;
 }) => {
-  const supabase = await createSupabaseAppServerClient();
+  const supabase = await createSupabaseAppServerClient('admin');
 
-  const { error } = await supabase.auth.signUp({
+  const { user: userSession } = (await supabase.auth.getUser()).data;
+
+  if (!userSession) {
+    return { error: 'User not found' };
+  }
+
+  const { email, password, firstname, lastname, mobile, referent_id } = user;
+
+  const { error } = await supabase.auth.admin.createUser({
+    email_confirm: true,
     email,
     password,
-    options: {
-      data: {
-        lastname,
-        role: 'xpert',
-        default_phone: phone,
-        firstname,
-        referent_generated_id: 'XEE',
-        civility,
-        birthdate,
-      },
-      emailRedirectTo: `${origin}/auth/callback`,
+    user_metadata: {
+      firstname,
+      lastname,
+      default_phone: mobile,
+      referent_generated_id: referent_id,
+      role: 'xpert',
     },
   });
 
   if (error) {
-    throw new Error(error.message);
+    return { error: error.message };
+  }
+
+  const {
+    address,
+    birthdate,
+    city,
+    civility,
+    country,
+    fix,
+    how_did_you_hear_about_us,
+    linkedin,
+    postal_code,
+    street_number,
+  } = profile;
+  const { error: updateError } = await supabase
+    .from('profile')
+    .update({
+      address,
+      birthdate,
+      city,
+      civility,
+      country,
+      fix,
+      how_did_you_hear_about_us,
+      linkedin,
+      postal_code,
+      street_number,
+    })
+    .eq('email', email);
+
+  if (updateError) {
+    console.error(updateError);
+    return { error: updateError.message };
   }
 
   return { error: null };
@@ -176,7 +207,7 @@ export const createXpert = async ({
 
 export const deleteXpert = async (xpertId: string) => {
   try {
-    const supabase = await createSupabaseAppServerClient('deleteXpert');
+    const supabase = await createSupabaseAppServerClient('admin');
 
     const { error: deleteError } =
       await supabase.auth.admin.deleteUser(xpertId);

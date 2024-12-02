@@ -192,19 +192,23 @@ CREATE OR REPLACE FUNCTION "public"."generate_mission_unique_id"() RETURNS "text
     LANGUAGE "plpgsql"
     AS $$DECLARE
   new_mission_number TEXT;
-  last_mission_number INT;
+  id_exists BOOLEAN;
 BEGIN
-  -- Select the maximum generated ID from the profile table
-  SELECT MAX(mission_number::INT) INTO last_mission_number FROM public.mission;
-
-  -- If no ID exists, start from 1
-  IF last_mission_number IS NULL THEN
-    last_mission_number := 0;
-  END IF;
-
-  -- Increment the last generated ID by 1
-  new_mission_number := 'M ' || TO_CHAR(last_mission_number + 1, 'FM0000');
-
+  LOOP
+    -- Génère un numéro aléatoire entre 1000 et 9999
+    new_mission_number := 'M ' || TO_CHAR((1000 + floor(random() * 9000)::int), 'FM0000');
+    
+    -- Vérifie si ce numéro existe déjà
+    SELECT EXISTS (
+      SELECT 1 
+      FROM public.mission 
+      WHERE mission_number = new_mission_number
+    ) INTO id_exists;
+    
+    -- Sort de la boucle si le numéro n'existe pas
+    EXIT WHEN NOT id_exists;
+  END LOOP;
+  
   RETURN new_mission_number;
 END;$$;
 
@@ -216,19 +220,23 @@ CREATE OR REPLACE FUNCTION "public"."generate_new_mission_number"() RETURNS "tex
     LANGUAGE "plpgsql"
     AS $$DECLARE
   new_mission_number TEXT;
-  last_mission_number INT;
+  id_exists BOOLEAN;
 BEGIN
-  -- Select the maximum generated numeric part of the mission_number from the mission table
-  SELECT MAX(CAST(SUBSTRING(mission_number FROM '\d+') AS INT)) INTO last_mission_number FROM public.mission;
-
-  -- If no ID exists, start from 1
-  IF last_mission_number IS NULL THEN
-    last_mission_number := 0;
-  END IF;
-
-  -- Increment the last generated ID by 1
-  new_mission_number := 'M ' || TO_CHAR(last_mission_number + 1, 'FM0000');
-
+  LOOP
+    -- Génère un numéro aléatoire entre 1000 et 9999
+    new_mission_number := 'M ' || TO_CHAR((1000 + floor(random() * 9000)::int), 'FM0000');
+    
+    -- Vérifie si ce numéro existe déjà
+    SELECT EXISTS (
+      SELECT 1 
+      FROM public.mission 
+      WHERE mission_number = new_mission_number
+    ) INTO id_exists;
+    
+    -- Sort de la boucle si le numéro n'existe pas
+    EXIT WHEN NOT id_exists;
+  END LOOP;
+  
   RETURN new_mission_number;
 END;$$;
 
@@ -933,7 +941,8 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "sector_renewable_energy_other" "text",
     "signed_quote_file_name" "text",
     "contract_file_name" "text",
-    "state" "public"."mission_state" DEFAULT 'to_validate'::"public"."mission_state" NOT NULL
+    "state" "public"."mission_state" DEFAULT 'in_process'::"public"."mission_state" NOT NULL,
+    "image_url" "text"
 );
 
 

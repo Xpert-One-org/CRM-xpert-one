@@ -40,6 +40,7 @@ type MultipleSelectorProps = {
   emptyIndicator?: React.ReactNode;
   /** Debounce time for async search. Only work with `onSearch`. */
   delay?: number;
+  side?: 'top' | 'bottom';
   /**
    * Only work with `onSearch` prop. Trigger search when `onFocus`.
    * For example, when user click on the input, it will trigger the search to get initial options.
@@ -179,6 +180,7 @@ const MultipleSelector = React.forwardRef<
       placeholder,
       defaultOptions: arrayDefaultOptions = [],
       options: arrayOptions,
+      side = 'bottom',
       delay,
       onSearch,
       loadingIndicator,
@@ -325,7 +327,7 @@ const MultipleSelector = React.forwardRef<
             onChange?.(newOptions);
           }}
         >
-          {`Create "${inputValue}"`}
+          {`Créer "${inputValue}"`}
         </CommandItem>
       );
 
@@ -397,7 +399,7 @@ const MultipleSelector = React.forwardRef<
       >
         <div
           className={cn(
-            'min-h-10 rounded-md border border-input text-sm',
+            'flex min-h-10 rounded-md border border-input text-sm',
             {
               'px-3 py-2': selected.length !== 0,
               'cursor-text': !disabled && selected.length !== 0,
@@ -502,7 +504,10 @@ const MultipleSelector = React.forwardRef<
         <div className="relative">
           {open && (
             <CommandList
-              className="bg-popover text-popover-foreground absolute top-1 z-10 w-full rounded-md border border-border-gray shadow-md outline-none animate-in"
+              className={cn(
+                'text-popover-foreground absolute top-1 z-10 w-full rounded-md border border-border-gray bg-white shadow-md outline-none animate-in',
+                { 'bottom-10 top-auto': side === 'top' }
+              )}
               onMouseLeave={() => {
                 mouseOn.current = false;
               }}

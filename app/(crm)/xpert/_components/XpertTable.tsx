@@ -16,7 +16,7 @@ import XpertMissionFilter from './row/mission/XpertMissionFilter';
 import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import DeleteXpertDialog from './DeleteXpertDialog';
-// import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -280,18 +280,17 @@ export default function XpertTable() {
 
   return (
     <>
-      {/* 
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <div>
-            <CreateFournisseurXpertDialog role="xpert" />
-          </div>
-            {xpertIdOpened !== '0' && (
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div>
+          <CreateFournisseurXpertDialog role="xpert" />
+        </div>
+        {/* {xpertIdOpened !== '0' && (
               <Button className="px-spaceContainer py-spaceXSmall text-white">
                 Enregistrer
               </Button>
-            )}
-        </div>
-      */}
+            )} */}
+      </div>
+
       <div className="grid grid-cols-10 gap-3">
         <XpertFilter
           xperts={xperts || []}
