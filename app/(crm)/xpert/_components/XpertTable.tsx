@@ -46,6 +46,12 @@ export default function XpertTable() {
   const [cvInfo, setCvInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [ursaffInfo, setUrsaffInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [kbisInfo, setKbisInfo] = useState<DocumentInfo>({ publicUrl: '' });
+  const [responsabiliteCivileInfo, setResponsabiliteCivileInfo] =
+    useState<DocumentInfo>({ publicUrl: '' });
+  const [ribInfo, setRibInfo] = useState<DocumentInfo>({ publicUrl: '' });
+  const [habilitationInfo, setHabilitationInfo] = useState<DocumentInfo>({
+    publicUrl: '',
+  });
 
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -127,6 +133,18 @@ export default function XpertTable() {
       .from('profile_files')
       .list(`${xpert.generated_id}/kbis/`);
 
+    const { data: responsabiliteCivileData } = await supabase.storage
+      .from('profile_files')
+      .list(`${xpert.generated_id}/civil_responsability/`);
+
+    const { data: ribData } = await supabase.storage
+      .from('profile_files')
+      .list(`${xpert.generated_id}/rib/`);
+
+    const { data: habilitationData } = await supabase.storage
+      .from('profile_files')
+      .list(`${xpert.generated_id}/habilitations/`);
+
     if (cvData && cvData.length > 0) {
       const lastCV = cvData[cvData.length - 1];
       const { data } = await supabase.storage
@@ -157,6 +175,45 @@ export default function XpertTable() {
       setKbisInfo({
         publicUrl: data.publicUrl,
         created_at: lastKbisFile.created_at,
+      });
+    }
+
+    if (responsabiliteCivileData && responsabiliteCivileData.length > 0) {
+      const lastResponsabiliteCivileFile =
+        responsabiliteCivileData[responsabiliteCivileData.length - 1];
+      const { data } = await supabase.storage
+        .from('profile_files')
+        .getPublicUrl(
+          `${xpert.generated_id}/civil_responsability/${lastResponsabiliteCivileFile.name}`
+        );
+      setResponsabiliteCivileInfo({
+        publicUrl: data.publicUrl,
+        created_at: lastResponsabiliteCivileFile.created_at,
+      });
+    }
+
+    if (ribData && ribData.length > 0) {
+      const lastRibFile = ribData[ribData.length - 1];
+      const { data } = await supabase.storage
+        .from('profile_files')
+        .getPublicUrl(`${xpert.generated_id}/rib/${lastRibFile.name}`);
+      setRibInfo({
+        publicUrl: data.publicUrl,
+        created_at: lastRibFile.created_at,
+      });
+    }
+
+    if (habilitationData && habilitationData.length > 0) {
+      const lastHabilitationFile =
+        habilitationData[habilitationData.length - 1];
+      const { data } = await supabase.storage
+        .from('profile_files')
+        .getPublicUrl(
+          `${xpert.generated_id}/habilitation/${lastHabilitationFile.name}`
+        );
+      setHabilitationInfo({
+        publicUrl: data.publicUrl,
+        created_at: lastHabilitationFile.created_at,
       });
     }
 
@@ -281,16 +338,16 @@ export default function XpertTable() {
   return (
     <>
       {/* 
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <div>
-            <CreateFournisseurXpertDialog role="xpert" />
-          </div>
-            {xpertIdOpened !== '0' && (
-              <Button className="px-spaceContainer py-spaceXSmall text-white">
-                Enregistrer
-              </Button>
-            )}
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div>
+          <CreateFournisseurXpertDialog role="xpert" />
         </div>
+          {xpertIdOpened !== '0' && (
+          <Button className="px-spaceContainer py-spaceXSmall text-white">
+            Enregistrer
+          </Button>
+        )}
+      </div>
       */}
       <div className="grid grid-cols-10 gap-3">
         <XpertFilter
@@ -344,6 +401,9 @@ export default function XpertTable() {
                   cvInfo={cvInfo}
                   ursaffInfo={ursaffInfo}
                   kbisInfo={kbisInfo}
+                  responsabiliteCivileInfo={responsabiliteCivileInfo}
+                  ribInfo={ribInfo}
+                  habilitationInfo={habilitationInfo}
                 />
                 <div className="flex w-full justify-end py-2">
                   <DeleteXpertDialog
