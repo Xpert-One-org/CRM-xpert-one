@@ -14,7 +14,9 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
   const pathname = usePathname();
   const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
   const [currentValue] = useState(
-    currentMissionNumber !== 'fiche' && currentMissionNumber !== 'matching'
+    currentMissionNumber !== 'fiche' &&
+      currentMissionNumber !== 'matching' &&
+      currentMissionNumber !== 'selection'
       ? currentMissionNumber
       : ''
   );
