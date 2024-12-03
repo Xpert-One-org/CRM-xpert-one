@@ -7,6 +7,7 @@ import BriefCase from '@/components/svg/BriefCase';
 // import ChatBubbles from '@/components/svg/ChatBubbles';
 import {
   Phone,
+  SquarePen,
   //  SquarePen
 } from 'lucide-react';
 import BriefCaseAdd from '@/components/svg/BriefCaseAdd';
@@ -63,7 +64,7 @@ export default async function DashboardPage() {
           <FacturationLogo className="fill-white" width={24} height={24} />
         }
         link="/facturation/etats"
-      />
+      /> */}
       <DashBoardCards
         count={newUsers.length}
         title="TO DO à traiter"
@@ -73,7 +74,7 @@ export default async function DashboardPage() {
         iconButton={<SquarePen width={24} height={24} />}
         link="/dashboard/todo"
       />
-      <DashBoardCards
+      {/* <DashBoardCards
         count={newUsers.length}
         title="Messagerie externe"
         urgentTitle="Non lus"

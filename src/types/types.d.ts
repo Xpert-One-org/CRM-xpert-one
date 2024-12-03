@@ -1,12 +1,12 @@
-import { Database } from './supabase';
+import type { Database } from './supabase';
 import type {
+  DBMission,
+  DBProfileEducation,
   DBProfileExperience,
   DBProfileExpertise,
   DBProfileMission,
   DBProfileStatus,
   DBUser,
-  DBProfileEducation,
-  DBMission,
 } from './typesDb';
 import { DBProfile } from './typesDb';
 
@@ -193,4 +193,35 @@ type Region = {
 type _File = {
   name: string;
   url: string;
+};
+
+type Task = Database['public']['Tables']['tasks']['Row'];
+type InsertTask = Database['public']['Tables']['tasks']['Insert'];
+type UpdateTask = Database['public']['Tables']['tasks']['Update'];
+type TaskWithRelations = Task & {
+  created_by_profile: {
+    id: string;
+    firstname: string;
+    lastname: string;
+  };
+  assigned_to_profile: {
+    id: string;
+    firstname: string;
+    lastname: string;
+  };
+  xpert?: {
+    id: string;
+    firstname: string;
+    lastname: string;
+  } | null;
+  supplier?: {
+    id: string;
+    firstname: string;
+    lastname: string;
+  } | null;
+  mission?: {
+    id: number;
+    title: string;
+    status: string;
+  } | null;
 };

@@ -37,6 +37,7 @@ export const emptyEducation: DBProfileEducation = {
 };
 
 export const emptyMission: DBMission = {
+  image_url: null,
   address: null,
   sector_renewable_energy_other: null,
   advantages_company: null,

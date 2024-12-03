@@ -10,62 +10,32 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { Badge } from './ui/badge';
-
-export type SortOrder = 'asc' | 'desc' | null;
-
-export type SelectedOption = { label: string; value: string };
 
 type FilterButtonProps = {
-  options?: SelectedOption[];
+  options?: { label: string | null; value: string | null }[];
+  defaultSelectedKeys?: string;
   onValueChange?: (value: string) => void;
   placeholder?: string;
   filter?: boolean;
   className?: string;
   disabled?: boolean;
-  sortable?: boolean;
-  data?: any[];
-  sortKey?: string;
-  onSort?: (sortedData: any[]) => void;
 };
 
 export const FilterButton = ({
   options,
+  defaultSelectedKeys,
   onValueChange,
   placeholder,
   filter = true,
   className,
   disabled = false,
-  sortable = false,
-  data,
-  sortKey,
-  onSort,
 }: FilterButtonProps) => {
-  const [selectedOption, setSelectedOption] = useState<SelectedOption>({
-    label: '',
-    value: '',
-  });
+  const [selected, setSelected] = useState<string>(defaultSelectedKeys ?? '');
 
-  const handleValueChange = (option: SelectedOption) => {
-    setSelectedOption(option);
-    if (sortable && data && sortKey && onSort) {
-      const sortedData = [...data].sort((a, b) => {
-        const valueA = (a[sortKey] || '').toLowerCase();
-        const valueB = (b[sortKey] || '').toLowerCase();
-
-        if (option.value === 'asc') {
-          return valueA.localeCompare(valueB);
-        } else if (option.value === 'desc') {
-          return valueB.localeCompare(valueA);
-        }
-        return 0;
-      });
-
-      onSort(option.value === '' ? data : sortedData);
-    }
-
+  const handleValueChange = (value: string) => {
+    setSelected(value);
     if (onValueChange) {
-      onValueChange(option.value);
+      onValueChange(value);
     }
   };
 
@@ -80,13 +50,10 @@ export const FilterButton = ({
                 className
               )}
             >
-              {placeholder}
+              {selected || placeholder}
               <div className="size-3">
                 <FilterSvg />
               </div>
-              {selectedOption.value !== '' ? (
-                <Badge>{selectedOption.label}</Badge>
-              ) : null}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-white">
@@ -95,14 +62,9 @@ export const FilterButton = ({
               options.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() =>
-                    handleValueChange({
-                      label: option.label || '',
-                      value: option.value || '',
-                    })
-                  }
+                  onClick={() => handleValueChange(option.value ?? '')}
                 >
-                  {option.label || ''}
+                  {option.label}
                 </DropdownMenuItem>
               ))
             ) : (
@@ -119,7 +81,7 @@ export const FilterButton = ({
             )}
             disabled={disabled}
           >
-            {placeholder}
+            {selected || placeholder}
           </Button>
         </>
       )}
