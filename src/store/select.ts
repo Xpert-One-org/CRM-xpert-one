@@ -47,6 +47,10 @@ type Select = {
   label: string | null;
 };
 
+type SelectWithFlag = Select & {
+  flag: string | null;
+};
+
 type SelectStore = {
   specialities: Select[];
   expertises: Select[];
@@ -55,7 +59,7 @@ type SelectStore = {
   languages: Select[];
   sectors: Select[];
   jobTitles: Select[];
-  countries: Select[];
+  countries: SelectWithFlag[];
   regions: Select[];
   companyRoles: Select[];
   posts: Select[];
