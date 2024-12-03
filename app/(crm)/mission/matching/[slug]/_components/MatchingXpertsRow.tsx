@@ -14,9 +14,13 @@ import { getNonMatchingCriteria } from '../_functions/getNonMatchingCriteria';
 export default function MatchingXpertsRow({
   matchedXpert,
   missionData,
+  excludedCriteria,
+  additionalCriteria,
 }: {
   matchedXpert: DBMatchedXpert;
   missionData: DBMission;
+  excludedCriteria: Record<string, string[]>;
+  additionalCriteria: Record<string, string[]>;
 }) {
   const {
     jobTitles,
@@ -37,7 +41,12 @@ export default function MatchingXpertsRow({
 
   const router = useRouter();
 
-  const nonMatchingCriteria = getNonMatchingCriteria(matchedXpert, missionData);
+  const nonMatchingCriteria = getNonMatchingCriteria(
+    matchedXpert,
+    missionData,
+    excludedCriteria,
+    additionalCriteria
+  );
   const hasNonMatchingCriteria = Object.keys(nonMatchingCriteria).length > 0;
 
   const availability =

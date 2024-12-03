@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
 import { FilterButton } from '@/components/FilterButton';
 import MatchingXpertsRow from './MatchingXpertsRow';
@@ -13,20 +13,37 @@ const availabilityOptions = [
 export default function MatchingXpertsTable({
   matchingResults,
   missionData,
+  excludedCriteria,
+  additionalCriteria,
 }: {
   matchingResults: DBMatchedXpert[];
   missionData: DBMission;
+  excludedCriteria: Record<string, string[]>;
+  additionalCriteria: Record<string, string[]>;
 }) {
-  const [sortedMatchingResults, setSortedMatchingResults] = useState(
-    matchingResults
+  const calculateScores = () => {
+    return matchingResults
       .map((matchedXpert) => ({
         ...matchedXpert,
-        matchingScore: calculateTotalMatchingScore(matchedXpert, missionData),
+        matchingScore: calculateTotalMatchingScore(
+          matchedXpert,
+          missionData,
+          excludedCriteria,
+          additionalCriteria
+        ),
       }))
-      .sort((a, b) => b.matchingScore - a.matchingScore)
-  );
+      .sort((a, b) => b.matchingScore - a.matchingScore);
+  };
 
+  const [sortedMatchingResults, setSortedMatchingResults] =
+    useState(calculateScores());
   const [filteredResults, setFilteredResults] = useState(sortedMatchingResults);
+
+  useEffect(() => {
+    const newResults = calculateScores();
+    setSortedMatchingResults(newResults);
+    setFilteredResults(newResults);
+  }, [excludedCriteria, additionalCriteria]);
 
   const handleSort = (sortedData: DBMatchedXpert[]) => {
     setSortedMatchingResults(sortedData);
@@ -98,6 +115,8 @@ export default function MatchingXpertsTable({
               key={matchedXpert.id}
               matchedXpert={matchedXpert}
               missionData={missionData}
+              excludedCriteria={excludedCriteria}
+              additionalCriteria={additionalCriteria}
             />
           ))}
         </div>

@@ -85,33 +85,65 @@ export async function getAllMatchedXperts(
     const mission = xpert.profile_mission;
     const expertise = xpert.profile_expertise;
     const experience = xpert.profile_experience;
-    return (
-      mission?.job_titles?.some(
-        (job) =>
-          finalCriteria.job_title && finalCriteria.job_title.includes(job)
-      ) ||
-      experience.some(
-        (exp) =>
-          finalCriteria.sector &&
+
+    // Create an array of boolean conditions for each non-empty criteria
+    const matchConditions = [];
+
+    // Only check criteria that have values
+    if (finalCriteria.job_title.length > 0) {
+      matchConditions.push(
+        mission?.job_titles?.some((job) =>
+          finalCriteria.job_title.includes(job)
+        )
+      );
+    }
+
+    if (finalCriteria.sector.length > 0) {
+      matchConditions.push(
+        experience.some((exp) =>
           finalCriteria.sector.includes(exp.sector || '')
-      ) ||
-      expertise?.specialties?.some(
-        (specialty) =>
-          finalCriteria.specialties &&
+        )
+      );
+    }
+
+    if (finalCriteria.post_type.length > 0) {
+      matchConditions.push(
+        experience.some((exp) =>
+          exp.post_type?.some((type) => finalCriteria.post_type.includes(type))
+        )
+      );
+    }
+
+    if (finalCriteria.specialties.length > 0) {
+      matchConditions.push(
+        expertise?.specialties?.some((specialty) =>
           finalCriteria.specialties.includes(specialty)
-      ) ||
-      expertise?.expertises?.some(
-        (expertise) =>
-          finalCriteria.expertises &&
-          finalCriteria.expertises.includes(expertise)
-      ) ||
-      (expertise?.diploma &&
-        finalCriteria.diplomas &&
-        finalCriteria.diplomas.includes(expertise.diploma)) ||
-      (expertise?.maternal_language &&
-        finalCriteria.languages &&
-        finalCriteria.languages.includes(expertise.maternal_language))
-    );
+        )
+      );
+    }
+
+    if (finalCriteria.expertises.length > 0) {
+      matchConditions.push(
+        expertise?.expertises?.some((exp) =>
+          finalCriteria.expertises.includes(exp)
+        )
+      );
+    }
+
+    if (finalCriteria.diplomas.length > 0) {
+      matchConditions.push(
+        expertise?.diploma && finalCriteria.diplomas.includes(expertise.diploma)
+      );
+    }
+
+    if (finalCriteria.languages.length > 0) {
+      matchConditions.push(
+        expertise?.maternal_language &&
+          finalCriteria.languages.includes(expertise.maternal_language)
+      );
+    }
+
+    return matchConditions.some((condition) => condition === true);
   });
 
   return { data: matchedXperts as DBMatchedXpert[], error: '' };

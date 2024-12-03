@@ -201,6 +201,16 @@ export default function MatchingLeftSide({
     onAdditionalCriteriaChange,
   ]);
 
+  useEffect(() => {
+    onExcludedCriteriaChange(excludedCriteria);
+    onAdditionalCriteriaChange(additionalCriteria);
+  }, [
+    excludedCriteria,
+    onExcludedCriteriaChange,
+    additionalCriteria,
+    onAdditionalCriteriaChange,
+  ]);
+
   return (
     <>
       <div className="flex w-full flex-col gap-y-spaceSmall">

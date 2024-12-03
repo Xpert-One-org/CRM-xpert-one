@@ -53,6 +53,8 @@ export default function LaunchMatching({
           <MatchingXpertsTable
             matchingResults={matchingResults}
             missionData={missionData}
+            excludedCriteria={excludedCriteria}
+            additionalCriteria={additionalCriteria}
           />
         )}
       </div>
