@@ -23,6 +23,7 @@ type Props = {
   hasError?: boolean;
   creatable?: boolean;
   maxSelected?: number;
+  showIndividualX?: boolean;
   side?: 'top' | 'bottom';
   disabled?: boolean;
 } & ComponentProps<'div'>;
@@ -31,6 +32,7 @@ export default function MultiSelectComponent({
   className,
   hasError,
   classNameLabel,
+  showIndividualX = true,
   side,
   explain,
   required,
@@ -79,6 +81,7 @@ export default function MultiSelectComponent({
         onChange={handleOnChange}
         creatable={creatable}
         maxSelected={maxSelected}
+        showIndividualX={showIndividualX}
         className={cn(
           'bg-white py-1 pr-4 transition',
           { 'border-important': hasError },

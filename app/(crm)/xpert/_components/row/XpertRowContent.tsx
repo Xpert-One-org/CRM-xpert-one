@@ -37,11 +37,11 @@ export default function XpertRowContent({ xpert }: { xpert: DBXpert }) {
     <div className="flex flex-col gap-y-spaceXSmall p-spaceSmall">
       <div className="grid w-full grid-cols-2 gap-4">
         <div className="flex flex-col gap-4">
-          <Input
-            label="Référant XPERT ONE"
-            value={`${xpert.firstname}`}
-            disabled
-          />
+          <Input label="Référent Xpert One" value={`Olivier`} disabled />
+          <div className="flex gap-x-2">
+            <Input label="Prénom" value={`${xpert.firstname}`} disabled />
+            <Input label="Nom" value={`${xpert.lastname}`} disabled />
+          </div>
           <Input label="Adresse mail" value={xpert.email ?? ''} disabled />
         </div>
         <div className="flex items-center justify-end">

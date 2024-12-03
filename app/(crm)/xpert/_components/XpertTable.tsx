@@ -129,7 +129,7 @@ export default function XpertTable() {
 
     if (cvData && cvData.length > 0) {
       const lastCV = cvData[cvData.length - 1];
-      const { data } = await supabase.storage
+      const { data } = supabase.storage
         .from('profile_files')
         .getPublicUrl(`${xpert.generated_id}/cv/${lastCV.name}`);
       setCvInfo({
@@ -275,6 +275,7 @@ export default function XpertTable() {
       }
 
       setFilteredXperts(filtered);
+      setIsLoading(false);
     }
   }, [xperts, activeFilters]);
 
@@ -282,7 +283,12 @@ export default function XpertTable() {
     <>
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
-          <CreateFournisseurXpertDialog role="xpert" />
+          {
+            <CreateFournisseurXpertDialog
+              role="xpert"
+              isPageLoaded={!isLoading}
+            />
+          }
         </div>
         {/* {xpertIdOpened !== '0' && (
               <Button className="px-spaceContainer py-spaceXSmall text-white">

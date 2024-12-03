@@ -147,7 +147,9 @@ export const createXpert = async ({
   const { user: userSession } = (await supabase.auth.getUser()).data;
 
   if (!userSession) {
-    return { error: 'User not found' };
+    return {
+      error: { message: "Vous n'êtes pas connecté", code: 'not_authenticated' },
+    };
   }
 
   const { email, password, firstname, lastname, mobile, referent_id } = user;
@@ -166,7 +168,7 @@ export const createXpert = async ({
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: { message: error.message, code: error.code } };
   }
 
   const {
@@ -198,8 +200,7 @@ export const createXpert = async ({
     .eq('email', email);
 
   if (updateError) {
-    console.error(updateError);
-    return { error: updateError.message };
+    return { error: { message: updateError.message, code: updateError.code } };
   }
 
   return { error: null };
@@ -215,10 +216,11 @@ export const deleteXpert = async (xpertId: string) => {
 
     return { errorMessage: null };
   } catch (error) {
-    let errorMessage = "Impossible de supprimer l'XPERT";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return { errorMessage };
+    return {
+      errorMessage: {
+        message: "Erreur lors de la suppression de l'Xpert",
+        code: 'delete_error',
+      },
+    };
   }
 };

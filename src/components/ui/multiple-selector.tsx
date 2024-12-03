@@ -31,6 +31,7 @@ type GroupOption = {
 type MultipleSelectorProps = {
   value?: Option[];
   defaultOptions?: Option[];
+  showIndividualX?: boolean;
   /** manually controlled options */
   options?: Option[];
   placeholder?: string;
@@ -178,6 +179,7 @@ const MultipleSelector = React.forwardRef<
       value,
       onChange,
       placeholder,
+      showIndividualX = true,
       defaultOptions: arrayDefaultOptions = [],
       options: arrayOptions,
       side = 'bottom',
@@ -425,24 +427,26 @@ const MultipleSelector = React.forwardRef<
                   data-disabled={disabled || undefined}
                 >
                   {option.label}
-                  <button
-                    className={cn(
-                      'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                      (disabled || option.fixed) && 'hidden'
-                    )}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleUnselect(option);
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onClick={() => handleUnselect(option)}
-                  >
-                    <X className="text-muted-foreground size-3 hover:text-foreground" />
-                  </button>
+                  {showIndividualX && (
+                    <button
+                      className={cn(
+                        'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                        (disabled || option.fixed) && 'hidden'
+                      )}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleUnselect(option);
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onClick={() => handleUnselect(option)}
+                    >
+                      <X className="text-muted-foreground size-3 hover:text-foreground" />
+                    </button>
+                  )}
                 </Badge>
               );
             })}

@@ -24,12 +24,10 @@ export default function DeleteXpertDialog({
   const [popupOpen, setPopupOpen] = useState(false);
   const { deleteXpert } = useXpertStore();
 
-  const [reasonDelete, setReasonDelete] = useState('');
-
   const handleSendDeleteXpert = async () => {
     setIsLoading(true);
     try {
-      await deleteXpert(xpertId, xpertGeneratedId);
+      deleteXpert(xpertId, xpertGeneratedId);
       setPopupOpen(false);
     } catch (error) {
       console.error(error);
@@ -59,13 +57,13 @@ export default function DeleteXpertDialog({
             value={xpertGeneratedId}
           />
 
-          <TextArea
+          {/* <TextArea
             label="Motif de suppression"
             placeholder="Choississez un motif"
             name={reasonDelete}
             onChange={(e) => setReasonDelete(e.target.value)}
             required
-          />
+          /> */}
 
           <div className="flex gap-x-spaceSmall self-end">
             <CredenzaClose asChild>
@@ -73,7 +71,7 @@ export default function DeleteXpertDialog({
             </CredenzaClose>
 
             <Button
-              disabled={!reasonDelete}
+              disabled={isLoading}
               onClick={handleSendDeleteXpert}
               className="w-fit self-end px-spaceContainer"
               variant={'destructive'}
