@@ -47,6 +47,10 @@ type Select = {
   label: string | null;
 };
 
+type SelectWithFlag = Select & {
+  flag: string | null;
+};
+
 type SelectStore = {
   specialities: Select[];
   expertises: Select[];
@@ -55,7 +59,7 @@ type SelectStore = {
   languages: Select[];
   sectors: Select[];
   jobTitles: Select[];
-  countries: Select[];
+  countries: SelectWithFlag[];
   regions: Select[];
   companyRoles: Select[];
   posts: Select[];
@@ -131,7 +135,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
   loadingJuridicStatus: true,
   loadingPosts: true,
   loadingSectors: true,
-  loadingSpecialties: false,
+  loadingSpecialties: true,
   loadingSubjects: true,
   loadingJobTitles: true,
   loadingLanguages: true,
@@ -142,22 +146,29 @@ export const useSelect = create<SelectStore>((set, get) => ({
     if (get().specialities.length) {
       return;
     }
+    set({ loadingSpecialties: true });
     const { data, error } = await getSpecialties();
     if (error) {
       console.error('Error fetching specialties:', error);
+      set({ loadingSpecialties: false });
       return;
     }
     if (data) {
-      set({ specialities: data });
+      set({
+        specialities: data,
+        loadingSpecialties: false,
+      });
     }
   },
   fetchExpertises: async () => {
     if (get().expertises.length) {
       return;
     }
+    set({ loadingExpertises: true });
     const { data, error } = await getExpertises();
     if (error) {
       console.error('Error fetching expertise:', error);
+      set({ loadingExpertises: false });
       return;
     }
     if (data) {

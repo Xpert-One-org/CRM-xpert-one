@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
-import { getTimeBeforeMission, uppercaseFirstLetter } from '@/utils/string';
+import { getTimeBeforeMission } from '@/utils/string';
 import { useRouter } from 'next/navigation';
+import { getLabel } from '@/utils/getLabel';
+import { empty } from '@/data/constant';
+import { useSelect } from '@/store/select';
 
 export default function MissionEtatInProcessRow({
   mission,
@@ -15,6 +18,7 @@ export default function MissionEtatInProcessRow({
   onValidationChangeAll: (missionId: string, isValidated: boolean) => void;
 }) {
   const router = useRouter();
+  const { jobTitles, fetchJobTitles } = useSelect();
 
   const [validationState, setValidationState] = useState<string>(
     mission.state === 'in_process' || mission.state === 'open_all_to_validate'
@@ -25,6 +29,10 @@ export default function MissionEtatInProcessRow({
   const [openAllInProcess, setOpenAllInProcess] = useState(
     mission.state === 'open_all_to_validate'
   );
+
+  useEffect(() => {
+    fetchJobTitles();
+  }, [fetchJobTitles]);
 
   useEffect(() => {
     setValidationState(
@@ -71,7 +79,7 @@ export default function MissionEtatInProcessRow({
       case 'refused':
         newState = 'refused';
         break;
-      default: // 'in_process'
+      default:
         newState = 'in_process';
         break;
     }
@@ -120,7 +128,8 @@ export default function MissionEtatInProcessRow({
       <Box className="col-span-1">{mission.referent_name}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box className="col-span-1">
-        {uppercaseFirstLetter(mission.job_title?.replaceAll('_', ' ') ?? '')}
+        {getLabel({ value: mission.job_title ?? empty, select: jobTitles }) ??
+          empty}
       </Box>
       <Box
         className="col-span-1"

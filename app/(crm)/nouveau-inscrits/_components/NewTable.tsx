@@ -1,18 +1,16 @@
-'use client';
-
-import { FilterButton } from '@/components/FilterButton';
 import React, { useEffect, useState } from 'react';
+import { FilterButton } from '@/components/FilterButton';
 import type { DBProfile } from '@/types/typesDb';
 import { useRouter } from 'next/navigation';
-import { signUpDateOptions } from '@/data/constant';
 import { getNewUsersLastMonth } from '../action';
 import NewRow from './NewRow';
 import Loader from '@/components/Loader';
+import ComboBoxXpert from '@/components/combobox/ComboBoxXpert';
 
 export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [newUsersLastMonth, setNewUsersLastMonth] = useState<DBProfile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<DBProfile[]>([]);
   const [selectedRole, setSelectedRole] = useState<string>(
     role === 'company' ? 'Fournisseur' : 'Xpert'
   );
@@ -20,7 +18,7 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const getLastMonthNewUsers = async (role: string) => {
     setLoading(true);
     const { newUsersLastMonth } = await getNewUsersLastMonth(role);
-    setNewUsersLastMonth(newUsersLastMonth);
+    setFilteredUsers(newUsersLastMonth);
     setLoading(false);
   };
 
@@ -41,21 +39,30 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
     }
   }, [selectedRole]);
 
+  useEffect(() => {
+    if (role) {
+      getLastMonthNewUsers(role);
+    }
+  }, [role]);
+
   return (
     <div className="grid grid-cols-1 flex-col gap-4">
       <div className="grid grid-cols-7 gap-3">
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
+          options={[
+            { label: 'Plus récent', value: 'desc' },
+            { label: 'Plus ancien', value: 'asc' },
+            { label: 'Aucun filtre', value: '' },
+          ]}
           placeholder="Date d'inscription"
+          sortable
+          data={filteredUsers}
+          sortKey="created_at"
+          onSort={setFilteredUsers}
         />
-        <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
-          placeholder="N° identification"
-        />
+        <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
+          <ComboBoxXpert />
+        </div>
         <FilterButton
           options={[
             {
@@ -67,29 +74,34 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
               value: 'Xpert',
             },
           ]}
-          defaultSelectedKeys={selectedRole}
           onValueChange={handleRoleChange}
           placeholder="Rôle"
         />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
+          options={[
+            { label: 'Plus complète', value: 'desc' },
+            { label: 'Moins complète', value: 'asc' },
+          ]}
+          onSort={setFilteredUsers}
+          data={filteredUsers}
+          sortKey="totale_progression"
+          sortable
           placeholder="État de la fiche"
         />
+        <FilterButton options={[]} placeholder="Call de bienvenue" />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          placeholder="Call de bienvenue"
-        />
-        <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[]}
           placeholder="Éléments supplémentaires à nous communiquer"
         />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[
+            { label: 'Ascendant', value: 'asc' },
+            { label: 'Descendant', value: 'desc' },
+          ]}
+          onSort={setFilteredUsers}
+          data={filteredUsers}
+          sortKey="referent_name"
+          sortable={true}
           placeholder="Référent Xpert One"
         />
       </div>
@@ -98,8 +110,8 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
           <div className="mt-4 flex w-full items-center justify-center">
             <Loader />
           </div>
-        ) : newUsersLastMonth.length > 0 ? (
-          newUsersLastMonth.map((user) => (
+        ) : filteredUsers.length > 0 ? (
+          filteredUsers.map((user) => (
             <NewRow
               key={user.id}
               user={user}
@@ -110,7 +122,7 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
         ) : (
           <p className="text-center text-sm text-gray-500">
             Aucun nouveaux {role === 'company' ? 'Fournisseur' : 'Xpert'} se
-            sont inscrits le dernier mois avec une
+            sont inscrits le dernier mois avec une fiche à plus de 50%
           </p>
         )}
       </div>

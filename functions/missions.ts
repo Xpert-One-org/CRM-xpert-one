@@ -3,6 +3,15 @@ import type { DBMission, DBMissionState } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
+export const getAllMissions = async (): Promise<DBMission[]> => {
+  const supabase = await createSupabaseAppServerClient();
+  const { data, error } = await supabase.from('mission').select('*');
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};
+
 export const getMissionState = async (
   state: DBMissionState
 ): Promise<DBMission[]> => {
@@ -28,7 +37,6 @@ export const getMissionState = async (
     const { data, error } = await query;
 
     if (error) {
-      console.error(error);
       throw new Error(error.message);
     }
 
@@ -49,7 +57,6 @@ export const searchMission = async (missionId: string) => {
   const { data, error } = await query;
 
   if (error) {
-    console.error(error);
     throw new Error(error.message);
   }
   return { data };
@@ -68,7 +75,6 @@ export const updateMissionState = async (
     .select('*');
 
   if (error) {
-    console.error(error);
     throw new Error(error.message);
   }
 

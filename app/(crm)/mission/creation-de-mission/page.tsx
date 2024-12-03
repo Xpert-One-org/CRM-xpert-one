@@ -33,6 +33,7 @@ import InformativePopup from '@/components/InformativePopup';
 import Button from '@/components/Button';
 import { FilterButton } from '@/components/FilterButton';
 import { Box } from '@/components/ui/box';
+import ComboboxFournisseur from '@/components/combobox/ComboboxFournisseur';
 
 export default function Page() {
   const [mission, setMission] = useState<DBMission>(emptyMission);
@@ -364,6 +365,7 @@ export default function Page() {
             creationMissionData.profile_searched?.name as keyof UserType
           )}
           className="xl:max-w-[165px]"
+          classNameLabel="h-spaceContainer"
           label={creationMissionData.profile_searched?.label}
           options={profilSearchedSelect}
           defaultSelectedKeys={
@@ -567,6 +569,7 @@ export default function Page() {
             onChange={handleChange}
           />
         )}
+
         <MultiSelectComponent
           label={creationMissionData.expertises?.label}
           hasError={checkIfRequiredAndNotMissing(
@@ -588,7 +591,7 @@ export default function Page() {
               creationMissionData.expertises_other?.name as keyof UserType
             )}
             label={creationMissionData.expertises_other?.label}
-            name={creationMissionData.expertises_other?.name}
+            name={creationMissionData.expertises_other?.name ?? ''}
             placeholder="Préciser l'expertise"
             className="mission_input min-w-[200px] flex-1 xl:max-w-full"
             onChange={handleChange}
@@ -835,7 +838,7 @@ export default function Page() {
           defaultSelectedKeys={'FR'}
           placeholder="Tel"
           label={creationMissionData.referent_mobile?.label}
-          className="max-w-full text-black"
+          className="text-black"
           name={creationMissionData.referent_mobile?.name ?? ''}
           onValueChange={handleValueChange}
         />
@@ -843,7 +846,7 @@ export default function Page() {
           defaultSelectedKeys={'FR'}
           placeholder="Tel"
           label={creationMissionData.referent_fix?.label}
-          className="max-w-full text-black"
+          className="text-black"
           name={creationMissionData.referent_fix?.name ?? ''}
           onValueChange={handleValueChange}
         />
@@ -855,6 +858,18 @@ export default function Page() {
           placeholder="Adresse mail"
           onChange={handleChange}
           classNameLabel="h-[24px]"
+        />
+      </div>
+
+      <div className="grid grid-cols-4 gap-4">
+        <ComboboxFournisseur
+          name={creationMissionData.supplier?.name ?? ''}
+          required
+          label={creationMissionData.supplier?.label ?? ''}
+          onChange={handleChange}
+          hasError={checkIfRequiredAndNotMissing(
+            creationMissionData.supplier?.name as keyof UserType
+          )}
         />
       </div>
 

@@ -27,7 +27,6 @@ export const handleReadNewMessage = async ({
     .select('*');
 
   if (error) {
-    console.log('error', error);
     return { error: error.message };
   }
   return { error: null };

@@ -80,7 +80,7 @@ export function Combobox({
                     defaultSelectedKeys.toLowerCase()
                 )?.label
               : placeholder}
-            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+            <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">

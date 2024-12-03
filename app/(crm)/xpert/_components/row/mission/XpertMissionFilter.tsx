@@ -1,39 +1,33 @@
 import { FilterButton } from '@/components/FilterButton';
-import { signUpDateOptions } from '@/data/constant';
 import React from 'react';
 
 export default function XpertMissionFilter() {
   return (
     <>
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={[]}
         onValueChange={() => {}}
         placeholder="Date de début/fin"
       />
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={[]}
         onValueChange={() => {}}
         placeholder="N° de mission"
         filter={false}
       />
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={[]}
         onValueChange={() => {}}
         placeholder="Titre"
         filter={false}
       />
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={[]}
         onValueChange={() => {}}
         placeholder="Situation"
       />
       <FilterButton
-        options={signUpDateOptions}
-        defaultSelectedKeys=""
+        options={[]}
         onValueChange={() => {}}
         placeholder="TJM XPERT GD inclus"
         filter={false}

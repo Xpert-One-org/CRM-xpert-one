@@ -6,8 +6,6 @@ import type { DBFournisseur } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
-import { Eye } from 'lucide-react';
-import { X } from 'lucide-react';
 import React from 'react';
 
 export default function FournisseurRow({

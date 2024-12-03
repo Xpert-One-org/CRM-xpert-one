@@ -6,10 +6,10 @@ import FournisseurRow from './FournisseurRow';
 import { cn } from '@/lib/utils';
 import FournisseurMissionTable from './FournisseurMissionRow';
 import Input from '@/components/inputs/Input';
-import { empty, signUpDateOptions } from '@/data/constant';
+import { empty } from '@/data/constant';
 import { getLabel } from '@/utils/getLabel';
 import { useSelect } from '@/store/select';
-import MultiSelectComponent from '@/components/inputs/MultiSelectComponent';
+import MultiSelectComponent from '@/components/MultiSelectComponent';
 import {
   areaSelect,
   energyRenewableSelect,
@@ -88,48 +88,41 @@ export default function FournisseurTable() {
 
       <div className="grid grid-cols-8 gap-3">
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[]}
           onValueChange={() => {}}
           placeholder="Date d'inscription"
         />
+        <FilterButton options={[]} onValueChange={() => {}} placeholder="Nom" />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
-          onValueChange={() => {}}
-          placeholder="Nom"
-        />
-        <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[]}
           onValueChange={() => {}}
           placeholder="Prénom"
         />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[]}
           onValueChange={() => {}}
           placeholder="Poste"
         />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[]}
           onValueChange={() => {}}
           placeholder="N° identification"
         />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[]}
           onValueChange={() => {}}
           placeholder="Société"
         />
         <FilterButton
-          options={signUpDateOptions}
-          defaultSelectedKeys=""
+          options={[]}
           onValueChange={() => {}}
           placeholder="Nombre de missions"
         />
-        <FilterButton placeholder="Fiche détaillée" filter={false} />
+        <FilterButton
+          className="font-bold"
+          placeholder="Fiche détaillée"
+          filter={false}
+        />
 
         {fournisseurs?.map((fournisseur) => (
           <React.Fragment key={fournisseur.id}>
@@ -383,7 +376,6 @@ export default function FournisseurTable() {
                     label="Tél portable"
                     name=""
                     placeholder={empty}
-                    className="xl:max-w-full"
                     value={fournisseur.mobile ?? ''}
                     defaultSelectedKeys={fournisseur.mobile ?? ''}
                     disabled
@@ -391,7 +383,6 @@ export default function FournisseurTable() {
                   <PhoneInputComponent
                     label="Tél fixe"
                     name=""
-                    className="xl:max-w-full"
                     placeholder={empty}
                     value={fournisseur.fix ?? ''}
                     defaultSelectedKeys={fournisseur.fix ?? ''}
@@ -438,26 +429,22 @@ export default function FournisseurTable() {
             >
               <div className="grid grid-cols-4 gap-3 p-[14px]">
                 <FilterButton
-                  options={signUpDateOptions}
-                  defaultSelectedKeys=""
+                  options={[]}
                   onValueChange={() => {}}
                   placeholder="Date de début/fin"
                 />
                 <FilterButton
-                  options={signUpDateOptions}
-                  defaultSelectedKeys=""
+                  options={[]}
                   onValueChange={() => {}}
                   placeholder="N° de mission"
                 />
                 <FilterButton
-                  options={signUpDateOptions}
-                  defaultSelectedKeys=""
+                  options={[]}
                   onValueChange={() => {}}
                   placeholder="Intitulé de poste"
                 />
                 <FilterButton
-                  options={signUpDateOptions}
-                  defaultSelectedKeys=""
+                  options={[]}
                   onValueChange={() => {}}
                   placeholder="État de la mission"
                 />
