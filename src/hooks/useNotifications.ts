@@ -5,7 +5,6 @@ import { create } from 'zustand';
 
 type State = {
   chatNotifications: DBNotification[] | null;
-
   fetchNotifications: () => Promise<void>;
   from: number;
   to: number;

@@ -24,7 +24,7 @@ export default function MatchingMissionRow({
   return (
     <>
       <div className="col-span-1">
-        <ComboboxMission redirect />
+        <ComboboxMission slug="matching" />
       </div>
       <Box
         className="col-span-1 cursor-pointer text-white"

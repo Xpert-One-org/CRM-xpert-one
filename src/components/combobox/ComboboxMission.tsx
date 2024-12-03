@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
-export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
+export default function ComboboxMission({ slug }: { slug?: string }) {
   const [value, setValue] = useState('');
   const [text] = useDebounce(value, 500);
   const [data, setData] = useState<string[]>([]);
@@ -14,7 +14,9 @@ export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
   const pathname = usePathname();
   const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
   const [currentValue] = useState(
-    currentMissionNumber !== 'fiche' && currentMissionNumber !== 'matching'
+    currentMissionNumber !== 'fiche' &&
+      currentMissionNumber !== 'matching' &&
+      currentMissionNumber !== 'selection'
       ? currentMissionNumber
       : ''
   );
@@ -32,9 +34,13 @@ export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
     }
 
     setValue(value);
-    if (redirect) {
+    if (slug === 'matching') {
       router.push(
         `/mission/matching/${value.split(' ').join('-').toUpperCase()}`
+      );
+    } else if (slug === 'selection') {
+      router.push(
+        `/mission/selection/${value.split(' ').join('-').toUpperCase()}`
       );
     } else {
       router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
@@ -61,9 +67,9 @@ export default function ComboboxMission({ redirect }: { redirect?: boolean }) {
       isLoading={isLoading}
       handleValueChange={handleValueChange}
       placeholder={
-        currentMissionNumber !== 'fiche' && currentMissionNumber !== 'matching'
-          ? currentMissionNumber
-          : 'Rechercher'
+        slug === 'matching' || slug === 'selection' || slug === 'fiche'
+          ? 'Rechercher'
+          : currentMissionNumber
       }
       className="bg-primary py-spaceContainer text-white hover:bg-secondary"
     />
