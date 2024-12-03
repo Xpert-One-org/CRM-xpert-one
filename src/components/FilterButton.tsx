@@ -1,4 +1,3 @@
-'use client';
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import FilterSvg from './svg/FIlterSvg';
@@ -10,32 +9,82 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { Badge } from './ui/badge';
+
+export type SortOrder = 'asc' | 'desc' | null;
+export type SelectedOption = { label: string; value: string };
 
 type FilterButtonProps = {
-  options?: { label: string | null; value: string | null }[];
-  defaultSelectedKeys?: string;
+  options?: (SelectedOption & { color?: string })[];
   onValueChange?: (value: string) => void;
   placeholder?: string;
   filter?: boolean;
   className?: string;
   disabled?: boolean;
+  sortable?: boolean;
+  data?: any[];
+  sortKey?: string;
+  onSort?: (sortedData: any[]) => void;
+  coloredOptions?: boolean;
+  selectedOption?: SelectedOption;
 };
 
 export const FilterButton = ({
   options,
-  defaultSelectedKeys,
   onValueChange,
   placeholder,
   filter = true,
   className,
   disabled = false,
+  sortable = false,
+  data,
+  sortKey,
+  onSort,
+  coloredOptions = false,
 }: FilterButtonProps) => {
-  const [selected, setSelected] = useState<string>(defaultSelectedKeys ?? '');
+  const [selectedOption, setSelectedOption] = useState<SelectedOption>({
+    label: '',
+    value: '',
+  });
 
-  const handleValueChange = (value: string) => {
-    setSelected(value);
+  const compareValues = (valueA: any, valueB: any) => {
+    if (!isNaN(Number(valueA)) && !isNaN(Number(valueB))) {
+      return Number(valueA) - Number(valueB);
+    }
+
+    if (valueA instanceof Date && valueB instanceof Date) {
+      return valueA.getTime() - valueB.getTime();
+    }
+
+    const strA = String(valueA).toLowerCase();
+    const strB = String(valueB).toLowerCase();
+
+    if (strA < strB) return -1;
+    if (strA > strB) return 1;
+    return 0;
+  };
+
+  const handleValueChange = (option: SelectedOption) => {
+    setSelectedOption(option);
+
+    if (sortable && data && sortKey && onSort) {
+      const sortedData = [...data].sort((a, b) => {
+        const valueA = a[sortKey];
+        const valueB = b[sortKey];
+
+        if (option.value === 'asc') {
+          return compareValues(valueA, valueB);
+        } else if (option.value === 'desc') {
+          return compareValues(valueB, valueA);
+        }
+        return 0;
+      });
+
+      onSort(option.value === '' ? data : sortedData);
+    }
+
     if (onValueChange) {
-      onValueChange(value);
+      onValueChange(option.value);
     }
   };
 
@@ -50,10 +99,28 @@ export const FilterButton = ({
                 className
               )}
             >
-              {selected || placeholder}
+              {placeholder}
               <div className="size-3">
                 <FilterSvg />
               </div>
+              {selectedOption.value !== '' && (
+                <Badge
+                  style={
+                    coloredOptions &&
+                    options?.find((opt) => opt.value === selectedOption.value)
+                      ?.color
+                      ? {
+                          backgroundColor: options.find(
+                            (opt) => opt.value === selectedOption.value
+                          )?.color,
+                          color: '#fff',
+                        }
+                      : undefined
+                  }
+                >
+                  {selectedOption.label}
+                </Badge>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-white">
@@ -62,9 +129,14 @@ export const FilterButton = ({
               options.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => handleValueChange(option.value ?? '')}
+                  onClick={() =>
+                    handleValueChange({
+                      label: option.label || '',
+                      value: option.value || '',
+                    })
+                  }
                 >
-                  {option.label}
+                  {option.label || ''}
                 </DropdownMenuItem>
               ))
             ) : (
@@ -81,7 +153,7 @@ export const FilterButton = ({
             )}
             disabled={disabled}
           >
-            {selected || placeholder}
+            {placeholder}
           </Button>
         </>
       )}
