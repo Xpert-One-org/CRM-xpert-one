@@ -7,6 +7,7 @@ import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 
 import useNotifications from '@/hooks/useNotifications';
 import type { DBNotification } from '@/types/typesDb';
+import Bell from './svg/Bell';
 
 function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -48,20 +49,20 @@ function NotificationBell() {
 
   return (
     <div className="relative">
-      {/* <button
+      <button
         onClick={togglePopup}
         className="relative z-20 focus:outline-none"
       >
-        <div className="border-border-gray relative rounded-full border-[1px] bg-white p-2">
+        <div className="relative rounded-full border border-border-gray bg-white p-2">
           <Bell />
-          {chatNotifications && chatNotifications?.length > 0 && (
+          {chatNotifications && chatNotifications.length > 0 && (
             <>
-              <div className="absolute right-[10px] top-[9px] z-20 flex h-2 w-2 items-center justify-center rounded-full border-2 border-transparent bg-white font-bold text-white group-hover:scale-110"></div>
-              <div className="absolute right-[10px] top-[9px] z-20 flex h-2 w-2 animate-pulse items-center justify-center rounded-full border-2 border-transparent bg-[#FFA800] font-bold text-white group-hover:scale-110"></div>
+              <div className="absolute right-[10px] top-[9px] z-20 flex size-2 items-center justify-center rounded-full border-2 border-transparent bg-white font-bold text-white group-hover:scale-110"></div>
+              <div className="absolute right-[10px] top-[9px] z-20 flex size-2 animate-pulse items-center justify-center rounded-full border-2 border-transparent bg-[#FFA800] font-bold text-white group-hover:scale-110"></div>
             </>
           )}
         </div>
-      </button> */}
+      </button>
 
       {isOpen && (
         <>
