@@ -14,6 +14,8 @@ type XpertState = {
   xperts: DBXpert[] | null;
   activeFilters: FilterXpert;
   setActiveFilters: (filter: FilterXpert) => void;
+  xpertFilterKey: number;
+  setXpertFilterKey: () => void;
   xpertsOptimized: DBXpertOptimized[] | null;
   totalXperts: number | null;
   totalXpertOptimized: number | null;
@@ -49,12 +51,45 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     set({ activeFilters: filter });
   },
   openedXpert: null,
+  xpertFilterKey: new Date().getTime(),
+  setXpertFilterKey: () => {
+    set({ xpertFilterKey: new Date().getTime() });
+  },
+
   totalXpertOptimized: null,
   totalXperts: null,
   offset: 0,
+
+  // const resetFilter = () => {
+  //   setActiveFilters({
+  //     jobTitles: '',
+  //     availability: '',
+  //     cv: '',
+  //     countries: [],
+  //     sortDate: '',
+  //     firstname: '',
+  //     generated_id: '',
+  //     lastname: '',
+  //   });
+  //   setXpertFilterKey(new Date().getTime());
+  //   fetchXpertOptimizedFiltered(true);
+  // };
   resetXperts: () => {
-    set({ xpertsOptimized: null, offset: 0, totalXpertOptimized: 0 });
-    get().fetchXpertOptimizedFiltered();
+    set({
+      activeFilters: {
+        jobTitles: '',
+        availability: '',
+        cv: '',
+        countries: [],
+        sortDate: '',
+        firstname: '',
+        generated_id: '',
+        lastname: '',
+      },
+      xpertFilterKey: new Date().getTime(),
+    });
+
+    get().fetchXpertOptimizedFiltered(true);
   },
   setOpenedXpert: (xpertId: string) => {
     const xperts = get().xperts || [];
