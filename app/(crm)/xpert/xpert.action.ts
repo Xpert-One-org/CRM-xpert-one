@@ -1,7 +1,8 @@
 'use server';
 
 import { limitXpert } from '@/data/constant';
-import type { DBXpert } from '@/types/typesDb';
+import type { FilterXpert } from '@/types/types';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
@@ -121,6 +122,115 @@ export const getAllXperts = async ({
 
     return {
       data: processedData,
+      count: count || 0,
+    };
+  }
+
+  return {
+    data: [],
+    count: null,
+  };
+};
+
+export const getXpertsOptimized = async ({
+  offset,
+  filters,
+}: {
+  offset: number;
+  filters?: FilterXpert;
+}): Promise<{ data: DBXpertOptimized[]; count: number | null }> => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const isAdmin = await checkAuthRole();
+
+  if (isAdmin) {
+    let query = supabase
+      .from('profile')
+      .select(
+        'firstname, lastname, id, country, generated_id, created_at, cv_name, profile_mission(availability, job_titles), mission!mission_xpert_associated_id_fkey(xpert_associated_id)',
+        { count: 'exact' }
+      )
+      .eq('role', 'xpert');
+
+    if (filters?.availability) {
+      if (filters.availability === 'unavailable') {
+        const date = new Date();
+        query = query.or(
+          `availability.eq.${null},availability.gt.${date.toISOString()}`,
+          { referencedTable: 'profile_mission' }
+        );
+      }
+      if (filters.availability === 'in_mission') {
+        query = query.not(`mission`, 'is', null);
+      }
+      if (filters.availability === 'available') {
+        query = query.not(`profile_mission`, 'is', null);
+        query = query.or(`availability.lt.${new Date().toISOString()}`, {
+          referencedTable: 'profile_mission',
+        });
+      }
+    }
+
+    if (filters?.jobTitles) {
+      const jobTitles = filters.jobTitles.replace(/ /g, '_');
+      query = query.not('profile_mission', 'is', null);
+      query = query.ilike(
+        'profile_mission.job_titles_search',
+        `%${jobTitles}%`
+      );
+    }
+
+    if (filters?.countries && filters.countries.length > 0) {
+      query = query.in('country', filters.countries);
+    }
+
+    if (filters?.sortDate) {
+      query = query.order('created_at', {
+        ascending: filters.sortDate === 'asc',
+      });
+    } else {
+      query = query.order('created_at', {
+        ascending: false,
+      });
+    }
+
+    if (filters?.firstname) {
+      query = query.ilike('firstname', `%${filters.firstname}%`);
+    }
+
+    if (filters?.lastname) {
+      query = query.ilike('lastname', `%${filters.lastname}%`);
+    }
+
+    if (filters?.cv) {
+      if (filters.cv === 'yes') {
+        query = query.not('cv_name', 'is', null);
+      } else {
+        query = query.is('cv_name', null);
+      }
+    }
+
+    if (filters?.generated_id) {
+      query = query.ilike('generated_id', `%${filters.generated_id}%`);
+    }
+
+    const { data, error, count } = await query.range(
+      offset,
+      offset + limitXpert - 1
+    );
+
+    if (error) {
+      console.error(error);
+      throw new Error(error.message);
+    }
+
+    if (!data) {
+      console.error('No data returned');
+      throw new Error('No data returned');
+    }
+
+    return {
+      data: data,
       count: count || 0,
     };
   }

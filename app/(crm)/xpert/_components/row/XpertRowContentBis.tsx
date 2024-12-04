@@ -8,7 +8,7 @@ import { useSelect } from '@/store/select';
 import type { DBXpert } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { DocumentInfo } from '../XpertTable';
 import { Label } from '@/components/ui/label';
 import {
@@ -20,9 +20,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Loader from '@/components/Loader';
+import { useXpertStore } from '@/store/xpert';
 
 type XpertRowContentBisProps = {
-  xpert: DBXpert;
   isLoading: boolean;
   cvInfo: DocumentInfo;
   ursaffInfo: DocumentInfo;
@@ -33,7 +33,6 @@ type XpertRowContentBisProps = {
 };
 
 export default function XpertRowContentBis({
-  xpert,
   isLoading,
   cvInfo,
   ursaffInfo,
@@ -42,7 +41,14 @@ export default function XpertRowContentBis({
   ribInfo,
   habilitationInfo,
 }: XpertRowContentBisProps) {
+  const { openedXpert } = useXpertStore();
+
   const { sectors, regions, expertises, specialities, jobTitles } = useSelect();
+  const [xpert, setXpert] = useState<DBXpert | null>(null);
+
+  useEffect(() => {
+    setXpert(openedXpert);
+  }, [openedXpert]);
   const [documentType, setDocumentType] = useState(
     cvInfo
       ? 'cv'
@@ -124,6 +130,9 @@ export default function XpertRowContentBis({
     setDocumentType(value);
   };
 
+  if (!xpert) {
+    return null;
+  }
   return (
     <>
       {cvInfo.created_at && (
@@ -145,14 +154,14 @@ export default function XpertRowContentBis({
                       <p className="font-medium text-black">
                         {selectOptions[0]?.label}
                       </p>
-                      <p className="font-medium text-[#BEBEC0]">
+                      <p className="font-medium text-[#BEBEC0] group-hover:text-black">
                         {selectOptions[0]?.json_key}
                       </p>
                     </div>
                   }
                 />
               </SelectTrigger>
-              <SelectContent className="w-full">
+              <SelectContent className="group w-full">
                 <SelectGroup>
                   {selectOptions
                     .filter((item) => item.value)
@@ -164,9 +173,7 @@ export default function XpertRowContentBis({
                       >
                         <div className="flex flex-row items-center gap-2">
                           <p className="font-medium text-black">{item.label}</p>
-                          <p className="font-medium text-[#BEBEC0]">
-                            {item.json_key}
-                          </p>
+                          <p className="font-medium">{item.json_key}</p>
                         </div>
                       </SelectItem>
                     ))}

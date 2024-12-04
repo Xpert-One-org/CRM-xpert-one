@@ -3,11 +3,11 @@
 import React, { useEffect } from 'react';
 import CountryMultiSelect from './combobox/CountryMultiSelect';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 
 type CountryFilterButtonProps = {
-  data?: DBXpert[];
-  onFilter?: (filteredData: DBXpert[]) => void;
+  data?: DBXpertOptimized[];
+  onFilter?: (filteredData: DBXpertOptimized[]) => void;
   selectedCountries: string[];
   onCountryChange: (values: string[]) => void;
 };

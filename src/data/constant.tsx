@@ -11,5 +11,5 @@ export const mediumCompletion = 60;
 export const empty = '';
 export const minQuerySearch = 2;
 export const ageMax = 35;
-export const limitXpert = 15;
+export const limitXpert = 35;
 export const limitFournisseur = 10;

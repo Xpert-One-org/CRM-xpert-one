@@ -1,41 +1,93 @@
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import { create } from 'zustand';
 import {
   deleteXpert,
   getAllXperts,
   getSpecificXpert,
+  getXpertsOptimized,
 } from '../../app/(crm)/xpert/xpert.action';
 import { toast } from 'sonner';
+import type { FilterXpert } from '@/types/types';
 
 type XpertState = {
   loading: boolean;
   xperts: DBXpert[] | null;
+  activeFilters: FilterXpert;
+  setActiveFilters: (filter: FilterXpert) => void;
+  xpertsOptimized: DBXpertOptimized[] | null;
   totalXperts: number | null;
+  totalXpertOptimized: number | null;
   offset: number;
+  openedXpert: DBXpert | null;
+  setOpenedXpert: (xpertId: string) => void;
+  getXpertSelected: (xpertId: string) => Promise<{ xpert: DBXpert | null }>;
+  resetXperts: () => void;
   fetchXperts: () => void;
+  fetchXpertOptimized: () => void;
+  fetchXpertOptimizedFiltered: (
+    replacing?: boolean
+  ) => Promise<{ xperts: DBXpertOptimized[] }>;
   fetchSpecificXpert: (xpertId: string) => void;
   deleteXpert: (xpertId: string, xpertGeneratedId: string) => void;
 };
 
 export const useXpertStore = create<XpertState>((set, get) => ({
-  loading: false,
+  loading: true,
   xperts: null,
+  xpertsOptimized: null,
+  activeFilters: {
+    jobTitles: '',
+    availability: '',
+    cv: '',
+    countries: [],
+    sortDate: '',
+    firstname: '',
+    generated_id: '',
+    lastname: '',
+  },
+  setActiveFilters: (filter) => {
+    set({ activeFilters: filter });
+  },
+  openedXpert: null,
+  totalXpertOptimized: null,
   totalXperts: null,
   offset: 0,
-  fetchSpecificXpert: async (xpertId: string) => {
+  resetXperts: () => {
+    set({ xpertsOptimized: null, offset: 0, totalXpertOptimized: 0 });
+    get().fetchXpertOptimizedFiltered();
+  },
+  setOpenedXpert: (xpertId: string) => {
     const xperts = get().xperts || [];
-    const findXpert = xperts.find((xpert) => xpert.generated_id === xpertId);
-    if (findXpert) {
-      return;
-    }
+    const openedXpert = xperts.find((xpert) => xpert.id === xpertId);
+    set({ openedXpert });
+  },
+  fetchSpecificXpert: async (xpertId: string) => {
     set({ loading: true });
     const xpert = await getSpecificXpert(xpertId);
+    const xpertsOptimized: DBXpertOptimized | null = xpert
+      ? {
+          country: xpert.country,
+          firstname: xpert.firstname,
+          generated_id: xpert.generated_id,
+          id: xpert.id,
+          created_at: xpert.created_at,
+          cv_name: xpert.cv_name,
+          profile_mission: xpert.profile_mission,
+          lastname: xpert.lastname,
+          mission: xpert.mission,
+        }
+      : null;
     if (!xpert) {
       set({ loading: false });
       return;
     }
 
-    set({ xperts: [xpert, ...xperts], loading: false });
+    set({
+      xpertsOptimized: xpertsOptimized ? [xpertsOptimized] : [],
+      xperts: [xpert],
+      loading: false,
+      totalXpertOptimized: 1,
+    });
   },
   fetchXperts: async () => {
     set({ loading: true });
@@ -52,6 +104,57 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       loading: false,
     });
   },
+
+  fetchXpertOptimizedFiltered: async (replacing) => {
+    set({ loading: true });
+
+    const filter = get().activeFilters;
+
+    const offset = replacing ? 0 : get().xpertsOptimized?.length || 0;
+
+    const { data, count } = await getXpertsOptimized({
+      offset: offset,
+      filters: filter,
+    });
+
+    const xperts = get().xpertsOptimized || [];
+    set({
+      xpertsOptimized: replacing ? data : [...xperts, ...data],
+      totalXpertOptimized: count,
+      loading: false,
+    });
+    return { xperts };
+  },
+
+  fetchXpertOptimized: async () => {
+    set({ loading: true });
+    const offset = get().xpertsOptimized?.length || 0;
+
+    const { data, count } = await getXpertsOptimized({ offset: offset });
+    const xperts = get().xpertsOptimized || [];
+
+    set({
+      xpertsOptimized: [...xperts, ...data],
+      totalXpertOptimized: count,
+      loading: false,
+    });
+  },
+
+  getXpertSelected: async (xpertId: string) => {
+    const xperts = get().xperts || [];
+    const xpertSelected = xperts.find(
+      (xpert) => xpert.generated_id === xpertId
+    );
+    if (!xpertSelected) {
+      const specificXpert = await getSpecificXpert(xpertId);
+      if (specificXpert) {
+        set({ xperts: [specificXpert, ...xperts] });
+      }
+      return { xpert: specificXpert };
+    }
+    return { xpert: xpertSelected };
+  },
+
   deleteXpert: async (xpertId: string, xpertGeneratedId: string) => {
     set({ loading: true });
     const { errorMessage } = await deleteXpert(xpertId);
