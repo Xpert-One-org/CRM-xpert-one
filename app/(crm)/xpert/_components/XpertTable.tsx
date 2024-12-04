@@ -209,7 +209,7 @@ export default function XpertTable() {
       const { data } = await supabase.storage
         .from('profile_files')
         .getPublicUrl(
-          `${xpert.generated_id}/habilitation/${lastHabilitationFile.name}`
+          `${xpert.generated_id}/habilitations/${lastHabilitationFile.name}`
         );
       setHabilitationInfo({
         publicUrl: data.publicUrl,
