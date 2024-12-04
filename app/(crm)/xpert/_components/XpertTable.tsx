@@ -20,6 +20,7 @@ import { FilterXpert } from '@/types/types';
 import Button from '@/components/Button';
 import { Skeleton } from '@/components/ui/skeleton';
 // import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -103,7 +104,7 @@ export default function XpertTable() {
 
     if (cvData && cvData.length > 0) {
       const lastCV = cvData[cvData.length - 1];
-      const { data } = await supabase.storage
+      const { data } = supabase.storage
         .from('profile_files')
         .getPublicUrl(`${xpert.generated_id}/cv/${lastCV.name}`);
       setCvInfo({

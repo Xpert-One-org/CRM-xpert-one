@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 import { Label } from './label';
-import { Mail, Lock, EyeOff, Eye } from 'lucide-react';
+import { Mail, Lock, EyeOff, Eye, Calendar } from 'lucide-react';
 import { Button } from './button';
 import { useState } from 'react';
 
@@ -55,7 +55,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             required={required}
             type={inputType}
             className={cn(
-              'placeholder:text-muted-foreground flex w-full rounded-md border border-input bg-white px-3 py-3 text-sm font-light ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+              'placeholder:text-muted-foreground w-full rounded-md border border-input bg-white px-3 py-3 text-sm font-light ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
               { 'pl-10': hasPreIcon },
               { 'border-destructive': hasError },
               { 'pr-10': showPasswordToggle },
@@ -77,6 +77,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               )}
               {type === 'email' && (
                 <Mail
+                  strokeWidth={1.5}
+                  color="black"
+                  className="outline-none"
+                  size={18}
+                  type="button"
+                />
+              )}
+              {type === 'date' && (
+                <Calendar
                   strokeWidth={1.5}
                   color="black"
                   className="outline-none"
