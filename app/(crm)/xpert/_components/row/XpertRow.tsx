@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { empty } from '@/data/constant';
 import { cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
-import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
+import type { DBXpertOptimized } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
-import React, { useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { jobTitleSelect } from '@/data/mocked_select';
 
@@ -22,7 +22,7 @@ export default function XpertRow({
   onClick: () => void;
 }) {
   const dateSignUp = formatDate(xpert.created_at);
-  const { fetchJobTitles, countries, fetchCountries } = useSelect();
+  const { countries } = useSelect();
 
   // useEffect(() => {
   //   fetchJobTitles();

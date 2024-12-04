@@ -54,11 +54,19 @@ export default function XpertFilter({
   const handleAvailabilityChange = (value: string) => {
     const newActiveFilter = { ...activeFilters, availability: value };
     setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
   };
 
   const handleCvChange = (value: string) => {
     const newActiveFilter = { ...activeFilters, cv: value };
     setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
   };
 
   const handleSortDateChange = (value: string) => {

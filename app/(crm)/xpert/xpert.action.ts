@@ -159,6 +159,7 @@ export const getXpertsOptimized = async ({
     if (filters?.availability) {
       if (filters.availability === 'unavailable') {
         const date = new Date();
+
         query = query.or(
           `availability.eq.${null},availability.gt.${date.toISOString()}`,
           { referencedTable: 'profile_mission' }
@@ -168,6 +169,7 @@ export const getXpertsOptimized = async ({
         query = query.not(`mission`, 'is', null);
       }
       if (filters.availability === 'available') {
+        query = query.is('mission', null);
         query = query.not(`profile_mission`, 'is', null);
         query = query.or(`availability.lt.${new Date().toISOString()}`, {
           referencedTable: 'profile_mission',
