@@ -199,6 +199,12 @@ export default function XpertTable() {
 
   return (
     <>
+      {
+        <div className="mb-4 w-fit">
+          <CreateFournisseurXpertDialog role="xpert" />
+        </div>
+      }
+
       <div className="grid grid-cols-10 gap-3">
         <XpertFilter
           key={xpertFilterKey}

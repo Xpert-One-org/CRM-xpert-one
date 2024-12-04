@@ -163,6 +163,12 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     } else {
       toast.success(`L'XPERT ${xpertGeneratedId} a été supprimé avec succès`);
       set((state) => ({
+        xpertsOptimized: state.xpertsOptimized?.filter(
+          (xpert) => xpert.generated_id !== xpertGeneratedId
+        ),
+        totalXpertOptimized: state.totalXpertOptimized
+          ? state.totalXpertOptimized - 1
+          : 0,
         xperts: state.xperts?.filter(
           (xpert) => xpert.generated_id !== xpertGeneratedId
         ),

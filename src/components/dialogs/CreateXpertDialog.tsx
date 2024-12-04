@@ -42,10 +42,8 @@ export type ProfileDataPicked = Pick<
 
 export default function CreateFournisseurXpertDialog({
   role,
-  isPageLoaded,
 }: {
   role: 'company' | 'xpert';
-  isPageLoaded: boolean;
 }) {
   const [popupOpen, setPopupOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,6 +80,7 @@ export default function CreateFournisseurXpertDialog({
     'mobile',
   ];
 
+  const { fetchXpertOptimizedFiltered } = useXpertStore();
   // const requiredProfileFields = [""];
 
   const onChangeProfil = ({
@@ -140,7 +139,7 @@ export default function CreateFournisseurXpertDialog({
       if (!error) {
         toast.success('Xpert créé avec succès');
         reset();
-
+        fetchXpertOptimizedFiltered(true);
         setPopupOpen(false);
       }
       setIsLoading(false);
@@ -156,8 +155,7 @@ export default function CreateFournisseurXpertDialog({
     <>
       <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
         <Button
-          variant={isPageLoaded ? 'primary' : 'disabled'}
-          disabled={!isPageLoaded}
+          variant={'primary'}
           className="px-spaceContainer py-spaceXSmall text-white"
           onClick={() => setPopupOpen(true)}
         >
