@@ -85,7 +85,12 @@ export default function MatchingXpertsRow({
       </Box>
       <Box
         className="col-span-2 flex flex-col divide-y divide-gray-200"
-        collapsible={hasNonMatchingCriteria ? true : false}
+        collapsible={
+          hasNonMatchingCriteria &&
+          Object.keys(nonMatchingCriteria).length !== 1
+            ? true
+            : false
+        }
       >
         {hasNonMatchingCriteria ? (
           Object.entries(nonMatchingCriteria).map(([key, value], index) => {
