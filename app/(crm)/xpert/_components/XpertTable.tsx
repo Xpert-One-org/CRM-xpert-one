@@ -218,7 +218,7 @@ export default function XpertTable() {
                 {totalXpertOptimized} résultats
               </p>
               {/* RESET */}
-              {activeFilters.jobTitles ||
+              {(activeFilters.jobTitles ||
                 activeFilters.availability ||
                 activeFilters.cv ||
                 activeFilters.countries.length > 0 ||
@@ -226,14 +226,14 @@ export default function XpertTable() {
                 activeFilters.firstname ||
                 activeFilters.generated_id ||
                 activeFilters.lastname ||
-                (xpertIdParams && (
-                  <button
-                    className="font-[600] text-primary"
-                    onClick={resetFilter}
-                  >
-                    Réinitialiser
-                  </button>
-                ))}
+                xpertIdParams) && (
+                <button
+                  className="font-[600] text-primary"
+                  onClick={resetFilter}
+                >
+                  Réinitialiser
+                </button>
+              )}
             </div>
           ) : (
             <Skeleton className="h-6 w-40" />
