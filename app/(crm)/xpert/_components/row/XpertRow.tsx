@@ -4,29 +4,30 @@ import { Button } from '@/components/ui/button';
 import { empty } from '@/data/constant';
 import { cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpertOptimized } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
-import React, { useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
+import { jobTitleSelect } from '@/data/mocked_select';
 
 export default function XpertRow({
   xpert,
   isOpen,
   onClick,
 }: {
-  xpert: DBXpert;
+  xpert: DBXpertOptimized;
   isOpen: boolean;
   onClick: () => void;
 }) {
   const dateSignUp = formatDate(xpert.created_at);
-  const { jobTitles, fetchJobTitles, countries, fetchCountries } = useSelect();
+  const { countries } = useSelect();
 
-  useEffect(() => {
-    fetchJobTitles();
-    fetchCountries();
-  }, [fetchJobTitles, fetchCountries]);
+  // useEffect(() => {
+  //   fetchJobTitles();
+  //   fetchCountries();
+  // }, [fetchJobTitles, fetchCountries]);
 
   const postTypes = xpert.profile_mission
     ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
@@ -36,7 +37,7 @@ export default function XpertRow({
               className="m-1 max-w-[95%] font-normal"
               key={`${xpert.generated_id}-${i}`}
             >
-              {getLabel({ value: job, select: jobTitles }) ?? empty}
+              {getLabel({ value: job, select: jobTitleSelect }) ?? empty}
             </Badge>
             {i < arr.length - 1 && <span className="text-gray-400">|</span>}
           </div>

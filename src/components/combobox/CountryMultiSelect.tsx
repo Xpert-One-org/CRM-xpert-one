@@ -88,9 +88,9 @@ export default function CountryMultiSelect({
                 return (
                   <Badge
                     key={value}
-                    className="flex items-center gap-1 bg-white text-black"
+                    className="flex items-center gap-1 bg-primary text-white"
                   >
-                    <FlagComponent country={value} />
+                    <FlagComponent country={option?.value ?? ''} />
                     {option?.label}
                     <X
                       className="size-3 cursor-pointer hover:text-destructive"
@@ -114,7 +114,7 @@ export default function CountryMultiSelect({
                   return (
                     <CommandItem
                       key={option.value}
-                      value={option.value}
+                      value={option.label}
                       onSelect={() => handleSelect(option.value)}
                       className="flex items-center gap-2"
                     >
