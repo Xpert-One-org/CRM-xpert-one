@@ -32,10 +32,11 @@ export default function XpertTable() {
     xpertsOptimized,
     totalXpertOptimized,
     loading,
-    setActiveFilters,
+    xpertFilterKey,
     activeFilters,
     fetchSpecificXpert,
     fetchXpertOptimizedFiltered,
+    resetXperts,
   } = useXpertStore();
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');
@@ -52,7 +53,6 @@ export default function XpertTable() {
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const xpertIdParams = searchParams.get('id');
-  const [xpertFilterKey, setXpertFilterKey] = useState(new Date().getTime());
 
   const hasMore =
     xpertsOptimized && totalXpertOptimized
@@ -182,21 +182,6 @@ export default function XpertTable() {
     xpertId && fetchSpecificXpert(xpertId);
   }, [searchParams]);
 
-  const resetFilter = () => {
-    setActiveFilters({
-      jobTitles: '',
-      availability: '',
-      cv: '',
-      countries: [],
-      sortDate: '',
-      firstname: '',
-      generated_id: '',
-      lastname: '',
-    });
-    setXpertFilterKey(new Date().getTime());
-    fetchXpertOptimizedFiltered(true);
-  };
-
   return (
     <>
       {
@@ -229,7 +214,7 @@ export default function XpertTable() {
                 xpertIdParams) && (
                 <button
                   className="font-[600] text-primary"
-                  onClick={resetFilter}
+                  onClick={resetXperts}
                 >
                   Réinitialiser
                 </button>
