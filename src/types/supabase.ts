@@ -683,6 +683,7 @@ export type Database = {
       profile: {
         Row: {
           address: string | null;
+          admin_opinion: Database['public']['Enums']['admin_opinion'] | null;
           area: string[] | null;
           avatar_url: string | null;
           birthdate: string | null;
@@ -739,6 +740,7 @@ export type Database = {
         };
         Insert: {
           address?: string | null;
+          admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -795,6 +797,7 @@ export type Database = {
         };
         Update: {
           address?: string | null;
+          admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -1473,6 +1476,7 @@ export type Database = {
       };
     };
     Enums: {
+      admin_opinion: 'positive' | 'neutral' | 'negative';
       article_status: 'published' | 'draft';
       article_type: 'web' | 'link' | 'press';
       categories:

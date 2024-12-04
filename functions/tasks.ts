@@ -7,34 +7,13 @@ import { Task } from '@/types/types';
 
 const taskQuery = `
   *,
-  created_by_profile:profile!created_by(
-    id,
-    firstname,
-    lastname
-  ),
-  assigned_to_profile:profile!assigned_to(
-    id,
-    firstname,
-    lastname
-  ),
-  xpert:profile(
-    id,
-    firstname,
-    lastname
-  ),
-  supplier:profile(
-    id,
-    firstname,
-    lastname
-  ),
-  mission(
-    id,
-    title,
-    status
-  )
+  created_by_profile:profile!tasks_created_by_fkey(id, firstname, lastname, generated_id, role),
+  assigned_to_profile:profile!tasks_assigned_to_fkey(id, firstname, lastname, generated_id, role),
+  xpert:profile!tasks_xpert_id_fkey(id, firstname, lastname, generated_id),
+  supplier:profile!tasks_supplier_id_fkey(id, firstname, lastname, generated_id),
+  mission(id, job_title, mission_number, state)
 `;
 
-// Fonction pour récupérer les tâches avec les filtres
 export async function getTasks(
   filters: {
     status?: string;
@@ -64,8 +43,28 @@ export async function getTasks(
     ascending: false,
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching tasks:', error);
+    throw error;
+  }
+
   return data as unknown as TaskWithRelations[];
+}
+
+export async function getAdminUsers() {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('profile')
+    .select('id, firstname, lastname, role')
+    .eq('role', 'admin');
+
+  if (error) {
+    console.error('Error fetching admin users:', error);
+    throw error;
+  }
+
+  return data;
 }
 
 // Mettre à jour une tâche
@@ -101,32 +100,19 @@ export async function completeTask(id: number) {
   return data as unknown as TaskWithRelations;
 }
 
-// Créer une nouvelle tâche
-export async function createTask(taskData: Omit<InsertTask, 'created_at'>) {
+export async function createTask(taskData: InsertTask) {
   const supabase = await createSupabaseAppServerClient();
-
-  // Préparer les données de la tâche
-  const newTaskData: InsertTask = {
-    ...taskData,
-    created_at: new Date().toISOString(),
-    status: taskData.status || 'pending',
-    // S'assurer que seule la bonne référence est définie selon le subject_type
-    xpert_id: taskData.subject_type === 'xpert' ? taskData.xpert_id : null,
-    supplier_id:
-      taskData.subject_type === 'supplier' ? taskData.supplier_id : null,
-    mission_id:
-      taskData.subject_type === 'mission' ? taskData.mission_id : null,
-  };
 
   const { data, error } = await supabase
     .from('tasks')
-    .insert(newTaskData)
-    .select(taskQuery)
+    .insert(taskData)
+    .select('*')
     .single();
 
   if (error) {
+    console.error('Error creating task:', error);
     throw error;
   }
 
-  return data as unknown as TaskWithRelations;
+  return data;
 }

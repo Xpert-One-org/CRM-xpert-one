@@ -195,33 +195,49 @@ type _File = {
   url: string;
 };
 
-type Task = Database['public']['Tables']['tasks']['Row'];
-type InsertTask = Database['public']['Tables']['tasks']['Insert'];
-type UpdateTask = Database['public']['Tables']['tasks']['Update'];
-type TaskWithRelations = Task & {
+// Types de base depuis la définition de la table
+export type TaskStatus = Database['public']['Enums']['task_status'];
+export type TaskSubjectType = Database['public']['Enums']['task_subject_type'];
+
+// Type de base pour une tâche
+export type Task = Database['public']['Tables']['tasks']['Row'];
+
+// Type pour l'insertion d'une nouvelle tâche
+export type InsertTask = Database['public']['Tables']['tasks']['Insert'];
+
+// Type pour la mise à jour d'une tâche
+export type UpdateTask = Database['public']['Tables']['tasks']['Update'];
+
+// Type étendu avec les relations
+export type TaskWithRelations = Task & {
   created_by_profile: {
     id: string;
-    firstname: string;
-    lastname: string;
+    firstname: string | null;
+    lastname: string | null;
+    generated_id: string | null;
   };
   assigned_to_profile: {
     id: string;
-    firstname: string;
-    lastname: string;
+    firstname: string | null;
+    lastname: string | null;
+    generated_id: string | null;
   };
   xpert?: {
     id: string;
-    firstname: string;
-    lastname: string;
+    firstname: string | null;
+    lastname: string | null;
+    generated_id: string | null;
   } | null;
   supplier?: {
     id: string;
-    firstname: string;
-    lastname: string;
+    firstname: string | null;
+    lastname: string | null;
+    generated_id: string | null;
   } | null;
   mission?: {
+    mission_number: number;
     id: number;
-    title: string;
+    title: string | null;
     status: string;
   } | null;
 };

@@ -11,7 +11,7 @@ import type { ChatType, DBChat } from '@/types/typesDb';
 import useUser from '@/store/useUser';
 import { useChatContent } from '@/store/chat/content';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { handleReadNewMessage } from '@functions/chat';
+import { handleReadNewMessage, getMessages } from '@functions/chat';
 import SkeletonChat from './skeletons/SkeletonChat';
 import Loader from '@/components/Loader';
 import { MsgCard } from './MsgCard';
@@ -34,6 +34,7 @@ export default function ChatContent({
     getMessagesRightType,
     setCurrentChatSelected,
     getChatWithRightType,
+    setCurrentMessages,
   } = useChat();
 
   const chatSelected = getChatSelectedWithRightType(type);
@@ -46,19 +47,29 @@ export default function ChatContent({
   const { isMoreDataLoading } = useChatContent({ type, scrollRef });
   const supabase = createSupabaseFrontendClient();
 
+  const refreshMessages = async () => {
+    if (!chatSelected?.id) return;
+    const { data, error } = await getMessages({
+      chat_id: chatSelected.id,
+    });
+    if (!error && data) {
+      setCurrentMessages(type, data);
+    }
+  };
+
   useEffect(() => {
     fetchMinimalProfile();
-  }, []);
+  }, [fetchMinimalProfile]);
 
   useEffect(() => {
     if (!chats) return;
     if (!chatSelected) {
       setCurrentChatSelected(chats[0]);
     }
-  }, [chats]);
+  }, [chats, chatSelected, setCurrentChatSelected]);
 
   useEffect(() => {
-    const channel = supabase.channel(`conversation:${chatSelected}`);
+    const channel = supabase.channel(`conversation:${chatSelected?.id}`);
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -69,7 +80,7 @@ export default function ChatContent({
           .flat()
           .find((presence) => presence.user_id === user_id);
         if (currentUserPresence && chatSelected) {
-          chatSelected.messages.map((m) => {
+          chatSelected.messages.forEach((m) => {
             if (!m.read_by.includes(user_id)) {
               handleReadNewMessage({
                 chat_id: chatSelected.id,
@@ -91,7 +102,7 @@ export default function ChatContent({
     return () => {
       channel.unsubscribe();
     };
-  }, [chatSelected]);
+  }, [chatSelected, supabase, user_id]);
 
   const messages = getMessagesRightType(type);
 
@@ -138,15 +149,18 @@ export default function ChatContent({
             className="flex w-full flex-col items-center gap-y-[22px] overflow-auto pb-10 pt-spaceContainer"
           >
             {isMoreDataLoading && <Loader />}
-            {messages.map((m, i) => {
-              return (
-                <MsgCard user_id={user_id} type={type} key={m.id} message={m} />
-              );
-            })}
+            {messages.map((m) => (
+              <MsgCard
+                user_id={user_id}
+                type={type}
+                key={m.id}
+                message={m}
+                onDelete={refreshMessages}
+              />
+            ))}
           </div>
         </div>
       )}
-      {/* Input */}
       <InputSend user_id={user_id} profile={minimal_profile} type={type} />
     </div>
   );

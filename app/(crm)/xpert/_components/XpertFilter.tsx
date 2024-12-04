@@ -25,6 +25,13 @@ const cvOptions = [
   { label: 'Aucun filtre', value: '', color: 'transparent' },
 ];
 
+const adminOpinionOptions = [
+  { label: 'Positif', value: 'positive', color: '#92C6B0' },
+  { label: 'Neutre', value: 'neutral', color: '#F5B935' },
+  { label: 'Négatif', value: 'negative', color: '#D64242' },
+  { label: 'Aucun filtre', value: '', color: 'transparent' },
+];
+
 export default function XpertFilter({
   xperts,
   onSortedDataChange,
@@ -42,6 +49,7 @@ export default function XpertFilter({
     cv: string;
     countries: string[];
     sortDate: string;
+    adminOpinion: string;
   };
 }) {
   const searchParams = useSearchParams();
@@ -60,6 +68,9 @@ export default function XpertFilter({
   );
   const [selectedSortDate, setSelectedSortDate] = useState<string>(
     activeFilters.sortDate
+  );
+  const [selectedAdminOpinion, setSelectedAdminOpinion] = useState<string>(
+    activeFilters.adminOpinion
   );
 
   useEffect(() => {
@@ -146,6 +157,17 @@ export default function XpertFilter({
     }
   }, [selectedSortDate, xperts, onSortedDataChange]);
 
+  useEffect(() => {
+    if (!selectedAdminOpinion) {
+      onSortedDataChange(xperts);
+    } else {
+      const filteredData = xperts.filter(
+        (xpert) => xpert.admin_opinion === selectedAdminOpinion
+      );
+      onSortedDataChange(filteredData, 'adminOpinion', [selectedAdminOpinion]);
+    }
+  }, [selectedAdminOpinion, xperts, onSortedDataChange]);
+
   const handleJobTitlesChange = (values: string[]) => {
     setSelectedJobTitles(values);
   };
@@ -164,6 +186,10 @@ export default function XpertFilter({
 
   const handleCountryChange = (values: string[]) => {
     setSelectedCountries(values);
+  };
+
+  const handleAdminOpinionChange = (value: string) => {
+    setSelectedAdminOpinion(value);
   };
 
   return (
@@ -247,6 +273,19 @@ export default function XpertFilter({
           label:
             cvOptions.find((option) => option.value === selectedCv)?.label ??
             '',
+        }}
+      />
+      <FilterButton
+        options={adminOpinionOptions}
+        onValueChange={handleAdminOpinionChange}
+        placeholder="Qualité XPERT"
+        coloredOptions
+        selectedOption={{
+          value: selectedAdminOpinion,
+          label:
+            adminOpinionOptions.find(
+              (option) => option.value === selectedAdminOpinion
+            )?.label ?? '',
         }}
       />
       <FilterButton

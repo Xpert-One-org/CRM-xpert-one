@@ -16,7 +16,15 @@ import XpertMissionFilter from './row/mission/XpertMissionFilter';
 import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import DeleteXpertDialog from './DeleteXpertDialog';
-// import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+import { Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+import { Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -64,13 +72,51 @@ export default function XpertTable() {
     cv: string;
     countries: string[];
     sortDate: string;
+    adminOpinion: string;
   }>({
     jobTitles: [],
     availability: '',
     cv: '',
     countries: [],
     sortDate: '',
+    adminOpinion: '',
   });
+
+  const [pendingOpinions, setPendingOpinions] = useState<
+    Record<string, 'positive' | 'neutral' | 'negative' | '' | null>
+  >({});
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleOpinionChange = (
+    xpertId: string,
+    opinion: 'positive' | 'neutral' | 'negative' | '' | null
+  ) => {
+    setPendingOpinions((prev) => ({
+      ...prev,
+      [xpertId]: opinion === '' ? null : opinion,
+    }));
+    setHasChanges(true);
+  };
+
+  const handleSaveAll = async () => {
+    const supabase = createSupabaseFrontendClient();
+    try {
+      for (const [xpertId, opinion] of Object.entries(pendingOpinions)) {
+        const validOpinion = opinion === '' ? null : opinion;
+        const { error } = await supabase
+          .from('profile')
+          .update({ admin_opinion: validOpinion })
+          .eq('id', xpertId);
+
+        if (error) throw error;
+      }
+      toast.success('Toutes les modifications ont été enregistrées');
+      setHasChanges(false);
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde');
+      console.error('Error updating admin opinions:', error);
+    }
+  };
 
   const handleFilterChange = useCallback(
     (data: DBXpert[], filterType?: string, filterValues?: string[]) => {
@@ -98,6 +144,11 @@ export default function XpertTable() {
         setActiveFilters((prev) => ({
           ...prev,
           sortDate: filterValues?.[0] || '',
+        }));
+      } else if (filterType === 'adminOpinion') {
+        setActiveFilters((prev) => ({
+          ...prev,
+          adminOpinion: filterValues?.[0] || '',
         }));
       }
       setFilteredXperts(data);
@@ -220,6 +271,59 @@ export default function XpertTable() {
     setIsLoading(false);
   };
 
+  const renderMissions = (xpert: DBXpert) => {
+    const isProfileComplete = xpert.totale_progression >= 80;
+    const hasCV = Boolean(xpert.cv_name);
+    const canShowMissions = isProfileComplete && hasCV;
+
+    return (
+      <>
+        {canShowMissions ? (
+          <>
+            {xpert.mission.length > 0 ? (
+              xpert.mission.map((mission) => (
+                <XpertMissionRow key={mission.id} mission={mission} />
+              ))
+            ) : (
+              <div className="col-span-4 ml-5 flex items-center justify-center gap-2">
+                <p className="text-gray-secondary whitespace-nowrap text-center text-sm">
+                  Aucune mission
+                </p>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-4 text-primary" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[300px] bg-white p-2">
+                    <p>Pour voir les missions, il faut :</p>
+                    <ul className="list-disc pl-4">
+                      <li>Un profil complété à 80% minimum</li>
+                      <li>Un CV téléchargé</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="col-span-4 flex items-center justify-center gap-2">
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="size-4 text-primary" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[300px] bg-white p-2">
+                <p>Pour voir les missions, il faut :</p>
+                <ul className="list-disc pl-4">
+                  <li>Un profil complété à 80% minimum</li>
+                  <li>Un CV téléchargé</li>
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+      </>
+    );
+  };
+
   useEffect(() => {
     const xpertId = searchParams.get('id');
     if (xpertId && xperts) {
@@ -331,25 +435,19 @@ export default function XpertTable() {
         });
       }
 
+      if (activeFilters.adminOpinion) {
+        filtered = filtered.filter(
+          (xpert) => xpert.admin_opinion === activeFilters.adminOpinion
+        );
+      }
+
       setFilteredXperts(filtered);
     }
   }, [xperts, activeFilters]);
 
   return (
     <>
-      {/* 
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div>
-          <CreateFournisseurXpertDialog role="xpert" />
-        </div>
-          {xpertIdOpened !== '0' && (
-          <Button className="px-spaceContainer py-spaceXSmall text-white">
-            Enregistrer
-          </Button>
-        )}
-      </div>
-      */}
-      <div className="grid grid-cols-10 gap-3">
+      <div className="grid grid-cols-11 gap-3">
         <XpertFilter
           xperts={xperts || []}
           onSortedDataChange={handleFilterChange}
@@ -362,6 +460,7 @@ export default function XpertTable() {
                 xpert={xpert}
                 isOpen={xpertIdOpened === xpert.generated_id.toString()}
                 onClick={() => handleXpertIdOpened(xpert)}
+                onOpinionChange={handleOpinionChange}
               />
               <div
                 className={cn(
@@ -379,21 +478,7 @@ export default function XpertTable() {
               >
                 <div className="grid grid-cols-5 gap-3 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
                   <XpertMissionFilter />
-                  <div className="flex flex-col">
-                    {xpert.mission.length > 0 ? (
-                      <>
-                        {xpert.mission.map((mission) => (
-                          <XpertMissionRow key={mission.id} mission={mission} />
-                        ))}
-                      </>
-                    ) : (
-                      <div className="col-span-4 flex items-center justify-center">
-                        <p className="text-gray-secondary text-center text-sm">
-                          Aucune mission
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  <div className="flex flex-col">{renderMissions(xpert)}</div>
                 </div>
                 <XpertRowContentBis
                   xpert={xpert}
@@ -423,6 +508,17 @@ export default function XpertTable() {
           </div>
         )}
       </InfiniteScroll>
+      {hasChanges && (
+        <div className="fixed bottom-8 right-8 z-50">
+          <Button
+            onClick={handleSaveAll}
+            className="flex items-center gap-2 bg-primary px-4 py-2 text-white shadow-lg hover:brightness-110"
+          >
+            <Save className="size-4" />
+            Enregistrer toutes les modifications
+          </Button>
+        </div>
+      )}
     </>
   );
 }
