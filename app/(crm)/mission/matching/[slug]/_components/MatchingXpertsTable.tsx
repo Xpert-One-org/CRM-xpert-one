@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
+import type { DBMatchedXpert } from '@/types/typesDb';
 import { FilterButton } from '@/components/FilterButton';
 import MatchingXpertsRow from './MatchingXpertsRow';
-import { calculateTotalMatchingScore } from '../_functions/calculateMatchingPercentage';
 const availabilityOptions = [
   { label: 'Disponible', value: 'yes' },
   { label: 'Non disponible', value: 'no' },
@@ -11,14 +10,12 @@ const availabilityOptions = [
 
 export default function MatchingXpertsTable({
   matchingResults,
-  missionData,
   excludedCriteria,
   additionalCriteria,
   selectedXperts,
   onXpertSelection,
 }: {
   matchingResults: DBMatchedXpert[];
-  missionData: DBMission;
   excludedCriteria: Record<string, string[]>;
   additionalCriteria: Record<string, string[]>;
   selectedXperts: Set<string>;
@@ -28,29 +25,14 @@ export default function MatchingXpertsTable({
     matchingScore?: number
   ) => void;
 }) {
-  const calculateScores = () => {
-    return matchingResults
-      .map((matchedXpert) => ({
-        ...matchedXpert,
-        matchingScore: calculateTotalMatchingScore(
-          matchedXpert,
-          missionData,
-          excludedCriteria,
-          additionalCriteria
-        ),
-      }))
-      .sort((a, b) => b.matchingScore - a.matchingScore);
-  };
-
   const [sortedMatchingResults, setSortedMatchingResults] =
-    useState(calculateScores());
-  const [filteredResults, setFilteredResults] = useState(sortedMatchingResults);
+    useState(matchingResults);
+  const [filteredResults, setFilteredResults] = useState(matchingResults);
 
   useEffect(() => {
-    const newResults = calculateScores();
-    setSortedMatchingResults(newResults);
-    setFilteredResults(newResults);
-  }, [excludedCriteria, additionalCriteria]);
+    setSortedMatchingResults(matchingResults);
+    setFilteredResults(matchingResults);
+  }, [matchingResults, excludedCriteria, additionalCriteria]);
 
   const handleSort = (sortedData: DBMatchedXpert[]) => {
     setSortedMatchingResults(sortedData);
@@ -121,9 +103,6 @@ export default function MatchingXpertsTable({
             <MatchingXpertsRow
               key={matchedXpert.id}
               matchedXpert={matchedXpert}
-              missionData={missionData}
-              excludedCriteria={excludedCriteria}
-              additionalCriteria={additionalCriteria}
               onXpertSelection={(xpertId, checked) =>
                 onXpertSelection(xpertId, checked, matchedXpert.matchingScore)
               }

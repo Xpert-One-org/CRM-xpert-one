@@ -118,7 +118,6 @@ export default function LaunchMatching({
         {matchingResults && (
           <MatchingXpertsTable
             matchingResults={matchingResults}
-            missionData={missionData}
             excludedCriteria={excludedCriteria}
             additionalCriteria={additionalCriteria}
             selectedXperts={selectedXperts}

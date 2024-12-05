@@ -43,6 +43,7 @@ export type DBMatchedXpert = DBProfileMission & {
   profile_experience: DBProfileExperience[];
   profile_expertise: DBProfileExpertise;
   matchingScore: number;
+  nonMatchingCriteria: Record<string, string[]>;
 };
 
 export type DBXpert = DBProfile & {

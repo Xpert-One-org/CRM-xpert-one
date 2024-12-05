@@ -2,35 +2,46 @@
 
 import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
+import { calculateTotalMatchingScore } from './_functions/calculateMatchingPercentage';
+import { getNonMatchingCriteria } from './_functions/getNonMatchingCriteria';
+
+type EnhancedDBMatchedXpert = DBMatchedXpert & {
+  matchingScore: number;
+  nonMatchingCriteria: Record<string, string[]>;
+};
 
 export async function getAllMatchedXperts(
-  missionCriteria: DBMission,
+  missionData: DBMission,
   excludedCriteria?: Record<string, string[]>,
-  newCriteria?: Record<string, string[]>
-): Promise<{ data: DBMatchedXpert[]; error: string }> {
+  additionalCriteria?: Record<string, string[]>
+): Promise<{ data: EnhancedDBMatchedXpert[]; error: string }> {
   const supabase = await createSupabaseAppServerClient();
   const { sector, post_type, specialties, expertises, languages, diplomas } =
-    missionCriteria;
+    missionData;
 
   const mergedCriteria = {
     job_title: [
-      ...(missionCriteria.job_title
-        ? missionCriteria.job_title.split(',')
-        : []),
-      ...(newCriteria?.job_title ? newCriteria.job_title : []),
+      ...(missionData.job_title ? missionData.job_title.split(',') : []),
+      ...(additionalCriteria?.job_title ? additionalCriteria.job_title : []),
     ],
     sector: [
       ...(sector ? sector.split(',') : []),
-      ...(newCriteria?.sector ? newCriteria.sector : []),
+      ...(additionalCriteria?.sector ? additionalCriteria.sector : []),
     ],
     post_type: [
       ...(post_type ? post_type : []),
-      ...(newCriteria?.post_type ? newCriteria.post_type : []),
+      ...(additionalCriteria?.post_type ? additionalCriteria.post_type : []),
     ],
-    specialties: [...(specialties || []), ...(newCriteria?.specialties || [])],
-    expertises: [...(expertises || []), ...(newCriteria?.expertises || [])],
-    languages: [...(languages || []), ...(newCriteria?.languages || [])],
-    diplomas: [...(diplomas || []), ...(newCriteria?.diplomas || [])],
+    specialties: [
+      ...(specialties || []),
+      ...(additionalCriteria?.specialties || []),
+    ],
+    expertises: [
+      ...(expertises || []),
+      ...(additionalCriteria?.expertises || []),
+    ],
+    languages: [...(languages || []), ...(additionalCriteria?.languages || [])],
+    diplomas: [...(diplomas || []), ...(additionalCriteria?.diplomas || [])],
   };
 
   // Create final criteria by removing excluded values
@@ -146,5 +157,30 @@ export async function getAllMatchedXperts(
     return matchConditions.some((condition) => condition === true);
   });
 
-  return { data: matchedXperts as DBMatchedXpert[], error: '' };
+  // Enhance matched experts with scores and non-matching criteria
+  const enhancedXperts = matchedXperts
+    .map((xpert) => {
+      const nonMatchingCriteria = getNonMatchingCriteria(
+        xpert as DBMatchedXpert,
+        missionData,
+        excludedCriteria || {},
+        additionalCriteria || {}
+      );
+
+      const matchingScore = calculateTotalMatchingScore(
+        xpert as DBMatchedXpert,
+        missionData,
+        excludedCriteria || {},
+        additionalCriteria || {}
+      );
+
+      return {
+        ...xpert,
+        matchingScore,
+        nonMatchingCriteria,
+      };
+    })
+    .sort((a, b) => b.matchingScore - a.matchingScore);
+
+  return { data: enhancedXperts as EnhancedDBMatchedXpert[], error: '' };
 }
