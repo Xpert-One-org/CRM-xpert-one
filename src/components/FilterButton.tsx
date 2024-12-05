@@ -95,7 +95,7 @@ export const FilterButton = ({
           <DropdownMenuTrigger asChild>
             <Button
               className={cn(
-                `flex h-auto cursor-default items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
+                `flex h-auto cursor-default flex-wrap items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
                 className
               )}
             >
@@ -104,22 +104,25 @@ export const FilterButton = ({
                 <FilterSvg />
               </div>
               {selectedOption.value !== '' && (
-                <Badge
-                  style={
-                    coloredOptions &&
-                    options?.find((opt) => opt.value === selectedOption.value)
-                      ?.color
-                      ? {
-                          backgroundColor: options.find(
-                            (opt) => opt.value === selectedOption.value
-                          )?.color,
-                          color: '#fff',
-                        }
-                      : undefined
-                  }
-                >
-                  {selectedOption.label}
-                </Badge>
+                <div>
+                  <Badge
+                    className="whitespace-nowrap"
+                    style={
+                      coloredOptions &&
+                      options?.find((opt) => opt.value === selectedOption.value)
+                        ?.color
+                        ? {
+                            backgroundColor: options.find(
+                              (opt) => opt.value === selectedOption.value
+                            )?.color,
+                            color: '#fff',
+                          }
+                        : undefined
+                    }
+                  >
+                    {selectedOption.label}
+                  </Badge>
+                </div>
               )}
             </Button>
           </DropdownMenuTrigger>

@@ -160,3 +160,18 @@ export type DBUserChat = Pick<
   | 'generated_id'
   | 'username'
 >;
+
+export type DBXpertOptimized = Pick<
+  DBXpert,
+  | 'id'
+  | 'lastname'
+  | 'firstname'
+  | 'country'
+  | 'generated_id'
+  | 'cv_name'
+  | 'created_at'
+  | 'admin_opinion'
+> & {
+  mission: Pick<DBMission, 'xpert_associated_id'>[];
+  profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+};

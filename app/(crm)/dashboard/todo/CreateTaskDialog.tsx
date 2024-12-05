@@ -163,7 +163,6 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
             ? parseInt(formData.subjectId)
             : null,
       };
-      console.log(taskData);
       await createTask(taskData);
       onTaskCreate?.(taskData);
       toast.success('Tâche créée avec succès');
@@ -182,8 +181,6 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
       setIsLoading(false);
     }
   };
-
-  console.log(userOptions);
 
   const isDisabled =
     !formData.assignedTo ||

@@ -4,27 +4,37 @@ import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { Database } from '@/types/supabase';
 import type { InsertTask, TaskWithRelations, UpdateTask } from '@/types/types';
 import { Task } from '@/types/types';
+import { limitTask } from '@/data/constant';
 
 const taskQuery = `
   *,
-  created_by_profile:profile!tasks_created_by_fkey(id, firstname, lastname, generated_id, role),
-  assigned_to_profile:profile!tasks_assigned_to_fkey(id, firstname, lastname, generated_id, role),
+  created_by_profile:profile!tasks_created_by_fkey!inner(id, firstname, lastname, generated_id, role),
+  assigned_to_profile:profile!tasks_assigned_to_fkey!inner(id, firstname, lastname, generated_id, role),
   xpert:profile!tasks_xpert_id_fkey(id, firstname, lastname, generated_id),
   supplier:profile!tasks_supplier_id_fkey(id, firstname, lastname, generated_id),
   mission(id, job_title, mission_number, state)
 `;
 
-export async function getTasks(
+export async function getTasks({
+  offset,
+  filters,
+}: {
+  offset: number;
+
   filters: {
     status?: string;
     createdBy?: string;
     assignedTo?: string;
     subjectType?: string;
-  } = {}
-) {
+  };
+}): Promise<{
+  data: TaskWithRelations[] | null;
+  count: number | null;
+  error: string | null;
+}> {
   const supabase = await createSupabaseAppServerClient();
 
-  let query = supabase.from('tasks').select(taskQuery);
+  let query = supabase.from('tasks').select(taskQuery, { count: 'exact' });
 
   if (filters.status) {
     query = query.eq('status', filters.status);
@@ -39,16 +49,27 @@ export async function getTasks(
     query = query.eq('subject_type', filters.subjectType);
   }
 
-  const { data, error } = await query.order('created_at', {
-    ascending: false,
-  });
+  const { data, error, count } = await query
+    .range(offset, offset + limitTask - 1)
+    .order('created_at', {
+      ascending: false,
+    });
+
+  console.log('data', data);
 
   if (error) {
-    console.error('Error fetching tasks:', error);
-    throw error;
+    return {
+      data: null,
+      error: error.message,
+      count: count,
+    };
   }
 
-  return data as unknown as TaskWithRelations[];
+  return {
+    data: data,
+    error: null,
+    count: count,
+  };
 }
 
 export async function getAdminUsers() {
@@ -79,7 +100,7 @@ export async function updateTask(id: number, updates: UpdateTask) {
     .single();
 
   if (error) throw error;
-  return data as unknown as TaskWithRelations;
+  return data;
 }
 
 // Marquer une tâche comme terminée
@@ -97,7 +118,7 @@ export async function completeTask(id: number) {
     .single();
 
   if (error) throw error;
-  return data as unknown as TaskWithRelations;
+  return data;
 }
 
 export async function createTask(taskData: InsertTask) {

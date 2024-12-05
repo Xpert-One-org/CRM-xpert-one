@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { empty } from '@/data/constant';
 import { cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpertOptimized } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
@@ -14,62 +14,43 @@ import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { Save } from 'lucide-react';
 import { toast } from 'sonner';
 
-const adminOpinionOptions: {
-  label: string;
-  value: 'positive' | 'neutral' | 'negative' | null;
-  color: string;
-}[] = [
-  { label: 'Positif', value: 'positive', color: '#92C6B0' },
-  { label: 'Neutre', value: 'neutral', color: '#F5B935' },
-  { label: 'Négatif', value: 'negative', color: '#D64242' },
-  { label: 'NON DÉFINI', value: null, color: '#E1E1E1' },
-];
-
-type AdminOpinion = 'positive' | 'neutral' | 'negative' | null;
+import { jobTitleSelect } from '@/data/mocked_select';
+import type { AdminOpinionValue } from '@/types/types';
+import { adminOpinionOptions } from '@/data/filter';
+import { updateAdminOpinion } from '../../xpert.action';
 
 export default function XpertRow({
   xpert,
   isOpen,
   onClick,
-  onOpinionChange,
 }: {
-  xpert: DBXpert;
+  xpert: DBXpertOptimized;
   isOpen: boolean;
   onClick: () => void;
-  onOpinionChange: (xpertId: string, opinion: AdminOpinion) => void;
 }) {
   const dateSignUp = formatDate(xpert.created_at);
-  const { jobTitles, fetchJobTitles, countries, fetchCountries } = useSelect();
-  const [pendingOpinion, setPendingOpinion] = useState<
-    typeof xpert.admin_opinion
-  >(xpert.admin_opinion);
+  const [pendingOpinion, setPendingOpinion] = useState<AdminOpinionValue>(
+    xpert.admin_opinion ?? ''
+  );
   const [hasChanges, setHasChanges] = useState(false);
+  const { countries } = useSelect();
 
-  useEffect(() => {
-    fetchJobTitles();
-    fetchCountries();
-  }, [fetchJobTitles, fetchCountries]);
+  // useEffect(() => {
+  //   fetchJobTitles();
+  //   fetchCountries();
+  // }, [fetchJobTitles, fetchCountries]);
 
-  const handleOpinionChange = (value: string | null) => {
-    const opinion = value as AdminOpinion;
-    setPendingOpinion(opinion);
-    onOpinionChange(xpert.id, opinion);
-  };
-
-  const handleSave = async () => {
-    const supabase = createSupabaseFrontendClient();
-    const { error } = await supabase
-      .from('profile')
-      .update({ admin_opinion: pendingOpinion })
-      .eq('id', xpert.id);
-
+  const handleSave = async (value: string) => {
+    const adminOpinion = value as AdminOpinionValue;
+    setPendingOpinion(adminOpinion);
+    const { error } = await updateAdminOpinion(xpert.id, adminOpinion);
     if (error) {
       toast.error('Erreur lors de la sauvegarde');
       console.error('Error updating admin opinion:', error);
-    } else {
-      toast.success('Modifications enregistrées');
-      setHasChanges(false);
+      return;
     }
+    toast.success('Modifications enregistrées');
+    setHasChanges(false);
   };
 
   const postTypes = xpert.profile_mission
@@ -80,7 +61,7 @@ export default function XpertRow({
               className="m-1 max-w-[95%] font-normal"
               key={`${xpert.generated_id}-${i}`}
             >
-              {getLabel({ value: job, select: jobTitles }) ?? empty}
+              {getLabel({ value: job, select: jobTitleSelect }) ?? empty}
             </Badge>
             {i < arr.length - 1 && <span className="text-gray-400">|</span>}
           </div>
@@ -174,7 +155,7 @@ export default function XpertRow({
         })}
         isSelectable
         options={adminOpinionOptions}
-        onValueChange={handleOpinionChange}
+        onValueChange={handleSave}
       >
         <div
           className="size-4 rounded-full transition-all hover:ring-2 hover:ring-offset-2"
@@ -192,18 +173,6 @@ export default function XpertRow({
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}
       </Button>
-
-      {hasChanges && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <Button
-            onClick={handleSave}
-            className="flex items-center gap-2 bg-primary px-4 py-2 text-white shadow-lg hover:brightness-110"
-          >
-            <Save className="size-4" />
-            Enregistrer les modifications
-          </Button>
-        </div>
-      )}
     </>
   );
 }

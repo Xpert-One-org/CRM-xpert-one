@@ -8,7 +8,7 @@ import type {
   DBProfileStatus,
   DBUser,
 } from './typesDb';
-import { DBProfile } from './typesDb';
+import type { DBProfile } from './typesDb';
 
 type User = DBUser;
 
@@ -210,34 +210,45 @@ export type UpdateTask = Database['public']['Tables']['tasks']['Update'];
 
 // Type étendu avec les relations
 export type TaskWithRelations = Task & {
-  created_by_profile: {
-    id: string;
-    firstname: string | null;
-    lastname: string | null;
-    generated_id: string | null;
-  };
-  assigned_to_profile: {
-    id: string;
-    firstname: string | null;
-    lastname: string | null;
-    generated_id: string | null;
-  };
-  xpert?: {
-    id: string;
-    firstname: string | null;
-    lastname: string | null;
-    generated_id: string | null;
-  } | null;
-  supplier?: {
-    id: string;
-    firstname: string | null;
-    lastname: string | null;
-    generated_id: string | null;
-  } | null;
-  mission?: {
-    mission_number: number;
-    id: number;
-    title: string | null;
-    status: string;
-  } | null;
+  created_by_profile: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  >;
+  assigned_to_profile: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  >;
+  xpert?: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  > | null;
+  supplier?: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  > | null;
+  mission?: Pick<
+    DBMission,
+    'id' | 'job_title' | 'mission_number' | 'state'
+  > | null;
 };
+
+export type FilterXpert = {
+  jobTitles: string;
+  availability: string;
+  cv: string;
+  countries: string[];
+  sortDate: string;
+  firstname: string;
+  lastname: string;
+  generated_id: string;
+  adminOpinion: AdminOpinionValue;
+};
+
+export type FilterTasks = {
+  createdBy?: string;
+  assignedTo?: string;
+  status?: TaskStatus;
+  subjectType?: SubjectType;
+};
+
+export type AdminOpinionValue = 'positive' | 'neutral' | 'negative' | '';

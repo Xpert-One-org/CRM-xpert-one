@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { useSidebarOpenStore } from '@store/useSideBarOpen';
 import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
+import { useXpertStore } from '@/store/xpert';
 
 export default function Sidebar() {
   const { isSidebarOpen, toggleSidebar } = useSidebarOpenStore();
@@ -30,6 +31,8 @@ export default function Sidebar() {
             : [...prev, id]
         );
   };
+
+  const { resetXperts } = useXpertStore();
 
   const handleMenuClick = (el: (typeof menuCrm)[0], open?: boolean) => {
     if (el.sub) {
@@ -143,6 +146,7 @@ export default function Sidebar() {
                 const isStats = el.title === 'Statistiques' ? true : false;
                 return (
                   <Link
+                    onClick={resetXperts}
                     href={el.url}
                     key={el.id}
                     className={cn(

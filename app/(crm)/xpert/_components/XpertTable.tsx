@@ -1,12 +1,11 @@
 'use client';
 
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import React, { useCallback, useEffect, useState } from 'react';
 import XpertRow from './row/XpertRow';
 import XpertMissionRow from './row/mission/XpertMissionRow';
 import { cn } from '@/lib/utils';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import { useSelect } from '@/store/select';
 import { useSearchParams } from 'next/navigation';
 import { useXpertStore } from '@/store/xpert';
 import Loader from '@/components/Loader';
@@ -23,8 +22,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import { Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+// import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+import { AdminOpinionValue } from '@/types/types';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -33,22 +34,16 @@ export type DocumentInfo = {
 
 export default function XpertTable() {
   const {
-    fetchSpecialties,
-    fetchExpertises,
-    fetchHabilitations,
-    fetchDiplomas,
-    fetchLanguages,
-    fetchSectors,
-    fetchJobTitles,
-    fetchPosts,
-    fetchInfrastructures,
-    fetchRegions,
-    fetchCountries,
-  } = useSelect();
-
-  const { fetchXperts, xperts, totalXperts, fetchSpecificXpert } =
-    useXpertStore();
-  const [filteredXperts, setFilteredXperts] = useState<DBXpert[]>([]);
+    xpertsOptimized,
+    totalXpertOptimized,
+    loading,
+    xpertFilterKey,
+    activeFilters,
+    fetchSpecificXpert,
+    fetchXpertOptimizedFiltered,
+    resetXperts,
+    openedXpert,
+  } = useXpertStore();
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');
   const [cvInfo, setCvInfo] = useState<DocumentInfo>({ publicUrl: '' });
@@ -63,104 +58,21 @@ export default function XpertTable() {
 
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
+  const xpertIdParams = searchParams.get('id');
 
-  const hasMore = xperts && totalXperts ? xperts.length < totalXperts : true;
+  const hasMore =
+    xpertsOptimized && totalXpertOptimized
+      ? xpertsOptimized.length < totalXpertOptimized
+      : totalXpertOptimized === 0
+        ? false
+        : true;
 
-  const [activeFilters, setActiveFilters] = useState<{
-    jobTitles: string[];
-    availability: string;
-    cv: string;
-    countries: string[];
-    sortDate: string;
-    adminOpinion: string;
-  }>({
-    jobTitles: [],
-    availability: '',
-    cv: '',
-    countries: [],
-    sortDate: '',
-    adminOpinion: '',
-  });
-
-  const [pendingOpinions, setPendingOpinions] = useState<
-    Record<string, 'positive' | 'neutral' | 'negative' | '' | null>
-  >({});
-  const [hasChanges, setHasChanges] = useState(false);
-
-  const handleOpinionChange = (
-    xpertId: string,
-    opinion: 'positive' | 'neutral' | 'negative' | '' | null
-  ) => {
-    setPendingOpinions((prev) => ({
-      ...prev,
-      [xpertId]: opinion === '' ? null : opinion,
-    }));
-    setHasChanges(true);
-  };
-
-  const handleSaveAll = async () => {
-    const supabase = createSupabaseFrontendClient();
-    try {
-      for (const [xpertId, opinion] of Object.entries(pendingOpinions)) {
-        const validOpinion = opinion === '' ? null : opinion;
-        const { error } = await supabase
-          .from('profile')
-          .update({ admin_opinion: validOpinion })
-          .eq('id', xpertId);
-
-        if (error) throw error;
-      }
-      toast.success('Toutes les modifications ont été enregistrées');
-      setHasChanges(false);
-    } catch (error) {
-      toast.error('Erreur lors de la sauvegarde');
-      console.error('Error updating admin opinions:', error);
-    }
-  };
-
-  const handleFilterChange = useCallback(
-    (data: DBXpert[], filterType?: string, filterValues?: string[]) => {
-      if (filterType === 'jobTitles') {
-        setActiveFilters((prev) => ({
-          ...prev,
-          jobTitles: filterValues || [],
-        }));
-      } else if (filterType === 'availability') {
-        setActiveFilters((prev) => ({
-          ...prev,
-          availability: filterValues?.[0] || '',
-        }));
-      } else if (filterType === 'cv') {
-        setActiveFilters((prev) => ({
-          ...prev,
-          cv: filterValues?.[0] || '',
-        }));
-      } else if (filterType === 'country') {
-        setActiveFilters((prev) => ({
-          ...prev,
-          countries: filterValues || [],
-        }));
-      } else if (filterType === 'sortDate') {
-        setActiveFilters((prev) => ({
-          ...prev,
-          sortDate: filterValues?.[0] || '',
-        }));
-      } else if (filterType === 'adminOpinion') {
-        setActiveFilters((prev) => ({
-          ...prev,
-          adminOpinion: filterValues?.[0] || '',
-        }));
-      }
-      setFilteredXperts(data);
-    },
-    []
-  );
-
-  const handleXpertIdOpened = useCallback((xpert: DBXpert) => {
+  const handleXpertIdOpened = useCallback((xpert: DBXpertOptimized) => {
     setXpertIdOpened((prevId) => {
       setCvInfo({ publicUrl: '' });
       setUrsaffInfo({ publicUrl: '' });
       setKbisInfo({ publicUrl: '' });
+
       return prevId === xpert.generated_id.toString()
         ? '0'
         : xpert.generated_id.toString();
@@ -168,7 +80,7 @@ export default function XpertTable() {
     fetchXpertDocumentsUrl(xpert);
   }, []);
 
-  const fetchXpertDocumentsUrl = async (xpert: DBXpert) => {
+  const fetchXpertDocumentsUrl = async (xpert: DBXpertOptimized) => {
     setIsLoading(true);
     const supabase = createSupabaseFrontendClient();
 
@@ -198,7 +110,7 @@ export default function XpertTable() {
 
     if (cvData && cvData.length > 0) {
       const lastCV = cvData[cvData.length - 1];
-      const { data } = await supabase.storage
+      const { data } = supabase.storage
         .from('profile_files')
         .getPublicUrl(`${xpert.generated_id}/cv/${lastCV.name}`);
       setCvInfo({
@@ -220,7 +132,7 @@ export default function XpertTable() {
 
     if (kbisData && kbisData.length > 0) {
       const lastKbisFile = kbisData[kbisData.length - 1];
-      const { data } = await supabase.storage
+      const { data } = supabase.storage
         .from('profile_files')
         .getPublicUrl(`${xpert.generated_id}/kbis/${lastKbisFile.name}`);
       setKbisInfo({
@@ -260,7 +172,7 @@ export default function XpertTable() {
       const { data } = await supabase.storage
         .from('profile_files')
         .getPublicUrl(
-          `${xpert.generated_id}/habilitation/${lastHabilitationFile.name}`
+          `${xpert.generated_id}/habilitations/${lastHabilitationFile.name}`
         );
       setHabilitationInfo({
         publicUrl: data.publicUrl,
@@ -326,141 +238,59 @@ export default function XpertTable() {
 
   useEffect(() => {
     const xpertId = searchParams.get('id');
-    if (xpertId && xperts) {
-      const foundXpert = xperts.find((xpert) => xpert.generated_id === xpertId);
-      if (foundXpert) {
-        handleXpertIdOpened(foundXpert);
-      } else {
-        fetchSpecificXpert(xpertId);
-      }
-      setXpertIdOpened(xpertId);
-    } else {
-      setXpertIdOpened('');
-    }
-  }, [
-    fetchSpecificXpert,
-    fetchXperts,
-    handleXpertIdOpened,
-    searchParams,
-    xperts,
-  ]);
-
-  useEffect(() => {
-    fetchSpecialties();
-    fetchExpertises();
-    fetchHabilitations();
-    fetchDiplomas();
-    fetchLanguages();
-    fetchSectors();
-    fetchJobTitles();
-    fetchRegions();
-    fetchCountries();
-    fetchPosts();
-    fetchSectors();
-    fetchInfrastructures();
-  }, [
-    fetchCountries,
-    fetchDiplomas,
-    fetchExpertises,
-    fetchHabilitations,
-    fetchInfrastructures,
-    fetchJobTitles,
-    fetchLanguages,
-    fetchPosts,
-    fetchRegions,
-    fetchSectors,
-    fetchSpecialties,
-  ]);
-
-  useEffect(() => {
-    if (xperts) {
-      let filtered = [...xperts];
-
-      if (activeFilters.jobTitles.length > 0) {
-        filtered = filtered.filter((xpert) => {
-          return activeFilters.jobTitles.some((value) =>
-            xpert.profile_mission?.job_titles?.some((title) => title === value)
-          );
-        });
-      }
-
-      if (activeFilters.availability) {
-        filtered = filtered.filter((xpert) => {
-          if (activeFilters.availability === 'unavailable') {
-            return (
-              xpert.profile_mission?.availability === undefined ||
-              new Date(xpert.profile_mission.availability ?? '') > new Date()
-            );
-          } else if (activeFilters.availability === 'in_mission') {
-            return xpert.mission
-              .map((mission) => mission.xpert_associated_id)
-              .some((xpertId) => xpertId === xpert.id);
-          } else if (activeFilters.availability === 'available') {
-            const isAvailable =
-              xpert.profile_mission?.availability !== undefined &&
-              new Date(xpert.profile_mission.availability ?? '') <= new Date();
-            const isNotInMission = !xpert.mission
-              .map((mission) => mission.xpert_associated_id)
-              .some((xpertId) => xpertId === xpert.id);
-            return isAvailable && isNotInMission;
-          }
-          return true;
-        });
-      }
-
-      if (activeFilters.cv) {
-        filtered = filtered.filter((xpert) => {
-          if (activeFilters.cv === 'yes') {
-            return !!xpert.cv_name;
-          } else if (activeFilters.cv === 'no') {
-            return !xpert.cv_name;
-          }
-          return true;
-        });
-      }
-
-      if (activeFilters.countries.length > 0) {
-        filtered = filtered.filter((xpert) =>
-          activeFilters.countries.includes(xpert.country || '')
-        );
-      }
-
-      if (activeFilters.sortDate) {
-        filtered.sort((a, b) => {
-          const dateA = new Date(a.created_at);
-          const dateB = new Date(b.created_at);
-          return activeFilters.sortDate === 'asc'
-            ? dateA.getTime() - dateB.getTime()
-            : dateB.getTime() - dateA.getTime();
-        });
-      }
-
-      if (activeFilters.adminOpinion) {
-        filtered = filtered.filter(
-          (xpert) => xpert.admin_opinion === activeFilters.adminOpinion
-        );
-      }
-
-      setFilteredXperts(filtered);
-    }
-  }, [xperts, activeFilters]);
+    xpertId && fetchSpecificXpert(xpertId);
+  }, [searchParams]);
 
   return (
     <>
+      {
+        <div className="mb-4 w-fit">
+          <CreateFournisseurXpertDialog role="xpert" />
+        </div>
+      }
+
       <div className="grid grid-cols-11 gap-3">
         <XpertFilter
-          xperts={xperts || []}
-          onSortedDataChange={handleFilterChange}
-          activeFilters={activeFilters}
+          key={xpertFilterKey}
+          xperts={xpertsOptimized || []}
+          // onSortedDataChange={handleFilterChange}
         />
-        {filteredXperts.map((xpert) => {
+        <div className="col-span-11">
+          {!loading ? (
+            <div className="flex w-fit items-center gap-x-4">
+              <p className="whitespace-nowrap">
+                {totalXpertOptimized} résultats
+              </p>
+              {/* RESET */}
+              {(activeFilters.jobTitles ||
+                activeFilters.availability ||
+                activeFilters.cv ||
+                activeFilters.countries.length > 0 ||
+                activeFilters.sortDate ||
+                activeFilters.firstname ||
+                activeFilters.adminOpinion ||
+                activeFilters.generated_id ||
+                activeFilters.lastname ||
+                xpertIdParams) && (
+                <button
+                  className="font-[600] text-primary"
+                  onClick={resetXperts}
+                >
+                  Réinitialiser
+                </button>
+              )}
+            </div>
+          ) : (
+            <Skeleton className="h-6 w-40" />
+          )}
+        </div>
+        {xpertsOptimized?.map((xpert) => {
           return (
             <React.Fragment key={xpert.id}>
               <XpertRow
                 xpert={xpert}
                 isOpen={xpertIdOpened === xpert.generated_id.toString()}
                 onClick={() => handleXpertIdOpened(xpert)}
-                onOpinionChange={handleOpinionChange}
               />
               <div
                 className={cn(
@@ -468,28 +298,36 @@ export default function XpertTable() {
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
-                <XpertRowContent xpert={xpert} />
+                {xpertIdOpened === xpert.generated_id && (
+                  <XpertRowContent xpertOptimized={xpert} />
+                )}
               </div>
               <div
                 className={cn(
-                  'col-span-5 hidden h-full max-h-0 w-full overflow-hidden',
+                  'col-span-6 hidden h-full max-h-0 w-full overflow-hidden',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
                 <div className="grid grid-cols-5 gap-3 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
                   <XpertMissionFilter />
-                  <div className="flex flex-col">{renderMissions(xpert)}</div>
+
+                  {openedXpert && (
+                    <div className="flex flex-col">
+                      {renderMissions(openedXpert)}
+                    </div>
+                  )}
                 </div>
-                <XpertRowContentBis
-                  xpert={xpert}
-                  isLoading={isLoading}
-                  cvInfo={cvInfo}
-                  ursaffInfo={ursaffInfo}
-                  kbisInfo={kbisInfo}
-                  responsabiliteCivileInfo={responsabiliteCivileInfo}
-                  ribInfo={ribInfo}
-                  habilitationInfo={habilitationInfo}
-                />
+                {xpertIdOpened === xpert.generated_id && (
+                  <XpertRowContentBis
+                    isLoading={isLoading}
+                    cvInfo={cvInfo}
+                    ursaffInfo={ursaffInfo}
+                    kbisInfo={kbisInfo}
+                    responsabiliteCivileInfo={responsabiliteCivileInfo}
+                    ribInfo={ribInfo}
+                    habilitationInfo={habilitationInfo}
+                  />
+                )}
                 <div className="flex w-full justify-end py-2">
                   <DeleteXpertDialog
                     xpertId={xpert.id}
@@ -501,23 +339,36 @@ export default function XpertTable() {
           );
         })}
       </div>
-      <InfiniteScroll hasMore={hasMore} next={fetchXperts} isLoading={false}>
-        {hasMore && (
+      {!xpertIdParams ? (
+        <InfiniteScroll
+          hasMore={hasMore}
+          next={fetchXpertOptimizedFiltered}
+          isLoading={false}
+        >
+          {hasMore && (
+            <div className="mt-4 flex w-full items-center justify-center">
+              <Loader />
+            </div>
+          )}
+          {!hasMore && loading && (
+            <div className="mt-4 flex w-full items-center justify-center">
+              <Loader />
+            </div>
+          )}
+          {xpertsOptimized?.length === 0 && (
+            <div className="mt-4 flex w-full items-center justify-center">
+              <p className="text-gray-secondary text-center text-sm">
+                Aucun résultat
+              </p>
+            </div>
+          )}
+        </InfiniteScroll>
+      ) : (
+        loading && (
           <div className="mt-4 flex w-full items-center justify-center">
             <Loader />
           </div>
-        )}
-      </InfiniteScroll>
-      {hasChanges && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <Button
-            onClick={handleSaveAll}
-            className="flex items-center gap-2 bg-primary px-4 py-2 text-white shadow-lg hover:brightness-110"
-          >
-            <Save className="size-4" />
-            Enregistrer toutes les modifications
-          </Button>
-        </div>
+        )
       )}
     </>
   );

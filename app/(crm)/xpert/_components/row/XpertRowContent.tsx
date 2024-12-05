@@ -1,9 +1,9 @@
 import Input from '@/components/inputs/Input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import { getLabel } from '@/utils/getLabel';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   genres,
   how,
@@ -17,9 +17,15 @@ import XpertExperience from '../XpertExperience';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { getYears } from '@/utils/string';
 import TextArea from '@/components/inputs/TextArea';
+import { useXpertStore } from '@/store/xpert';
 
-export default function XpertRowContent({ xpert }: { xpert: DBXpert }) {
+export default function XpertRowContent({
+  xpertOptimized,
+}: {
+  xpertOptimized: DBXpertOptimized;
+}) {
   const selectStatus = [...statusSelectEmployee, ...statusSelectInde];
+  const [xpert, setXpert] = useState<DBXpert | null>(null);
   const {
     countries,
     habilitations,
@@ -29,19 +35,44 @@ export default function XpertRowContent({ xpert }: { xpert: DBXpert }) {
     languages,
   } = useSelect();
 
+  const { getXpertSelected, setOpenedXpert } = useXpertStore();
+
+  const handleGetSpecificXpert = async () => {
+    try {
+      const { xpert: specificXpert } = await getXpertSelected(
+        xpertOptimized.generated_id
+      );
+      if (specificXpert) {
+        setXpert(specificXpert);
+        setOpenedXpert(specificXpert.id);
+      }
+    } catch (error) {
+      console.error('Error fetching xpert:', error);
+    }
+  };
+
+  useEffect(() => {
+    handleGetSpecificXpert();
+  }, [xpertOptimized.generated_id]);
+
+  if (!xpert) {
+    return null;
+  }
+
   const years = getYears({
     data: (xpert.profile_expertise && xpert.profile_expertise.seniority) ?? 0,
     max: ageMax,
   });
+
   return (
     <div className="flex flex-col gap-y-spaceXSmall p-spaceSmall">
       <div className="grid w-full grid-cols-2 gap-4">
         <div className="flex flex-col gap-4">
-          <Input
-            label="Référant XPERT ONE"
-            value={`${xpert.firstname}`}
-            disabled
-          />
+          <Input label="Référant XPERT ONE" value={'Olivier'} disabled />
+          <div className="flex gap-x-4">
+            <Input label="Prénom" value={`${xpert.firstname}`} disabled />
+            <Input label="Nom" value={`${xpert.lastname}`} disabled />
+          </div>
           <Input label="Adresse mail" value={xpert.email ?? ''} disabled />
         </div>
         <div className="flex items-center justify-end">

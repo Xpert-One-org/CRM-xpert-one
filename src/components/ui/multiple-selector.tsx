@@ -31,6 +31,7 @@ type GroupOption = {
 type MultipleSelectorProps = {
   value?: Option[];
   defaultOptions?: Option[];
+  showIndividualX?: boolean;
   /** manually controlled options */
   options?: Option[];
   placeholder?: string;
@@ -40,6 +41,7 @@ type MultipleSelectorProps = {
   emptyIndicator?: React.ReactNode;
   /** Debounce time for async search. Only work with `onSearch`. */
   delay?: number;
+  side?: 'top' | 'bottom';
   /**
    * Only work with `onSearch` prop. Trigger search when `onFocus`.
    * For example, when user click on the input, it will trigger the search to get initial options.
@@ -177,8 +179,10 @@ const MultipleSelector = React.forwardRef<
       value,
       onChange,
       placeholder,
+      showIndividualX = true,
       defaultOptions: arrayDefaultOptions = [],
       options: arrayOptions,
+      side = 'bottom',
       delay,
       onSearch,
       loadingIndicator,
@@ -325,7 +329,7 @@ const MultipleSelector = React.forwardRef<
             onChange?.(newOptions);
           }}
         >
-          {`Create "${inputValue}"`}
+          {`Créer "${inputValue}"`}
         </CommandItem>
       );
 
@@ -397,7 +401,7 @@ const MultipleSelector = React.forwardRef<
       >
         <div
           className={cn(
-            'min-h-10 rounded-md border border-input text-sm',
+            'flex min-h-10 rounded-md border border-input text-sm',
             {
               'px-3 py-2': selected.length !== 0,
               'cursor-text': !disabled && selected.length !== 0,
@@ -423,24 +427,26 @@ const MultipleSelector = React.forwardRef<
                   data-disabled={disabled || undefined}
                 >
                   {option.label}
-                  <button
-                    className={cn(
-                      'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                      (disabled || option.fixed) && 'hidden'
-                    )}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleUnselect(option);
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onClick={() => handleUnselect(option)}
-                  >
-                    <X className="text-muted-foreground size-3 hover:text-foreground" />
-                  </button>
+                  {showIndividualX && (
+                    <button
+                      className={cn(
+                        'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                        (disabled || option.fixed) && 'hidden'
+                      )}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleUnselect(option);
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onClick={() => handleUnselect(option)}
+                    >
+                      <X className="text-muted-foreground size-3 hover:text-foreground" />
+                    </button>
+                  )}
                 </Badge>
               );
             })}
@@ -502,7 +508,10 @@ const MultipleSelector = React.forwardRef<
         <div className="relative">
           {open && (
             <CommandList
-              className="bg-popover text-popover-foreground absolute top-1 z-10 w-full rounded-md border border-border-gray shadow-md outline-none animate-in"
+              className={cn(
+                'text-popover-foreground absolute top-1 z-10 w-full rounded-md border border-border-gray bg-white shadow-md outline-none animate-in',
+                { 'bottom-10 top-auto': side === 'top' }
+              )}
               onMouseLeave={() => {
                 mouseOn.current = false;
               }}
