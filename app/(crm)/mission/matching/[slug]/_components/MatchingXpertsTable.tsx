@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { DBMatchedXpert } from '@/types/typesDb';
 import { FilterButton } from '@/components/FilterButton';
 import MatchingXpertsRow from './MatchingXpertsRow';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const availabilityOptions = [
   { label: 'Disponible', value: 'yes' },
@@ -53,6 +54,12 @@ export default function MatchingXpertsTable({
     setFilteredResults(filtered);
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    matchingResults.forEach((xpert) => {
+      onXpertSelection(xpert.id, checked, xpert.matchingScore);
+    });
+  };
+
   return (
     <div className="flex h-full flex-col">
       <div className="grid grid-cols-7 gap-spaceSmall">
@@ -90,6 +97,13 @@ export default function MatchingXpertsTable({
             className="size-full font-bold"
             placeholder="Envoyer vers Drag & Drop"
             filter={false}
+          />
+        </div>
+        <div className="col-span-7 flex flex-wrap items-center justify-end gap-1 px-2">
+          <span className="text-wrap text-sm">Tout valider</span>
+          <Checkbox
+            checked={selectedXperts.size === filteredResults.length}
+            onCheckedChange={handleSelectAll}
           />
         </div>
       </div>

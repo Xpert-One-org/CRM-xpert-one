@@ -88,19 +88,19 @@ export async function sendMatchedXpertsToSelectionBoard(
     }
 
     if (existingXperts.length > 0) {
-      operations.push(
+      const updateOperations = existingXperts.map((xpert) =>
         supabase
           .from('selection_matching')
           .update({
             column_status: 'matching',
             is_matched: true,
+            matching_score: matchingScores[xpert.id],
           })
           .eq('mission_id', mission.id)
-          .in(
-            'xpert_id',
-            existingXperts.map((x) => x.id)
-          )
+          .eq('xpert_id', xpert.id)
       );
+
+      operations.push(...updateOperations);
     }
 
     const results = await Promise.all(operations);
