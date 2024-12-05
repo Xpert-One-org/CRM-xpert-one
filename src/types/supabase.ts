@@ -1218,7 +1218,6 @@ export type Database = {
         Row: {
           column_status: Database['public']['Enums']['selection_column_type'];
           created_at: string;
-          created_by: string;
           id: number;
           is_candidate: boolean;
           is_matched: boolean;
@@ -1229,7 +1228,6 @@ export type Database = {
         Insert: {
           column_status?: Database['public']['Enums']['selection_column_type'];
           created_at?: string;
-          created_by: string;
           id?: never;
           is_candidate?: boolean;
           is_matched?: boolean;
@@ -1240,7 +1238,6 @@ export type Database = {
         Update: {
           column_status?: Database['public']['Enums']['selection_column_type'];
           created_at?: string;
-          created_by?: string;
           id?: never;
           is_candidate?: boolean;
           is_matched?: boolean;
@@ -1249,13 +1246,6 @@ export type Database = {
           xpert_id?: string;
         };
         Relationships: [
-          {
-            foreignKeyName: 'selection_matching_created_by_fkey';
-            columns: ['created_by'];
-            isOneToOne: false;
-            referencedRelation: 'profile';
-            referencedColumns: ['id'];
-          },
           {
             foreignKeyName: 'selection_matching_mission_id_fkey';
             columns: ['mission_id'];
@@ -1475,6 +1465,13 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      calculate_matching_score: {
+        Args: {
+          p_xpert_id: string;
+          p_mission_id: number;
+        };
+        Returns: number;
+      };
       generate_mission_unique_id: {
         Args: Record<PropertyKey, never>;
         Returns: string;

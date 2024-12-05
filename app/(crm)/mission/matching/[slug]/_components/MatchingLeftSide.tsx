@@ -10,28 +10,20 @@ import { useSelect } from '@/store/select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
-import { toast } from 'sonner';
-
-type CriteriaPair = {
-  excluded: Record<string, string[]>;
-  additional: Record<string, string[]>;
-};
+import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 
 export default function MatchingLeftSide({
   missionData,
-  onExcludedCriteriaChange,
-  onAdditionalCriteriaChange,
 }: {
   missionData: DBMission;
-  onExcludedCriteriaChange: (criteria: Record<string, string[]>) => void;
-  onAdditionalCriteriaChange: (criteria: Record<string, string[]>) => void;
 }) {
-  const [excludedCriteria, setExcludedCriteria] = useState<
-    Record<string, string[]>
-  >({});
-  const [additionalCriteria, setAdditionalCriteria] = useState<
-    Record<string, string[]>
-  >({});
+  const {
+    excludedCriteria,
+    additionalCriteria,
+    setExcludedCriteria,
+    setAdditionalCriteria,
+    saveCriteria,
+  } = useMatchingCriteriaStore();
 
   const [showAdditionalSelects, setShowAdditionalSelects] = useState({
     jobTitle: false,
@@ -158,6 +150,7 @@ export default function MatchingLeftSide({
       return newCriteria;
     });
   };
+
   const handleAdditionalSelection = (type: string, values: string[]) => {
     setAdditionalCriteria((prev) => {
       const newCriteria = {
@@ -168,48 +161,6 @@ export default function MatchingLeftSide({
       return newCriteria;
     });
   };
-
-  const handleSave = async () => {
-    const criteriaToStore: CriteriaPair = {
-      excluded: excludedCriteria,
-      additional: additionalCriteria,
-    };
-    localStorage.setItem(
-      `mission-criteria-${missionData.mission_number}`,
-      JSON.stringify(criteriaToStore)
-    );
-    setHasChanges(false);
-    toast.success('Critères sauvegardés');
-  };
-
-  useEffect(() => {
-    const storedCriteria = localStorage.getItem(
-      `mission-criteria-${missionData.mission_number}`
-    );
-    if (storedCriteria) {
-      const { excluded, additional } = JSON.parse(
-        storedCriteria
-      ) as CriteriaPair;
-      setExcludedCriteria(excluded);
-      setAdditionalCriteria(additional);
-      onExcludedCriteriaChange(excluded);
-      onAdditionalCriteriaChange(additional);
-    }
-  }, [
-    missionData.mission_number,
-    onExcludedCriteriaChange,
-    onAdditionalCriteriaChange,
-  ]);
-
-  useEffect(() => {
-    onExcludedCriteriaChange(excludedCriteria);
-    onAdditionalCriteriaChange(additionalCriteria);
-  }, [
-    excludedCriteria,
-    onExcludedCriteriaChange,
-    additionalCriteria,
-    onAdditionalCriteriaChange,
-  ]);
 
   return (
     <>
@@ -861,7 +812,7 @@ export default function MatchingLeftSide({
         <div className="fixed bottom-10 right-10">
           <Button
             className="bg-primary px-spaceLarge py-spaceContainer text-white"
-            onClick={handleSave}
+            onClick={() => saveCriteria(missionData.mission_number ?? '')}
           >
             Enregistrer
           </Button>

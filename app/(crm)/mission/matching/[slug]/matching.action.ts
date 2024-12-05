@@ -5,16 +5,11 @@ import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { calculateTotalMatchingScore } from './_functions/calculateMatchingPercentage';
 import { getNonMatchingCriteria } from './_functions/getNonMatchingCriteria';
 
-type EnhancedDBMatchedXpert = DBMatchedXpert & {
-  matchingScore: number;
-  nonMatchingCriteria: Record<string, string[]>;
-};
-
 export async function getAllMatchedXperts(
   missionData: DBMission,
   excludedCriteria?: Record<string, string[]>,
   additionalCriteria?: Record<string, string[]>
-): Promise<{ data: EnhancedDBMatchedXpert[]; error: string }> {
+): Promise<{ data: DBMatchedXpert[]; error: string }> {
   const supabase = await createSupabaseAppServerClient();
   const { sector, post_type, specialties, expertises, languages, diplomas } =
     missionData;
@@ -182,5 +177,5 @@ export async function getAllMatchedXperts(
     })
     .sort((a, b) => b.matchingScore - a.matchingScore);
 
-  return { data: enhancedXperts as EnhancedDBMatchedXpert[], error: '' };
+  return { data: enhancedXperts as DBMatchedXpert[], error: '' };
 }

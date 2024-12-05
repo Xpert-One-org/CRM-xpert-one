@@ -77,9 +77,11 @@ export async function sendMatchedXpertsToSelectionBoard(
       const insertData = newXperts.map((xpert) => ({
         mission_id: mission.id,
         xpert_id: xpert.id,
-        created_by: user.id,
         matching_score: matchingScores[xpert.id],
         column_status: 'matching' as ColumnStatus,
+        is_matched: true,
+        is_candidate: false,
+        created_at: new Date().toISOString(),
       }));
 
       operations.push(supabase.from('selection_matching').insert(insertData));
@@ -91,7 +93,6 @@ export async function sendMatchedXpertsToSelectionBoard(
           .from('selection_matching')
           .update({
             column_status: 'matching',
-            matching_score: existingXperts.map((x) => matchingScores[x.id])[0], // Update score if needed
             is_matched: true,
           })
           .eq('mission_id', mission.id)

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { DBMatchedXpert } from '@/types/typesDb';
 import { FilterButton } from '@/components/FilterButton';
 import MatchingXpertsRow from './MatchingXpertsRow';
+
 const availabilityOptions = [
   { label: 'Disponible', value: 'yes' },
   { label: 'Non disponible', value: 'no' },
@@ -10,14 +11,10 @@ const availabilityOptions = [
 
 export default function MatchingXpertsTable({
   matchingResults,
-  excludedCriteria,
-  additionalCriteria,
   selectedXperts,
   onXpertSelection,
 }: {
   matchingResults: DBMatchedXpert[];
-  excludedCriteria: Record<string, string[]>;
-  additionalCriteria: Record<string, string[]>;
   selectedXperts: Set<string>;
   onXpertSelection: (
     xpertId: string,
@@ -32,7 +29,7 @@ export default function MatchingXpertsTable({
   useEffect(() => {
     setSortedMatchingResults(matchingResults);
     setFilteredResults(matchingResults);
-  }, [matchingResults, excludedCriteria, additionalCriteria]);
+  }, [matchingResults]);
 
   const handleSort = (sortedData: DBMatchedXpert[]) => {
     setSortedMatchingResults(sortedData);

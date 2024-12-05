@@ -10,29 +10,30 @@ import RecapMissionDialog from '@/components/dialogs/RecapMissionDialog';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { sendMatchedXpertsToSelectionBoard } from '../../../selection/selection.action';
+import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 
 export default function LaunchMatching({
   missionData,
-  excludedCriteria,
-  additionalCriteria,
 }: {
   missionData: DBMission;
-  excludedCriteria: Record<string, string[]>;
-  additionalCriteria: Record<string, string[]>;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [matchingResults, setMatchingResults] = useState<
     DBMatchedXpert[] | null
   >(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(true);
   const [selectedXperts, setSelectedXperts] = useState<Set<string>>(new Set());
   const [matchingScoresMap, setMatchingScoresMap] = useState<
     Record<string, number>
   >({});
   const router = useRouter();
 
+  const { excludedCriteria, additionalCriteria, saveCriteria } =
+    useMatchingCriteriaStore();
+
   const handleLaunchMatching = async () => {
     setIsLoading(true);
+    setIsSubmitting(false);
     const { data } = await getAllMatchedXperts(
       missionData,
       excludedCriteria,
@@ -70,25 +71,33 @@ export default function LaunchMatching({
   };
 
   const handleSendToSelection = async () => {
-    if (selectedXperts.size === 0) {
-      toast.error('Please select at least one expert');
+    if (!matchingResults) {
+      toast.error('No matching results available');
       return;
     }
-
-    setIsSubmitting(true);
     try {
-      if (!matchingResults) {
-        throw new Error('No matching results available');
-      }
+      const selectedXpertsList =
+        selectedXperts.size === 0
+          ? matchingResults
+          : matchingResults.filter((x) => selectedXperts.has(x.id));
 
-      const selectedXpertsList = matchingResults.filter((x) =>
-        selectedXperts.has(x.id)
-      );
+      const updatedMatchingScoresMap =
+        selectedXperts.size === 0
+          ? matchingResults.reduce(
+              (acc, xpert) => ({
+                ...acc,
+                [xpert.id]: xpert.matchingScore,
+              }),
+              {}
+            )
+          : matchingScoresMap;
+
+      saveCriteria(missionData.mission_number ?? '');
 
       await sendMatchedXpertsToSelectionBoard(
         selectedXpertsList,
         missionData,
-        matchingScoresMap
+        updatedMatchingScoresMap
       );
 
       toast.success(`${selectedXpertsList.length} experts envoyés avec succès`);
@@ -97,8 +106,6 @@ export default function LaunchMatching({
       );
     } catch (error) {
       toast.error('Failed to add experts to selection');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -118,8 +125,6 @@ export default function LaunchMatching({
         {matchingResults && (
           <MatchingXpertsTable
             matchingResults={matchingResults}
-            excludedCriteria={excludedCriteria}
-            additionalCriteria={additionalCriteria}
             selectedXperts={selectedXperts}
             onXpertSelection={handleXpertSelection}
           />
@@ -130,9 +135,11 @@ export default function LaunchMatching({
         <Button
           className="w-full bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80"
           onClick={handleSendToSelection}
-          disabled={selectedXperts.size === 0 || isSubmitting}
+          disabled={isSubmitting}
         >
-          Envoyer vers DRAG & DROP
+          {selectedXperts.size === 0 && matchingResults
+            ? `Tous envoyer vers DRAG & DROP`
+            : 'Envoyer vers DRAG & DROP'}
         </Button>
         <RecapMissionDialog missionsData={missionData} />
       </div>

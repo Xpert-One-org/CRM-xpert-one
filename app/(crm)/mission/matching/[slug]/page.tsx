@@ -1,11 +1,12 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect } from 'react';
 import MatchingMissionTable from './_components/MatchingMissionTable';
 import { useMissionStore } from '@/store/mission';
 import MatchingLeftSide from './_components/MatchingLeftSide';
 import LaunchMatching from './_components/LaunchMatching';
 import type { DBMission } from '@/types/typesDb';
+import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 
 export default function MissionMatchingPage(props: {
   params: Promise<{ slug: string }>;
@@ -13,21 +14,17 @@ export default function MissionMatchingPage(props: {
   const { missions, fetchMissions } = useMissionStore();
   const params = use(props.params);
   const { slug } = params;
-  const [excludedCriteria, setExcludedCriteria] = useState<
-    Record<string, string[]>
-  >({});
-  const [additionalCriteria, setAdditionalCriteria] = useState<
-    Record<string, string[]>
-  >({});
-
   const missionNumber = slug.replace('-', ' ');
   const missionData = missions.find(
     (mission: DBMission) => mission.mission_number === missionNumber
   );
 
+  const { loadCriteria } = useMatchingCriteriaStore();
+
   useEffect(() => {
     fetchMissions();
-  }, [fetchMissions]);
+    loadCriteria(missionData?.mission_number ?? '');
+  }, [fetchMissions, loadCriteria, missionData?.mission_number]);
 
   return (
     <>
@@ -36,18 +33,10 @@ export default function MissionMatchingPage(props: {
           <MatchingMissionTable missionData={missionData} slug={'matching'} />
           <div className="flex h-[calc(100vh-200px)] w-full gap-3">
             <div className="flex w-1/2 overflow-y-auto">
-              <MatchingLeftSide
-                missionData={missionData}
-                onExcludedCriteriaChange={setExcludedCriteria}
-                onAdditionalCriteriaChange={setAdditionalCriteria}
-              />
+              <MatchingLeftSide missionData={missionData} />
             </div>
             <div className="flex w-1/2 overflow-y-auto">
-              <LaunchMatching
-                missionData={missionData}
-                excludedCriteria={excludedCriteria}
-                additionalCriteria={additionalCriteria}
-              />
+              <LaunchMatching missionData={missionData} />
             </div>
           </div>
         </div>
