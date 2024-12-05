@@ -16,11 +16,15 @@ export default function MatchingXpertsRow({
   missionData,
   excludedCriteria,
   additionalCriteria,
+  onXpertSelection,
+  isSelected,
 }: {
   matchedXpert: DBMatchedXpert;
   missionData: DBMission;
   excludedCriteria: Record<string, string[]>;
   additionalCriteria: Record<string, string[]>;
+  onXpertSelection: (xpertId: string, checked: boolean) => void;
+  isSelected: boolean;
 }) {
   const {
     jobTitles,
@@ -159,7 +163,12 @@ export default function MatchingXpertsRow({
       </Box>
       <Box className="col-span-2">{isAvailable ? 'OUI' : 'NON'}</Box>
       <div className="col-span-1 flex items-center justify-center">
-        <Checkbox />
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) =>
+            onXpertSelection(matchedXpert.id, checked as boolean)
+          }
+        />
       </div>
     </>
   );

@@ -3,7 +3,6 @@ import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
 import { FilterButton } from '@/components/FilterButton';
 import MatchingXpertsRow from './MatchingXpertsRow';
 import { calculateTotalMatchingScore } from '../_functions/calculateMatchingPercentage';
-
 const availabilityOptions = [
   { label: 'Disponible', value: 'yes' },
   { label: 'Non disponible', value: 'no' },
@@ -15,11 +14,19 @@ export default function MatchingXpertsTable({
   missionData,
   excludedCriteria,
   additionalCriteria,
+  selectedXperts,
+  onXpertSelection,
 }: {
   matchingResults: DBMatchedXpert[];
   missionData: DBMission;
   excludedCriteria: Record<string, string[]>;
   additionalCriteria: Record<string, string[]>;
+  selectedXperts: Set<string>;
+  onXpertSelection: (
+    xpertId: string,
+    checked: boolean,
+    matchingScore?: number
+  ) => void;
 }) {
   const calculateScores = () => {
     return matchingResults
@@ -117,6 +124,10 @@ export default function MatchingXpertsTable({
               missionData={missionData}
               excludedCriteria={excludedCriteria}
               additionalCriteria={additionalCriteria}
+              onXpertSelection={(xpertId, checked) =>
+                onXpertSelection(xpertId, checked, matchedXpert.matchingScore)
+              }
+              isSelected={selectedXperts.has(matchedXpert.id)}
             />
           ))}
         </div>

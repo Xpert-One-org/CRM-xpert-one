@@ -5,6 +5,7 @@ import MatchingMissionTable from './_components/MatchingMissionTable';
 import { useMissionStore } from '@/store/mission';
 import MatchingLeftSide from './_components/MatchingLeftSide';
 import LaunchMatching from './_components/LaunchMatching';
+import type { DBMission } from '@/types/typesDb';
 
 export default function MissionMatchingPage(props: {
   params: Promise<{ slug: string }>;
@@ -21,7 +22,7 @@ export default function MissionMatchingPage(props: {
 
   const missionNumber = slug.replace('-', ' ');
   const missionData = missions.find(
-    (mission) => mission.mission_number === missionNumber
+    (mission: DBMission) => mission.mission_number === missionNumber
   );
 
   useEffect(() => {

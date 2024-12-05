@@ -8,6 +8,8 @@ import { getAllMatchedXperts } from '../matching.action';
 import MatchingXpertsTable from './MatchingXpertsTable';
 import RecapMissionDialog from '@/components/dialogs/RecapMissionDialog';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { sendMatchedXpertsToSelectionBoard } from '../../../selection/selection.action';
 
 export default function LaunchMatching({
   missionData,
@@ -22,7 +24,11 @@ export default function LaunchMatching({
   const [matchingResults, setMatchingResults] = useState<
     DBMatchedXpert[] | null
   >(null);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedXperts, setSelectedXperts] = useState<Set<string>>(new Set());
+  const [matchingScoresMap, setMatchingScoresMap] = useState<
+    Record<string, number>
+  >({});
   const router = useRouter();
 
   const handleLaunchMatching = async () => {
@@ -34,6 +40,66 @@ export default function LaunchMatching({
     );
     setMatchingResults(data);
     setIsLoading(false);
+  };
+
+  const handleXpertSelection = (
+    xpertId: string,
+    checked: boolean,
+    matchingScore?: number
+  ) => {
+    setSelectedXperts((prev) => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(xpertId);
+        if (matchingScore !== undefined) {
+          setMatchingScoresMap((prev) => ({
+            ...prev,
+            [xpertId]: matchingScore,
+          }));
+        }
+      } else {
+        newSet.delete(xpertId);
+        setMatchingScoresMap((prev) => {
+          const newMap = { ...prev };
+          delete newMap[xpertId];
+          return newMap;
+        });
+      }
+      return newSet;
+    });
+  };
+
+  const handleSendToSelection = async () => {
+    if (selectedXperts.size === 0) {
+      toast.error('Please select at least one expert');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (!matchingResults) {
+        throw new Error('No matching results available');
+      }
+
+      const selectedXpertsList = matchingResults.filter((x) =>
+        selectedXperts.has(x.id)
+      );
+
+      await sendMatchedXpertsToSelectionBoard(
+        selectedXpertsList,
+        missionData,
+        matchingScoresMap
+      );
+
+      toast.success(`${selectedXpertsList.length} experts envoyés avec succès`);
+      router.push(
+        `/mission/selection/${missionData.mission_number?.replace(' ', '-')}`
+      );
+    } catch (error) {
+      toast.error('Failed to add experts to selection');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -55,6 +121,8 @@ export default function LaunchMatching({
             missionData={missionData}
             excludedCriteria={excludedCriteria}
             additionalCriteria={additionalCriteria}
+            selectedXperts={selectedXperts}
+            onXpertSelection={handleXpertSelection}
           />
         )}
       </div>
@@ -62,11 +130,8 @@ export default function LaunchMatching({
       <div className="mt-3 grid grid-cols-2 gap-spaceSmall">
         <Button
           className="w-full bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80"
-          onClick={() =>
-            router.push(
-              `/mission/selection/${missionData.mission_number?.replace(' ', '-')}`
-            )
-          }
+          onClick={handleSendToSelection}
+          disabled={selectedXperts.size === 0 || isSubmitting}
         >
           Envoyer vers DRAG & DROP
         </Button>

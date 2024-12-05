@@ -3,7 +3,6 @@ import { useSelect } from '@/store/select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
-import { uppercaseFirstLetter } from '@/utils/string';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 

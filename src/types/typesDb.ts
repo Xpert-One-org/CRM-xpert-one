@@ -171,3 +171,11 @@ export type DBUserChat = Pick<
   | 'generated_id'
   | 'username'
 >;
+
+export type ColumnStatus = Database['public']['Enums']['selection_column_type'];
+
+export type DBMissionXpertsSelection =
+  Database['public']['Tables']['selection_matching']['Row'] & {
+    xpert: Pick<DBProfile, 'firstname' | 'lastname' | 'generated_id'>;
+    creator: Pick<DBProfile, 'firstname' | 'lastname'>;
+  };

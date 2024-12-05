@@ -29,7 +29,7 @@ export default function SelectionPage(props: {
         )}
       </div>
       <div className="flex size-full flex-col gap-3">
-        <SelectionDragAndDropTable />
+        <SelectionDragAndDropTable missionId={missionData?.id || 0} />
       </div>
     </div>
   );

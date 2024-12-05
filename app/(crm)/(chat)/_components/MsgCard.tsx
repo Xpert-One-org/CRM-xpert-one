@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { MessageSquareMore, Pin } from 'lucide-react';
-import { useEffect } from 'react';
 import Image from 'next/image';
 import { defaultAvatar } from '@/data/constant';
 import type { Reaction } from '@/types/types';
