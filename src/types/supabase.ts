@@ -410,6 +410,7 @@ export type Database = {
           created_at: string;
           created_by: string;
           deadline_application: string | null;
+          deleted_at: string | null;
           description: string | null;
           diplomas: string[] | null;
           diplomas_other: string | null;
@@ -428,6 +429,9 @@ export type Database = {
           post_type: string[] | null;
           postal_code: string | null;
           profile_searched: string | null;
+          reason_deletion:
+            | Database['public']['Enums']['reason_mission_deletion']
+            | null;
           referent_fix: string | null;
           referent_mail: string | null;
           referent_mobile: string | null;
@@ -458,6 +462,7 @@ export type Database = {
           created_at?: string;
           created_by?: string;
           deadline_application?: string | null;
+          deleted_at?: string | null;
           description?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
@@ -476,6 +481,9 @@ export type Database = {
           post_type?: string[] | null;
           postal_code?: string | null;
           profile_searched?: string | null;
+          reason_deletion?:
+            | Database['public']['Enums']['reason_mission_deletion']
+            | null;
           referent_fix?: string | null;
           referent_mail?: string | null;
           referent_mobile?: string | null;
@@ -506,6 +514,7 @@ export type Database = {
           created_at?: string;
           created_by?: string;
           deadline_application?: string | null;
+          deleted_at?: string | null;
           description?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
@@ -524,6 +533,9 @@ export type Database = {
           post_type?: string[] | null;
           postal_code?: string | null;
           profile_searched?: string | null;
+          reason_deletion?:
+            | Database['public']['Enums']['reason_mission_deletion']
+            | null;
           referent_fix?: string | null;
           referent_mail?: string | null;
           referent_mobile?: string | null;
@@ -1467,8 +1479,8 @@ export type Database = {
     Functions: {
       calculate_matching_score: {
         Args: {
-          p_xpert_id: string;
           p_mission_id: number;
+          p_xpert_id: string;
         };
         Returns: number;
       };
@@ -1565,8 +1577,12 @@ export type Database = {
         | 'in_process'
         | 'validated'
         | 'refused';
+      reason_mission_deletion:
+        | 'status_candidate_not_found'
+        | 'won_competition'
+        | 'mission_suspended_by_supplier'
+        | 'other';
       revenu_type: 'tjm' | 'brut';
-
       selection_column_type:
         | 'postulant'
         | 'matching'

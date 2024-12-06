@@ -12,6 +12,8 @@ import SelectComponent from '@/components/SelectComponent';
 import { deleteMission } from '@functions/missions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import type { ReasonMissionDeletion } from '@/types/typesDb';
+import { reasonDeleteMissionSelect } from '@/data/mocked_select';
 
 export default function DeleteMissionDialog({
   missionId,
@@ -21,27 +23,10 @@ export default function DeleteMissionDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
 
-  const [reasonDelete, setReasonDelete] = useState('');
+  const [reasonDelete, setReasonDelete] = useState<ReasonMissionDeletion>(
+    'status_candidate_not_found'
+  );
   const router = useRouter();
-
-  const options = [
-    {
-      label: 'Statut candidat non trouvé',
-      value: 'Statut candidat non trouvé',
-    },
-    {
-      label: 'Gagné concurence',
-      value: 'Gagné concurence',
-    },
-    {
-      label: 'Mission suspendue par un fournisseur',
-      value: 'Mission suspendue par un fournisseur',
-    },
-    {
-      label: 'Autre',
-      value: 'Autre',
-    },
-  ];
 
   const handleSendDeleteMission = async () => {
     setIsLoading(true);
@@ -51,7 +36,7 @@ export default function DeleteMissionDialog({
         toast.success('Mission supprimée avec succès');
       }
       setPopupOpen(false);
-      router.push('/mission/etats?etat=to_validate');
+      router.push('/mission/etats?etat=deleted');
     } catch (error) {
       console.error(error);
     } finally {
@@ -81,9 +66,11 @@ export default function DeleteMissionDialog({
               label="Motif de suppression"
               placeholder="Choississez un motif"
               name={reasonDelete}
-              options={options}
+              options={reasonDeleteMissionSelect}
               defaultSelectedKeys={reasonDelete}
-              onValueChange={setReasonDelete}
+              onValueChange={(value) =>
+                setReasonDelete(value as ReasonMissionDeletion)
+              }
               required
             />
           </div>
@@ -99,7 +86,7 @@ export default function DeleteMissionDialog({
               className="w-fit self-end px-spaceContainer"
               variant={'destructive'}
             >
-              {isLoading ? 'Chargement...' : 'DEMANDER LA SUPPRESSION'}
+              {isLoading ? 'Chargement...' : 'Supprimer la mission'}
             </Button>
           </div>
         </div>

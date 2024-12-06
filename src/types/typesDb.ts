@@ -175,6 +175,9 @@ export type DBUserChat = Pick<
 
 export type ColumnStatus = Database['public']['Enums']['selection_column_type'];
 
+export type ReasonMissionDeletion =
+  Database['public']['Enums']['reason_mission_deletion'];
+
 export type DBMissionXpertsSelection =
   Database['public']['Tables']['selection_matching']['Row'] & {
     xpert: Pick<DBProfile, 'firstname' | 'lastname' | 'generated_id'>;
