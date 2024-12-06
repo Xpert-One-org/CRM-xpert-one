@@ -1,5 +1,9 @@
 'use server';
-import type { DBMission, DBMissionState } from '@/types/typesDb';
+import type {
+  DBMission,
+  DBMissionState,
+  ReasonMissionDeletion,
+} from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
@@ -101,7 +105,10 @@ export const insertMission = async ({ mission }: { mission: any }) => {
   return { error: null };
 };
 
-export const deleteMission = async (missionId: number, reason: string) => {
+export const deleteMission = async (
+  missionId: number,
+  reason: ReasonMissionDeletion
+) => {
   const supabase = await createSupabaseAppServerClient();
 
   //! maybe later we will add table called history_mission
@@ -117,7 +124,11 @@ export const deleteMission = async (missionId: number, reason: string) => {
 
   const { error: errorMission } = await supabase
     .from('mission')
-    .delete()
+    .update({
+      state: 'deleted',
+      reason_deletion: reason,
+      deleted_at: new Date().toISOString(),
+    })
     .eq('id', missionId);
 
   if (errorMission) {
