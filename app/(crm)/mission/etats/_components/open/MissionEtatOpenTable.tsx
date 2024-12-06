@@ -7,7 +7,7 @@ export default function MissionEtatOpenTable() {
   const { missions } = useMissionStore();
 
   return (
-    <div className="grid grid-cols-11 gap-3">
+    <div className="grid grid-cols-[repeat(13,_minmax(0,_1fr))] gap-2">
       <FilterButton
         options={[]}
         onValueChange={() => {}}
@@ -27,6 +27,8 @@ export default function MissionEtatOpenTable() {
       <FilterButton placeholder="Discussion" filter={false} />
       <FilterButton placeholder="Proposés" filter={false} />
       <FilterButton placeholder="Refusés" filter={false} />
+      <FilterButton placeholder="Date de début" filter={false} />
+      <FilterButton placeholder="Date de fin" filter={false} />
 
       {missions.map((mission) => (
         <MissionEtatOpenRow key={mission.id} mission={mission} />

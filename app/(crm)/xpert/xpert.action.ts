@@ -5,7 +5,7 @@ import type {
   UserData,
 } from '@/components/dialogs/CreateXpertDialog';
 import { limitXpert } from '@/data/constant';
-import type { FilterXpert } from '@/types/types';
+import type { AdminOpinionValue, FilterXpert } from '@/types/types';
 import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
@@ -151,7 +151,7 @@ export const getXpertsOptimized = async ({
     let query = supabase
       .from('profile')
       .select(
-        'firstname, lastname, id, country, generated_id, created_at, cv_name, profile_mission(availability, job_titles), mission!mission_xpert_associated_id_fkey(xpert_associated_id)',
+        'firstname, lastname, id, country, generated_id, created_at, admin_opinion, cv_name, profile_mission(availability, job_titles), mission!mission_xpert_associated_id_fkey(xpert_associated_id)',
         { count: 'exact' }
       )
       .eq('role', 'xpert');
@@ -202,6 +202,10 @@ export const getXpertsOptimized = async ({
 
     if (filters?.firstname) {
       query = query.ilike('firstname', `%${filters.firstname}%`);
+    }
+
+    if (filters?.adminOpinion) {
+      query = query.eq('admin_opinion', filters.adminOpinion);
     }
 
     if (filters?.lastname) {
@@ -334,5 +338,30 @@ export const deleteXpert = async (xpertId: string) => {
         code: 'delete_error',
       },
     };
+  }
+};
+
+export const updateAdminOpinion = async (
+  xpertId: string,
+  opinion: AdminOpinionValue
+) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { user } = (await supabase.auth.getUser()).data;
+
+  if (!user) {
+    return { error: "Vous n'êtes pas connecté" };
+  }
+
+  const { error } = await supabase
+    .from('profile')
+    .update({ admin_opinion: opinion === '' ? null : opinion })
+    .eq('id', xpertId);
+
+  if (error) {
+    console.error('Error updating admin opinion:', error);
+    return { error: error.message };
+  } else {
+    return { error: null };
   }
 };

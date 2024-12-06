@@ -12,7 +12,7 @@
     "db-seed": "supabase db dump --data-only -f supabase/seed.sql",
     "db-push": "supabase db push",
     "db-squash": "supabase migration squash",
-    "gen-db-types": "pnpm supabase gen types typescript --local --lang=typescript --schema public > src/types/supabase.ts",
+    "gen-db-types": "pnpm supabase gen types --lang=typescript --project-id wxjnrjakjwjhvsiwhelt --schema public > src/types/supabase.ts",
     "config": {
       "commitizen": {
         "path": "@commitlint/cz-commitlint"
