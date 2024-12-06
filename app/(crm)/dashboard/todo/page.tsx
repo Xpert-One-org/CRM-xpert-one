@@ -14,18 +14,22 @@ import {
 import { RotateCcw } from 'lucide-react';
 import CreateTaskDialog from './CreateTaskDialog';
 import {
-  getTasks,
   updateTask,
   completeTask,
   getAdminUsers,
 } from '../../../../functions/tasks';
-import type { FilterTasks, TaskWithRelations } from '@/types/types';
+import type {
+  FilterTasks,
+  TaskSubjectType,
+  TaskWithRelations,
+} from '@/types/types';
 import { toast } from 'sonner';
 import Loader from '@/components/Loader';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import { useTasksStore } from '@/store/task';
+import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 
 type TaskStatus = 'urgent' | 'pending' | 'done';
 type SubjectType = 'xpert' | 'supplier' | 'mission' | 'other';
@@ -42,9 +46,9 @@ const getStatusColor = (status: TaskStatus) => {
     case 'urgent':
       return 'bg-[#D75D5D]';
     case 'done':
-      return 'bg-[#4A8B96]';
+      return 'bg-[#65ADAF]';
     default:
-      return 'bg-[#6B7280]';
+      return 'bg-[#65ADAF]';
   }
 };
 
@@ -73,15 +77,42 @@ const getSubjectReference = (task: TaskWithRelations) => {
   }
 };
 
-export default function TaskTable() {
-  const [tasks, setTasks] = useState<TaskWithRelations[]>([]);
+type NewStatusNotSaved = {
+  status: { status: TaskStatus; task_id: number };
+};
 
-  const { loadTasks, loading, activeFilters, setActiveFilters, totalTasks } =
-    useTasksStore();
+type NewAssignedToNotSaved = {
+  assignedTo: { assigned_to: string; task_id: number };
+};
+
+export default function TaskTable() {
+  const {
+    loadTasks,
+    loading,
+    resetTasks,
+    tasks,
+    activeFilters,
+    setActiveFilters,
+    totalTasks,
+  } = useTasksStore();
+
+  const [newStatusNotSaved, setNewStatusNotSaved] = useState<
+    NewStatusNotSaved[]
+  >([]);
+  const [newAssignedToNotSaved, setNewAssignedToNotSaved] = useState<
+    NewAssignedToNotSaved[]
+  >([]);
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const [adminOptions, setAdminOptions] = useState<
     { label: string; value: string }[]
   >([]);
+
+  const hasSomethingNotSaved =
+    newStatusNotSaved.length > 0 || newAssignedToNotSaved.length > 0;
+
+  useWarnIfUnsavedChanges(hasSomethingNotSaved);
 
   useEffect(() => {
     const fetchAdminUsers = async () => {
@@ -97,23 +128,62 @@ export default function TaskTable() {
     fetchAdminUsers();
   }, []);
 
-  const handleStatusChange = async (taskId: number, newStatus: TaskStatus) => {
+  const handleUpdateStatus = async () => {
+    if (!newStatusNotSaved.length) {
+      return { error: null };
+    }
     try {
-      let updatedTask: TaskWithRelations;
+      const promiseStatus = newStatusNotSaved.map(async (data) => {
+        if (data.status.status === 'done') {
+          const { error } = await completeTask(data.status.task_id);
+          if (error) {
+            return { error };
+          } else {
+            return { error: null };
+          }
+        } else {
+          const { error } = await updateTask(data.status.task_id, {
+            status: data.status.status,
+          });
+          if (error) {
+            return { error };
+          } else {
+            return { error: null };
+          }
+        }
+      });
 
-      if (newStatus === 'done') {
-        updatedTask = await completeTask(taskId);
-      } else {
-        updatedTask = await updateTask(taskId, { status: newStatus });
+      const data = await Promise.all(promiseStatus);
+
+      if (data.some((d) => d.error)) {
+        return { error: true };
       }
-
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => (task.id === taskId ? updatedTask : task))
-      );
-
-      toast.success('Statut de la tâche mis à jour');
+      return { error: null };
     } catch (error) {
-      toast.error('Impossible de mettre à jour le statut');
+      return { error: true };
+    }
+  };
+  const handleUpdateAssignedTo = async () => {
+    if (!newAssignedToNotSaved.length) {
+      return { error: null };
+    }
+    try {
+      const promise = newAssignedToNotSaved.map(async (data) => {
+        const { error } = await updateTask(data.assignedTo.task_id, {
+          assigned_to: data.assignedTo.assigned_to,
+        });
+        if (error) {
+          return { error };
+        }
+      });
+      const data = await Promise.all(promise);
+
+      if (data.some((d) => d?.error)) {
+        return { error: true };
+      }
+      return { error: null };
+    } catch (error) {
+      return { error: true };
     }
   };
 
@@ -123,9 +193,22 @@ export default function TaskTable() {
     setActiveFilters(newFilters);
   };
 
-  const resetTasksFilters = () => {
-    setActiveFilters({});
+  const checkIfFilterIsNotEmpty = (filter: FilterTasks) => {
+    return Object.values(filter).some((value) => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return value !== '';
+    });
   };
+
+  const isFilterNotEmpty = checkIfFilterIsNotEmpty(activeFilters);
+
+  useEffect(() => {
+    if (isFilterNotEmpty) {
+      loadTasks(true);
+    }
+  }, [activeFilters]);
 
   const hasMore =
     tasks && totalTasks
@@ -134,10 +217,45 @@ export default function TaskTable() {
         ? false
         : true;
 
+  const handleSave = async () => {
+    setIsSaving(true);
+    const { error: errorAssignedTo } = await handleUpdateAssignedTo();
+    if (errorAssignedTo) {
+      setIsSaving(false);
+      toast.error("Erreur lors de l'enregistrement des tâches");
+      return;
+    } else {
+      setNewAssignedToNotSaved([]);
+    }
+    const { error: errorStatus } = await handleUpdateStatus();
+    if (errorStatus) {
+      toast.error("Erreur lors de l'enregistrement des tâches");
+      setIsSaving(false);
+      return;
+    }
+    toast.success('Tâches enregistrées avec succès');
+    loadTasks(true);
+    setNewStatusNotSaved([]);
+    setIsSaving(false);
+  };
+
   return (
-    <div className={cn('flex size-full flex-col justify-between gap-4')}>
+    <div
+      className={cn(
+        'flex size-full h-[calc(100vh_-_180px)] flex-col justify-between gap-4 overflow-hidden'
+      )}
+    >
       <div className="relative flex flex-col gap-4">
-        <CreateTaskDialog onTaskCreate={() => loadTasks(true)} />
+        <div className="flex w-full justify-between">
+          <CreateTaskDialog onTaskCreate={() => loadTasks(true)} />
+          <Button
+            disabled={!hasSomethingNotSaved || isSaving}
+            className="text-white"
+            onClick={handleSave}
+          >
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+          </Button>
+        </div>
 
         <div className="grid gap-3">
           {/* Header Row */}
@@ -213,7 +331,7 @@ export default function TaskTable() {
                     activeFilters.subjectType) && (
                     <button
                       className="font-[600] text-primary"
-                      onClick={resetTasksFilters}
+                      onClick={resetTasks}
                     >
                       Réinitialiser
                     </button>
@@ -223,85 +341,56 @@ export default function TaskTable() {
                 <Skeleton className="h-6 w-40" />
               )}
             </div>
+          </div>
+          <div className="h-[calc(100vh_-_350px)] overflow-auto pb-10">
+            <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px] gap-3">
+              {!loading && tasks?.length === 0 ? (
+                <div className="col-span-7 py-8 text-center text-gray-500">
+                  Aucune tâche trouvée
+                </div>
+              ) : (
+                tasks?.map((task) => {
+                  return (
+                    <React.Fragment key={task.id}>
+                      <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                        {formatDate(task.created_at)}
+                      </Box>
+                      <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                        {task.created_by_profile.firstname}
+                      </Box>
+                      <SelectAssignedTo
+                        newAssignedToNotSaved={newAssignedToNotSaved}
+                        setNewAssignedToNotSaved={setNewAssignedToNotSaved}
+                        task={task}
+                        adminOptions={adminOptions}
+                      />
+                      <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                        {getSubjectReference(task)}
+                      </Box>
+                      <Box className="line-clamp-3 flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                        {task.details}
+                      </Box>
+                      <SelectStatus
+                        task={task}
+                        newStatusNotSaved={newStatusNotSaved}
+                        setNewStatusNotSaved={setNewStatusNotSaved}
+                      />
 
-            {!loading && tasks.length === 0 ? (
-              <div className="col-span-7 py-8 text-center text-gray-500">
-                Aucune tâche trouvée
-              </div>
-            ) : (
-              tasks.map((task) => (
-                <React.Fragment key={task.id}>
-                  <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                    {formatDate(task.created_at)}
-                  </Box>
-                  <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                    {task.created_by_profile.firstname}
-                  </Box>
-                  <Box className="flex h-[70px] items-center bg-[#D0DDE1] px-4">
-                    <Select
-                      value={task.assigned_to}
-                      onValueChange={async (value) => {
-                        try {
-                          await updateTask(task.id, { assigned_to: value });
-                          loadTasks();
-                        } catch (error) {
-                          toast.error('Impossible de réassigner la tâche');
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="border-0 bg-transparent p-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {adminOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Box>
-                  <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                    {getSubjectReference(task)}
-                  </Box>
-                  <Box className="line-clamp-3 flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                    {task.details}
-                  </Box>
-                  <Box className="h-[70px] p-0">
-                    <Select
-                      value={task.status}
-                      onValueChange={(value) =>
-                        handleStatusChange(task.id, value as TaskStatus)
-                      }
-                    >
-                      <SelectTrigger
-                        className={`size-full border-0 text-white ${getStatusColor(task.status as TaskStatus)}`}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Box>
-                  <Box className="flex h-[70px] items-center justify-center bg-[#4A8B96]">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      // onClick={loadTasks}
-                      className="size-full text-white hover:bg-[#4A8B96]/90"
-                    >
-                      <RotateCcw className="size-4" />
-                    </Button>
-                  </Box>
-                </React.Fragment>
-              ))
-            )}
-
+                      <Box className="flex h-[70px] items-center justify-center bg-[#4A8B96]">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          // onClick={loadTasks}
+                          className="size-full text-white hover:bg-[#4A8B96]/90"
+                        >
+                          <RotateCcw className="size-4" />
+                        </Button>
+                      </Box>
+                    </React.Fragment>
+                  );
+                })
+              )}
+            </div>
             <InfiniteScroll
               hasMore={hasMore}
               next={loadTasks}
@@ -324,3 +413,133 @@ export default function TaskTable() {
     </div>
   );
 }
+
+const SelectAssignedTo = ({
+  task,
+  newAssignedToNotSaved,
+  setNewAssignedToNotSaved,
+  adminOptions,
+}: {
+  task: TaskWithRelations;
+  newAssignedToNotSaved: NewAssignedToNotSaved[];
+  adminOptions: { label: string; value: string }[];
+  setNewAssignedToNotSaved: (newData: NewAssignedToNotSaved[]) => void;
+}) => {
+  const [assignedTo, setAssignedTo] = useState(task.assigned_to);
+
+  const handleChange = (taskId: number, newAssignedTo: TaskSubjectType) => {
+    setAssignedTo(newAssignedTo);
+    const existingData = newAssignedToNotSaved.find(
+      (data) => data.assignedTo.task_id === taskId
+    );
+    if (existingData) {
+      if (newAssignedTo === task.assigned_to) {
+        const newData = newAssignedToNotSaved.filter(
+          (data) => data.assignedTo.task_id !== taskId
+        );
+        setNewAssignedToNotSaved(newData);
+        return;
+      }
+      const newData = newAssignedToNotSaved.map((data) =>
+        data.assignedTo.task_id === taskId
+          ? { assignedTo: { assigned_to: newAssignedTo, task_id: taskId } }
+          : data
+      );
+      setNewAssignedToNotSaved(newData);
+    } else {
+      setNewAssignedToNotSaved([
+        ...newAssignedToNotSaved,
+        { assignedTo: { assigned_to: newAssignedTo, task_id: taskId } },
+      ]);
+    }
+  };
+
+  return (
+    <Box className="h-[70px] bg-[#D0DDE1] p-0">
+      <Select
+        value={assignedTo}
+        onValueChange={(value) =>
+          handleChange(task.id, value as TaskSubjectType)
+        }
+      >
+        <SelectTrigger className="justify-center border-0 bg-transparent p-0">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {adminOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Box>
+  );
+};
+
+const SelectStatus = ({
+  task,
+  newStatusNotSaved,
+  setNewStatusNotSaved,
+}: {
+  task: TaskWithRelations;
+  newStatusNotSaved: NewStatusNotSaved[];
+  setNewStatusNotSaved: (newData: NewStatusNotSaved[]) => void;
+}) => {
+  const [status, setStatus] = useState(task.status);
+
+  const handleStatusChange = (taskId: number, newStatus: TaskStatus) => {
+    setStatus(newStatus);
+    const existingData = newStatusNotSaved.find(
+      (data) => data.status.task_id === taskId
+    );
+    if (existingData) {
+      if (newStatus === task.status) {
+        const newData = newStatusNotSaved.filter(
+          (data) => data.status.task_id !== taskId
+        );
+        setNewStatusNotSaved(newData);
+        return;
+      }
+      const newData = newStatusNotSaved.map((data) =>
+        data.status.task_id === taskId
+          ? { status: { status: newStatus, task_id: taskId } }
+          : data
+      );
+      setNewStatusNotSaved(newData);
+    } else {
+      setNewStatusNotSaved([
+        ...newStatusNotSaved,
+        { status: { status: newStatus, task_id: taskId } },
+      ]);
+    }
+  };
+
+  const statusOptionsWithoutAll = statusOptions.filter(
+    (option) => option.value !== ' '
+  );
+
+  return (
+    <Box className="h-[70px] p-0">
+      <Select
+        value={status}
+        onValueChange={(value) =>
+          handleStatusChange(task.id, value as TaskStatus)
+        }
+      >
+        <SelectTrigger
+          className={`size-full justify-center border-0 text-white ${getStatusColor(status as TaskStatus)}`}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {statusOptionsWithoutAll.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Box>
+  );
+};

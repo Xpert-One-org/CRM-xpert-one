@@ -5,29 +5,34 @@ import { create } from 'zustand';
 
 type TaskState = {
   loading: boolean;
-  tasks: TaskWithRelations[];
-  totalTasks: number;
+  tasks: TaskWithRelations[] | null;
+  setTasks: (tasks: TaskWithRelations[]) => void;
+  totalTasks: number | null;
   loadTasks: (replacing?: boolean) => void;
   activeFilters: FilterTasks;
   setActiveFilters: (filters: FilterTasks) => void;
+  resetTasks: () => void;
 };
 
 export const useTasksStore = create<TaskState>((set, get) => ({
-  loading: false,
-  tasks: [],
-  totalTasks: 0,
+  loading: true,
+  tasks: null,
+  setTasks: (tasks) => {
+    set({ tasks });
+  },
+  totalTasks: null,
   loadTasks: async (replacing) => {
-    alert('ok');
     set({ loading: true });
-    const offset = replacing ? 0 : get().tasks.length || 0;
+    const offset = replacing ? 0 : (get().tasks?.length ?? 0);
     const filters = get().activeFilters;
     const { data, count, error } = await getTasks({ offset, filters });
+
     if (data) {
-      replacing
-        ? set({ tasks: data })
-        : set({ tasks: [...get().tasks, ...data] });
+      const tasks = get().tasks || [];
+      replacing ? set({ tasks: data }) : set({ tasks: [...tasks, ...data] });
     }
-    count && set({ totalTasks: count });
+
+    set({ totalTasks: count });
     if (error) {
       toast.error('Impossible de charger les tâches');
     }
@@ -36,5 +41,16 @@ export const useTasksStore = create<TaskState>((set, get) => ({
   activeFilters: {},
   setActiveFilters: (filter) => {
     set({ activeFilters: filter });
+  },
+  resetTasks: () => {
+    set({
+      activeFilters: {
+        assignedTo: '',
+        status: undefined,
+        subjectType: '',
+      },
+    });
+
+    get().loadTasks(true);
   },
 }));

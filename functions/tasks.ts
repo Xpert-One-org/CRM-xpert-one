@@ -51,11 +51,9 @@ export async function getTasks({
 
   const { data, error, count } = await query
     .range(offset, offset + limitTask - 1)
-    .order('created_at', {
-      ascending: false,
+    .order('status', {
+      ascending: true,
     });
-
-  console.log('data', data);
 
   if (error) {
     return {
@@ -92,15 +90,17 @@ export async function getAdminUsers() {
 export async function updateTask(id: number, updates: UpdateTask) {
   const supabase = await createSupabaseAppServerClient();
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('tasks')
     .update(updates)
     .eq('id', id)
     .select(taskQuery)
     .single();
 
-  if (error) throw error;
-  return data;
+  if (error) {
+    return { error };
+  }
+  return { error: null };
 }
 
 // Marquer une tâche comme terminée
@@ -117,8 +117,10 @@ export async function completeTask(id: number) {
     .select(taskQuery)
     .single();
 
-  if (error) throw error;
-  return data;
+  if (error) {
+    return { error };
+  }
+  return { error: null };
 }
 
 export async function createTask(taskData: InsertTask) {
