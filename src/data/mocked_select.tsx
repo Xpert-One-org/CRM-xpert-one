@@ -61,10 +61,6 @@ export const how = [
     label: 'Un Xpert',
     value: 'xpert',
   },
-  {
-    label: 'Autre',
-    value: 'other',
-  },
 ];
 
 export const postTypesSelect = [

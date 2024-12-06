@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { cn } from '@/lib/utils';
@@ -10,8 +10,8 @@ import FilterSvg from '../svg/FIlterSvg';
 import MultiSelectComponent from '../MultiSelectComponent';
 
 type ComboboxJobTitlesProps = {
-  data?: DBXpert[];
-  onFilter?: (filteredData: DBXpert[]) => void;
+  data?: DBXpertOptimized[];
+  onFilter?: (filteredData: DBXpertOptimized[]) => void;
   selectedValues: string[];
   onValueChange: (values: string[]) => void;
   className?: string;

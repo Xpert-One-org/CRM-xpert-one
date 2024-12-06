@@ -21,6 +21,10 @@ type Props = {
   explain?: React.ReactNode;
   classNameLabel?: string;
   hasError?: boolean;
+  creatable?: boolean;
+  maxSelected?: number;
+  showIndividualX?: boolean;
+  side?: 'top' | 'bottom';
   disabled?: boolean;
 } & ComponentProps<'div'>;
 
@@ -28,11 +32,15 @@ export default function MultiSelectComponent({
   className,
   hasError,
   classNameLabel,
+  showIndividualX = true,
+  side,
   explain,
   required,
   name,
   onValueChange,
   options,
+  maxSelected,
+  creatable,
   placeholder = 'Choisir',
   label,
   defaultSelectedKeys,
@@ -45,9 +53,13 @@ export default function MultiSelectComponent({
     onValueChange(values, name, json_keys);
   };
 
-  const defaultsOptions = options.filter((option) =>
-    defaultSelectedKeys?.includes(option.value || '')
-  );
+  const newCreatedOptions = defaultSelectedKeys
+    ?.filter((option) => !options.find((o) => o.value === option))
+    .map((option) => ({ value: option, label: option }));
+
+  const defaultsOptions = options
+    .filter((option) => defaultSelectedKeys?.includes(option.value || ''))
+    .concat(newCreatedOptions);
 
   return (
     <div className={cn('w-full font-light xl:max-w-[280px]', className)}>
@@ -64,10 +76,14 @@ export default function MultiSelectComponent({
       )}
 
       <MultipleSelector
+        side={side}
         hidePlaceholderWhenSelected
         onChange={handleOnChange}
+        creatable={creatable}
+        maxSelected={maxSelected}
+        showIndividualX={showIndividualX}
         className={cn(
-          'bg-white pr-4 transition',
+          'bg-white py-1 pr-4 transition',
           { 'border-important': hasError },
           { 'hover:border-primary': !hasError }
         )}

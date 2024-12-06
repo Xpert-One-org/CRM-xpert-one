@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 import { Label } from './label';
-import { Mail, Lock, EyeOff, Eye } from 'lucide-react';
+import { Mail, Lock, EyeOff, Eye, Calendar } from 'lucide-react';
 import { Button } from './button';
 import { useState } from 'react';
 
@@ -98,6 +98,15 @@ const Input = React.forwardRef<
               )}
               {type === 'email' && (
                 <Mail
+                  strokeWidth={1.5}
+                  color="black"
+                  className="outline-none"
+                  size={18}
+                  type="button"
+                />
+              )}
+              {type === 'date' && (
+                <Calendar
                   strokeWidth={1.5}
                   color="black"
                   className="outline-none"

@@ -194,3 +194,14 @@ type _File = {
   name: string;
   url: string;
 };
+
+type FilterXpert = {
+  jobTitles: string;
+  availability: string;
+  cv: string;
+  countries: string[];
+  sortDate: string;
+  firstname: string;
+  lastname: string;
+  generated_id: string;
+};
