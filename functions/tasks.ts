@@ -139,3 +139,27 @@ export async function createTask(taskData: InsertTask) {
 
   return data;
 }
+
+export const getCountTasksToTreatAndUrgent = async () => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { error: errorPending, count: pending } = await supabase
+    .from('tasks')
+    .select('', { count: 'exact' })
+    .eq('status', 'pending');
+
+  if (errorPending) {
+    console.error('Error fetching count tasks to treat:', errorPending);
+    return { count: { pending: null, urgent: null }, error: errorPending };
+  }
+  const { error: errorUrgent, count: urgent } = await supabase
+    .from('tasks')
+    .select('', { count: 'exact' })
+    .eq('status', 'urgent');
+  if (errorUrgent) {
+    console.error('Error fetching count tasks urgent:', errorUrgent);
+    return { count: { pending: null, urgent: null }, error: errorUrgent };
+  }
+
+  return { count: { pending, urgent }, error: null };
+};

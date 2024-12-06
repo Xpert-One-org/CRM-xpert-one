@@ -18,6 +18,7 @@ import {
   getLastSignupNewUsers,
   getLastSignUpNewUsersWeek,
 } from '@functions/dashboard';
+import { getCountTasksToTreatAndUrgent } from '@functions/tasks';
 
 export default async function DashboardPage() {
   const { data: newUsers } = await getLastSignupNewUsers();
@@ -28,6 +29,10 @@ export default async function DashboardPage() {
     await getCountMissionsState('in_progress');
 
   const { data: missions } = await getCountMissions();
+
+  const { pending: pendingTaskCount, urgent: urgentTaskCount } = (
+    await getCountTasksToTreatAndUrgent()
+  ).count;
 
   const { data: missionsToValidate } =
     await getCountMissionsState('to_validate');
@@ -66,11 +71,11 @@ export default async function DashboardPage() {
         link="/facturation/etats"
       /> */}
       <DashBoardCards
-        count={newUsers.length}
+        count={(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}
         title="TO DO à traiter"
         urgentTitle="Urgentes"
-        urgentCount={0}
-        buttonTitle={`TODO : ${newUsers.length}`}
+        urgentCount={urgentTaskCount ?? 0}
+        buttonTitle={`TODO : ${(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}`}
         iconButton={<SquarePen width={24} height={24} />}
         link="/dashboard/todo"
       />
