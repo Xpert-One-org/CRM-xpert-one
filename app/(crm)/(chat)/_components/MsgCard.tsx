@@ -6,12 +6,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { roleSelect } from '@/data/mocked_select';
 import { cn } from '@/lib/utils';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-import { MessageSquareMore, Pin } from 'lucide-react';
-import { useEffect } from 'react';
+
+import { MessageSquareMore, Pin, X } from 'lucide-react';
+import { useState } from 'react';
+
 import Image from 'next/image';
 import { defaultAvatar } from '@/data/constant';
 import type { Reaction } from '@/types/types';
@@ -22,14 +33,24 @@ import File from './File';
 import { formatDate } from '@/utils/date';
 import { formatHour } from '@/utils/formatDates';
 import { getLabel } from '@/utils/getLabel';
+import { createSupabaseFrontendClient } from '@/utils/supabase/client';
+import { toast } from 'sonner';
 
 type MsgCardProps = {
   message: DBMessage;
   user_id: string;
   type: ChatType;
+  onDelete?: () => void;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-export const MsgCard = ({ style, message, user_id, type }: MsgCardProps) => {
+export const MsgCard = ({
+  style,
+  message,
+  user_id,
+  type,
+  onDelete,
+}: MsgCardProps) => {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const {
     content,
     user,
@@ -61,99 +82,154 @@ export const MsgCard = ({ style, message, user_id, type }: MsgCardProps) => {
     base_msg?.send_by != user_id;
   const isUserBaseMsg = user_id === base_msg?.send_by;
 
+  const handleDeleteRequest = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteMessage = async () => {
+    try {
+      const supabase = createSupabaseFrontendClient();
+      const { error } = await supabase
+        .from('message')
+        .delete()
+        .eq('id', message.id);
+
+      if (error) throw error;
+
+      setShowDeleteDialog(false);
+      toast.success('Message supprimé avec succès');
+      onDelete?.();
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast.error('Erreur lors de la suppression du message');
+      setShowDeleteDialog(false);
+    }
+  };
+
   return (
-    <div
-      style={style}
-      className={cn(
-        'relative flex w-full flex-col gap-y-spaceSmall rounded-[10px] bg-white p-spaceMediumContainer shadow-msg',
-        { 'bg-chat-selected': isCreatorMsgNotUser },
-        { 'bg-primary text-white': isUserMsg }
-      )}
-    >
-      {isPinMsg && (
-        <div className="absolute right-3 top-3 rotate-45">
-          <Pin size={18} />
-        </div>
-      )}
-      <Card
-        created_at={created_at}
-        user_id={user_id}
-        send_by={message.send_by}
-        user={user}
-        type={type}
-      />
-      {base_msg && (
-        <div
-          className={cn(
-            'relative flex w-full flex-col gap-y-spaceSmall rounded-[10px] border bg-white p-spaceMediumContainer text-dark shadow-msg',
-            { 'bg-chat-selected': isCreatorBaseMsg },
-            { 'bg-secondary text-white': isUserBaseMsg }
-          )}
-        >
-          <Card
-            type={type}
-            created_at={base_msg.created_at}
-            user_id={user_id}
-            send_by={base_msg.send_by}
-            user={base_msg.profile}
-          />
-          <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-xs">
-            {base_msg.content}
-          </p>
-        </div>
-      )}
+    <>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Supprimer le message</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce message ? Cette action est
+              irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteMessage}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-xs">
-        {content}
-      </p>
-      <div className="flex gap-x-spaceContainer">
-        {files?.map((f, i) => <File key={f.name} file={f} />)}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-spaceSmall gap-y-spaceXSmall">
+      <div
+        style={style}
+        className={cn(
+          'relative flex w-full flex-col gap-y-spaceSmall rounded-[10px] bg-white p-spaceMediumContainer shadow-msg',
+          { 'bg-chat-selected': isCreatorMsgNotUser },
+          { 'bg-primary text-white': isUserMsg }
+        )}
+      >
         <button
-          className="flex items-center gap-x-spaceXSmall"
-          onClick={() => setAnsweringMsg(message)}
+          onClick={handleDeleteRequest}
+          className="absolute right-2 top-2 rounded-full p-1 hover:bg-gray-100"
         >
-          <MessageSquareMore size={23} className="-mb-px mt-px" />
-          <p className="text-sm">Répondre</p>
+          <X size={16} className={cn({ 'text-white': isUserMsg })} />
         </button>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger className="flex items-center gap-x-spaceXSmall text-sm">
-            <ReactionSvg
-              stroke={user_id === message.send_by ? 'white' : 'black'}
-            />{' '}
-            Ajouter une réaction
-          </PopoverTrigger>
-          <PopoverContent className="w-full border-none bg-transparent p-0">
-            <Picker
-              locale="fr"
-              autoFocus
-              noCountryFlags
-              data={data}
-              onEmojiSelect={addReaction}
-            />
-          </PopoverContent>
-        </Popover>
 
-        {(reaction_db as Reaction[] | undefined)?.map((r: any, i: number) => (
-          <div key={r?.emoji} className="relative">
-            <div className="z-10 flex items-center gap-x-spaceXXSmall">
-              <button
-                className={cn(
-                  'flex h-[27px] w-[27px] items-center justify-center rounded-full transition-all hover:shadow-2xl'
-                )}
-                onClick={() => addReaction({ native: r.emoji })}
-              >
-                {r.emoji}
-              </button>
-              <span>{r.count}</span>
-            </div>
+        {isPinMsg && (
+          <div className="absolute right-3 top-3 rotate-45">
+            <Pin size={18} />
           </div>
-        ))}
-        {/* <div className="h-[27px]" /> */}
+        )}
+        <Card
+          created_at={created_at}
+          user_id={user_id}
+          send_by={message.send_by}
+          user={user}
+          type={type}
+        />
+        {base_msg && (
+          <div
+            className={cn(
+              'relative flex w-full flex-col gap-y-spaceSmall rounded-[10px] border bg-white p-spaceMediumContainer text-dark shadow-msg',
+              { 'bg-chat-selected': isCreatorBaseMsg },
+              { 'bg-secondary text-white': isUserBaseMsg }
+            )}
+          >
+            <Card
+              type={type}
+              created_at={base_msg.created_at}
+              user_id={user_id}
+              send_by={base_msg.send_by}
+              user={base_msg.profile}
+            />
+            <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-xs">
+              {base_msg.content}
+            </p>
+          </div>
+        )}
+
+        <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-xs">
+          {content}
+        </p>
+        <div className="flex gap-x-spaceContainer">
+          {files?.map((f) => <File key={f.name} file={f} />)}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-spaceSmall gap-y-spaceXSmall">
+          <button
+            className="flex items-center gap-x-spaceXSmall"
+            onClick={() => setAnsweringMsg(message)}
+          >
+            <MessageSquareMore size={23} className="-mb-px mt-px" />
+            <p className="text-sm">Répondre</p>
+          </button>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger className="flex items-center gap-x-spaceXSmall text-sm">
+              <ReactionSvg
+                stroke={user_id === message.send_by ? 'white' : 'black'}
+              />{' '}
+              Ajouter une réaction
+            </PopoverTrigger>
+            <PopoverContent className="w-full border-none bg-transparent p-0">
+              <Picker
+                locale="fr"
+                autoFocus
+                noCountryFlags
+                data={data}
+                onEmojiSelect={addReaction}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {(reaction_db as Reaction[] | undefined)?.map((r: any) => (
+            <div key={r?.emoji} className="relative">
+              <div className="z-10 flex items-center gap-x-spaceXXSmall">
+                <button
+                  className={cn(
+                    'flex h-[27px] w-[27px] items-center justify-center rounded-full transition-all hover:shadow-2xl'
+                  )}
+                  onClick={() => addReaction({ native: r.emoji })}
+                >
+                  {r.emoji}
+                </button>
+                <span>{r.count}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -188,6 +264,7 @@ const Card = ({
     username,
     avatar_url,
   } = user ?? {};
+
   const useUsername = username && (type == 'forum' || type == 'echo_community');
   const name = useUsername
     ? username
@@ -218,7 +295,6 @@ const Card = ({
             <p className="mb-[2px]">
               {getLabel({ value: role, select: roleSelect })}
             </p>
-
             <p
               className={cn('mb-[2px] text-[#868686]', {
                 'text-white': user_id === send_by,
@@ -242,11 +318,9 @@ const Card = ({
             <p className="mb-[2px] font-[400]">
               {name.trim() != '' ? name : 'Utilisateur supprimé'}
             </p>
-
             {company_name && (
               <p className="mb-[2px] font-[400]">{company_name}</p>
             )}
-
             <p
               className={cn('mb-[2px] text-[#868686]', {
                 'text-white': user_id === send_by,

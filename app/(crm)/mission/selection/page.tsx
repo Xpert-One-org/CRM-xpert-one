@@ -1,5 +1,6 @@
 import React from 'react';
+import ComboboxMission from '@/components/combobox/ComboboxMission';
 
 export default function MissionSelectionPage() {
-  return <div>MissionSelectionPage</div>;
+  return <ComboboxMission slug="selection" />;
 }

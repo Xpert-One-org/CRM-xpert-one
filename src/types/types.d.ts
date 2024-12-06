@@ -1,14 +1,14 @@
-import { Database } from './supabase';
+import type { Database } from './supabase';
 import type {
+  DBMission,
+  DBProfileEducation,
   DBProfileExperience,
   DBProfileExpertise,
   DBProfileMission,
   DBProfileStatus,
   DBUser,
-  DBProfileEducation,
-  DBMission,
 } from './typesDb';
-import { DBProfile } from './typesDb';
+import type { DBProfile } from './typesDb';
 
 type User = DBUser;
 
@@ -195,7 +195,44 @@ type _File = {
   url: string;
 };
 
-type FilterXpert = {
+// Types de base depuis la définition de la table
+export type TaskStatus = Database['public']['Enums']['task_status'];
+export type TaskSubjectType = Database['public']['Enums']['task_subject_type'];
+
+// Type de base pour une tâche
+export type Task = Database['public']['Tables']['tasks']['Row'];
+
+// Type pour l'insertion d'une nouvelle tâche
+export type InsertTask = Database['public']['Tables']['tasks']['Insert'];
+
+// Type pour la mise à jour d'une tâche
+export type UpdateTask = Database['public']['Tables']['tasks']['Update'];
+
+// Type étendu avec les relations
+export type TaskWithRelations = Task & {
+  created_by_profile: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  >;
+  assigned_to_profile: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  >;
+  xpert?: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  > | null;
+  supplier?: Pick<
+    DBProfile,
+    'id' | 'firstname' | 'lastname' | 'generated_id'
+  > | null;
+  mission?: Pick<
+    DBMission,
+    'id' | 'job_title' | 'mission_number' | 'state'
+  > | null;
+};
+
+export type FilterXpert = {
   jobTitles: string;
   availability: string;
   cv: string;
@@ -204,4 +241,14 @@ type FilterXpert = {
   firstname: string;
   lastname: string;
   generated_id: string;
+  adminOpinion: AdminOpinionValue;
 };
+
+export type FilterTasks = {
+  createdBy?: string;
+  assignedTo?: string;
+  status?: TaskStatus;
+  subjectType?: SubjectType;
+};
+
+export type AdminOpinionValue = 'positive' | 'neutral' | 'negative' | '';

@@ -1,11 +1,19 @@
 'use server';
-import type { DBMission, DBMissionState } from '@/types/typesDb';
+import type {
+  DBMission,
+  DBMissionState,
+  ReasonMissionDeletion,
+} from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
 export const getAllMissions = async (): Promise<DBMission[]> => {
   const supabase = await createSupabaseAppServerClient();
-  const { data, error } = await supabase.from('mission').select('*');
+  const { data, error } = await supabase
+    .from('mission')
+    .select(
+      '*, xpert:profile!mission_xpert_associated_id_fkey(*), supplier:profile!mission_created_by_fkey(*)'
+    );
   if (error) {
     throw new Error(error.message);
   }
@@ -97,7 +105,10 @@ export const insertMission = async ({ mission }: { mission: any }) => {
   return { error: null };
 };
 
-export const deleteMission = async (missionId: number, reason: string) => {
+export const deleteMission = async (
+  missionId: number,
+  reason: ReasonMissionDeletion
+) => {
   const supabase = await createSupabaseAppServerClient();
 
   //! maybe later we will add table called history_mission
@@ -113,7 +124,11 @@ export const deleteMission = async (missionId: number, reason: string) => {
 
   const { error: errorMission } = await supabase
     .from('mission')
-    .delete()
+    .update({
+      state: 'deleted',
+      reason_deletion: reason,
+      deleted_at: new Date().toISOString(),
+    })
     .eq('id', missionId);
 
   if (errorMission) {

@@ -1,7 +1,7 @@
 module.exports = {
   extends: ['gitmoji'],
   rules: {
-    'header-max-length': [2, 'always', 200],
+    'header-max-length': [2, 'always', 300],
     'type-enum': [
       2,
       'always',

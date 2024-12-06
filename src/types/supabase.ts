@@ -22,6 +22,8 @@ export type Database = {
           slug: string | null;
           status: Database['public']['Enums']['article_status'];
           title: string | null;
+          type: Database['public']['Enums']['article_type'] | null;
+          url: string | null;
         };
         Insert: {
           author_id?: string | null;
@@ -35,6 +37,8 @@ export type Database = {
           slug?: string | null;
           status?: Database['public']['Enums']['article_status'];
           title?: string | null;
+          type?: Database['public']['Enums']['article_type'] | null;
+          url?: string | null;
         };
         Update: {
           author_id?: string | null;
@@ -48,6 +52,8 @@ export type Database = {
           slug?: string | null;
           status?: Database['public']['Enums']['article_status'];
           title?: string | null;
+          type?: Database['public']['Enums']['article_type'] | null;
+          url?: string | null;
         };
         Relationships: [
           {
@@ -404,6 +410,7 @@ export type Database = {
           created_at: string;
           created_by: string;
           deadline_application: string | null;
+          deleted_at: string | null;
           description: string | null;
           diplomas: string[] | null;
           diplomas_other: string | null;
@@ -411,6 +418,7 @@ export type Database = {
           expertises: string[] | null;
           expertises_other: string | null;
           id: number;
+          image_url: string | null;
           job_title: string | null;
           job_title_other: string | null;
           languages: string[] | null;
@@ -421,6 +429,9 @@ export type Database = {
           post_type: string[] | null;
           postal_code: string | null;
           profile_searched: string | null;
+          reason_deletion:
+            | Database['public']['Enums']['reason_mission_deletion']
+            | null;
           referent_fix: string | null;
           referent_mail: string | null;
           referent_mobile: string | null;
@@ -451,6 +462,7 @@ export type Database = {
           created_at?: string;
           created_by?: string;
           deadline_application?: string | null;
+          deleted_at?: string | null;
           description?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
@@ -458,6 +470,7 @@ export type Database = {
           expertises?: string[] | null;
           expertises_other?: string | null;
           id?: never;
+          image_url?: string | null;
           job_title?: string | null;
           job_title_other?: string | null;
           languages?: string[] | null;
@@ -468,6 +481,9 @@ export type Database = {
           post_type?: string[] | null;
           postal_code?: string | null;
           profile_searched?: string | null;
+          reason_deletion?:
+            | Database['public']['Enums']['reason_mission_deletion']
+            | null;
           referent_fix?: string | null;
           referent_mail?: string | null;
           referent_mobile?: string | null;
@@ -498,6 +514,7 @@ export type Database = {
           created_at?: string;
           created_by?: string;
           deadline_application?: string | null;
+          deleted_at?: string | null;
           description?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
@@ -505,6 +522,7 @@ export type Database = {
           expertises?: string[] | null;
           expertises_other?: string | null;
           id?: never;
+          image_url?: string | null;
           job_title?: string | null;
           job_title_other?: string | null;
           languages?: string[] | null;
@@ -515,6 +533,9 @@ export type Database = {
           post_type?: string[] | null;
           postal_code?: string | null;
           profile_searched?: string | null;
+          reason_deletion?:
+            | Database['public']['Enums']['reason_mission_deletion']
+            | null;
           referent_fix?: string | null;
           referent_mail?: string | null;
           referent_mobile?: string | null;
@@ -674,6 +695,7 @@ export type Database = {
       profile: {
         Row: {
           address: string | null;
+          admin_opinion: Database['public']['Enums']['admin_opinion'] | null;
           area: string[] | null;
           avatar_url: string | null;
           birthdate: string | null;
@@ -730,6 +752,7 @@ export type Database = {
         };
         Insert: {
           address?: string | null;
+          admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -786,6 +809,7 @@ export type Database = {
         };
         Update: {
           address?: string | null;
+          admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -841,13 +865,6 @@ export type Database = {
           username?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: 'profile_id_fkey';
-            columns: ['id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
           {
             foreignKeyName: 'profile_referent_id_fkey';
             columns: ['referent_id'];
@@ -1055,6 +1072,7 @@ export type Database = {
           id: number;
           job_titles: string[] | null;
           job_titles_other: string | null;
+          job_titles_search: string | null;
           others: string | null;
           posts_type: string[] | null;
           profile_id: string | null;
@@ -1079,6 +1097,7 @@ export type Database = {
           id?: number;
           job_titles?: string[] | null;
           job_titles_other?: string | null;
+          job_titles_search?: string | null;
           others?: string | null;
           posts_type?: string[] | null;
           profile_id?: string | null;
@@ -1103,6 +1122,7 @@ export type Database = {
           id?: number;
           job_titles?: string[] | null;
           job_titles_other?: string | null;
+          job_titles_search?: string | null;
           others?: string | null;
           posts_type?: string[] | null;
           profile_id?: string | null;
@@ -1206,6 +1226,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      selection_matching: {
+        Row: {
+          column_status: Database['public']['Enums']['selection_column_type'];
+          created_at: string;
+          id: number;
+          is_candidate: boolean;
+          is_matched: boolean;
+          matching_score: number;
+          mission_id: number;
+          xpert_id: string;
+        };
+        Insert: {
+          column_status?: Database['public']['Enums']['selection_column_type'];
+          created_at?: string;
+          id?: never;
+          is_candidate?: boolean;
+          is_matched?: boolean;
+          matching_score: number;
+          mission_id: number;
+          xpert_id: string;
+        };
+        Update: {
+          column_status?: Database['public']['Enums']['selection_column_type'];
+          created_at?: string;
+          id?: never;
+          is_candidate?: boolean;
+          is_matched?: boolean;
+          matching_score?: number;
+          mission_id?: number;
+          xpert_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'selection_matching_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'selection_matching_xpert_id_fkey';
+            columns: ['xpert_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       specialties: {
         Row: {
           id: number;
@@ -1247,6 +1315,97 @@ export type Database = {
           value?: string | null;
         };
         Relationships: [];
+      };
+      tasks: {
+        Row: {
+          assigned_to: string;
+          completed_at: string | null;
+          created_at: string;
+          created_by: string;
+          details: string | null;
+          id: number;
+          last_updated_at: string | null;
+          last_updated_by: string | null;
+          mission_id: number | null;
+          status: Database['public']['Enums']['task_status'];
+          subject_type: Database['public']['Enums']['task_subject_type'];
+          supplier_id: string | null;
+          xpert_id: string | null;
+        };
+        Insert: {
+          assigned_to: string;
+          completed_at?: string | null;
+          created_at?: string;
+          created_by: string;
+          details?: string | null;
+          id?: number;
+          last_updated_at?: string | null;
+          last_updated_by?: string | null;
+          mission_id?: number | null;
+          status?: Database['public']['Enums']['task_status'];
+          subject_type: Database['public']['Enums']['task_subject_type'];
+          supplier_id?: string | null;
+          xpert_id?: string | null;
+        };
+        Update: {
+          assigned_to?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          created_by?: string;
+          details?: string | null;
+          id?: number;
+          last_updated_at?: string | null;
+          last_updated_by?: string | null;
+          mission_id?: number | null;
+          status?: Database['public']['Enums']['task_status'];
+          subject_type?: Database['public']['Enums']['task_subject_type'];
+          supplier_id?: string | null;
+          xpert_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'tasks_assigned_to_fkey';
+            columns: ['assigned_to'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tasks_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tasks_last_updated_by_fkey';
+            columns: ['last_updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tasks_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tasks_supplier_id_fkey';
+            columns: ['supplier_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tasks_xpert_id_fkey';
+            columns: ['xpert_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       user_alerts: {
         Row: {
@@ -1318,6 +1477,13 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      calculate_matching_score: {
+        Args: {
+          p_mission_id: number;
+          p_xpert_id: string;
+        };
+        Returns: number;
+      };
       generate_mission_unique_id: {
         Args: Record<PropertyKey, never>;
         Returns: string;
@@ -1362,6 +1528,12 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
+      get_job_titles_search: {
+        Args: {
+          titles: string[];
+        };
+        Returns: string;
+      };
       get_profile_other_languages: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
@@ -1380,7 +1552,9 @@ export type Database = {
       };
     };
     Enums: {
+      admin_opinion: 'positive' | 'neutral' | 'negative';
       article_status: 'published' | 'draft';
+      article_type: 'web' | 'link' | 'press';
       categories:
         | 'energy_and_nuclear'
         | 'renewable_energy'
@@ -1403,7 +1577,23 @@ export type Database = {
         | 'in_process'
         | 'validated'
         | 'refused';
+      reason_mission_deletion:
+        | 'status_candidate_not_found'
+        | 'won_competition'
+        | 'mission_suspended_by_supplier'
+        | 'other';
       revenu_type: 'tjm' | 'brut';
+      selection_column_type:
+        | 'postulant'
+        | 'matching'
+        | 'etude'
+        | 'non-retenu'
+        | 'discussions'
+        | 'proposes'
+        | 'refuses'
+        | 'valides';
+      task_status: 'urgent' | 'pending' | 'done';
+      task_subject_type: 'xpert' | 'supplier' | 'mission' | 'other';
     };
     CompositeTypes: {
       chat_files: {
@@ -1505,4 +1695,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema['CompositeTypes']
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database;
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
+    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

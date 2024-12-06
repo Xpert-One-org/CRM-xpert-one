@@ -7,25 +7,13 @@ import { useXpertStore } from '@/store/xpert';
 import Combobox from '@/components/inputs/Combobox';
 import FilterSvg from '@/components/svg/FIlterSvg';
 import { useDebounce } from 'use-debounce';
-import type { FilterXpert } from '@/types/types';
-
-const sortDateOptions = [
-  { label: 'Ancien', value: 'asc' },
-  { label: 'Récent', value: 'desc' },
-];
-
-const availabilityOptions = [
-  { label: 'Disponible', value: 'available', color: '#92C6B0' },
-  { label: 'Non disponible', value: 'unavailable', color: '#D64242' },
-  { label: 'En mission', value: 'in_mission', color: '#faa200' },
-  { label: 'Aucun filtre', value: '', color: 'transparent' },
-];
-
-const cvOptions = [
-  { label: 'OUI', value: 'yes', color: '#92C6B0' },
-  { label: 'NON', value: 'no', color: '#D64242' },
-  { label: 'Aucun filtre', value: '', color: 'transparent' },
-];
+import type { AdminOpinionValue, FilterXpert } from '@/types/types';
+import {
+  adminOpinionOptions,
+  availabilityOptions,
+  cvOptions,
+  sortDateOptions,
+} from '@/data/filter';
 
 export default function XpertFilter({
   xperts,
@@ -69,11 +57,26 @@ export default function XpertFilter({
     }
   };
 
+  const handleAdminOpinionChange = (value: string) => {
+    const newActiveFilter = {
+      ...activeFilters,
+      adminOpinion: value as AdminOpinionValue,
+    };
+    setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
+  };
+
   const handleSortDateChange = (value: string) => {
     const newActiveFilter = { ...activeFilters, sortDate: value };
     setActiveFilters(newActiveFilter);
   };
 
+  // const handleAdminOpinionChange = (value: string) => {
+  //   setSelectedAdminOpinion(value);
+  // };
   const handleCountryChange = (countries: string[]) => {
     const newActiveFilter = { ...activeFilters, countries };
     setActiveFilters(newActiveFilter);
@@ -94,7 +97,7 @@ export default function XpertFilter({
       <FilterButton
         options={sortDateOptions}
         onValueChange={handleSortDateChange}
-        placeholder="Date d'inscription"
+        placeholder="Inscription"
         sortable
         data={xperts}
         sortKey="created_at"
@@ -156,7 +159,7 @@ export default function XpertFilter({
       <FilterButton
         options={availabilityOptions}
         onValueChange={handleAvailabilityChange}
-        placeholder="Disponible le"
+        placeholder="Disponible"
         coloredOptions
         selectedOption={{
           value: activeFilters.availability,
@@ -179,6 +182,19 @@ export default function XpertFilter({
         }}
       />
       <FilterButton
+        options={adminOpinionOptions}
+        onValueChange={handleAdminOpinionChange}
+        placeholder="Qualité"
+        coloredOptions
+        selectedOption={{
+          value: activeFilters.adminOpinion ?? '',
+          label:
+            adminOpinionOptions.find(
+              (option) => option.value === activeFilters.adminOpinion
+            )?.label ?? '',
+        }}
+      />
+      <FilterButton
         className="font-bold"
         placeholder="Fiche détaillée"
         filter={false}
@@ -198,12 +214,8 @@ const SearchComponentFilter = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [value] = useDebounce(searchTerm, 300);
-  const {
-    fetchXpertOptimizedFiltered,
-    resetXperts,
-    activeFilters,
-    setActiveFilters,
-  } = useXpertStore();
+  const { fetchXpertOptimizedFiltered, activeFilters, setActiveFilters } =
+    useXpertStore();
 
   const handleSearch = (value: string) => {
     if (value === '') {

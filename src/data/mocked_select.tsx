@@ -1,4 +1,4 @@
-import type { DBRevenuType } from '@/types/typesDb';
+import type { DBRevenuType, ReasonMissionDeletion } from '@/types/typesDb';
 
 export const genres = [
   {
@@ -627,5 +627,27 @@ export const jobTitleSelect = [
     label: 'Autre',
     value: 'other',
     imagae: '/static/wind-turbine.jpeg',
+  },
+];
+
+export const reasonDeleteMissionSelect: {
+  label: string;
+  value: ReasonMissionDeletion;
+}[] = [
+  {
+    label: 'Statut candidat non trouvé',
+    value: 'status_candidate_not_found',
+  },
+  {
+    label: 'Gagné concurence',
+    value: 'won_competition',
+  },
+  {
+    label: 'Mission suspendue par un fournisseur',
+    value: 'mission_suspended_by_supplier',
+  },
+  {
+    label: 'Autre',
+    value: 'other',
   },
 ];

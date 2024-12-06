@@ -2,7 +2,11 @@ import Input from '@/components/inputs/Input';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import TextArea from '@/components/inputs/TextArea';
 import { empty } from '@/data/constant';
-import { postTypesSelect, profilSearchedSelect } from '@/data/mocked_select';
+import {
+  postTypesSelect,
+  profilSearchedSelect,
+  reasonDeleteMissionSelect,
+} from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
@@ -26,6 +30,9 @@ export default function RightSideFicheMission({
     end_date,
     deadline_application,
     tjm,
+    description,
+    needed,
+    advantages_company,
     address,
     city,
     postal_code,
@@ -91,6 +98,29 @@ export default function RightSideFicheMission({
 
   return (
     <div className="flex w-full flex-col gap-4">
+      {missionDetails.state === 'deleted' && (
+        <>
+          <p className="text-red-500">Cette mission a été supprimée</p>
+          <div className="flex flex-col gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
+            <h3 className="text-lg font-medium text-black">
+              Motif de suppression
+            </h3>
+            <div className="gap flex w-full flex-row gap-4">
+              <Input
+                className="w-full max-w-[220px]"
+                label="Motif de suppression"
+                value={
+                  getLabel({
+                    value: missionDetails.reason_deletion ?? '',
+                    select: reasonDeleteMissionSelect,
+                  }) ?? empty
+                }
+                disabled
+              />
+            </div>
+          </div>
+        </>
+      )}
       <div className="flex flex-col gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
         <h3 className="text-lg font-medium text-black">Date de mission</h3>
         <div className="gap flex w-full flex-row gap-4">
@@ -385,21 +415,24 @@ export default function RightSideFicheMission({
           Descriptif de la mission
         </h3>
         <div className="gap flex w-full flex-row gap-4">
-          <Input
+          <TextArea
             label="Descriptif du besoin (Détaillez votre besoin quelques lignes)"
-            value={tjm ?? ''}
-            disabled
+            value={description ?? ''}
           />
         </div>
         <div className="gap flex w-full flex-row gap-4">
           <Input
             label="Descriptif du poste (Brief complet de votre recherche)"
-            value={tjm ?? ''}
+            value={needed ?? ''}
             disabled
           />
         </div>
         <div className="gap flex w-full flex-row gap-4">
-          <Input label="Les + de votre entreprise" value={tjm ?? ''} disabled />
+          <Input
+            label="Les + de votre entreprise"
+            value={advantages_company ?? ''}
+            disabled
+          />
         </div>
       </div>
       <div className="flex flex-col gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
@@ -459,7 +492,9 @@ export default function RightSideFicheMission({
         >
           <Button className="px-12 py-3 text-white">Vers le matching</Button>
         </Link>
-        <DeleteMissionDialog missionId={missionDetails.id} />
+        {missionDetails.state != 'deleted' && (
+          <DeleteMissionDialog missionId={missionDetails.id} />
+        )}
       </div>
     </div>
   );

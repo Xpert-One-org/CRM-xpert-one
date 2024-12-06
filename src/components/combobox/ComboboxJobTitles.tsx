@@ -34,7 +34,7 @@ export default function ComboboxJobTitles({
   const handleValueChange = (
     value: string | string[],
     name: string,
-    json_key: (string | undefined)[]
+    json_key?: (string | undefined)[]
   ) => {
     onValueChange(value as string[]);
 
