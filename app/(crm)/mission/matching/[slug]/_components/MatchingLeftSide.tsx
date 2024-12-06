@@ -170,6 +170,28 @@ export default function MatchingLeftSide({
     });
   };
 
+  const handleManagementChange = (value: string) => {
+    setAdditionalCriteria((prev) => {
+      const newCriteria = {
+        ...prev,
+        management: value === 'yes' ? ['yes'] : ['no'],
+      };
+      setHasChanges(true);
+      return newCriteria;
+    });
+  };
+
+  const handleHandicapChange = (value: string) => {
+    setAdditionalCriteria((prev) => {
+      const newCriteria = {
+        ...prev,
+        handicap: value === 'yes' ? ['yes'] : ['no'],
+      };
+      setHasChanges(true);
+      return newCriteria;
+    });
+  };
+
   return (
     <>
       <div className="flex w-full flex-col gap-y-spaceSmall">
@@ -605,16 +627,29 @@ export default function MatchingLeftSide({
             </Box>
           </div>
         </div> */}
-        {/* <div className="flex w-full gap-6">
+        <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">Management</Box>
           </div>
           <div>
-            <Box className="p-3" isSelectable options={actionOptions}>
-              {'OUI'}
+            <Box
+              className={`p-3 ${
+                additionalCriteria.management?.length > 0
+                  ? 'bg-[#FBBE40] text-white'
+                  : ''
+              }`}
+              isSelectable
+              options={actionOptions}
+              onValueChange={handleManagementChange}
+            >
+              {additionalCriteria.management?.includes('yes')
+                ? 'OUI'
+                : additionalCriteria.management?.includes('no')
+                  ? 'NON'
+                  : 'OUI'}
             </Box>
           </div>
-        </div> */}
+        </div>
         {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
@@ -811,18 +846,33 @@ export default function MatchingLeftSide({
             </Box>
           </div>
         </div> */}
-        {/* <div className="flex w-full gap-6">
+        <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Travailleurs handicapés ?
             </Box>
           </div>
           <div>
-            <Box className="p-3" isSelectable options={actionOptions}>
-              {'OUI'}
+            <Box
+              className={`p-3 ${
+                additionalCriteria.handicap?.length > 0
+                  ? 'bg-[#FBBE40] text-white'
+                  : ''
+              }`}
+              isSelectable
+              options={actionOptions}
+              onValueChange={handleHandicapChange}
+            >
+              {additionalCriteria.handicap?.includes('yes')
+                ? 'OUI'
+                : additionalCriteria.handicap?.includes('no')
+                  ? 'NON'
+                  : missionData.open_to_disabled
+                    ? 'OUI'
+                    : 'NON'}
             </Box>
           </div>
-        </div> */}
+        </div>
       </div>
 
       {hasChanges && (

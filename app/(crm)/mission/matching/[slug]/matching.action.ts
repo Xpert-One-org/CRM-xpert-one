@@ -38,6 +38,8 @@ export async function getAllMatchedXperts(
     languages: [...(languages || []), ...(additionalCriteria?.languages || [])],
     diplomas: [...(diplomas || []), ...(additionalCriteria?.diplomas || [])],
     availability: [...(additionalCriteria?.availability || [])],
+    management: [...(additionalCriteria?.management || [])],
+    handicap: [...(additionalCriteria?.handicap || [])],
     secondary_job_title: additionalCriteria?.secondary_job_title || [],
     secondary_sector: additionalCriteria?.secondary_sector || [],
     secondary_post_type: additionalCriteria?.secondary_post_type || [],
@@ -69,12 +71,14 @@ export async function getAllMatchedXperts(
         sector,
         specialties,
         expertises,
-        availability
+        availability,
+        workstation_needed
       ),
       profile_experience (
         sector,
         post_type,
-        post
+        post,
+        has_led_team
       ),
       profile_expertise (
         seniority,
@@ -165,6 +169,34 @@ export async function getAllMatchedXperts(
         mission?.availability &&
           new Date(mission.availability) >
             new Date(missionData.start_date ?? '')
+      );
+    }
+
+    if (finalCriteria.management.length > 0) {
+      primaryConditions.push(
+        experience.some((exp) =>
+          finalCriteria.management.includes('yes')
+            ? exp.has_led_team === 'true'
+            : exp.has_led_team === 'false'
+        )
+      );
+    } else {
+      primaryConditions.push(
+        experience.some((exp) => exp.has_led_team === 'true')
+      );
+    }
+
+    if (finalCriteria.handicap.length > 0) {
+      primaryConditions.push(
+        finalCriteria.handicap.includes('yes')
+          ? mission?.workstation_needed === 'true'
+          : mission?.workstation_needed === 'false'
+      );
+    } else {
+      primaryConditions.push(
+        missionData.open_to_disabled === 'true'
+          ? mission?.workstation_needed === 'true'
+          : mission?.workstation_needed === 'false'
       );
     }
 
