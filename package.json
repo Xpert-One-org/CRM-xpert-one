@@ -12,7 +12,8 @@
     "db-seed": "supabase db dump --data-only -f supabase/seed.sql",
     "db-push": "supabase db push",
     "db-squash": "supabase migration squash",
-    "gen-db-types": "pnpm supabase gen types --lang=typescript --project-id wxjnrjakjwjhvsiwhelt --schema public > src/types/supabase.ts",
+    "gen-db-types": "supabase gen types typescript --lang=typescript --schema public > src/types/supabase.ts",
+    "gen-db-types-local": "supabase gen types typescript --local --lang=typescript --schema public > src/types/supabase.ts",
     "config": {
       "commitizen": {
         "path": "@commitlint/cz-commitlint"
@@ -26,6 +27,7 @@
     "@commitlint/cz-commitlint": "^19.5.0",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
+    "@hello-pangea/dnd": "^17.0.0",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",

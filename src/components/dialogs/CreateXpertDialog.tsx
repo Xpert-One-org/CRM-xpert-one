@@ -87,7 +87,7 @@ export default function CreateFournisseurXpertDialog({
     e,
     field = e.target.name as keyof ProfileDataPicked,
   }: {
-    e: React.ChangeEvent<HTMLInputElement>;
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
     field?: keyof ProfileDataPicked;
   }) => {
     setProfileData((prev) => ({ ...prev, [field]: e.target.value }));

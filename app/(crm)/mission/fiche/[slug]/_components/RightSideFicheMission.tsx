@@ -26,6 +26,9 @@ export default function RightSideFicheMission({
     end_date,
     deadline_application,
     tjm,
+    description,
+    needed,
+    advantages_company,
     address,
     city,
     postal_code,
@@ -385,21 +388,24 @@ export default function RightSideFicheMission({
           Descriptif de la mission
         </h3>
         <div className="gap flex w-full flex-row gap-4">
-          <Input
+          <TextArea
             label="Descriptif du besoin (Détaillez votre besoin quelques lignes)"
-            value={tjm ?? ''}
-            disabled
+            value={description ?? ''}
           />
         </div>
         <div className="gap flex w-full flex-row gap-4">
           <Input
             label="Descriptif du poste (Brief complet de votre recherche)"
-            value={tjm ?? ''}
+            value={needed ?? ''}
             disabled
           />
         </div>
         <div className="gap flex w-full flex-row gap-4">
-          <Input label="Les + de votre entreprise" value={tjm ?? ''} disabled />
+          <Input
+            label="Les + de votre entreprise"
+            value={advantages_company ?? ''}
+            disabled
+          />
         </div>
       </div>
       <div className="flex flex-col gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">

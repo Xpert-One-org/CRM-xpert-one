@@ -34,6 +34,18 @@ export type DBFournisseur = DBProfile & {
   mission: DBMission[];
 };
 
+export type DBMatchedXpert = DBProfileMission & {
+  id: string;
+  firstname: string;
+  lastname: string;
+  generated_id: string;
+  profile_mission: DBProfileMission;
+  profile_experience: DBProfileExperience[];
+  profile_expertise: DBProfileExpertise;
+  matchingScore: number;
+  nonMatchingCriteria: Record<string, string[]>;
+};
+
 export type DBXpert = DBProfile & {
   profile_mission: DBProfileMission | null;
   mission: DBMission[];
@@ -160,6 +172,14 @@ export type DBUserChat = Pick<
   | 'generated_id'
   | 'username'
 >;
+
+export type ColumnStatus = Database['public']['Enums']['selection_column_type'];
+
+export type DBMissionXpertsSelection =
+  Database['public']['Tables']['selection_matching']['Row'] & {
+    xpert: Pick<DBProfile, 'firstname' | 'lastname' | 'generated_id'>;
+    creator: Pick<DBProfile, 'firstname' | 'lastname'>;
+  };
 
 export type DBXpertOptimized = Pick<
   DBXpert,

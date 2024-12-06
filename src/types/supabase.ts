@@ -1060,6 +1060,7 @@ export type Database = {
           id: number;
           job_titles: string[] | null;
           job_titles_other: string | null;
+          job_titles_search: string | null;
           others: string | null;
           posts_type: string[] | null;
           profile_id: string | null;
@@ -1084,6 +1085,7 @@ export type Database = {
           id?: number;
           job_titles?: string[] | null;
           job_titles_other?: string | null;
+          job_titles_search?: string | null;
           others?: string | null;
           posts_type?: string[] | null;
           profile_id?: string | null;
@@ -1108,6 +1110,7 @@ export type Database = {
           id?: number;
           job_titles?: string[] | null;
           job_titles_other?: string | null;
+          job_titles_search?: string | null;
           others?: string | null;
           posts_type?: string[] | null;
           profile_id?: string | null;
@@ -1210,6 +1213,54 @@ export type Database = {
           value?: string | null;
         };
         Relationships: [];
+      };
+      selection_matching: {
+        Row: {
+          column_status: Database['public']['Enums']['selection_column_type'];
+          created_at: string;
+          id: number;
+          is_candidate: boolean;
+          is_matched: boolean;
+          matching_score: number;
+          mission_id: number;
+          xpert_id: string;
+        };
+        Insert: {
+          column_status?: Database['public']['Enums']['selection_column_type'];
+          created_at?: string;
+          id?: never;
+          is_candidate?: boolean;
+          is_matched?: boolean;
+          matching_score: number;
+          mission_id: number;
+          xpert_id: string;
+        };
+        Update: {
+          column_status?: Database['public']['Enums']['selection_column_type'];
+          created_at?: string;
+          id?: never;
+          is_candidate?: boolean;
+          is_matched?: boolean;
+          matching_score?: number;
+          mission_id?: number;
+          xpert_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'selection_matching_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'selection_matching_xpert_id_fkey';
+            columns: ['xpert_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       specialties: {
         Row: {
@@ -1414,6 +1465,13 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      calculate_matching_score: {
+        Args: {
+          p_xpert_id: string;
+          p_mission_id: number;
+        };
+        Returns: number;
+      };
       generate_mission_unique_id: {
         Args: Record<PropertyKey, never>;
         Returns: string;
@@ -1457,6 +1515,12 @@ export type Database = {
       get_full_profile: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
+      };
+      get_job_titles_search: {
+        Args: {
+          titles: string[];
+        };
+        Returns: string;
       };
       get_profile_other_languages: {
         Args: Record<PropertyKey, never>;
@@ -1502,6 +1566,16 @@ export type Database = {
         | 'validated'
         | 'refused';
       revenu_type: 'tjm' | 'brut';
+
+      selection_column_type:
+        | 'postulant'
+        | 'matching'
+        | 'etude'
+        | 'non-retenu'
+        | 'discussions'
+        | 'proposes'
+        | 'refuses'
+        | 'valides';
       task_status: 'urgent' | 'pending' | 'done';
       task_subject_type: 'xpert' | 'supplier' | 'mission' | 'other';
     };

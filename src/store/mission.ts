@@ -22,8 +22,8 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   missions: [],
   missionsNumbers: [],
   isLoading: false,
-  setIsLoading: (isLoading) => set({ isLoading }),
-  searchMissions: async (missionId) => {
+  setIsLoading: (isLoading: boolean) => set({ isLoading }),
+  searchMissions: async (missionId: string) => {
     set({ isLoading: true });
     const { data } = await searchMission(missionId);
     set({ missionsNumbers: data, isLoading: false });
@@ -33,7 +33,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     const fetchedMissions = await getAllMissions();
     set({ missions: fetchedMissions, isLoading: false });
   },
-  fetchMissionsState: async (selectedState) => {
+  fetchMissionsState: async (selectedState: DBMissionState | null) => {
     if (selectedState) {
       set({ isLoading: true });
 
@@ -41,11 +41,11 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       set({ missions: fetchedMissions, isLoading: false });
     }
   },
-  updateMission: async (missionId, state: DBMission['state']) => {
+  updateMission: async (missionId: string, state: DBMission['state']) => {
     await updateMissionState(missionId, state);
 
     set({
-      missions: get().missions.map((mission) =>
+      missions: get().missions.map((mission: DBMission) =>
         mission.id.toString() === missionId ? { ...mission, state } : mission
       ),
     });
