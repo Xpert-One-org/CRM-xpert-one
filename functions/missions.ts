@@ -5,7 +5,11 @@ import { checkAuthRole } from '@functions/auth/checkRole';
 
 export const getAllMissions = async (): Promise<DBMission[]> => {
   const supabase = await createSupabaseAppServerClient();
-  const { data, error } = await supabase.from('mission').select('*');
+  const { data, error } = await supabase
+    .from('mission')
+    .select(
+      '*, xpert:profile!mission_xpert_associated_id_fkey(*), supplier:profile!mission_created_by_fkey(*)'
+    );
   if (error) {
     throw new Error(error.message);
   }

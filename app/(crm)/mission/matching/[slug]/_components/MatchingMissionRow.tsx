@@ -7,8 +7,10 @@ import ComboboxMission from '@/components/combobox/ComboboxMission';
 
 export default function MatchingMissionRow({
   mission,
+  slug,
 }: {
   mission: DBMission;
+  slug: string;
 }) {
   const router = useRouter();
 
@@ -24,7 +26,7 @@ export default function MatchingMissionRow({
   return (
     <>
       <div className="col-span-1">
-        <ComboboxMission slug="matching" />
+        <ComboboxMission slug={slug} />
       </div>
       <Box
         className="col-span-1 cursor-pointer text-white"

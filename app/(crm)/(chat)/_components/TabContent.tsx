@@ -7,7 +7,7 @@ import { useRealtimeChat } from '@/store/chat/realtime';
 import type { ChatType, DBChat } from '@/types/typesDb';
 import { getTimeFromNow } from '@/utils/getTimeFromNow';
 import { handleReadNewMessage } from '@functions/chat';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 type TabContentProps = {
   user_id: string;

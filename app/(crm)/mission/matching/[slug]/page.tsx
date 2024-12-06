@@ -5,6 +5,8 @@ import MatchingMissionTable from './_components/MatchingMissionTable';
 import { useMissionStore } from '@/store/mission';
 import MatchingLeftSide from './_components/MatchingLeftSide';
 import LaunchMatching from './_components/LaunchMatching';
+import type { DBMission } from '@/types/typesDb';
+import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 import MatchingLeftSideSecond from './_components/MatchingLeftSideSecond';
 
 export default function MissionMatchingPage(props: {
@@ -13,42 +15,34 @@ export default function MissionMatchingPage(props: {
   const { missions, fetchMissions } = useMissionStore();
   const params = use(props.params);
   const { slug } = params;
-
   const missionNumber = slug.replace('-', ' ');
-
   const missionData = missions.find(
-    (mission) => mission.mission_number === missionNumber
+    (mission: DBMission) => mission.mission_number === missionNumber
   );
 
+  const { loadCriteria } = useMatchingCriteriaStore();
+
   useEffect(() => {
-    if (missions.length === 0) {
-      fetchMissions();
-    }
-  }, [missions]);
+    fetchMissions();
+    loadCriteria(missionData?.mission_number ?? '');
+  }, [fetchMissions, loadCriteria, missionData?.mission_number]);
 
   return (
     <>
       {missionData && (
         <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
-          <MatchingMissionTable missionData={missionData} />
-          <div className="grid grid-cols-6 gap-x-spaceSmall">
-            <MatchingLeftSide missionData={missionData} />
-            <LaunchMatching />
-          </div>
-          <div className="grid grid-cols-6 gap-x-spaceSmall">
-            <div className="col-span-3">
-              <div className="border-divider border-t border-black" />
-              <p className="my-2 font-bold text-black">
-                Recherche supplémentaire
-              </p>
-              <p className="my-2 font-thin text-black">
-                Missions recherchées par les XPERTS
-              </p>
+          <MatchingMissionTable missionData={missionData} slug={'matching'} />
+          <div className="flex h-3/4 w-full gap-3">
+            <div className="flex w-1/2 flex-col overflow-y-auto">
+              <MatchingLeftSide missionData={missionData} />
+            </div>
+            <div className="flex max-h-[70vh] w-1/2 overflow-y-auto">
+              <LaunchMatching missionData={missionData} />
             </div>
           </div>
-          <div className="grid grid-cols-6 gap-x-spaceSmall">
-            <MatchingLeftSideSecond missionData={missionData} />
-          </div>
+          <MatchingLeftSideSecond
+            missionNumber={missionData.mission_number ?? ''}
+          />
         </div>
       )}
     </>

@@ -5,8 +5,10 @@ import type { DBMission } from '@/types/typesDb';
 
 export default function MatchingMissionTable({
   missionData,
+  slug,
 }: {
   missionData: DBMission;
+  slug: string;
 }) {
   return (
     <div className="grid grid-cols-6 gap-3">
@@ -17,7 +19,11 @@ export default function MatchingMissionTable({
       <FilterButton placeholder="Prénom fournisseur" filter={false} />
       <FilterButton placeholder="Poste ouvert à tous" filter={false} />
 
-      <MatchingMissionRow key={missionData.id} mission={missionData} />
+      <MatchingMissionRow
+        key={missionData.id}
+        mission={missionData}
+        slug={slug}
+      />
     </div>
   );
 }

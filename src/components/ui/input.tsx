@@ -7,16 +7,21 @@ import { Mail, Lock, EyeOff, Eye, Calendar } from 'lucide-react';
 import { Button } from './button';
 import { useState } from 'react';
 
-export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-  required?: boolean;
-  hasPreIcon?: boolean;
-  hasError?: boolean;
-  showPasswordToggle?: boolean;
-  classNameLabel?: string;
-};
+export type InputProps = React.InputHTMLAttributes<HTMLInputElement> &
+  React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
+    label?: string;
+    required?: boolean;
+    hasPreIcon?: boolean;
+    hasError?: boolean;
+    showPasswordToggle?: boolean;
+    classNameLabel?: string;
+    multiline?: boolean;
+  };
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
+const Input = React.forwardRef<
+  HTMLInputElement | HTMLTextAreaElement,
+  InputProps
+>(
   (
     {
       className,
@@ -27,6 +32,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       showPasswordToggle,
       hasError,
       type,
+      multiline,
       ...props
     },
     ref
@@ -42,6 +48,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ? 'text'
         : 'password'
       : type;
+
     return (
       <>
         {label && (
@@ -51,19 +58,33 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
 
         <div className="relative flex items-center">
-          <input
-            required={required}
-            type={inputType}
-            className={cn(
-              'placeholder:text-muted-foreground w-full rounded-md border border-input bg-white px-3 py-3 text-sm font-light ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-              { 'pl-10': hasPreIcon },
-              { 'border-destructive': hasError },
-              { 'pr-10': showPasswordToggle },
-              className
-            )}
-            ref={ref}
-            {...props}
-          />
+          {multiline ? (
+            <textarea
+              required={required}
+              className={cn(
+                'placeholder:text-muted-foreground flex w-full rounded-md border border-input bg-white px-3 py-3 text-sm font-light ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                { 'pl-10': hasPreIcon },
+                { 'border-destructive': hasError },
+                className
+              )}
+              ref={ref as React.Ref<HTMLTextAreaElement>}
+              {...props}
+            />
+          ) : (
+            <input
+              required={required}
+              type={inputType}
+              className={cn(
+                'placeholder:text-muted-foreground flex w-full rounded-md border border-input bg-white px-3 py-3 text-sm font-light ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                { 'pl-10': hasPreIcon },
+                { 'border-destructive': hasError },
+                { 'pr-10': showPasswordToggle },
+                className
+              )}
+              ref={ref as React.Ref<HTMLInputElement>}
+              {...props}
+            />
+          )}
           {hasPreIcon && (
             <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center pb-px pl-1">
               {type === 'password' && (

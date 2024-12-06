@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/credenza';
 import Image from 'next/image';
 
-import { topicEchoSelect, topicSelect } from '@/data/mocked_select';
+import { topicEchoSelect } from '@/data/mocked_select';
 import { toast } from 'sonner';
 import { DESKTOP } from '@/data/constant';
 import { cn } from '@/lib/utils';
@@ -17,13 +17,10 @@ import Input from '@/components/inputs/Input';
 import { Button } from '@/components/ui/button';
 import TextArea from '@/components/inputs/TextArea';
 import SelectComponent from '@/components/inputs/SelectComponent';
-import FileInput from '@/components/inputs/FileInput';
 import type { ChatType, DBChat, DBMessage } from '@/types/typesDb';
 import { useSelect } from '@/store/select';
 import useChat from '@/store/chat/chat';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { addFileToMessage, postChat } from '@functions/chat';
-import Combobox from '@/components/inputs/Combobox';
 import ComboboxChat from './ComboboxChat';
 import { Label } from '@/components/ui/label';
 import useUser from '@/store/useUser';

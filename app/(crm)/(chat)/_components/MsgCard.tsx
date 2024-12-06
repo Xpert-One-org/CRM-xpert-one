@@ -19,8 +19,10 @@ import { roleSelect } from '@/data/mocked_select';
 import { cn } from '@/lib/utils';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
+
 import { MessageSquareMore, Pin, X } from 'lucide-react';
 import { useState } from 'react';
+
 import Image from 'next/image';
 import { defaultAvatar } from '@/data/constant';
 import type { Reaction } from '@/types/types';
