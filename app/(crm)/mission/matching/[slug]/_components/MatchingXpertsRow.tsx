@@ -118,6 +118,21 @@ export default function MatchingXpertsRow({
                   {key === 'languages' && value.length > 0 && (
                     <div className="font-medium text-gray-600">Langues :</div>
                   )}
+                  {key === 'availability' && value.length > 0 && (
+                    <div className="font-medium text-gray-600">
+                      Disponibilité :
+                    </div>
+                  )}
+                  {key === 'handicap' && value.length > 0 && (
+                    <div className="font-medium text-gray-600">
+                      Travailleurs handicapés :
+                    </div>
+                  )}
+                  {key === 'management' && value.length > 0 && (
+                    <div className="font-medium text-gray-600">
+                      Management :
+                    </div>
+                  )}
                   <div className="text-sm">
                     {value.map((val) => (
                       <Badge
@@ -126,7 +141,16 @@ export default function MatchingXpertsRow({
                         className="mb-1 mr-1 border-none bg-[#D64242]"
                       >
                         {getLabel({
-                          value: key === 'post_type' ? val.toUpperCase() : val,
+                          value:
+                            key === 'post_type'
+                              ? val.toUpperCase()
+                              : key === 'availability'
+                                ? ''
+                                : key === 'handicap'
+                                  ? ''
+                                  : key === 'management'
+                                    ? ''
+                                    : val,
                           select:
                             key === 'job_title'
                               ? jobTitles
@@ -144,6 +168,19 @@ export default function MatchingXpertsRow({
                                           ? posts
                                           : [],
                         })}
+                        {key === 'availability' && (
+                          <span className="text-xs">
+                            {`Disponible à partir du ${availability}`}
+                          </span>
+                        )}
+                        {key === 'handicap' && (
+                          <span className="text-xs">
+                            Travailleur handicapés
+                          </span>
+                        )}
+                        {key === 'management' && (
+                          <span className="text-xs">Managment</span>
+                        )}
                       </Badge>
                     ))}
                   </div>

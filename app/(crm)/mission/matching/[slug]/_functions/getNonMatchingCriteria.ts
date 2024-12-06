@@ -8,6 +8,9 @@ export type NonMatchingCriteria = {
   expertises?: string[];
   diplomas?: string[];
   languages?: string[];
+  availability?: string[];
+  management?: string[];
+  handicap?: string[];
 };
 
 export const getNonMatchingCriteria = (
@@ -132,6 +135,40 @@ export const getNonMatchingCriteria = (
 
     if (nonMatchingDiplomas.length) {
       nonMatching.diplomas = nonMatchingDiplomas;
+    }
+  }
+
+  // Availability check
+  if (additionalCriteria.availability?.length > 0) {
+    const missionStartDate = new Date(missionData.start_date ?? '');
+    const xpertAvailability = new Date(mission.availability ?? '');
+
+    if (additionalCriteria.availability.includes('yes')) {
+      if (xpertAvailability > missionStartDate) {
+        nonMatching.availability = ['yes'];
+      }
+    }
+  }
+
+  // Management check
+  if (additionalCriteria.management?.length > 0) {
+    const hasLedTeam = experience.some((exp) => exp.has_led_team === 'true');
+
+    if (additionalCriteria.management.includes('yes') && !hasLedTeam) {
+      nonMatching.management = ['yes'];
+    } else if (additionalCriteria.management.includes('no') && hasLedTeam) {
+      nonMatching.management = ['no'];
+    }
+  }
+
+  // Handicap check
+  if (additionalCriteria.handicap?.length > 0) {
+    const needsWorkstation = mission.workstation_needed === 'true';
+
+    if (additionalCriteria.handicap.includes('yes') && !needsWorkstation) {
+      nonMatching.handicap = ['yes'];
+    } else if (additionalCriteria.handicap.includes('no') && needsWorkstation) {
+      nonMatching.handicap = ['no'];
     }
   }
 

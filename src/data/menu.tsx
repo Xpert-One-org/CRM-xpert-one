@@ -121,7 +121,7 @@ export const menuCrm = [
       },
       {
         title: 'Activation des missions',
-        url: '/mission/activation',
+        url: '/mission/activation-des-missions',
       },
     ],
   },

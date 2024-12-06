@@ -29,6 +29,9 @@ const getTotalCriteriaCount = (
   if (additionalCriteria.expertises?.length) count++;
   if (additionalCriteria.diplomas?.length) count++;
   if (additionalCriteria.languages?.length) count++;
+  if (additionalCriteria.availability?.length) count++;
+  if (additionalCriteria.management?.length) count++;
+  if (additionalCriteria.handicap?.length) count++;
 
   return Math.max(1, count); // Ensure we don't divide by zero
 };
@@ -217,6 +220,43 @@ export const calculatePartialMatches = (
     if (matchingCount > 0) {
       additionalPoints +=
         (matchingCount / requiredLanguages.length) * (pointsPerCriteria / 2);
+    }
+  }
+
+  // Availability
+  if (nonMatchingCriteria.availability?.length && mission.availability) {
+    const missionStartDate = new Date(missionData.start_date ?? '');
+    const xpertAvailability = new Date(mission.availability);
+
+    if (
+      additionalCriteria.availability?.includes('yes') &&
+      xpertAvailability <= missionStartDate
+    ) {
+      additionalPoints += pointsPerCriteria / 2;
+    }
+  }
+
+  // Management
+  if (nonMatchingCriteria.management?.length && experience) {
+    const hasLedTeam = experience.some((exp) => exp.has_led_team === 'true');
+
+    if (
+      (additionalCriteria.management?.includes('yes') && hasLedTeam) ||
+      (additionalCriteria.management?.includes('no') && !hasLedTeam)
+    ) {
+      additionalPoints += pointsPerCriteria / 2;
+    }
+  }
+
+  // Handicap
+  if (nonMatchingCriteria.handicap?.length && mission.workstation_needed) {
+    const needsWorkstation = mission.workstation_needed === 'true';
+
+    if (
+      (additionalCriteria.handicap?.includes('yes') && needsWorkstation) ||
+      (additionalCriteria.handicap?.includes('no') && !needsWorkstation)
+    ) {
+      additionalPoints += pointsPerCriteria / 2;
     }
   }
 
