@@ -17,6 +17,23 @@ const columns: ColumnStatus[] = [
   'valides',
 ];
 
+const getColumnBackground = (columnIndex: number, isDraggingOver: boolean) => {
+  if (isDraggingOver) return 'bg-[#d1dde0]/20';
+  if (columnIndex === 0) return 'bg-[#d1dde0]';
+  if (columnIndex === 1) return 'bg-[#bebec0]';
+  return '';
+};
+
+const isDropDisabled = (
+  droppableId: string,
+  xpertsByColumn: Record<ColumnStatus, DBMissionXpertsSelection[]>
+) => {
+  if (droppableId === 'valides' && xpertsByColumn['valides'].length >= 1) {
+    return true;
+  }
+  return false;
+};
+
 export default function SelectionDragAndDropColumns({
   xpertsSelection,
 }: {
@@ -32,35 +49,36 @@ export default function SelectionDragAndDropColumns({
 
   return (
     <>
-      {columns.map((zone, index) => (
-        <Box
-          key={zone}
-          className={`col-span-1 h-[700px] overflow-y-auto ${index === 0 ? 'bg-[#d1dde0]' : ''} ${index === 1 ? 'bg-[#bebec0]' : ''}`}
-        >
-          <Droppable droppableId={zone}>
+      {columns.map((zone, index) => {
+        return (
+          <Droppable
+            key={zone}
+            droppableId={zone}
+            isDropDisabled={isDropDisabled(zone, xpertsByColumn)}
+          >
             {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className={`flex size-full flex-col gap-2 ${
-                  snapshot.isDraggingOver ? 'bg-gray-100' : ''
-                } ${index === 0 ? 'bg-[#d1dde0]' : ''} ${
-                  index === 1 ? 'bg-[#bebec0]' : ''
-                }`}
+              <Box
+                className={`col-span-1 h-[700px] overflow-y-auto ${getColumnBackground(index, snapshot.isDraggingOver)}`}
               >
-                {xpertsByColumn[zone]?.map((xpertSelection, idx) => (
-                  <SelectionMatchedXpertCard
-                    key={xpertSelection.id}
-                    xpertsSelection={xpertSelection}
-                    index={idx}
-                  />
-                ))}
-                {provided.placeholder}
-              </div>
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className={`flex size-full flex-col gap-2`}
+                >
+                  {xpertsByColumn[zone]?.map((xpertSelection, idx) => (
+                    <SelectionMatchedXpertCard
+                      key={xpertSelection.id}
+                      xpertsSelection={xpertSelection}
+                      index={idx}
+                    />
+                  ))}
+                  {provided.placeholder}
+                </div>
+              </Box>
             )}
           </Droppable>
-        </Box>
-      ))}
+        );
+      })}
     </>
   );
 }

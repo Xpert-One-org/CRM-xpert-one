@@ -97,7 +97,8 @@ export default function LaunchMatching({
       await sendMatchedXpertsToSelectionBoard(
         selectedXpertsList,
         missionData,
-        updatedMatchingScoresMap
+        updatedMatchingScoresMap,
+        matchingResults
       );
 
       toast.success(`${selectedXpertsList.length} experts envoyés avec succès`);

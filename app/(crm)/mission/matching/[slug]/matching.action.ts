@@ -37,9 +37,14 @@ export async function getAllMatchedXperts(
     ],
     languages: [...(languages || []), ...(additionalCriteria?.languages || [])],
     diplomas: [...(diplomas || []), ...(additionalCriteria?.diplomas || [])],
+    availability: [...(additionalCriteria?.availability || [])],
+    secondary_job_title: additionalCriteria?.secondary_job_title || [],
+    secondary_sector: additionalCriteria?.secondary_sector || [],
+    secondary_post_type: additionalCriteria?.secondary_post_type || [],
+    secondary_specialties: additionalCriteria?.secondary_specialties || [],
+    secondary_expertises: additionalCriteria?.secondary_expertises || [],
   };
 
-  // Create final criteria by removing excluded values
   const finalCriteria = Object.entries(mergedCriteria).reduce(
     (acc, [key, values]) => {
       acc[key] = values.filter(
@@ -68,7 +73,8 @@ export async function getAllMatchedXperts(
       ),
       profile_experience (
         sector,
-        post_type
+        post_type,
+        post
       ),
       profile_expertise (
         seniority,
@@ -92,20 +98,19 @@ export async function getAllMatchedXperts(
     const expertise = xpert.profile_expertise;
     const experience = xpert.profile_experience;
 
-    // Create an array of boolean conditions for each non-empty criteria
-    const matchConditions = [];
+    const primaryConditions = [];
+    const secondaryConditions = [];
 
-    // Only check criteria that have values
     if (finalCriteria.job_title.length > 0) {
-      matchConditions.push(
-        mission?.job_titles?.some((job) =>
-          finalCriteria.job_title.includes(job)
-        )
+      primaryConditions.push(
+        experience
+          .map((exp) => exp.post)
+          .some((job) => finalCriteria.job_title.includes(job || ''))
       );
     }
 
     if (finalCriteria.sector.length > 0) {
-      matchConditions.push(
+      primaryConditions.push(
         experience.some((exp) =>
           finalCriteria.sector.includes(exp.sector || '')
         )
@@ -113,7 +118,7 @@ export async function getAllMatchedXperts(
     }
 
     if (finalCriteria.post_type.length > 0) {
-      matchConditions.push(
+      primaryConditions.push(
         experience.some((exp) =>
           exp.post_type?.some((type) => finalCriteria.post_type.includes(type))
         )
@@ -121,7 +126,7 @@ export async function getAllMatchedXperts(
     }
 
     if (finalCriteria.specialties.length > 0) {
-      matchConditions.push(
+      primaryConditions.push(
         expertise?.specialties?.some((specialty) =>
           finalCriteria.specialties.includes(specialty)
         )
@@ -129,7 +134,7 @@ export async function getAllMatchedXperts(
     }
 
     if (finalCriteria.expertises.length > 0) {
-      matchConditions.push(
+      primaryConditions.push(
         expertise?.expertises?.some((exp) =>
           finalCriteria.expertises.includes(exp)
         )
@@ -137,36 +142,106 @@ export async function getAllMatchedXperts(
     }
 
     if (finalCriteria.diplomas.length > 0) {
-      matchConditions.push(
+      primaryConditions.push(
         expertise?.diploma && finalCriteria.diplomas.includes(expertise.diploma)
       );
     }
 
     if (finalCriteria.languages.length > 0) {
-      matchConditions.push(
+      primaryConditions.push(
         expertise?.maternal_language &&
           finalCriteria.languages.includes(expertise.maternal_language)
       );
     }
 
-    return matchConditions.some((condition) => condition === true);
+    if (finalCriteria.availability.length > 0) {
+      primaryConditions.push(
+        mission?.availability &&
+          new Date(mission.availability) <=
+            new Date(missionData.start_date ?? '')
+      );
+    } else {
+      primaryConditions.push(
+        mission?.availability &&
+          new Date(mission.availability) >
+            new Date(missionData.start_date ?? '')
+      );
+    }
+
+    if (finalCriteria.secondary_job_title?.length > 0) {
+      secondaryConditions.push(
+        experience
+          .map((exp) => exp.post)
+          .some((job) => finalCriteria.secondary_job_title.includes(job || ''))
+      );
+    }
+
+    if (finalCriteria.secondary_sector?.length > 0) {
+      secondaryConditions.push(
+        experience.some((exp) =>
+          finalCriteria.secondary_sector.includes(exp.sector || '')
+        )
+      );
+    }
+
+    if (finalCriteria.secondary_post_type?.length > 0) {
+      secondaryConditions.push(
+        experience.some((exp) =>
+          exp.post_type?.some((type) =>
+            finalCriteria.secondary_post_type.includes(type)
+          )
+        )
+      );
+    }
+
+    if (finalCriteria.secondary_specialties?.length > 0) {
+      secondaryConditions.push(
+        expertise?.specialties?.some((specialty) =>
+          finalCriteria.secondary_specialties.includes(specialty)
+        )
+      );
+    }
+
+    if (finalCriteria.secondary_expertises?.length > 0) {
+      secondaryConditions.push(
+        expertise?.expertises?.some((exp) =>
+          finalCriteria.secondary_expertises.includes(exp)
+        )
+      );
+    }
+
+    const hasPrimaryMatch =
+      primaryConditions.length === 0 ||
+      primaryConditions.some((condition) => condition === true);
+    const hasSecondaryMatch =
+      secondaryConditions.length === 0 ||
+      secondaryConditions.some((condition) => condition === true);
+
+    return hasPrimaryMatch && hasSecondaryMatch;
   });
 
-  // Enhance matched experts with scores and non-matching criteria
   const enhancedXperts = matchedXperts
     .map((xpert) => {
       const nonMatchingCriteria = getNonMatchingCriteria(
         xpert as DBMatchedXpert,
         missionData,
         excludedCriteria || {},
-        additionalCriteria || {}
+        Object.fromEntries(
+          Object.entries(additionalCriteria || {}).filter(
+            ([key]) => !key.startsWith('secondary_')
+          )
+        )
       );
 
       const matchingScore = calculateTotalMatchingScore(
         xpert as DBMatchedXpert,
         missionData,
         excludedCriteria || {},
-        additionalCriteria || {}
+        Object.fromEntries(
+          Object.entries(additionalCriteria || {}).filter(
+            ([key]) => !key.startsWith('secondary_')
+          )
+        )
       );
 
       return {

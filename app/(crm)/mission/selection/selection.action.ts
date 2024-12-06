@@ -42,7 +42,8 @@ export async function getXpertsSelection(missionId: number) {
 export async function sendMatchedXpertsToSelectionBoard(
   selectedXperts: DBMatchedXpert[],
   mission: DBMission,
-  matchingScores: Record<string, number>
+  matchingScores: Record<string, number>,
+  allMatchingResults: DBMatchedXpert[]
 ) {
   const supabase = await createSupabaseAppServerClient();
   const {
@@ -54,11 +55,7 @@ export async function sendMatchedXpertsToSelectionBoard(
     const { data: existingMatches, error: fetchError } = await supabase
       .from('selection_matching')
       .select('xpert_id, mission_id')
-      .eq('mission_id', mission.id)
-      .in(
-        'xpert_id',
-        selectedXperts.map((x) => x.id)
-      );
+      .eq('mission_id', mission.id);
 
     if (fetchError) throw fetchError;
 
@@ -67,7 +64,7 @@ export async function sendMatchedXpertsToSelectionBoard(
     );
 
     const newXperts = selectedXperts.filter((x) => !existingXpertIds.has(x.id));
-    const existingXperts = selectedXperts.filter((x) =>
+    const existingXperts = allMatchingResults.filter((x) =>
       existingXpertIds.has(x.id)
     );
 
@@ -92,9 +89,10 @@ export async function sendMatchedXpertsToSelectionBoard(
         supabase
           .from('selection_matching')
           .update({
-            column_status: 'matching',
-            is_matched: true,
-            matching_score: matchingScores[xpert.id],
+            matching_score: xpert.matchingScore,
+            is_matched: selectedXperts.some(
+              (selected) => selected.id === xpert.id
+            ),
           })
           .eq('mission_id', mission.id)
           .eq('xpert_id', xpert.id)

@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { create } from 'zustand';
 
 type MatchingCriteriaStore = {
@@ -48,6 +49,7 @@ export const useMatchingCriteriaStore = create<MatchingCriteriaStore>(
         `mission-criteria-${missionNumber}`,
         JSON.stringify(criteriaToStore)
       );
+      toast.success('Critères enregistrés');
     },
 
     loadCriteria: (missionNumber) => {

@@ -33,7 +33,6 @@ export default function MatchingLeftSide({
     expertises: false,
     languages: false,
     diplomas: false,
-    location: false,
   });
 
   const [criteriaIconShow, setCriteriaIconShow] = useState({
@@ -44,7 +43,6 @@ export default function MatchingLeftSide({
     expertises: false,
     languages: false,
     diplomas: false,
-    location: false,
   });
 
   const [hasChanges, setHasChanges] = useState(false);
@@ -156,6 +154,16 @@ export default function MatchingLeftSide({
       const newCriteria = {
         ...prev,
         [type]: values,
+      };
+      setHasChanges(true);
+      return newCriteria;
+    });
+  };
+  const handleAvailabilityChange = (value: string) => {
+    setAdditionalCriteria((prev) => {
+      const newCriteria = {
+        ...prev,
+        availability: value === 'yes' ? ['yes'] : [],
       };
       setHasChanges(true);
       return newCriteria;
@@ -477,7 +485,7 @@ export default function MatchingLeftSide({
             />
           </div>
         )}
-        <div className="flex w-full gap-6">
+        {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Séniorité en année
@@ -488,7 +496,7 @@ export default function MatchingLeftSide({
               {'1'}
             </Box>
           </div>
-        </div>
+        </div> */}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
@@ -571,8 +579,17 @@ export default function MatchingLeftSide({
             </Box>
           </div>
           <div>
-            <Box className="p-3" isSelectable options={actionOptions}>
-              {'OUI'}
+            <Box
+              className={`p-3 ${
+                additionalCriteria.availability?.length > 0
+                  ? 'bg-[#FBBE40] text-white'
+                  : ''
+              }`}
+              isSelectable
+              options={actionOptions}
+              onValueChange={handleAvailabilityChange}
+            >
+              {additionalCriteria.availability?.length > 0 ? 'OUI' : 'NON'}
             </Box>
           </div>
         </div>
@@ -588,7 +605,7 @@ export default function MatchingLeftSide({
             </Box>
           </div>
         </div>
-        <div className="flex w-full gap-6">
+        {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">Management</Box>
           </div>
@@ -597,8 +614,8 @@ export default function MatchingLeftSide({
               {'OUI'}
             </Box>
           </div>
-        </div>
-        <div className="flex w-full gap-6">
+        </div> */}
+        {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Zone géographique
@@ -623,7 +640,7 @@ export default function MatchingLeftSide({
           <div>
             <Box className="p-3">{missionData.country ?? empty}</Box>
           </div>
-        </div>
+        </div> */}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
@@ -794,7 +811,7 @@ export default function MatchingLeftSide({
             </Box>
           </div>
         </div> */}
-        <div className="flex w-full gap-6">
+        {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Travailleurs handicapés ?
@@ -805,14 +822,17 @@ export default function MatchingLeftSide({
               {'OUI'}
             </Box>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {hasChanges && (
         <div className="fixed bottom-10 right-10">
           <Button
             className="bg-primary px-spaceLarge py-spaceContainer text-white"
-            onClick={() => saveCriteria(missionData.mission_number ?? '')}
+            onClick={() => {
+              saveCriteria(missionData.mission_number ?? '');
+              setHasChanges(false);
+            }}
           >
             Enregistrer
           </Button>
