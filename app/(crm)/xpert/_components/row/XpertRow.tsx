@@ -8,9 +8,16 @@ import type { DBXpertOptimized } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { createSupabaseFrontendClient } from '@/utils/supabase/client';
+import { Save } from 'lucide-react';
+import { toast } from 'sonner';
+
 import { jobTitleSelect } from '@/data/mocked_select';
+import type { AdminOpinionValue } from '@/types/types';
+import { adminOpinionOptions } from '@/data/filter';
+import { updateAdminOpinion } from '../../xpert.action';
 
 export default function XpertRow({
   xpert,
@@ -22,12 +29,29 @@ export default function XpertRow({
   onClick: () => void;
 }) {
   const dateSignUp = formatDate(xpert.created_at);
+  const [pendingOpinion, setPendingOpinion] = useState<AdminOpinionValue>(
+    xpert.admin_opinion ?? ''
+  );
+  const [hasChanges, setHasChanges] = useState(false);
   const { countries } = useSelect();
 
   // useEffect(() => {
   //   fetchJobTitles();
   //   fetchCountries();
   // }, [fetchJobTitles, fetchCountries]);
+
+  const handleSave = async (value: string) => {
+    const adminOpinion = value as AdminOpinionValue;
+    setPendingOpinion(adminOpinion);
+    const { error } = await updateAdminOpinion(xpert.id, adminOpinion);
+    if (error) {
+      toast.error('Erreur lors de la sauvegarde');
+      console.error('Error updating admin opinion:', error);
+      return;
+    }
+    toast.success('Modifications enregistrées');
+    setHasChanges(false);
+  };
 
   const postTypes = xpert.profile_mission
     ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
@@ -68,6 +92,19 @@ export default function XpertRow({
     }
   })();
 
+  const adminOpinionStyle = (() => {
+    switch (pendingOpinion) {
+      case 'positive':
+        return 'bg-[#92C6B0]';
+      case 'neutral':
+        return 'bg-[#F5B935]';
+      case 'negative':
+        return 'bg-[#D64242]';
+      default:
+        return 'bg-light-gray-third';
+    }
+  })();
+
   return (
     <>
       <Box className="col-span-1" isSelected={isOpen}>
@@ -105,9 +142,33 @@ export default function XpertRow({
         {availableDate}
       </Box>
       <Box
-        className={`col-span-1 ${xpert.cv_name ? 'bg-[#92C6B0]' : 'bg-[#D64242]'} text-white`}
+        className={`col-span-1 ${
+          xpert.cv_name ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+        } text-white`}
       >
         {xpert.cv_name ? 'OUI' : 'NON'}
+      </Box>
+      <Box
+        className={cn('col-span-1', {
+          'bg-light-gray-third': pendingOpinion === null,
+          'bg-[#E1E1E1]': pendingOpinion !== null,
+        })}
+        isSelectable
+        options={adminOpinionOptions}
+        onValueChange={handleSave}
+      >
+        <div
+          className="size-4 rounded-full transition-all hover:ring-2 hover:ring-offset-2"
+          style={{
+            backgroundColor: adminOpinionOptions.find(
+              (opt) => opt.value === pendingOpinion
+            )?.color,
+          }}
+          title={
+            adminOpinionOptions.find((opt) => opt.value === pendingOpinion)
+              ?.label
+          }
+        />
       </Box>
       <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}

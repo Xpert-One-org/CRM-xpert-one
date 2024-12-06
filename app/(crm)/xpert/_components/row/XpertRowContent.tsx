@@ -35,7 +35,7 @@ export default function XpertRowContent({
     languages,
   } = useSelect();
 
-  const { getXpertSelected, setOpenedXpert, xperts } = useXpertStore();
+  const { getXpertSelected, setOpenedXpert } = useXpertStore();
 
   const handleGetSpecificXpert = async () => {
     try {

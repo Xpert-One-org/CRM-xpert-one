@@ -6,7 +6,6 @@ import XpertRow from './row/XpertRow';
 import XpertMissionRow from './row/mission/XpertMissionRow';
 import { cn } from '@/lib/utils';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import { useSelect } from '@/store/select';
 import { useSearchParams } from 'next/navigation';
 import { useXpertStore } from '@/store/xpert';
 import Loader from '@/components/Loader';
@@ -16,11 +15,17 @@ import XpertMissionFilter from './row/mission/XpertMissionFilter';
 import XpertRowContentBis from './row/XpertRowContentBis';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import DeleteXpertDialog from './DeleteXpertDialog';
-import { FilterXpert } from '@/types/types';
-import Button from '@/components/Button';
+import { Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 // import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+import { AdminOpinionValue } from '@/types/types';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -37,6 +42,7 @@ export default function XpertTable() {
     fetchSpecificXpert,
     fetchXpertOptimizedFiltered,
     resetXperts,
+    openedXpert,
   } = useXpertStore();
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');
@@ -177,6 +183,59 @@ export default function XpertTable() {
     setIsLoading(false);
   };
 
+  const renderMissions = (xpert: DBXpert) => {
+    const isProfileComplete = xpert.totale_progression >= 80;
+    const hasCV = Boolean(xpert.cv_name);
+    const canShowMissions = isProfileComplete && hasCV;
+
+    return (
+      <>
+        {canShowMissions ? (
+          <>
+            {xpert.mission.length > 0 ? (
+              xpert.mission.map((mission) => (
+                <XpertMissionRow key={mission.id} mission={mission} />
+              ))
+            ) : (
+              <div className="col-span-4 ml-5 flex items-center justify-center gap-2">
+                <p className="text-gray-secondary whitespace-nowrap text-center text-sm">
+                  Aucune mission
+                </p>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-4 text-primary" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[300px] bg-white p-2">
+                    <p>Pour voir les missions, il faut :</p>
+                    <ul className="list-disc pl-4">
+                      <li>Un profil complété à 80% minimum</li>
+                      <li>Un CV téléchargé</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="col-span-4 flex items-center justify-center gap-2">
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="size-4 text-primary" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[300px] bg-white p-2">
+                <p>Pour voir les missions, il faut :</p>
+                <ul className="list-disc pl-4">
+                  <li>Un profil complété à 80% minimum</li>
+                  <li>Un CV téléchargé</li>
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+      </>
+    );
+  };
+
   useEffect(() => {
     const xpertId = searchParams.get('id');
     xpertId && fetchSpecificXpert(xpertId);
@@ -190,13 +249,13 @@ export default function XpertTable() {
         </div>
       }
 
-      <div className="grid grid-cols-10 gap-3">
+      <div className="grid grid-cols-11 gap-3">
         <XpertFilter
           key={xpertFilterKey}
           xperts={xpertsOptimized || []}
           // onSortedDataChange={handleFilterChange}
         />
-        <div className="col-span-10">
+        <div className="col-span-11">
           {!loading ? (
             <div className="flex w-fit items-center gap-x-4">
               <p className="whitespace-nowrap">
@@ -209,6 +268,7 @@ export default function XpertTable() {
                 activeFilters.countries.length > 0 ||
                 activeFilters.sortDate ||
                 activeFilters.firstname ||
+                activeFilters.adminOpinion ||
                 activeFilters.generated_id ||
                 activeFilters.lastname ||
                 xpertIdParams) && (
@@ -244,27 +304,18 @@ export default function XpertTable() {
               </div>
               <div
                 className={cn(
-                  'col-span-5 hidden h-full max-h-0 w-full overflow-hidden',
+                  'col-span-6 hidden h-full max-h-0 w-full overflow-hidden',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
                 <div className="grid grid-cols-5 gap-3 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
                   <XpertMissionFilter />
-                  <div className="flex flex-col">
-                    {/* {xpert.mission.length > 0 ? (
-                      <>
-                        {xpert.mission.map((mission) => (
-                          <XpertMissionRow key={mission.id} mission={mission} />
-                        ))}
-                      </>
-                    ) : (
-                      <div className="col-span-4 flex items-center justify-center">
-                        <p className="text-gray-secondary text-center text-sm">
-                          Aucune mission
-                        </p>
-                      </div>
-                    )} */}
-                  </div>
+
+                  {openedXpert && (
+                    <div className="flex flex-col">
+                      {renderMissions(openedXpert)}
+                    </div>
+                  )}
                 </div>
                 {xpertIdOpened === xpert.generated_id && (
                   <XpertRowContentBis

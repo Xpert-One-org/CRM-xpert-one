@@ -1566,6 +1566,7 @@ export type Database = {
         | 'validated'
         | 'refused';
       revenu_type: 'tjm' | 'brut';
+
       selection_column_type:
         | 'postulant'
         | 'matching'
