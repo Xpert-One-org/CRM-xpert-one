@@ -1,6 +1,5 @@
 'use server';
 
-import type { DBNotification } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 export const getChatNotification = async ({
@@ -31,7 +30,5 @@ export const getChatNotification = async ({
     return { data: null, error };
   }
 
-  const returnData = notifications as unknown as DBNotification[];
-
-  return { data: returnData, error };
+  return { data: notifications, error };
 };

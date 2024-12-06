@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import CountryMultiSelect from './combobox/CountryMultiSelect';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 
 type CountryFilterButtonProps = {
-  data?: DBXpert[];
-  onFilter?: (filteredData: DBXpert[]) => void;
+  data?: DBXpertOptimized[];
+  onFilter?: (filteredData: DBXpertOptimized[]) => void;
   selectedCountries: string[];
   onCountryChange: (values: string[]) => void;
 };
@@ -23,6 +23,12 @@ export default function CountryFilterButton({
   useEffect(() => {
     fetchCountries();
   }, [fetchCountries]);
+
+  const sortedCountries = [...countries].sort((a, b) => {
+    if (a.value === 'FR') return -1;
+    if (b.value === 'FR') return 1;
+    return (a.label || '').localeCompare(b.label || '');
+  });
 
   const handleValueChange = (values: string[]) => {
     onCountryChange(values);
@@ -41,7 +47,7 @@ export default function CountryFilterButton({
 
   return (
     <CountryMultiSelect
-      options={countries.map((country) => ({
+      options={sortedCountries.map((country) => ({
         value: country.value || '',
         label: country.label || '',
       }))}

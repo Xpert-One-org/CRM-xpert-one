@@ -1,21 +1,23 @@
 import { FilterButton } from '@/components/FilterButton';
 import React, { useState, useEffect } from 'react';
-import type { DBXpert } from '@/types/typesDb';
-import ComboBoxXpert from '@/components/combobox/ComboBoxXpert';
+import type { DBXpertOptimized } from '@/types/typesDb';
 import { useSearchParams } from 'next/navigation';
 import CountryFilterButton from '@/components/CountryFilterButton';
-import ComboboxJobTitles from '@/components/combobox/ComboboxJobTitles';
+import { useXpertStore } from '@/store/xpert';
+import Combobox from '@/components/inputs/Combobox';
+import FilterSvg from '@/components/svg/FIlterSvg';
+import { useDebounce } from 'use-debounce';
+import type { FilterXpert } from '@/types/types';
 
 const sortDateOptions = [
   { label: 'Ancien', value: 'asc' },
   { label: 'Récent', value: 'desc' },
-  { label: 'Aucun filtre', value: '' },
 ];
 
 const availabilityOptions = [
   { label: 'Disponible', value: 'available', color: '#92C6B0' },
   { label: 'Non disponible', value: 'unavailable', color: '#D64242' },
-  { label: 'En mission', value: 'in_mission', color: 'var(--accent)' },
+  { label: 'En mission', value: 'in_mission', color: '#faa200' },
   { label: 'Aucun filtre', value: '', color: 'transparent' },
 ];
 
@@ -27,201 +29,128 @@ const cvOptions = [
 
 export default function XpertFilter({
   xperts,
-  onSortedDataChange,
-  activeFilters,
 }: {
-  xperts: DBXpert[];
-  onSortedDataChange: (
-    data: DBXpert[],
-    filterType?: string,
-    filterValues?: string[]
-  ) => void;
-  activeFilters: {
-    jobTitles: string[];
-    availability: string;
-    cv: string;
-    countries: string[];
-    sortDate: string;
-  };
+  xperts: DBXpertOptimized[];
 }) {
   const searchParams = useSearchParams();
   const [selectedXpertId, setSelectedXpertId] = useState<string | null>(
     searchParams.get('id') || null
   );
-  const [selectedJobTitles, setSelectedJobTitles] = useState<string[]>(
-    activeFilters.jobTitles
-  );
-  const [selectedAvailability, setSelectedAvailability] = useState<string>(
-    activeFilters.availability
-  );
-  const [selectedCv, setSelectedCv] = useState<string>(activeFilters.cv);
-  const [selectedCountries, setSelectedCountries] = useState<string[]>(
-    activeFilters.countries
-  );
-  const [selectedSortDate, setSelectedSortDate] = useState<string>(
-    activeFilters.sortDate
-  );
 
-  useEffect(() => {
-    if (selectedJobTitles.length === 0) {
-      onSortedDataChange(xperts);
-    } else {
-      const filteredData = xperts.filter((xpert) => {
-        return selectedJobTitles.some((value) =>
-          xpert.profile_mission?.job_titles?.some((title) => title === value)
-        );
-      });
-      onSortedDataChange(filteredData, 'jobTitles', selectedJobTitles);
-    }
-  }, [selectedJobTitles, xperts, onSortedDataChange]);
-
-  useEffect(() => {
-    if (!selectedAvailability) {
-      onSortedDataChange(xperts);
-    } else {
-      const filteredData = xperts.filter((xpert) => {
-        if (selectedAvailability === 'unavailable') {
-          return (
-            xpert.profile_mission?.availability === undefined ||
-            new Date(xpert.profile_mission.availability ?? '') > new Date()
-          );
-        } else if (selectedAvailability === 'in_mission') {
-          return xpert.mission
-            .map((mission) => mission.xpert_associated_id)
-            .some((xpertId) => xpertId === xpert.id);
-        } else if (selectedAvailability === 'available') {
-          const isAvailable =
-            xpert.profile_mission?.availability !== undefined &&
-            new Date(xpert.profile_mission.availability ?? '') <= new Date();
-          const isNotInMission = !xpert.mission
-            .map((mission) => mission.xpert_associated_id)
-            .some((xpertId) => xpertId === xpert.id);
-          return isAvailable && isNotInMission;
-        }
-        return true;
-      });
-      onSortedDataChange(filteredData, 'availability', [selectedAvailability]);
-    }
-  }, [selectedAvailability, xperts, onSortedDataChange]);
-
-  useEffect(() => {
-    if (!selectedCv) {
-      onSortedDataChange(xperts);
-    } else {
-      const filteredData = xperts.filter((xpert) => {
-        if (selectedCv === 'yes') {
-          return !!xpert.cv_name;
-        } else if (selectedCv === 'no') {
-          return !xpert.cv_name;
-        }
-        return true;
-      });
-      onSortedDataChange(filteredData, 'cv', [selectedCv]);
-    }
-  }, [selectedCv, xperts, onSortedDataChange]);
-
-  useEffect(() => {
-    if (selectedCountries.length === 0) {
-      onSortedDataChange(xperts);
-    } else {
-      const filteredData = xperts.filter((xpert) =>
-        selectedCountries.includes(xpert.country || '')
-      );
-      onSortedDataChange(filteredData, 'countries', selectedCountries);
-    }
-  }, [selectedCountries, xperts, onSortedDataChange]);
-
-  useEffect(() => {
-    if (!selectedSortDate) {
-      onSortedDataChange(xperts);
-    } else {
-      const sortedData = [...xperts].sort((a, b) => {
-        const dateA = new Date(a.created_at);
-        const dateB = new Date(b.created_at);
-        return selectedSortDate === 'asc'
-          ? dateA.getTime() - dateB.getTime()
-          : dateB.getTime() - dateA.getTime();
-      });
-      onSortedDataChange(sortedData, 'sortDate', [selectedSortDate]);
-    }
-  }, [selectedSortDate, xperts, onSortedDataChange]);
-
-  const handleJobTitlesChange = (values: string[]) => {
-    setSelectedJobTitles(values);
+  const checkIfFilterIsNotEmpty = (filter: FilterXpert) => {
+    return Object.values(filter).some((value) => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return value !== '';
+    });
   };
 
-  const handleClear = () => {
-    setSelectedXpertId(null);
-  };
+  const { fetchXpertOptimizedFiltered, activeFilters, setActiveFilters } =
+    useXpertStore();
+
+  const isFilterNotEmpty = checkIfFilterIsNotEmpty(activeFilters);
 
   const handleAvailabilityChange = (value: string) => {
-    setSelectedAvailability(value);
+    const newActiveFilter = { ...activeFilters, availability: value };
+    setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
   };
 
   const handleCvChange = (value: string) => {
-    setSelectedCv(value);
+    const newActiveFilter = { ...activeFilters, cv: value };
+    setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
   };
 
-  const handleCountryChange = (values: string[]) => {
-    setSelectedCountries(values);
+  const handleSortDateChange = (value: string) => {
+    const newActiveFilter = { ...activeFilters, sortDate: value };
+    setActiveFilters(newActiveFilter);
   };
+
+  const handleCountryChange = (countries: string[]) => {
+    const newActiveFilter = { ...activeFilters, countries };
+    setActiveFilters(newActiveFilter);
+    if (countries.length === 0) {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
+  };
+  //
+  useEffect(() => {
+    if (isFilterNotEmpty) {
+      fetchXpertOptimizedFiltered(true);
+    }
+  }, [activeFilters]);
 
   return (
     <>
       <FilterButton
         options={sortDateOptions}
-        onValueChange={(value) => setSelectedSortDate(value)}
+        onValueChange={handleSortDateChange}
         placeholder="Date d'inscription"
         sortable
         data={xperts}
         sortKey="created_at"
         selectedOption={{
-          value: selectedSortDate,
+          value: activeFilters.sortDate,
           label:
-            sortDateOptions.find((opt) => opt.value === selectedSortDate)
+            sortDateOptions.find((opt) => opt.value === activeFilters.sortDate)
               ?.label ?? '',
         }}
       />
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
-        <ComboBoxXpert
-          searchType="lastname"
-          selectedXpertId={selectedXpertId}
-          onXpertSelect={setSelectedXpertId}
-          onClear={handleClear}
+        <SearchComponentFilter
+          placeholder="Nom"
+          filterKey="lastname"
+          placeholderSearch="Rechercher un nom"
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
-        <ComboBoxXpert
-          searchType="firstname"
-          selectedXpertId={selectedXpertId}
-          onXpertSelect={setSelectedXpertId}
-          onClear={handleClear}
+        <SearchComponentFilter
+          placeholder="Prénom"
+          filterKey="firstname"
+          placeholderSearch="Rechercher un prénom"
         />
       </div>
-      <div className="col-span-2 bg-chat-selected font-bold text-black hover:bg-chat-selected">
-        <ComboboxJobTitles
-          data={xperts}
-          selectedValues={selectedJobTitles}
-          onValueChange={handleJobTitlesChange}
-          className="border-none"
+      <div className="col-span-2 flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
+        <SearchComponentFilter
+          placeholder="Poste"
+          filterKey="jobTitles"
+          placeholderSearch="Rechercher un poste"
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <CountryFilterButton
           data={xperts}
-          onFilter={(data) =>
-            onSortedDataChange(data, 'countries', selectedCountries)
-          }
-          selectedCountries={selectedCountries}
+          // onFilter={(data) =>
+          //   onSortedDataChange(data, 'countries', activeFilters.countries)
+          // }
+
+          // onFilter={(data) =>
+          //   onSortedDataChange(data, 'countries', activeFilters.countries)
+          // }
+          selectedCountries={activeFilters.countries}
           onCountryChange={handleCountryChange}
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
-        <ComboBoxXpert
+        {/* <ComboBoxXpert
           searchType="generated_id"
           selectedXpertId={selectedXpertId}
           onXpertSelect={setSelectedXpertId}
           onClear={handleClear}
+        /> */}
+        <SearchComponentFilter
+          placeholder="N° identification"
+          filterKey="generated_id"
+          placeholderSearch="Rechercher un X"
         />
       </div>
       <FilterButton
@@ -230,10 +159,10 @@ export default function XpertFilter({
         placeholder="Disponible le"
         coloredOptions
         selectedOption={{
-          value: selectedAvailability,
+          value: activeFilters.availability,
           label:
             availabilityOptions.find(
-              (option) => option.value === selectedAvailability
+              (option) => option.value === activeFilters.availability
             )?.label ?? '',
         }}
       />
@@ -243,10 +172,10 @@ export default function XpertFilter({
         placeholder="CV"
         coloredOptions
         selectedOption={{
-          value: selectedCv,
+          value: activeFilters.cv,
           label:
-            cvOptions.find((option) => option.value === selectedCv)?.label ??
-            '',
+            cvOptions.find((option) => option.value === activeFilters.cv)
+              ?.label ?? '',
         }}
       />
       <FilterButton
@@ -257,3 +186,62 @@ export default function XpertFilter({
     </>
   );
 }
+
+const SearchComponentFilter = ({
+  placeholderSearch = 'Rechercher un xpert',
+  placeholder,
+  filterKey,
+}: {
+  placeholder: string;
+  filterKey: keyof FilterXpert;
+  placeholderSearch?: string;
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [value] = useDebounce(searchTerm, 300);
+  const {
+    fetchXpertOptimizedFiltered,
+    resetXperts,
+    activeFilters,
+    setActiveFilters,
+  } = useXpertStore();
+
+  const handleSearch = (value: string) => {
+    if (value === '') {
+      handleClear();
+      return;
+    }
+    setSearchTerm(value);
+  };
+
+  const handleSetValue = (value: string) => {
+    const newActiveFilter = { ...activeFilters, [filterKey]: value };
+    setActiveFilters(newActiveFilter);
+  };
+
+  useEffect(() => {
+    handleSetValue(value);
+  }, [value]);
+
+  const handleClear = () => {
+    useXpertStore.setState({ loading: true });
+    setSearchTerm('');
+    const newActiveFilter = { ...activeFilters, [filterKey]: '' };
+    setActiveFilters(newActiveFilter);
+    fetchXpertOptimizedFiltered(true);
+  };
+
+  return (
+    <Combobox
+      data={[]}
+      disabledProposals
+      value={searchTerm}
+      handleSetValue={handleSearch}
+      handleValueChange={handleSearch}
+      placeholder={placeholder}
+      placeholderSearch={placeholderSearch}
+      className="border-none"
+      icon={<FilterSvg className="size-4" />}
+      onClear={handleClear}
+    />
+  );
+};

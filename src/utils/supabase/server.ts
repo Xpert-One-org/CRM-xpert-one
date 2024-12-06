@@ -3,13 +3,13 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export async function createSupabaseAppServerClient(
-  deleteXpert: '' | 'deleteXpert' = ''
+  deleteXpert: '' | 'admin' = ''
 ) {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    deleteXpert === 'deleteXpert'
+    deleteXpert === 'admin'
       ? process.env.SUPABASE_SERVICE_ROLE_KEY!
       : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
