@@ -180,3 +180,17 @@ export type DBMissionXpertsSelection =
     xpert: Pick<DBProfile, 'firstname' | 'lastname' | 'generated_id'>;
     creator: Pick<DBProfile, 'firstname' | 'lastname'>;
   };
+
+export type DBXpertOptimized = Pick<
+  DBXpert,
+  | 'id'
+  | 'lastname'
+  | 'firstname'
+  | 'country'
+  | 'generated_id'
+  | 'cv_name'
+  | 'created_at'
+> & {
+  mission: Pick<DBMission, 'xpert_associated_id'>[];
+  profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+};
