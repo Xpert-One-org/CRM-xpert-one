@@ -170,6 +170,7 @@ export type DBXpertOptimized = Pick<
   | 'generated_id'
   | 'cv_name'
   | 'created_at'
+  | 'admin_opinion'
 > & {
   mission: Pick<DBMission, 'xpert_associated_id'>[];
   profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;

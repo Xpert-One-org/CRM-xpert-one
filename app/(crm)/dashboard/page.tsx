@@ -7,6 +7,7 @@ import BriefCase from '@/components/svg/BriefCase';
 // import ChatBubbles from '@/components/svg/ChatBubbles';
 import {
   Phone,
+  SquarePen,
   //  SquarePen
 } from 'lucide-react';
 import BriefCaseAdd from '@/components/svg/BriefCaseAdd';
@@ -17,6 +18,7 @@ import {
   getLastSignupNewUsers,
   getLastSignUpNewUsersWeek,
 } from '@functions/dashboard';
+import { getCountTasksToTreatAndUrgent } from '@functions/tasks';
 
 export default async function DashboardPage() {
   const { data: newUsers } = await getLastSignupNewUsers();
@@ -27,6 +29,10 @@ export default async function DashboardPage() {
     await getCountMissionsState('in_progress');
 
   const { data: missions } = await getCountMissions();
+
+  const { pending: pendingTaskCount, urgent: urgentTaskCount } = (
+    await getCountTasksToTreatAndUrgent()
+  ).count;
 
   const { data: missionsToValidate } =
     await getCountMissionsState('to_validate');
@@ -63,17 +69,17 @@ export default async function DashboardPage() {
           <FacturationLogo className="fill-white" width={24} height={24} />
         }
         link="/facturation/etats"
-      />
+      /> */}
       <DashBoardCards
-        count={newUsers.length}
+        count={(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}
         title="TO DO à traiter"
         urgentTitle="Urgentes"
-        urgentCount={0}
-        buttonTitle={`TODO : ${newUsers.length}`}
+        urgentCount={urgentTaskCount ?? 0}
+        buttonTitle={`TODO : ${(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}`}
         iconButton={<SquarePen width={24} height={24} />}
         link="/dashboard/todo"
       />
-      <DashBoardCards
+      {/* <DashBoardCards
         count={newUsers.length}
         title="Messagerie externe"
         urgentTitle="Non lus"

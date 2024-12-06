@@ -82,6 +82,8 @@ export default function MissionEtatOpenRow({
       <Box className="col-span-1">{'0'}</Box>
       <Box className="col-span-1">{'0'}</Box>
       <Box className="col-span-1">{'0'}</Box>
+      <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
+      <Box className="col-span-1">{formatDate(mission.end_date ?? '')}</Box>
     </>
   );
 }

@@ -40,6 +40,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
   activeFilters: {
     jobTitles: '',
     availability: '',
+    adminOpinion: '',
     cv: '',
     countries: [],
     sortDate: '',
@@ -77,6 +78,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
   resetXperts: () => {
     set({
       activeFilters: {
+        adminOpinion: '',
         jobTitles: '',
         availability: '',
         cv: '',
@@ -103,6 +105,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       ? {
           country: xpert.country,
           firstname: xpert.firstname,
+          admin_opinion: xpert.admin_opinion,
           generated_id: xpert.generated_id,
           id: xpert.id,
           created_at: xpert.created_at,
