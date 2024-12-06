@@ -26,6 +26,7 @@ export default function SelectionDragAndDropTable({
       newStatus: ColumnStatus;
     }[]
   >([]);
+  const [savedUpdates, setSavedUpdates] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMatchedXperts = async () => {
@@ -93,6 +94,7 @@ export default function SelectionDragAndDropTable({
 
       toast.success('Modifications enregistrées avec succès');
       setPendingUpdates([]);
+      setSavedUpdates(true);
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement des modifications");
     }
@@ -114,7 +116,11 @@ export default function SelectionDragAndDropTable({
           <FilterButton placeholder="XPERT Validés" filter={false} />
         </div>
         <div className="grid grid-cols-8 gap-3">
-          <SelectionDragAndDropColumns xpertsSelection={xpertsSelection} />
+          <SelectionDragAndDropColumns
+            xpertsSelection={xpertsSelection}
+            hasPendingUpdates={pendingUpdates.length > 0}
+            isSaved={savedUpdates}
+          />
         </div>
       </DragDropContext>
 

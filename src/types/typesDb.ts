@@ -122,7 +122,13 @@ export type DBUserAlerts = Database['public']['Tables']['user_alerts']['Row'];
 export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   company_name?: string | null;
   supplier?: DBProfile | null;
-  xpert?: DBProfile | null;
+  xpert?:
+    | (DBProfile & {
+        profile_status?: {
+          status?: DBProfileStatus['status'] | null;
+        } | null;
+      })
+    | null;
   generated_id?: string | null;
   mission_application?: Database['public']['Tables']['mission_application']['Row'][];
 };

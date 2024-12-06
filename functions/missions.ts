@@ -9,14 +9,22 @@ import { checkAuthRole } from '@functions/auth/checkRole';
 
 export const getAllMissions = async (): Promise<DBMission[]> => {
   const supabase = await createSupabaseAppServerClient();
-  const { data, error } = await supabase
-    .from('mission')
-    .select(
-      '*, xpert:profile!mission_xpert_associated_id_fkey(*), supplier:profile!mission_created_by_fkey(*)'
-    );
+  const { data, error } = await supabase.from('mission').select(
+    `
+      *,
+      xpert:profile!mission_xpert_associated_id_fkey(
+        *,
+        profile_status (
+          status
+        )
+      ), 
+      supplier:profile!mission_created_by_fkey(*)
+      `
+  );
   if (error) {
     throw new Error(error.message);
   }
+
   return data;
 };
 
@@ -28,11 +36,15 @@ export const getMissionState = async (
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
-    let query = supabase
-      .from('mission')
-      .select(
-        '*, xpert:profile!mission_xpert_associated_id_fkey(*), supplier:profile!mission_created_by_fkey(*)'
-      );
+    let query = supabase.from('mission').select(
+      `
+      *,
+      xpert:profile!mission_xpert_associated_id_fkey(
+        *
+      ), 
+      supplier:profile!mission_created_by_fkey(*)
+      `
+    );
 
     if (state === 'open') {
       query = query.in('state', ['open', 'open_all']);

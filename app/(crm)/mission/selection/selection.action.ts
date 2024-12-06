@@ -141,3 +141,31 @@ export async function updateSelectionMission(
     return { data: null, error };
   }
 }
+
+export async function updateMissionXpertAssociated(
+  missionId: number,
+  xpertId: string
+) {
+  const supabase = await createSupabaseAppServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const isAdmin = await checkAuthRole();
+  if (!isAdmin) throw new Error('Not authorized');
+
+  try {
+    const { data, error } = await supabase
+      .from('mission')
+      .update({ xpert_associated_id: xpertId })
+      .eq('id', missionId)
+      .select();
+
+    if (error) throw error;
+    return { data: data[0], error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}

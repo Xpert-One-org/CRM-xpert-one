@@ -36,8 +36,12 @@ const isDropDisabled = (
 
 export default function SelectionDragAndDropColumns({
   xpertsSelection,
+  hasPendingUpdates,
+  isSaved,
 }: {
   xpertsSelection: DBMissionXpertsSelection[];
+  hasPendingUpdates: boolean;
+  isSaved: boolean;
 }) {
   const xpertsByColumn = columns.reduce(
     (acc, column) => {
@@ -70,6 +74,9 @@ export default function SelectionDragAndDropColumns({
                       key={xpertSelection.id}
                       xpertsSelection={xpertSelection}
                       index={idx}
+                      showActivationButton={
+                        zone === 'valides' && !hasPendingUpdates && isSaved
+                      }
                     />
                   ))}
                   {provided.placeholder}

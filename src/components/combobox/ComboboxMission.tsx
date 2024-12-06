@@ -16,7 +16,8 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
   const [currentValue] = useState(
     currentMissionNumber !== 'fiche' &&
       currentMissionNumber !== 'matching' &&
-      currentMissionNumber !== 'selection'
+      currentMissionNumber !== 'selection' &&
+      currentMissionNumber !== 'activation-des-missions'
       ? currentMissionNumber
       : ''
   );
@@ -41,6 +42,10 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
     } else if (slug === 'selection') {
       router.push(
         `/mission/selection/${value.split(' ').join('-').toUpperCase()}`
+      );
+    } else if (slug === 'activation-des-missions') {
+      router.push(
+        `/mission/activation-des-missions/${value.split(' ').join('-').toUpperCase()}`
       );
     } else {
       router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
@@ -67,7 +72,10 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
       isLoading={isLoading}
       handleValueChange={handleValueChange}
       placeholder={
-        slug === 'matching' || slug === 'selection' || slug === 'fiche'
+        slug === 'matching' ||
+        slug === 'selection' ||
+        slug === 'fiche' ||
+        slug === 'activation-des-missions'
           ? 'Rechercher'
           : currentMissionNumber
       }
