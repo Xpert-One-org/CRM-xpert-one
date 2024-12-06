@@ -867,7 +867,7 @@ export default function MatchingLeftSide({
                 ? 'OUI'
                 : additionalCriteria.handicap?.includes('no')
                   ? 'NON'
-                  : missionData.open_to_disabled
+                  : missionData.open_to_disabled === 'true'
                     ? 'OUI'
                     : 'NON'}
             </Box>
