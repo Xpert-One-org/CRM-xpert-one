@@ -593,7 +593,7 @@ export default function MatchingLeftSide({
             </Box>
           </div>
         </div>
-        <div className="flex w-full gap-6">
+        {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               En recherche active ?
@@ -604,7 +604,7 @@ export default function MatchingLeftSide({
               {'NON'}
             </Box>
           </div>
-        </div>
+        </div> */}
         {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">Management</Box>
@@ -789,7 +789,7 @@ export default function MatchingLeftSide({
             />
           </div>
         )}
-        <div className="flex w-full gap-6">
+        {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               TJM cible MAX
@@ -798,7 +798,7 @@ export default function MatchingLeftSide({
           <div>
             <Box className="p-3">{missionData.tjm ?? empty}</Box>
           </div>
-        </div>
+        </div> */}
         {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
