@@ -7,6 +7,8 @@ import {
   updateMissionState,
 } from '@functions/missions';
 import { updateSelectionMission } from '../../app/(crm)/mission/selection/selection.action';
+import { updateXpertAssociatedStatus } from '../../app/(crm)/mission/activation-des-missions/mission.action';
+import { toast } from 'sonner';
 
 type MissionState = {
   missions: DBMission[];
@@ -22,6 +24,10 @@ type MissionState = {
     columnStatus: ColumnStatus,
     missionId: number,
     xpertId: string
+  ) => Promise<void>;
+  updateXpertAssociatedStatus: (
+    missionId: number,
+    status: string
   ) => Promise<void>;
 };
 
@@ -82,5 +88,23 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         ),
       });
     }
+  },
+  updateXpertAssociatedStatus: async (missionId: number, status: string) => {
+    const { error } = await updateXpertAssociatedStatus(missionId, status);
+
+    if (error) {
+      toast.error('Erreur lors de la mise à jour du statut');
+      return;
+    } else {
+      toast.success('Statut mis à jour avec succès');
+    }
+
+    set({
+      missions: get().missions.map((mission: DBMission) =>
+        mission.id === missionId
+          ? { ...mission, xpert_associated_status: status }
+          : mission
+      ),
+    });
   },
 }));

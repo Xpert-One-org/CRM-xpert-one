@@ -1,6 +1,5 @@
-import type { DBProfileStatus } from '@/types/typesDb';
-
-export const convertStatusXpertValue = (value: DBProfileStatus['status']) => {
+export const convertStatusXpertValue = (value: string) => {
+  console.log(value);
   switch (value) {
     case 'cdi':
       return 'CDI DE MISSION';

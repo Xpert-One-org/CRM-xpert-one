@@ -1,8 +1,13 @@
 import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
 import FournisseurActivationMissionRow from './FournisseurActivationMissionRow';
+import type { DBProfileStatus } from '@/types/typesDb';
 
-export default function FournisseurActivationMissionTable() {
+export default function FournisseurActivationMissionTable({
+  status,
+}: {
+  status: DBProfileStatus['status'];
+}) {
   return (
     <>
       <div className="grid grid-cols-6 gap-3">
@@ -27,7 +32,7 @@ export default function FournisseurActivationMissionTable() {
           filter={false}
         />
 
-        <FournisseurActivationMissionRow />
+        <FournisseurActivationMissionRow status={status} />
       </div>
     </>
   );
