@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import type { DBMission, DBMissionState } from '@/types/typesDb';
+import type { ColumnStatus, DBMission, DBMissionState } from '@/types/typesDb';
 import {
   getAllMissions,
   getMissionState,
   searchMission,
   updateMissionState,
 } from '@functions/missions';
+import { updateSelectionMission } from '../../app/(crm)/mission/selection/selection.action';
 
 type MissionState = {
   missions: DBMission[];
@@ -16,6 +17,12 @@ type MissionState = {
   updateMission: (missionId: string, state: DBMissionState) => Promise<void>;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
+  updateSelectionMission: (
+    selectionId: number,
+    columnStatus: ColumnStatus,
+    missionId: number,
+    xpertId: string
+  ) => Promise<void>;
 };
 
 export const useMissionStore = create<MissionState>((set, get) => ({
@@ -49,5 +56,31 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         mission.id.toString() === missionId ? { ...mission, state } : mission
       ),
     });
+  },
+  updateSelectionMission: async (
+    selectionId: number,
+    columnStatus: ColumnStatus,
+    missionId: number,
+    xpertId: string
+  ) => {
+    await updateSelectionMission(selectionId, columnStatus, missionId, xpertId);
+
+    if (columnStatus === 'valides') {
+      set({
+        missions: get().missions.map((mission: DBMission) =>
+          mission.id === missionId
+            ? { ...mission, xpert_associated_id: xpertId, state: 'in_progress' }
+            : mission
+        ),
+      });
+    } else {
+      set({
+        missions: get().missions.map((mission: DBMission) =>
+          mission.id === missionId
+            ? { ...mission, xpert_associated_id: null, state: 'open' }
+            : mission
+        ),
+      });
+    }
   },
 }));

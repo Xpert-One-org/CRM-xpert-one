@@ -7,46 +7,38 @@ import { Draggable } from '@hello-pangea/dnd';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { updateMissionXpertAssociated } from '../../selection.action';
-import { toast } from 'sonner';
+import { useMissionStore } from '@/store/mission';
 
 export default function SelectionMatchedXpertCard({
   xpertsSelection,
   index,
-  showActivationButton,
 }: {
   xpertsSelection: DBMissionXpertsSelection;
   index: number;
-  showActivationButton: boolean;
 }) {
+  const { missions } = useMissionStore();
   const params = useParams<{ slug: string }>();
   const { slug } = params;
   const missionNumber = slug.replace('-', ' ');
 
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isActivating, setIsActivating] = useState(false);
+
+  const currentMission = missions.find(
+    (mission) => mission.mission_number === missionNumber
+  );
+
+  const showActivationButton =
+    currentMission?.xpert_associated_id === xpertsSelection.xpert_id;
 
   const handleRedirect = () => {
     router.push(`/xpert?id=${xpertsSelection.xpert.generated_id}`);
   };
 
-  const handleActivation = async () => {
-    try {
-      setIsActivating(true);
-      await updateMissionXpertAssociated(
-        xpertsSelection.mission_id,
-        xpertsSelection.xpert_id
-      );
-      toast.success("L'expert a été activé à la mission avec succès");
-      router.push(
-        `/mission/activation-des-missions/${missionNumber.replace(' ', '-')}`
-      );
-    } catch (error) {
-      toast.error("Erreur lors de l'activation de l'expert");
-    } finally {
-      setIsActivating(false);
-    }
+  const handleActivation = () => {
+    router.push(
+      `/mission/activation-des-missions/${missionNumber.replace(' ', '-')}`
+    );
   };
 
   return (
@@ -100,9 +92,8 @@ export default function SelectionMatchedXpertCard({
                   <Button
                     className="w-full rounded-[12px] bg-[#92C6B0] p-2 text-white hover:bg-[#92C6B0]/80"
                     onClick={handleActivation}
-                    disabled={isActivating}
                   >
-                    {isActivating ? 'Activation...' : 'Activation de mission'}
+                    Activation de mission
                   </Button>
                 )}
               </div>

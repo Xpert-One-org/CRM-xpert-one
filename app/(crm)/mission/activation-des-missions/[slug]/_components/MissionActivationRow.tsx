@@ -6,6 +6,7 @@ import type { DBMission } from '@/types/typesDb';
 import { Box } from '@/components/ui/box';
 import { convertStateValue } from '@/utils/stateMissionConverter';
 import { convertStatusXpertValue } from '@/utils/statusXpertConverter';
+import ComboboxMission from '@/components/combobox/ComboboxMission';
 
 export default function MissionActivationRow({
   mission,
@@ -13,11 +14,6 @@ export default function MissionActivationRow({
   mission: DBMission;
 }) {
   const router = useRouter();
-
-  const handleRedirectFicheMission = (number: string) => {
-    const formattedNumber = number.replaceAll(' ', '-');
-    router.push(`/mission/fiche/${formattedNumber}`);
-  };
 
   const handleRedirectFournisseur = (fournisseurId: string) => {
     router.push(`/fournisseur?id=${fournisseurId}`);
@@ -37,13 +33,7 @@ export default function MissionActivationRow({
   return (
     <>
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
-      <Box
-        className="col-span-1 cursor-pointer bg-primary text-white"
-        primary
-        onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
-      >
-        {mission.mission_number}
-      </Box>
+      <ComboboxMission slug="activation-des-missions" />
       <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
       <Box className="col-span-1 bg-[#65ADAF] text-white" isSelectable>
         {convertStatusXpertValue(mission.xpert?.profile_status?.status ?? '')}

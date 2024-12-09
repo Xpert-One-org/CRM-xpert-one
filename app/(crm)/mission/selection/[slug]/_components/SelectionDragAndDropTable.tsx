@@ -5,18 +5,18 @@ import { FilterButton } from '@/components/FilterButton';
 import React, { useEffect, useState } from 'react';
 import SelectionDragAndDropColumns from './SelectionDragAndDropColumns';
 import type { ColumnStatus, DBMissionXpertsSelection } from '@/types/typesDb';
-import {
-  getXpertsSelection,
-  updateSelectionMission,
-} from '../../selection.action';
+import { getXpertsSelection } from '../../selection.action';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useMissionStore } from '@/store/mission';
 
 export default function SelectionDragAndDropTable({
   missionId,
 }: {
   missionId: number;
 }) {
+  const { updateSelectionMission } = useMissionStore();
+
   const [xpertsSelection, setXpertsSelection] = useState<
     DBMissionXpertsSelection[]
   >([]);
@@ -26,7 +26,6 @@ export default function SelectionDragAndDropTable({
       newStatus: ColumnStatus;
     }[]
   >([]);
-  const [savedUpdates, setSavedUpdates] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMatchedXperts = async () => {
@@ -88,13 +87,18 @@ export default function SelectionDragAndDropTable({
     try {
       await Promise.all(
         pendingUpdates.map((update) =>
-          updateSelectionMission(update.selectionId, update.newStatus)
+          updateSelectionMission(
+            update.selectionId,
+            update.newStatus,
+            missionId,
+            xpertsSelection.find((xpert) => xpert.id === update.selectionId)
+              ?.xpert_id ?? ''
+          )
         )
       );
 
       toast.success('Modifications enregistrées avec succès');
       setPendingUpdates([]);
-      setSavedUpdates(true);
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement des modifications");
     }
@@ -116,11 +120,7 @@ export default function SelectionDragAndDropTable({
           <FilterButton placeholder="XPERT Validés" filter={false} />
         </div>
         <div className="grid grid-cols-8 gap-3">
-          <SelectionDragAndDropColumns
-            xpertsSelection={xpertsSelection}
-            hasPendingUpdates={pendingUpdates.length > 0}
-            isSaved={savedUpdates}
-          />
+          <SelectionDragAndDropColumns xpertsSelection={xpertsSelection} />
         </div>
       </DragDropContext>
 

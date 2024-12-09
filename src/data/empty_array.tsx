@@ -87,4 +87,5 @@ export const emptyMission: DBMission = {
   tjm: null,
   contract_file_name: null,
   signed_quote_file_name: null,
+  xpert_associated_status: null,
 };

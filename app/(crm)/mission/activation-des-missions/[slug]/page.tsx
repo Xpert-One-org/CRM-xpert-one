@@ -17,7 +17,7 @@ export default function ActivationPage(props: {
 
   useEffect(() => {
     fetchMissions();
-  }, []);
+  }, [fetchMissions]);
 
   const missionData = missions.find(
     (mission) => mission.mission_number === missionNumber
@@ -35,6 +35,9 @@ export default function ActivationPage(props: {
             {convertStatusXpertValue(
               missionData?.xpert?.profile_status?.status ?? ''
             )}
+            {missionData?.xpert?.profile_status?.status === 'cdi' ? (
+              <span> ( XPERT ONE )</span>
+            ) : null}
           </h3>
 
           <XpertActivationMissionTable
