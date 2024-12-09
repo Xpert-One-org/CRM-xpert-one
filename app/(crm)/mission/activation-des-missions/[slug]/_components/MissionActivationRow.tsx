@@ -27,6 +27,13 @@ export default function MissionActivationRow({
     router.push(`/xpert?id=${xpertId}`);
   };
 
+  const options = [
+    {
+      value: 'cdi',
+      label: 'CDI ',
+    },
+  ];
+
   return (
     <>
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
@@ -38,7 +45,7 @@ export default function MissionActivationRow({
         {mission.mission_number}
       </Box>
       <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
-      <Box className="col-span-1">
+      <Box className="col-span-1 bg-[#65ADAF] text-white" isSelectable>
         {convertStatusXpertValue(mission.xpert?.profile_status?.status ?? '')}
       </Box>
       <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>

@@ -1,15 +1,13 @@
 import { FilterButton } from '@/components/FilterButton';
-import React, { useEffect } from 'react';
+import React from 'react';
 import MissionActivationRow from './MissionActivationRow';
-import { useMissionStore } from '@/store/mission';
+import type { DBMission } from '@/types/typesDb';
 
-export default function MissionActivationTable({ slug }: { slug: string }) {
-  const { missions, fetchMissions } = useMissionStore();
-
-  useEffect(() => {
-    fetchMissions();
-  }, []);
-
+export default function MissionActivationTable({
+  missionData,
+}: {
+  missionData: DBMission | undefined;
+}) {
   return (
     <div className="grid grid-cols-8 gap-3">
       <FilterButton
@@ -26,12 +24,9 @@ export default function MissionActivationTable({ slug }: { slug: string }) {
       <FilterButton placeholder="N° de fournisseur" filter={false} />
       <FilterButton placeholder="N° XPERT" filter={false} />
 
-      {missions
-        .filter((mission) => mission.mission_number === slug)
-        .filter((mission) => mission?.xpert?.profile_status?.status === 'cdi')
-        .map((mission) => (
-          <MissionActivationRow key={mission.id} mission={mission} />
-        ))}
+      {missionData && (
+        <MissionActivationRow key={missionData.id} mission={missionData} />
+      )}
     </div>
   );
 }
