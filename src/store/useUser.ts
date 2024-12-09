@@ -11,6 +11,7 @@ type UserState = {
   searchUsers: (query: string) => void;
   searchUsersResults: { label: string; id: string }[];
   searchUserSelected: { label: string; id: string } | null;
+  setSearchUserSelected: (user: { label: string; id: string } | null) => void;
   clearSearchUserSelected: () => void;
   loading: boolean;
 };
@@ -22,6 +23,7 @@ const useUser = create<UserState>((set) => ({
   loading: false,
   searchUsersResults: [],
   searchUserSelected: null,
+  setSearchUserSelected: (user) => set({ searchUserSelected: user }),
   clearSearchUserSelected: () => {
     set({ searchUserSelected: null });
   },

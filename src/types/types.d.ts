@@ -252,3 +252,5 @@ export type FilterTasks = {
 };
 
 export type AdminOpinionValue = 'positive' | 'neutral' | 'negative' | '';
+export type TaskHistoryAction =
+  Database['public']['Enums']['task_history_action'];
