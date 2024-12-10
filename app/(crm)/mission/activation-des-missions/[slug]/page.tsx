@@ -1,35 +1,26 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect } from 'react';
 import MissionActivationTable from './_components/MissionActivationTable';
 import { convertStatusXpertValue } from '@/utils/statusXpertConverter';
 import XpertActivationMissionTable from './_components/XpertActivationMissionTable';
 import { useMissionStore } from '@/store/mission';
 import FournisseurActivationMissionTable from './_components/FournisseurActivationMissionTable';
 
-export default function ActivationPage(props: {
+export default function MissionActivationPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const params = use(props.params);
   const missionNumber = params.slug.replaceAll('-', ' ');
   const { missions, fetchMissions } = useMissionStore();
-  const [showTables, setShowTables] = useState(false);
-
-  useEffect(() => {
-    fetchMissions();
-  }, [fetchMissions]);
 
   const missionData = missions.find(
     (mission) => mission.mission_number === missionNumber
   );
 
   useEffect(() => {
-    if (missionData?.xpert_associated_status) {
-      setShowTables(true);
-    } else {
-      setShowTables(false);
-    }
-  }, [missionData?.xpert_associated_status]);
+    fetchMissions();
+  }, [fetchMissions]);
 
   return (
     <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
@@ -37,7 +28,7 @@ export default function ActivationPage(props: {
         <MissionActivationTable missionData={missionData} />
       </div>
 
-      {showTables && (
+      {missionData?.xpert_associated_status && (
         <>
           <div className="flex w-full flex-col gap-3">
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
@@ -52,10 +43,12 @@ export default function ActivationPage(props: {
                   <span> - ( XPERT ONE )</span>
                 ) : null}
               </h3>
-
-              <XpertActivationMissionTable
-                status={missionData?.xpert_associated_status ?? ''}
-              />
+              {missionData && (
+                <XpertActivationMissionTable
+                  status={missionData?.xpert_associated_status ?? ''}
+                  missionData={missionData}
+                />
+              )}
             </div>
           </div>
 
@@ -73,7 +66,7 @@ export default function ActivationPage(props: {
         </>
       )}
 
-      {!showTables && (
+      {!missionData?.xpert_associated_status && (
         <div className="mt-4 text-center text-gray-500">
           Veuillez sélectionner et enregistrer un statut pour l'expert avant de
           continuer

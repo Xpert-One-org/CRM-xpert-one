@@ -7,7 +7,7 @@ import {
   updateMissionState,
 } from '@functions/missions';
 import { updateSelectionMission } from '../../app/(crm)/mission/selection/selection.action';
-import { updateXpertAssociatedStatus } from '../../app/(crm)/mission/activation-des-missions/mission.action';
+import { updateXpertAssociatedStatus } from '../../app/(crm)/mission/activation-des-missions/activation-mission.action';
 import { toast } from 'sonner';
 
 type MissionState = {

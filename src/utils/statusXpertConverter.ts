@@ -1,9 +1,8 @@
 export const convertStatusXpertValue = (value: string) => {
-  console.log(value);
   switch (value) {
     case 'cdi':
       return 'CDI DE MISSION';
-    case 'auto-entrepreneur':
+    case 'freelance':
       return 'FREELANCE';
     case 'portage':
       return 'PORTAGE';

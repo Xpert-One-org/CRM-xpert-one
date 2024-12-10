@@ -38,7 +38,7 @@ export default function MissionActivationRow({
     },
     {
       label: 'FREELANCE',
-      value: 'auto-entrepreneur',
+      value: 'freelance',
     },
     {
       label: 'PORTAGE',

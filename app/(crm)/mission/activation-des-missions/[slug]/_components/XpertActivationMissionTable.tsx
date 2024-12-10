@@ -1,12 +1,14 @@
 import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
 import XpertActivationMissionRow from './XpertActivationMissionRow';
-import type { DBProfileStatus } from '@/types/typesDb';
+import type { DBMission, DBProfileStatus } from '@/types/typesDb';
 
 export default function XpertActivationMissionTable({
   status,
+  missionData,
 }: {
   status: DBProfileStatus['status'];
+  missionData: DBMission;
 }) {
   return (
     <div className="grid grid-cols-6 gap-3">
@@ -27,7 +29,7 @@ export default function XpertActivationMissionTable({
       />
       <FilterButton className="col-span-1" placeholder="Etat" filter={false} />
 
-      <XpertActivationMissionRow status={status} />
+      <XpertActivationMissionRow status={status} missionData={missionData} />
     </div>
   );
 }
