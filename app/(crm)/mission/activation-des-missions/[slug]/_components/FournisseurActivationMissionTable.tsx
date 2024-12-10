@@ -1,12 +1,12 @@
 import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
 import FournisseurActivationMissionRow from './FournisseurActivationMissionRow';
-import type { DBProfileStatus } from '@/types/typesDb';
+import type { DBMission } from '@/types/typesDb';
 
 export default function FournisseurActivationMissionTable({
-  status,
+  missionData,
 }: {
-  status: DBProfileStatus['status'];
+  missionData: DBMission;
 }) {
   return (
     <>
@@ -32,7 +32,7 @@ export default function FournisseurActivationMissionTable({
           filter={false}
         />
 
-        <FournisseurActivationMissionRow status={status} />
+        <FournisseurActivationMissionRow missionData={missionData} />
       </div>
     </>
   );

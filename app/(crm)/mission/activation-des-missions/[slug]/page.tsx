@@ -28,27 +28,25 @@ export default function MissionActivationPage(props: {
         <MissionActivationTable missionData={missionData} />
       </div>
 
-      {missionData?.xpert_associated_status && (
+      {missionData && (
         <>
           <div className="flex w-full flex-col gap-3">
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
               <h3 className="text-center text-md font-medium text-[#222222]">
                 XPERT
-                {missionData?.xpert_associated_status
+                {missionData.xpert_associated_status
                   ? ` - ${convertStatusXpertValue(
-                      missionData?.xpert_associated_status ?? ''
+                      missionData.xpert_associated_status
                     )}`
                   : null}
-                {missionData?.xpert_associated_status === 'cdi' ? (
+                {missionData.xpert_associated_status === 'cdi' ? (
                   <span> - ( XPERT ONE )</span>
                 ) : null}
               </h3>
-              {missionData && (
-                <XpertActivationMissionTable
-                  status={missionData?.xpert_associated_status ?? ''}
-                  missionData={missionData}
-                />
-              )}
+              <XpertActivationMissionTable
+                status={missionData.xpert_associated_status}
+                missionData={missionData}
+              />
             </div>
           </div>
 
@@ -57,10 +55,7 @@ export default function MissionActivationPage(props: {
               <h3 className="text-center text-md font-medium text-[#222222]">
                 FOURNISSEUR
               </h3>
-
-              <FournisseurActivationMissionTable
-                status={missionData?.xpert_associated_status ?? ''}
-              />
+              <FournisseurActivationMissionTable missionData={missionData} />
             </div>
           </div>
         </>
