@@ -145,7 +145,9 @@ export default function PopupNewChat({
           {type === 'chat' && (
             <div className="flex flex-col gap-y-1">
               <Label className="">Destinataire</Label>
-              <ComboboxChat />
+              <div className="flex w-full items-start justify-start">
+                <ComboboxChat />
+              </div>
             </div>
           )}
           <div className="grid grid-cols-1 gap-x-spaceContainer gap-y-spaceSmall md:grid-cols-3">

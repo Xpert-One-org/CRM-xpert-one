@@ -104,11 +104,7 @@ export default function Combobox({
           </Button>
         </div>
       </PopoverTrigger>
-      <PopoverContent
-        className={cn('p-0', classNamePopover)}
-        align="start"
-        sideOffset={5}
-      >
+      <PopoverContent className={cn('p-0', classNamePopover)}>
         <Command>
           <CommandInput
             placeholder={placeholderSearch ?? placeholder}

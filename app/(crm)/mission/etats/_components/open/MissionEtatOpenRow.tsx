@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
@@ -7,6 +7,9 @@ import { getTimeBeforeMission } from '@/utils/string';
 import { empty } from '@/data/constant';
 import { getLabel } from '@/utils/getLabel';
 import { useSelect } from '@/store/select';
+import Matching from '@/components/svg/Matching';
+import Selection from '@/components/svg/Selection';
+import { Button } from '@/components/ui/button';
 
 export default function MissionEtatOpenRow({
   mission,
@@ -46,7 +49,23 @@ export default function MissionEtatOpenRow({
     router.push(`/fournisseur?id=${fournisseurId}`);
   };
 
-  const { jobTitles } = useSelect();
+  const handleRedirectMatching = () => {
+    router.push(
+      `/mission/matching/${mission.mission_number?.replaceAll(' ', '-')}`
+    );
+  };
+
+  const handleRedirectSelection = () => {
+    router.push(
+      `/mission/selection/${mission.mission_number?.replaceAll(' ', '-')}`
+    );
+  };
+
+  const { jobTitles, fetchJobTitles } = useSelect();
+
+  useEffect(() => {
+    fetchJobTitles();
+  }, [fetchJobTitles]);
 
   return (
     <>
@@ -69,12 +88,12 @@ export default function MissionEtatOpenRow({
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
+      <Box className="col-span-2">{mission.referent_name ?? empty}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
         {timeBeforeDeadlineApplication}
       </Box>
-      <Box className="col-span-1">
+      <Box className="col-span-2">
         {getLabel({ value: mission.job_title ?? empty, select: jobTitles }) ??
           empty}
       </Box>
@@ -84,6 +103,12 @@ export default function MissionEtatOpenRow({
       <Box className="col-span-1">{'0'}</Box>
       <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
       <Box className="col-span-1">{formatDate(mission.end_date ?? '')}</Box>
+      <Button className="col-span-1 h-full" onClick={handleRedirectMatching}>
+        <Matching />
+      </Button>
+      <Button className="col-span-1 h-full" onClick={handleRedirectSelection}>
+        <Selection />
+      </Button>
     </>
   );
 }
