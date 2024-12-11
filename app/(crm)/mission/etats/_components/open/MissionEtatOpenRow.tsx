@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
@@ -10,6 +10,11 @@ import { useSelect } from '@/store/select';
 import Matching from '@/components/svg/Matching';
 import Selection from '@/components/svg/Selection';
 import { Button } from '@/components/ui/button';
+import {
+  getCountMatchedXperts,
+  getMissionSelectionXperts,
+} from '../../mission-etat-open.action';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MissionEtatOpenRow({
   mission,
@@ -17,6 +22,16 @@ export default function MissionEtatOpenRow({
   mission: DBMission;
 }) {
   const router = useRouter();
+  const { jobTitles } = useSelect();
+
+  const [matchingCount, setMatchingCount] = useState<number>(0);
+  const [isLoadingMatching, setIsLoadingMatching] = useState<boolean>(false);
+  const [selectionDiscussionCount, setSelectionDiscussionCount] =
+    useState<number>(0);
+  const [selectionProposalCount, setSelectionProposalCount] =
+    useState<number>(0);
+  const [selectionRefusedCount, setSelectionRefusedCount] = useState<number>(0);
+  const [isLoadingSelection, setIsLoadingSelection] = useState<boolean>(false);
 
   const createdAt = formatDate(mission.created_at);
   const timeBeforeMission = getTimeBeforeMission(mission.start_date ?? '');
@@ -61,11 +76,40 @@ export default function MissionEtatOpenRow({
     );
   };
 
-  const { jobTitles, fetchJobTitles } = useSelect();
+  useEffect(() => {
+    const fetchMatchingCount = async () => {
+      setIsLoadingMatching(true);
+      const count = await getCountMatchedXperts(mission);
+      setMatchingCount(count.data.length);
+      setIsLoadingMatching(false);
+    };
+
+    fetchMatchingCount();
+  }, [mission]);
 
   useEffect(() => {
-    fetchJobTitles();
-  }, [fetchJobTitles]);
+    const fetchSelectionCount = async () => {
+      setIsLoadingSelection(true);
+      const { data } = await getMissionSelectionXperts(mission.id);
+      setSelectionDiscussionCount(
+        data.filter((item) => item.column_status === 'discussions').length
+      );
+      setSelectionProposalCount(
+        data.filter((item) => item.column_status === 'proposes').length
+      );
+      setSelectionRefusedCount(
+        data.filter((item) => item.column_status === 'refuses').length
+      );
+      setIsLoadingSelection(false);
+    };
+
+    fetchSelectionCount();
+  }, [
+    mission,
+    selectionDiscussionCount,
+    selectionProposalCount,
+    selectionRefusedCount,
+  ]);
 
   return (
     <>
@@ -97,16 +141,44 @@ export default function MissionEtatOpenRow({
         {getLabel({ value: mission.job_title ?? empty, select: jobTitles }) ??
           empty}
       </Box>
-      <Box className="col-span-1">{'0'}</Box>
-      <Box className="col-span-1">{'0'}</Box>
-      <Box className="col-span-1">{'0'}</Box>
-      <Box className="col-span-1">{'0'}</Box>
+      <Box className="col-span-1">
+        {isLoadingMatching ? <Skeleton className="size-full" /> : matchingCount}
+      </Box>
+      <Box className="col-span-1">
+        {isLoadingSelection ? (
+          <Skeleton className="size-full" />
+        ) : (
+          selectionDiscussionCount
+        )}
+      </Box>
+      <Box className={`col-span-1 ${getBackgroundClass}`}>
+        {isLoadingSelection ? (
+          <Skeleton className="size-full" />
+        ) : (
+          selectionProposalCount
+        )}
+      </Box>
+      <Box className={`col-span-1`}>
+        {isLoadingSelection ? (
+          <Skeleton className="size-full" />
+        ) : (
+          selectionRefusedCount
+        )}
+      </Box>
       <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
       <Box className="col-span-1">{formatDate(mission.end_date ?? '')}</Box>
-      <Button className="col-span-1 h-full" onClick={handleRedirectMatching}>
+      <Button
+        className="col-span-1 h-full"
+        onClick={handleRedirectMatching}
+        disabled={isLoadingMatching}
+      >
         <Matching />
       </Button>
-      <Button className="col-span-1 h-full" onClick={handleRedirectSelection}>
+      <Button
+        className="col-span-1 h-full"
+        onClick={handleRedirectSelection}
+        disabled={isLoadingSelection}
+      >
         <Selection />
       </Button>
     </>
