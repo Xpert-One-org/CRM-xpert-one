@@ -251,7 +251,7 @@ export const getXpertsOptimized = async ({
   };
 };
 
-export const createXpert = async ({
+export const createUser = async ({
   user,
   profile,
 }: {
@@ -268,7 +268,8 @@ export const createXpert = async ({
     };
   }
 
-  const { email, password, firstname, lastname, mobile, referent_id } = user;
+  const { email, password, firstname, lastname, mobile, referent_id, role } =
+    user;
 
   const { error } = await supabase.auth.admin.createUser({
     email_confirm: true,
@@ -279,7 +280,7 @@ export const createXpert = async ({
       lastname,
       default_phone: mobile,
       referent_generated_id: referent_id,
-      role: 'xpert',
+      role: role,
     },
   });
 
@@ -299,6 +300,7 @@ export const createXpert = async ({
     postal_code,
     street_number,
   } = profile;
+
   const { error: updateError } = await supabase
     .from('profile')
     .update({
@@ -312,6 +314,7 @@ export const createXpert = async ({
       linkedin,
       postal_code,
       street_number,
+      role: role,
     })
     .eq('email', email);
 

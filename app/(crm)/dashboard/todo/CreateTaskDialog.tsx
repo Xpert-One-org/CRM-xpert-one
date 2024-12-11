@@ -17,6 +17,7 @@ import { createTask } from '../../../../functions/tasks';
 import type { TaskSubjectType } from '@/types/types';
 import type { DBMission } from '@/types/typesDb';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
+import { useTasksStore } from '@/store/task';
 
 // Mise à jour des types pour supporter les valeurs nullables
 type Profile = {
@@ -33,15 +34,17 @@ type Props = {
 type SimpleMission = Pick<DBMission, 'id' | 'job_title' | 'mission_number'>;
 
 export default function CreateTaskDialog({ onTaskCreate }: Props) {
-  const [open, setOpen] = useState(false);
+  const { createTaskDialogOpen, initialTaskData, setCreateTaskDialogOpen } =
+    useTasksStore();
+
   const [isLoading, setIsLoading] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [missions, setMissions] = useState<SimpleMission[]>([]);
 
   const [formData, setFormData] = useState({
     assignedTo: '',
-    subjectType: '' as TaskSubjectType | '',
-    subjectId: '',
+    subjectType: initialTaskData.subjectType || '',
+    subjectId: initialTaskData.subjectId || '',
     details: '',
   });
   const [isUrgent, setIsUrgent] = useState(false);
@@ -166,7 +169,7 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
       await createTask(taskData);
       onTaskCreate?.(taskData);
       toast.success('Tâche créée avec succès');
-      setOpen(false);
+      setCreateTaskDialogOpen(false);
       setFormData({
         assignedTo: '',
         subjectType: '',
@@ -191,13 +194,16 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
   return (
     <>
       <Button
-        onClick={() => setOpen(true)}
+        onClick={() => setCreateTaskDialogOpen(true)}
         className="w-fit bg-[#4A8B96] text-white hover:bg-[#4A8B96]/90 sm:w-full sm:max-w-[178px]"
       >
         Créer une tâche
       </Button>
 
-      <Credenza open={open} onOpenChange={setOpen}>
+      <Credenza
+        open={createTaskDialogOpen}
+        onOpenChange={setCreateTaskDialogOpen}
+      >
         <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white/70 p-0 backdrop-blur-sm">
           <div className="relative h-[175px] w-full">
             <Image

@@ -47,7 +47,7 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
 
   return (
     <div className="grid grid-cols-1 flex-col gap-4">
-      <div className="grid grid-cols-7 gap-3">
+      <div className="grid w-full grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_50px_50px] gap-3">
         <FilterButton
           options={[
             { label: 'Plus récent', value: 'desc' },

@@ -7,13 +7,14 @@ import Button from '@/components/Button';
 import type { DBProfile } from '@/types/typesDb';
 import { genres, how } from '@/data/mocked_select';
 import MultiSelectComponent from '../MultiSelectComponent';
-import { createXpert } from '../../../app/(crm)/xpert/xpert.action';
+import { createUser } from '../../../app/(crm)/xpert/xpert.action';
 import { toast } from 'sonner';
 import { ScrollArea } from '../ui/scroll-area';
 import { useXpertStore } from '@/store/xpert';
 import { errorManagement } from '@/utils/error-management';
 import { signUpPasswordSchema } from '@/lib/schema/schema';
 import { z } from 'zod';
+import { useFournisseurStore } from '@/store/fournisseur';
 
 export type UserData = {
   email: string;
@@ -81,7 +82,7 @@ export default function CreateFournisseurXpertDialog({
   ];
 
   const { fetchXpertOptimizedFiltered } = useXpertStore();
-  // const requiredProfileFields = [""];
+  const { fetchFournisseurs, resetFournisseurs } = useFournisseurStore();
 
   const onChangeProfil = ({
     e,
@@ -128,7 +129,7 @@ export default function CreateFournisseurXpertDialog({
     try {
       signUpPasswordSchema.parse(userData);
 
-      const { error } = await createXpert({
+      const { error } = await createUser({
         profile: profileData,
         user: userData,
       });
@@ -137,9 +138,18 @@ export default function CreateFournisseurXpertDialog({
         toast.error(response);
       }
       if (!error) {
-        toast.success('Xpert créé avec succès');
+        toast.success(
+          role === 'company'
+            ? 'Fournisseur créé avec succès'
+            : 'Xpert créé avec succès'
+        );
         reset();
-        fetchXpertOptimizedFiltered(true);
+        if (role === 'company') {
+          await resetFournisseurs();
+          await fetchFournisseurs();
+        } else {
+          await fetchXpertOptimizedFiltered(true);
+        }
         setPopupOpen(false);
       }
       setIsLoading(false);
