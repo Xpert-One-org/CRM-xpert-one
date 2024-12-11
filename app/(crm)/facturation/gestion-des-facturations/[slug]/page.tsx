@@ -1,21 +1,19 @@
 'use client';
 
 import React, { use, useEffect } from 'react';
-import MissionActivationTable from './_components/MissionActivationTable';
-import { convertStatusXpertValue } from '@/utils/statusXpertConverter';
-import XpertActivationMissionTable from './_components/XpertActivationMissionTable';
 import { useMissionStore } from '@/store/mission';
-import FournisseurActivationMissionTable from './_components/FournisseurActivationMissionTable';
-import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import HeaderCalendar from './_components/HeaderCalendar';
+import XpertGestionFacturationTable from './_components/XpertGestionFacturationTable';
+import FournisseurGestionFacturationTable from './_components/FournisseurGestionFacturationTable';
+import { convertStatusXpertValue } from '@/utils/statusXpertConverter';
+import MissionGestionFacturationTable from './_components/MissionGestionFacturationTable';
 
-export default function MissionActivationPage(props: {
+export default function GestionDesFacturationsPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const params = use(props.params);
   const missionNumber = params.slug.replaceAll('-', ' ');
   const { missions, fetchMissions } = useMissionStore();
-  const router = useRouter();
 
   const missionData = missions.find(
     (mission) => mission.mission_number === missionNumber
@@ -27,8 +25,9 @@ export default function MissionActivationPage(props: {
 
   return (
     <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
-      <div className="flex w-3/4">
-        <MissionActivationTable missionData={missionData} />
+      <HeaderCalendar />
+      <div className="flex w-1/2">
+        <MissionGestionFacturationTable missionData={missionData} />
       </div>
 
       {missionData && (
@@ -37,16 +36,16 @@ export default function MissionActivationPage(props: {
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
               <h3 className="text-center text-md font-medium text-[#222222]">
                 XPERT
-                {missionData.xpert_associated_status
+                {missionData.xpert_associated_status === 'cdi'
                   ? ` - ${convertStatusXpertValue(
                       missionData.xpert_associated_status
                     )}`
-                  : null}
+                  : ' - FREELANCE / PORTÉ'}
                 {missionData.xpert_associated_status === 'cdi' ? (
                   <span> - ( XPERT ONE )</span>
                 ) : null}
               </h3>
-              <XpertActivationMissionTable
+              <XpertGestionFacturationTable
                 status={missionData.xpert_associated_status}
                 missionData={missionData}
               />
@@ -58,28 +57,11 @@ export default function MissionActivationPage(props: {
               <h3 className="text-center text-md font-medium text-[#222222]">
                 FOURNISSEUR
               </h3>
-              <FournisseurActivationMissionTable missionData={missionData} />
+              <FournisseurGestionFacturationTable missionData={missionData} />
             </div>
           </div>
         </>
       )}
-
-      {!missionData?.xpert_associated_status && (
-        <div className="mt-4 text-center text-gray-500">
-          Veuillez sélectionner et enregistrer un statut pour l'expert avant de
-          continuer
-        </div>
-      )}
-      <div className="pt-4">
-        <Button
-          className="px-spaceLarge py-spaceContainer text-white"
-          onClick={() =>
-            router.push(`/facturation/gestion-des-facturations/${params.slug}`)
-          }
-        >
-          Vers gestion de facturation
-        </Button>
-      </div>
     </div>
   );
 }

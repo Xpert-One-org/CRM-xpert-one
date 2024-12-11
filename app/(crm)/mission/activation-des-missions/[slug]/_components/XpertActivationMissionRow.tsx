@@ -13,7 +13,9 @@ export type FileType =
   | 'commande_societe'
   | 'devis_portage'
   | 'commande_portage'
-  | 'devis';
+  | 'devis'
+  | 'salary'
+  | 'invoice';
 
 export default function XpertActivationMissionRow({
   status,
