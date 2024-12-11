@@ -71,7 +71,7 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
           ? 'Rechercher'
           : currentMissionNumber
       }
-      className="bg-primary py-spaceContainer text-white hover:bg-secondary"
+      className="h-full bg-primary py-spaceContainer text-white hover:bg-secondary"
     />
   );
 }
