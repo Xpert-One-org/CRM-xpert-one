@@ -26,11 +26,15 @@ export default function MissionEtatOpenRow({
 
   const [matchingCount, setMatchingCount] = useState<number>(0);
   const [isLoadingMatching, setIsLoadingMatching] = useState<boolean>(false);
-  const [selectionDiscussionCount, setSelectionDiscussionCount] =
-    useState<number>(0);
-  const [selectionProposalCount, setSelectionProposalCount] =
-    useState<number>(0);
-  const [selectionRefusedCount, setSelectionRefusedCount] = useState<number>(0);
+  const [selectionCounts, setSelectionCounts] = useState<{
+    discussions: number;
+    proposes: number;
+    refuses: number;
+  }>({
+    discussions: 0,
+    proposes: 0,
+    refuses: 0,
+  });
   const [isLoadingSelection, setIsLoadingSelection] = useState<boolean>(false);
 
   const createdAt = formatDate(mission.created_at);
@@ -79,9 +83,14 @@ export default function MissionEtatOpenRow({
   useEffect(() => {
     const fetchMatchingCount = async () => {
       setIsLoadingMatching(true);
-      const count = await getCountMatchedXperts(mission);
-      setMatchingCount(count.data.length);
-      setIsLoadingMatching(false);
+      try {
+        const count = await getCountMatchedXperts(mission);
+        setMatchingCount(count.data.length);
+      } catch (error) {
+        console.error('Error fetching matching count:', error);
+      } finally {
+        setIsLoadingMatching(false);
+      }
     };
 
     fetchMatchingCount();
@@ -90,26 +99,34 @@ export default function MissionEtatOpenRow({
   useEffect(() => {
     const fetchSelectionCount = async () => {
       setIsLoadingSelection(true);
-      const { data } = await getMissionSelectionXperts(mission.id);
-      setSelectionDiscussionCount(
-        data.filter((item) => item.column_status === 'discussions').length
-      );
-      setSelectionProposalCount(
-        data.filter((item) => item.column_status === 'proposes').length
-      );
-      setSelectionRefusedCount(
-        data.filter((item) => item.column_status === 'refuses').length
-      );
-      setIsLoadingSelection(false);
+      try {
+        const { data } = await getMissionSelectionXperts(mission.id);
+
+        const counts = data.reduce(
+          (acc, item) => {
+            const status = item.column_status as keyof typeof acc;
+            if (status in acc) {
+              acc[status]++;
+            }
+            return acc;
+          },
+          {
+            discussions: 0,
+            proposes: 0,
+            refuses: 0,
+          }
+        );
+
+        setSelectionCounts(counts);
+      } catch (error) {
+        console.error('Error fetching selection counts:', error);
+      } finally {
+        setIsLoadingSelection(false);
+      }
     };
 
     fetchSelectionCount();
-  }, [
-    mission,
-    selectionDiscussionCount,
-    selectionProposalCount,
-    selectionRefusedCount,
-  ]);
+  }, [mission.id]);
 
   return (
     <>
@@ -148,21 +165,21 @@ export default function MissionEtatOpenRow({
         {isLoadingSelection ? (
           <Skeleton className="size-full" />
         ) : (
-          selectionDiscussionCount
+          selectionCounts.discussions
         )}
       </Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
         {isLoadingSelection ? (
           <Skeleton className="size-full" />
         ) : (
-          selectionProposalCount
+          selectionCounts.proposes
         )}
       </Box>
       <Box className={`col-span-1`}>
         {isLoadingSelection ? (
           <Skeleton className="size-full" />
         ) : (
-          selectionRefusedCount
+          selectionCounts.refuses
         )}
       </Box>
       <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
