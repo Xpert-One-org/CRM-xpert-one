@@ -25,7 +25,7 @@ export default function ComboboxChat() {
 
   useEffect(() => {
     searchUsers(value);
-  }, [text]);
+  }, [searchUsers, text, value]);
 
   useEffect(() => {
     setData(searchUsersResults);

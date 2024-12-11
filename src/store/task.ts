@@ -12,6 +12,17 @@ type TaskState = {
   activeFilters: FilterTasks;
   setActiveFilters: (filters: FilterTasks) => void;
   resetTasks: () => void;
+  // Nouveaux états pour la création de tâche
+  createTaskDialogOpen: boolean;
+  initialTaskData: {
+    subjectType?: 'xpert' | 'supplier';
+    subjectId?: string;
+  };
+  setCreateTaskDialogOpen: (open: boolean) => void;
+  setInitialTaskData: (data: {
+    subjectType?: 'xpert' | 'supplier';
+    subjectId?: string;
+  }) => void;
 };
 
 export const useTasksStore = create<TaskState>((set, get) => ({
@@ -50,7 +61,11 @@ export const useTasksStore = create<TaskState>((set, get) => ({
         subjectType: '',
       },
     });
-
     get().loadTasks(true);
   },
+  // Nouveaux états et actions pour la création de tâche
+  createTaskDialogOpen: false,
+  initialTaskData: {},
+  setCreateTaskDialogOpen: (open) => set({ createTaskDialogOpen: open }),
+  setInitialTaskData: (data) => set({ initialTaskData: data }),
 }));

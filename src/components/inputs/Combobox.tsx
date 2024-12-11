@@ -58,7 +58,7 @@ export default function Combobox({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex w-full flex-row items-center justify-center">
+        <div>
           {label && (
             <Label>
               {label}
@@ -71,7 +71,7 @@ export default function Combobox({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              'flex h-full w-full flex-row flex-wrap items-center justify-center gap-2 overflow-x-hidden p-0',
+              'flex w-full flex-row flex-wrap items-center justify-center gap-2 overflow-x-hidden p-0 px-2',
               className,
               { 'border-important': hasError },
               { 'hover:border-primary': !hasError }
@@ -85,7 +85,7 @@ export default function Combobox({
                 <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
               )}
             </div>
-            {value && (
+            {value && disabledProposals && (
               <Badge className="flex items-center justify-center gap-1">
                 {disabledProposals ? value : data.find((d) => d === value)}
                 {onClear && (
@@ -104,7 +104,7 @@ export default function Combobox({
           </Button>
         </div>
       </PopoverTrigger>
-      <PopoverContent className={cn('w-full p-0', classNamePopover)}>
+      <PopoverContent className={cn('p-0', classNamePopover)}>
         <Command>
           <CommandInput
             placeholder={placeholderSearch ?? placeholder}

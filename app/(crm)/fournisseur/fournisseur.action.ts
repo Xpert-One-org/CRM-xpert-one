@@ -63,3 +63,22 @@ export const getAllFournisseurs = async ({
 
   return { data: [], count: null };
 };
+
+export const deleteFournisseur = async (fournisseurId: string) => {
+  try {
+    const supabase = await createSupabaseAppServerClient('admin');
+
+    const { error: deleteError } =
+      await supabase.auth.admin.deleteUser(fournisseurId);
+    if (deleteError) throw deleteError;
+
+    return { errorMessage: null };
+  } catch (error) {
+    return {
+      errorMessage: {
+        message: 'Erreur lors de la suppression du fournisseur',
+        code: 'delete_error',
+      },
+    };
+  }
+};
