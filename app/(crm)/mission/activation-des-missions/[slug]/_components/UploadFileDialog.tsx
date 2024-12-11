@@ -15,6 +15,7 @@ import type { DBMission } from '@/types/typesDb';
 
 type UploadFileDialogProps = {
   type: FileType;
+  buttonText?: string;
   title: string;
   missionData: DBMission;
   onUploadSuccess?: () => void;
@@ -23,6 +24,7 @@ type UploadFileDialogProps = {
 export default function UploadFileDialog({
   type,
   title,
+  buttonText,
   missionData,
   onUploadSuccess,
 }: UploadFileDialogProps) {
@@ -66,7 +68,11 @@ export default function UploadFileDialog({
 
   return (
     <>
-      <Button className="size-full text-white" onClick={() => setOpen(true)}>
+      <Button
+        className="size-full gap-1 text-white"
+        onClick={() => setOpen(true)}
+      >
+        {buttonText ?? ''}
         <Download className="size-6 -rotate-90" />
       </Button>
       <Credenza open={open} onOpenChange={setOpen}>

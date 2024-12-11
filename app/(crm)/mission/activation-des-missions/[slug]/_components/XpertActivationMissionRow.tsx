@@ -13,7 +13,10 @@ export type FileType =
   | 'commande_societe'
   | 'devis_portage'
   | 'commande_portage'
-  | 'devis';
+  | 'devis'
+  | 'recap_mission_signed'
+  | 'contrat_cdi'
+  | 'commande_signed';
 
 export default function XpertActivationMissionRow({
   status,
@@ -94,10 +97,12 @@ export default function XpertActivationMissionRow({
         </Button>
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Button className="size-full text-white">
-        Loader récap signé
-        <Download className="ml-2 size-6" />
-      </Button>
+      <UploadFileDialog
+        type="recap_mission_signed"
+        title="Récapitulatif de mission signé"
+        buttonText="Loader récap signé"
+        missionData={missionData}
+      />
       <Box className="col-span-1 bg-[#D64242] text-white">{'Non reçu'}</Box>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
         {status === 'cdi'
@@ -134,10 +139,12 @@ export default function XpertActivationMissionRow({
         <Download className="ml-2 size-6" />
       </Button>
       {status === 'portage' ? (
-        <Button className="size-full text-white">
-          Loader devis portage
-          <Download className="ml-2 size-6" />
-        </Button>
+        <UploadFileDialog
+          type="devis_portage"
+          title="Devis de portage"
+          buttonText="Loader devis portage"
+          missionData={missionData}
+        />
       ) : (
         <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       )}
@@ -167,10 +174,23 @@ export default function XpertActivationMissionRow({
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       {status !== 'portage' ? (
-        <Button className="size-full text-white">
-          {status === 'cdi' ? 'Loader contrat signé' : 'Loader commande signée'}
-          <Download className="ml-2 size-6" />
-        </Button>
+        <>
+          {status === 'cdi' ? (
+            <UploadFileDialog
+              type="contrat_cdi"
+              title="Contrat CDI"
+              buttonText="Loader contrat CDI"
+              missionData={missionData}
+            />
+          ) : (
+            <UploadFileDialog
+              type="commande_signed"
+              title="Commande signée"
+              buttonText="Loader commande signée"
+              missionData={missionData}
+            />
+          )}
+        </>
       ) : (
         <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       )}
