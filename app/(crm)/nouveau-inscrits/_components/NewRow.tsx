@@ -17,9 +17,9 @@ type Props = {
 
 export default function NewRow({ user, isOpen, onClick }: Props) {
   const router = useRouter();
+  const { setSearchUserSelected } = useUser();
   const { setCreateTaskDialogOpen, setInitialTaskData } = useTasksStore();
   const { setPopupOpen } = useChat();
-  const { setSearchUserSelected } = useUser();
 
   const handleMessageClick = () => {
     setSearchUserSelected({
@@ -69,24 +69,24 @@ export default function NewRow({ user, isOpen, onClick }: Props) {
         <Box isSelected={isOpen}>
           <p>{user.referent_id ?? 'Non renseigné'}</p>
         </Box>
-        <Box className="flex h-[70px] items-center justify-center bg-[#4A8B96]">
+        <Box className="flex items-center justify-center bg-[#4A8B96]">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleMessageClick}
             className="size-full text-white hover:bg-[#4A8B96]/90"
           >
-            <MessageSquare className="size-4" />
+            <MessageSquare className="size-5" />
           </Button>
         </Box>
-        <Box className="flex h-[70px] items-center justify-center bg-[#4A8B96]">
+        <Box className="flex items-center justify-center bg-[#4A8B96]">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleTaskClick}
             className="size-full text-white hover:bg-[#4A8B96]/90"
           >
-            <ListTodo className="size-4" />
+            <ListTodo className="size-5" />
           </Button>
         </Box>
       </div>

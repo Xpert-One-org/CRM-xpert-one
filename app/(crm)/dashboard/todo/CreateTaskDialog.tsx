@@ -37,7 +37,6 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
   const { createTaskDialogOpen, initialTaskData, setCreateTaskDialogOpen } =
     useTasksStore();
 
-  const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [missions, setMissions] = useState<SimpleMission[]>([]);
@@ -170,7 +169,7 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
       await createTask(taskData);
       onTaskCreate?.(taskData);
       toast.success('Tâche créée avec succès');
-      setOpen(false);
+      setCreateTaskDialogOpen(false);
       setFormData({
         assignedTo: '',
         subjectType: '',
@@ -195,7 +194,7 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
   return (
     <>
       <Button
-        onClick={() => setOpen(true)}
+        onClick={() => setCreateTaskDialogOpen(true)}
         className="w-fit bg-[#4A8B96] text-white hover:bg-[#4A8B96]/90 sm:w-full sm:max-w-[178px]"
       >
         Créer une tâche

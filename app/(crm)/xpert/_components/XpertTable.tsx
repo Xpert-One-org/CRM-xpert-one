@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 import { AdminOpinionValue } from '@/types/types';
+import RedirectButtons from './row/RedirectButtons';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -328,7 +329,9 @@ export default function XpertTable() {
                     habilitationInfo={habilitationInfo}
                   />
                 )}
-                <div className="flex w-full justify-end py-2">
+                {/* task and redirection button here */}
+                <div className="flex w-full justify-between gap-2 py-2">
+                  <RedirectButtons user={xpert} />
                   <DeleteXpertDialog
                     xpertId={xpert.id}
                     xpertGeneratedId={xpert.generated_id}

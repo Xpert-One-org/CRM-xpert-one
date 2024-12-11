@@ -86,6 +86,16 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
+CREATE TYPE "public"."admin_opinion" AS ENUM (
+    'positive',
+    'neutral',
+    'negative'
+);
+
+
+ALTER TYPE "public"."admin_opinion" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."article_status" AS ENUM (
     'published',
     'draft'
@@ -179,6 +189,17 @@ CREATE TYPE "public"."msg_files" AS (
 ALTER TYPE "public"."msg_files" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."reason_mission_deletion" AS ENUM (
+    'status_candidate_not_found',
+    'won_competition',
+    'mission_suspended_by_supplier',
+    'other'
+);
+
+
+ALTER TYPE "public"."reason_mission_deletion" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."revenu_type" AS ENUM (
     'tjm',
     'brut'
@@ -186,6 +207,253 @@ CREATE TYPE "public"."revenu_type" AS ENUM (
 
 
 ALTER TYPE "public"."revenu_type" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."selection_column_type" AS ENUM (
+    'postulant',
+    'matching',
+    'etude',
+    'non-retenu',
+    'discussions',
+    'proposes',
+    'refuses',
+    'valides'
+);
+
+
+ALTER TYPE "public"."selection_column_type" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."task_history_action" AS ENUM (
+    'created',
+    'updated',
+    'completed',
+    'deleted'
+);
+
+
+ALTER TYPE "public"."task_history_action" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."task_status" AS ENUM (
+    'urgent',
+    'pending',
+    'done'
+);
+
+
+ALTER TYPE "public"."task_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."task_subject_type" AS ENUM (
+    'xpert',
+    'supplier',
+    'mission',
+    'other'
+);
+
+
+ALTER TYPE "public"."task_subject_type" OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") RETURNS numeric
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    v_score numeric;
+    v_mission mission;
+    v_profile_mission profile_mission;
+    v_profile_expertise profile_expertise;
+    v_profile_experience profile_experience;
+    v_total_criteria integer := 0;
+    v_matching_criteria numeric := 0;
+    v_partial_matches numeric := 0;
+    v_points_per_criteria numeric;
+BEGIN
+    -- Get mission and profile data
+    SELECT * INTO v_mission FROM mission WHERE id = p_mission_id;
+    SELECT * INTO v_profile_mission FROM profile_mission WHERE profile_id = p_xpert_id;
+    SELECT * INTO v_profile_expertise FROM profile_expertise WHERE profile_id = p_xpert_id;
+    SELECT * INTO v_profile_experience FROM profile_experience WHERE profile_id = p_xpert_id ORDER BY id DESC LIMIT 1;
+
+    -- Count total criteria
+    v_total_criteria := (
+        CASE WHEN v_mission.job_title IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN v_mission.post_type IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN v_mission.sector IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN v_mission.specialties IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN v_mission.expertises IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN v_mission.languages IS NOT NULL THEN 1 ELSE 0 END +
+        -- New criteria
+        CASE WHEN v_mission.start_date IS NOT NULL THEN 1 ELSE 0 END + -- Availability
+        1 + -- Management (always counted as it's a boolean state)
+        CASE WHEN v_mission.open_to_disabled IS NOT NULL THEN 1 ELSE 0 END -- Handicap
+    );
+    
+    -- Handle division by zero
+    IF v_total_criteria = 0 THEN
+        RETURN 0;
+    END IF;
+
+    v_points_per_criteria := 100.0 / v_total_criteria;
+
+    -- Previous criteria checks...
+    -- Job Title
+    IF v_mission.job_title IS NOT NULL THEN
+        IF v_profile_mission.job_titles @> ARRAY[v_mission.job_title] THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        END IF;
+    END IF;
+
+    -- Post Type with partial matching
+    IF v_mission.post_type IS NOT NULL THEN
+        SELECT COALESCE(
+            ARRAY_LENGTH(ARRAY(
+                SELECT UNNEST(v_mission.post_type) 
+                INTERSECT 
+                SELECT UNNEST(v_profile_experience.post_type)
+            ), 1)::numeric / ARRAY_LENGTH(v_mission.post_type, 1), 
+            0
+        ) * v_points_per_criteria * 0.5
+        INTO v_partial_matches;
+        
+        IF v_profile_experience.post_type && v_mission.post_type THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        ELSE
+            v_matching_criteria := v_matching_criteria + (v_partial_matches / v_points_per_criteria);
+        END IF;
+    END IF;
+
+    -- Sector
+    IF v_mission.sector IS NOT NULL THEN
+        IF v_profile_experience.sector = v_mission.sector THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        END IF;
+    END IF;
+
+    -- Specialties with partial matching
+    IF v_mission.specialties IS NOT NULL THEN
+        SELECT COALESCE(
+            ARRAY_LENGTH(ARRAY(
+                SELECT UNNEST(v_mission.specialties) 
+                INTERSECT 
+                SELECT UNNEST(v_profile_mission.specialties)
+            ), 1)::numeric / ARRAY_LENGTH(v_mission.specialties, 1),
+            0
+        ) * v_points_per_criteria * 0.5
+        INTO v_partial_matches;
+        
+        IF v_profile_mission.specialties && v_mission.specialties THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        ELSE
+            v_matching_criteria := v_matching_criteria + (v_partial_matches / v_points_per_criteria);
+        END IF;
+    END IF;
+
+    -- Expertises with partial matching
+    IF v_mission.expertises IS NOT NULL THEN
+        SELECT COALESCE(
+            ARRAY_LENGTH(ARRAY(
+                SELECT UNNEST(v_mission.expertises) 
+                INTERSECT 
+                SELECT UNNEST(v_profile_expertise.expertises)
+            ), 1)::numeric / ARRAY_LENGTH(v_mission.expertises, 1),
+            0
+        ) * v_points_per_criteria * 0.5
+        INTO v_partial_matches;
+        
+        IF v_profile_expertise.expertises && v_mission.expertises THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        ELSE
+            v_matching_criteria := v_matching_criteria + (v_partial_matches / v_points_per_criteria);
+        END IF;
+    END IF;
+
+    -- Languages
+    IF v_mission.languages IS NOT NULL THEN
+        IF v_profile_expertise.maternal_language = ANY(v_mission.languages) THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        END IF;
+    END IF;
+
+    -- New criteria checks...
+    -- Availability
+    IF v_mission.start_date IS NOT NULL AND v_profile_mission.availability IS NOT NULL THEN
+        IF v_profile_mission.availability::timestamp <= v_mission.start_date THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        ELSE
+            -- Partial match if available within 1 month of start date
+            IF v_profile_mission.availability::timestamp <= v_mission.start_date + interval '1 month' THEN
+                v_matching_criteria := v_matching_criteria + 0.5;
+            END IF;
+        END IF;
+    END IF;
+
+    -- Management (has_led_team)
+    SELECT 
+        CASE 
+            WHEN EXISTS (
+                SELECT 1 FROM profile_experience 
+                WHERE profile_id = p_xpert_id 
+                AND has_led_team = 'true'
+            ) THEN 1
+            ELSE 0
+        END 
+    INTO v_partial_matches;
+    v_matching_criteria := v_matching_criteria + v_partial_matches;
+
+    -- Handicap (workstation_needed)
+    IF v_mission.open_to_disabled IS NOT NULL THEN
+        IF (v_mission.open_to_disabled = 'true' AND v_profile_mission.workstation_needed = 'true') OR
+           (v_mission.open_to_disabled = 'false' AND v_profile_mission.workstation_needed = 'false') THEN
+            v_matching_criteria := v_matching_criteria + 1;
+        END IF;
+    END IF;
+
+    -- Calculate final score
+    v_score := (v_matching_criteria / v_total_criteria) * 100;
+    
+    -- Round to one decimal place and ensure score is between 0 and 100
+    RETURN GREATEST(0, LEAST(100, ROUND(v_score::numeric, 1)));
+END;
+$$;
+
+
+ALTER FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."create_selection_matching"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$BEGIN
+  -- Insert into selection_matching
+  INSERT INTO selection_matching (
+    mission_id,
+    xpert_id,
+    matching_score,
+    column_status,
+    is_matched,
+    is_candidate
+  )
+  VALUES (
+    NEW.mission_id,
+    NEW.candidate_id,
+    calculate_matching_score(NEW.mission_id, NEW.candidate_id),
+    'postulant',
+    false,
+    true
+  )
+  ON CONFLICT (mission_id, xpert_id) DO UPDATE
+  SET 
+    matching_score = EXCLUDED.matching_score,
+    column_status = EXCLUDED.column_status,
+    is_matched = EXCLUDED.is_matched,
+    is_candidate = EXCLUDED.is_candidate;
+
+  RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."create_selection_matching"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."generate_mission_unique_id"() RETURNS "text"
@@ -395,6 +663,18 @@ $$;
 ALTER FUNCTION "public"."get_full_profile"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."get_job_titles_search"("titles" "text"[]) RETURNS "text"
+    LANGUAGE "plpgsql" IMMUTABLE
+    AS $$
+BEGIN
+    RETURN array_to_string(titles, ',');
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_job_titles_search"("titles" "text"[]) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_profile_other_languages"() RETURNS "jsonb"
     LANGUAGE "plpgsql"
     AS $$
@@ -519,6 +799,19 @@ $$;
 
 
 ALTER FUNCTION "public"."update_progression"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_task_timestamp"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+begin
+    new.last_updated_at = now();
+    return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."update_task_timestamp"() OWNER TO "postgres";
 
 SET default_tablespace = '';
 
@@ -942,7 +1235,9 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "signed_quote_file_name" "text",
     "contract_file_name" "text",
     "state" "public"."mission_state" DEFAULT 'in_process'::"public"."mission_state" NOT NULL,
-    "image_url" "text"
+    "image_url" "text",
+    "reason_deletion" "public"."reason_mission_deletion",
+    "deleted_at" timestamp with time zone
 );
 
 
@@ -1108,7 +1403,8 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "sector_renewable_energy_other" "text",
     "cv_name" "text",
     "community_banning_explanations" "text",
-    "is_banned_from_community" boolean DEFAULT false NOT NULL
+    "is_banned_from_community" boolean DEFAULT false NOT NULL,
+    "admin_opinion" "public"."admin_opinion"
 );
 
 
@@ -1213,7 +1509,8 @@ CREATE TABLE IF NOT EXISTS "public"."profile_mission" (
     "regions" "text"[],
     "france_detail" "text"[],
     "job_titles" "text"[],
-    "job_titles_other" "text"
+    "job_titles_other" "text",
+    "job_titles_search" "text" GENERATED ALWAYS AS ("public"."get_job_titles_search"("job_titles")) STORED
 );
 
 
@@ -1284,6 +1581,32 @@ ALTER SEQUENCE "public"."sectors_id_seq" OWNED BY "public"."sectors"."id";
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."selection_matching" (
+    "id" bigint NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "mission_id" bigint NOT NULL,
+    "xpert_id" "uuid" NOT NULL,
+    "matching_score" numeric(5,2) NOT NULL,
+    "column_status" "public"."selection_column_type" DEFAULT 'postulant'::"public"."selection_column_type" NOT NULL,
+    "is_matched" boolean DEFAULT true NOT NULL,
+    "is_candidate" boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE "public"."selection_matching" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."selection_matching" ALTER COLUMN "id" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME "public"."selection_matching_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."specialties" (
     "id" integer NOT NULL,
     "label" character varying(255),
@@ -1351,6 +1674,63 @@ ALTER TABLE "public"."subjects_id_seq" OWNER TO "postgres";
 
 
 ALTER SEQUENCE "public"."subjects_id_seq" OWNED BY "public"."subjects"."id";
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."task_history" (
+    "id" bigint NOT NULL,
+    "task_id" bigint NOT NULL,
+    "action" "public"."task_history_action" NOT NULL,
+    "changed_by" "uuid" NOT NULL,
+    "changed_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "old_values" "jsonb",
+    "new_values" "jsonb"
+);
+
+
+ALTER TABLE "public"."task_history" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."task_history" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."task_history_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."tasks" (
+    "id" bigint NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_by" "uuid" NOT NULL,
+    "assigned_to" "uuid" NOT NULL,
+    "subject_type" "public"."task_subject_type" NOT NULL,
+    "xpert_id" "uuid",
+    "supplier_id" "uuid",
+    "mission_id" bigint,
+    "details" "text",
+    "status" "public"."task_status" DEFAULT 'pending'::"public"."task_status" NOT NULL,
+    "completed_at" timestamp with time zone,
+    "last_updated_at" timestamp with time zone,
+    "last_updated_by" "uuid",
+    CONSTRAINT "check_subject_references" CHECK (((("subject_type" = 'xpert'::"public"."task_subject_type") AND ("xpert_id" IS NOT NULL) AND ("supplier_id" IS NULL) AND ("mission_id" IS NULL)) OR (("subject_type" = 'supplier'::"public"."task_subject_type") AND ("supplier_id" IS NOT NULL) AND ("xpert_id" IS NULL) AND ("mission_id" IS NULL)) OR (("subject_type" = 'mission'::"public"."task_subject_type") AND ("mission_id" IS NOT NULL) AND ("xpert_id" IS NULL) AND ("supplier_id" IS NULL)) OR (("subject_type" = 'other'::"public"."task_subject_type") AND ("xpert_id" IS NULL) AND ("supplier_id" IS NULL) AND ("mission_id" IS NULL))))
+);
+
+
+ALTER TABLE "public"."tasks" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."tasks" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."tasks_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 
 
@@ -1591,6 +1971,11 @@ ALTER TABLE ONLY "public"."sectors"
 
 
 
+ALTER TABLE ONLY "public"."selection_matching"
+    ADD CONSTRAINT "selection_matching_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."specialties"
     ADD CONSTRAINT "specialties_pkey" PRIMARY KEY ("id");
 
@@ -1603,6 +1988,16 @@ ALTER TABLE ONLY "public"."profile_status"
 
 ALTER TABLE ONLY "public"."subjects"
     ADD CONSTRAINT "subjects_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."task_history"
+    ADD CONSTRAINT "task_history_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."tasks"
+    ADD CONSTRAINT "tasks_pkey" PRIMARY KEY ("id");
 
 
 
@@ -1621,11 +2016,71 @@ ALTER TABLE ONLY "public"."user_alerts"
 
 
 
+CREATE INDEX "selection_matching_column_status_idx" ON "public"."selection_matching" USING "btree" ("column_status");
+
+
+
+CREATE INDEX "selection_matching_mission_id_idx" ON "public"."selection_matching" USING "btree" ("mission_id");
+
+
+
+CREATE UNIQUE INDEX "selection_matching_mission_xpert_unique_idx" ON "public"."selection_matching" USING "btree" ("mission_id", "xpert_id");
+
+
+
+CREATE INDEX "selection_matching_xpert_id_idx" ON "public"."selection_matching" USING "btree" ("xpert_id");
+
+
+
+CREATE INDEX "task_history_changed_at_idx" ON "public"."task_history" USING "btree" ("changed_at");
+
+
+
+CREATE INDEX "task_history_task_id_idx" ON "public"."task_history" USING "btree" ("task_id");
+
+
+
+CREATE INDEX "tasks_assigned_to_idx" ON "public"."tasks" USING "btree" ("assigned_to");
+
+
+
+CREATE INDEX "tasks_created_by_idx" ON "public"."tasks" USING "btree" ("created_by");
+
+
+
+CREATE INDEX "tasks_mission_id_idx" ON "public"."tasks" USING "btree" ("mission_id");
+
+
+
+CREATE INDEX "tasks_status_idx" ON "public"."tasks" USING "btree" ("status");
+
+
+
+CREATE INDEX "tasks_subject_type_idx" ON "public"."tasks" USING "btree" ("subject_type");
+
+
+
+CREATE INDEX "tasks_supplier_id_idx" ON "public"."tasks" USING "btree" ("supplier_id");
+
+
+
+CREATE INDEX "tasks_xpert_id_idx" ON "public"."tasks" USING "btree" ("xpert_id");
+
+
+
+CREATE OR REPLACE TRIGGER "after_mission_application_insert" AFTER INSERT ON "public"."mission_application" FOR EACH ROW EXECUTE FUNCTION "public"."create_selection_matching"();
+
+
+
 CREATE OR REPLACE TRIGGER "slugify_title_unique" BEFORE INSERT OR UPDATE ON "public"."article" FOR EACH ROW EXECUTE FUNCTION "public"."set_unique_slug"();
 
 
 
 CREATE OR REPLACE TRIGGER "update_chat_updated_at" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."update_chat_timestamp"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_task_last_updated" BEFORE UPDATE ON "public"."tasks" FOR EACH ROW EXECUTE FUNCTION "public"."update_task_timestamp"();
 
 
 
@@ -1743,8 +2198,78 @@ ALTER TABLE ONLY "public"."profile_status"
 
 
 
+ALTER TABLE ONLY "public"."selection_matching"
+    ADD CONSTRAINT "selection_matching_mission_id_fkey" FOREIGN KEY ("mission_id") REFERENCES "public"."mission"("id") ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."selection_matching"
+    ADD CONSTRAINT "selection_matching_xpert_id_fkey" FOREIGN KEY ("xpert_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."task_history"
+    ADD CONSTRAINT "task_history_changed_by_fkey" FOREIGN KEY ("changed_by") REFERENCES "public"."profile"("id");
+
+
+
+ALTER TABLE ONLY "public"."task_history"
+    ADD CONSTRAINT "task_history_task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "public"."tasks"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tasks"
+    ADD CONSTRAINT "tasks_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "public"."profile"("id");
+
+
+
+ALTER TABLE ONLY "public"."tasks"
+    ADD CONSTRAINT "tasks_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profile"("id");
+
+
+
+ALTER TABLE ONLY "public"."tasks"
+    ADD CONSTRAINT "tasks_last_updated_by_fkey" FOREIGN KEY ("last_updated_by") REFERENCES "public"."profile"("id");
+
+
+
+ALTER TABLE ONLY "public"."tasks"
+    ADD CONSTRAINT "tasks_mission_id_fkey" FOREIGN KEY ("mission_id") REFERENCES "public"."mission"("id");
+
+
+
+ALTER TABLE ONLY "public"."tasks"
+    ADD CONSTRAINT "tasks_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."profile"("id");
+
+
+
+ALTER TABLE ONLY "public"."tasks"
+    ADD CONSTRAINT "tasks_xpert_id_fkey" FOREIGN KEY ("xpert_id") REFERENCES "public"."profile"("id");
+
+
+
 ALTER TABLE ONLY "public"."user_alerts"
     ADD CONSTRAINT "user_alerts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+
+CREATE POLICY "Admins can insert matches" ON "public"."selection_matching" FOR INSERT WITH CHECK (( SELECT ("profile"."role" = 'admin'::"text")
+   FROM "public"."profile"
+  WHERE ("profile"."id" = "auth"."uid"())));
+
+
+
+CREATE POLICY "Admins can update matches" ON "public"."selection_matching" FOR UPDATE USING (( SELECT ("profile"."role" = 'admin'::"text")
+   FROM "public"."profile"
+  WHERE ("profile"."id" = "auth"."uid"()))) WITH CHECK (( SELECT ("profile"."role" = 'admin'::"text")
+   FROM "public"."profile"
+  WHERE ("profile"."id" = "auth"."uid"())));
+
+
+
+CREATE POLICY "Admins can view all matches" ON "public"."selection_matching" FOR SELECT USING (( SELECT ("profile"."role" = 'admin'::"text")
+   FROM "public"."profile"
+  WHERE ("profile"."id" = "auth"."uid"())));
 
 
 
@@ -2080,6 +2605,16 @@ ALTER TABLE "public"."languages" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."message" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "message_crud" ON "public"."message" TO "authenticated" USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "message_delete_admin" ON "public"."message" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"text")))));
+
+
+
 ALTER TABLE "public"."mission_application" ENABLE ROW LEVEL SECURITY;
 
 
@@ -2105,6 +2640,9 @@ ALTER TABLE "public"."profile_status" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."sectors" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."selection_matching" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."specialties" ENABLE ROW LEVEL SECURITY;
@@ -2370,6 +2908,18 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."create_selection_matching"() TO "anon";
+GRANT ALL ON FUNCTION "public"."create_selection_matching"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_selection_matching"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."generate_mission_unique_id"() TO "anon";
 GRANT ALL ON FUNCTION "public"."generate_mission_unique_id"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."generate_mission_unique_id"() TO "service_role";
@@ -2409,6 +2959,12 @@ GRANT ALL ON FUNCTION "public"."get_combined_data"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_full_profile"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_full_profile"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_full_profile"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_job_titles_search"("titles" "text"[]) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_job_titles_search"("titles" "text"[]) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_job_titles_search"("titles" "text"[]) TO "service_role";
 
 
 
@@ -2473,6 +3029,12 @@ GRANT ALL ON FUNCTION "public"."update_chat_timestamp"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."update_progression"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_progression"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_progression"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_task_timestamp"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_task_timestamp"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_task_timestamp"() TO "service_role";
 
 
 
@@ -2767,6 +3329,18 @@ GRANT ALL ON SEQUENCE "public"."sectors_id_seq" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."selection_matching" TO "anon";
+GRANT ALL ON TABLE "public"."selection_matching" TO "authenticated";
+GRANT ALL ON TABLE "public"."selection_matching" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."selection_matching_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."selection_matching_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."selection_matching_id_seq" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."specialties" TO "anon";
 GRANT ALL ON TABLE "public"."specialties" TO "authenticated";
 GRANT ALL ON TABLE "public"."specialties" TO "service_role";
@@ -2794,6 +3368,30 @@ GRANT ALL ON TABLE "public"."subjects" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."subjects_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."subjects_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."subjects_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."task_history" TO "anon";
+GRANT ALL ON TABLE "public"."task_history" TO "authenticated";
+GRANT ALL ON TABLE "public"."task_history" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."task_history_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."task_history_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."task_history_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."tasks" TO "anon";
+GRANT ALL ON TABLE "public"."tasks" TO "authenticated";
+GRANT ALL ON TABLE "public"."tasks" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."tasks_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."tasks_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."tasks_id_seq" TO "service_role";
 
 
 

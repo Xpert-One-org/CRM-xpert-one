@@ -8,35 +8,27 @@ import {
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import React, { useState } from 'react';
-import { deleteTask } from '../../../../functions/tasks';
-import { toast } from 'sonner';
-import { Trash } from 'lucide-react';
+import FakeInput from '@/components/inputs/FakeInput';
+import { useFournisseurStore } from '@/store/fournisseur';
 
-export default function DeleteTaskDialog({
-  taskId,
-  onDelete,
+export default function DeleteFournisseurDialog({
+  fournisseurId,
+  fournisseurGeneratedId,
 }: {
-  taskId: number;
-  onDelete: () => void;
+  fournisseurId: string;
+  fournisseurGeneratedId: string;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
+  const { deleteFournisseur } = useFournisseurStore();
 
-  const handleSendDeleteTask = async () => {
+  const handleSendDeleteFournisseur = async () => {
     setIsLoading(true);
     try {
-      const { error } = await deleteTask(taskId);
-      if (error) {
-        console.error(error);
-        toast.error('Erreur lors de la suppression de la tâche');
-        return;
-      }
-      toast.success('Tâche supprimée avec succès');
-      onDelete();
+      deleteFournisseur(fournisseurId, fournisseurGeneratedId);
       setPopupOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error('Erreur lors de la suppression de la tâche');
     } finally {
       setIsLoading(false);
     }
@@ -44,13 +36,8 @@ export default function DeleteTaskDialog({
 
   return (
     <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setPopupOpen(true)}
-        className="size-full text-white hover:bg-[#D75D5D]/90"
-      >
-        <Trash className="size-5" />
+      <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
+        Supprimer le fournisseur
       </Button>
 
       <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white bg-opacity-70 p-0 backdrop-blur-sm">
@@ -63,23 +50,23 @@ export default function DeleteTaskDialog({
           />
         </div>
         <div className="flex flex-col gap-y-spaceContainer p-6">
-          <p className="text-center text-lg font-semibold">
-            Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est
-            irréversible.
-          </p>
+          <FakeInput
+            label="Numéro de compte fournisseur"
+            value={fournisseurGeneratedId}
+          />
 
           <div className="flex gap-x-spaceSmall self-end">
             <CredenzaClose asChild>
-              <Button variant={'outline'}>Annuler la suppression</Button>
+              <Button variant={'outline'}>Précedent</Button>
             </CredenzaClose>
 
             <Button
-              onClick={handleSendDeleteTask}
+              disabled={isLoading}
+              onClick={handleSendDeleteFournisseur}
               className="w-fit self-end px-spaceContainer"
               variant={'destructive'}
-              disabled={isLoading}
             >
-              {isLoading ? 'Chargement...' : 'Confirmer la suppression'}
+              {isLoading ? 'Chargement...' : 'SUPPRIMER LE COMPTE'}
             </Button>
           </div>
         </div>

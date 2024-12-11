@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { getTaskHistory } from '../../../../functions/tasks';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { RotateCcw } from 'lucide-react';
+import { History, RotateCcw } from 'lucide-react';
 import Loader from '@/components/Loader';
 import type { Task, TaskHistoryAction, TaskStatus } from '@/types/types';
 import Image from 'next/image';
@@ -125,7 +125,7 @@ export default function DialogTaskHistory({ taskId }: Props) {
         onClick={() => setIsOpen(true)}
         className="size-full text-white hover:bg-[#4A8B96]/90"
       >
-        <RotateCcw className="size-4" />
+        <History className="size-5" />
       </Button>
 
       <Credenza open={isOpen} onOpenChange={setIsOpen}>
