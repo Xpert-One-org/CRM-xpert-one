@@ -1,39 +1,47 @@
 import type { DBFournisseur } from '@/types/typesDb';
-
 import { create } from 'zustand';
 import {
+  deleteFournisseur,
   getAllFournisseurs,
   getSpecificFournisseur,
 } from '../../app/(crm)/fournisseur/fournisseur.action';
+import { toast } from 'sonner';
 
-type XpertState = {
+type FournisseurState = {
   loading: boolean;
   fournisseurs: DBFournisseur[] | null;
   totalFournisseurs: number | null;
   offset: number;
   fetchFournisseurs: () => void;
   fetchSpecificFournisseur: (id: string) => void;
+  deleteFournisseur: (
+    fournisseurId: string,
+    fournisseurGeneratedId: string
+  ) => void;
+  resetFournisseurs: () => void;
 };
 
-export const useFournisseurStore = create<XpertState>((set, get) => ({
+export const useFournisseurStore = create<FournisseurState>((set, get) => ({
   loading: false,
   fournisseurs: null,
   totalFournisseurs: null,
   offset: 0,
-  fetchSpecificFournisseur: async (xpertId: string) => {
-    const xperts = get().fournisseurs || [];
-    const findXpert = xperts.find((xpert) => xpert.generated_id === xpertId);
-    if (findXpert) {
+  fetchSpecificFournisseur: async (fournisseurId: string) => {
+    const fournisseurs = get().fournisseurs || [];
+    const findFournisseur = fournisseurs.find(
+      (f) => f.generated_id === fournisseurId
+    );
+    if (findFournisseur) {
       return;
     }
     set({ loading: true });
-    const fournisseur = await getSpecificFournisseur(xpertId);
+    const fournisseur = await getSpecificFournisseur(fournisseurId);
     if (!fournisseur) {
       set({ loading: false });
       return;
     }
 
-    set({ fournisseurs: [fournisseur, ...xperts], loading: false });
+    set({ fournisseurs: [fournisseur, ...fournisseurs], loading: false });
   },
   fetchFournisseurs: async () => {
     set({ loading: true });
@@ -49,6 +57,38 @@ export const useFournisseurStore = create<XpertState>((set, get) => ({
       fournisseurs: [...fournisseurs, ...filterFournisseurs],
       totalFournisseurs: count,
       loading: false,
+    });
+  },
+  deleteFournisseur: async (
+    fournisseurId: string,
+    fournisseurGeneratedId: string
+  ) => {
+    set({ loading: true });
+    const { errorMessage } = await deleteFournisseur(fournisseurId);
+    if (errorMessage) {
+      toast.error(
+        'Une erreur est survenue lors de la suppression du fournisseur'
+      );
+    } else {
+      toast.success(
+        `Le fournisseur ${fournisseurGeneratedId} a été supprimé avec succès`
+      );
+      set((state) => ({
+        fournisseurs: state.fournisseurs?.filter(
+          (f) => f.generated_id !== fournisseurGeneratedId
+        ),
+        totalFournisseurs: state.totalFournisseurs
+          ? state.totalFournisseurs - 1
+          : 0,
+      }));
+    }
+    set({ loading: false });
+  },
+  resetFournisseurs: () => {
+    set({
+      fournisseurs: null,
+      totalFournisseurs: null,
+      offset: 0,
     });
   },
 }));

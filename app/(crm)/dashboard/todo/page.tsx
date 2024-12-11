@@ -11,12 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Trash } from 'lucide-react';
 import CreateTaskDialog from './CreateTaskDialog';
 import {
   updateTask,
   completeTask,
   getAdminUsers,
+  deleteTask,
 } from '../../../../functions/tasks';
 import type {
   FilterTasks,
@@ -30,6 +31,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import { useTasksStore } from '@/store/task';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
+import DeleteTaskDialog from './DeleteTaskDialog';
+import DialogTaskHistory from './HistoryTaskDialog';
 
 type TaskStatus = 'urgent' | 'pending' | 'done';
 type SubjectType = 'xpert' | 'supplier' | 'mission' | 'other';
@@ -217,6 +220,23 @@ export default function TaskTable() {
         ? false
         : true;
 
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      const { error } = await deleteTask(taskId);
+
+      if (error) {
+        toast.error('Erreur lors de la suppression de la tâche');
+        return;
+      }
+
+      toast.success('Tâche supprimée avec succès');
+      loadTasks(true); // Recharge la liste des tâches
+    } catch (error) {
+      toast.error('Erreur lors de la suppression de la tâche');
+      console.error('Error deleting task:', error);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     const { error: errorAssignedTo } = await handleUpdateAssignedTo();
@@ -259,7 +279,7 @@ export default function TaskTable() {
 
         <div className="grid gap-3">
           {/* Header Row */}
-          <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px] gap-3">
+          <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
             <Box className="flex h-full items-center bg-[#FDF6E9] font-[600]">
               Créé le
             </Box>
@@ -343,7 +363,7 @@ export default function TaskTable() {
             </div>
           </div>
           <div className="h-[calc(100vh_-_350px)] overflow-auto pb-10">
-            <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px] gap-3">
+            <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
               {!loading && tasks?.length === 0 ? (
                 <div className="col-span-7 py-8 text-center text-gray-500">
                   Aucune tâche trouvée
@@ -377,14 +397,13 @@ export default function TaskTable() {
                       />
 
                       <Box className="flex h-[70px] items-center justify-center bg-[#4A8B96]">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          // onClick={loadTasks}
-                          className="size-full text-white hover:bg-[#4A8B96]/90"
-                        >
-                          <RotateCcw className="size-4" />
-                        </Button>
+                        <DialogTaskHistory taskId={task.id} />
+                      </Box>
+                      <Box className="flex h-[70px] items-center justify-center bg-[#D75D5D]">
+                        <DeleteTaskDialog
+                          taskId={task.id}
+                          onDelete={() => loadTasks(true)}
+                        />
                       </Box>
                     </React.Fragment>
                   );

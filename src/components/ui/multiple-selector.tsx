@@ -135,7 +135,9 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
 function isOptionsExist(groupOption: GroupOption, targetOption: Option[]) {
   for (const [, value] of Object.entries(groupOption)) {
     if (
-      value.some((option) => targetOption.find((p) => p.value === option.value))
+      value.some((option) =>
+        targetOption.find((p) => p.value === option?.value)
+      )
     ) {
       return true;
     }
@@ -227,7 +229,7 @@ const MultipleSelector = React.forwardRef<
 
     const handleUnselect = React.useCallback(
       (option: Option) => {
-        const newOptions = selected.filter((s) => s.value !== option.value);
+        const newOptions = selected.filter((s) => s.value !== option?.value);
         setSelected(newOptions);
         onChange?.(newOptions);
       },
@@ -417,21 +419,21 @@ const MultipleSelector = React.forwardRef<
             {selected.map((option, index) => {
               return (
                 <Badge
-                  key={option.value}
+                  key={option?.value}
                   className={cn(
                     'data-[disabled]:bg-muted-foreground data-[disabled]:hover:bg-muted-foreground font-light data-[disabled]:text-muted',
                     'data-[fixed]:bg-muted-foreground data-[fixed]:hover:bg-muted-foreground data-[fixed]:text-muted',
                     badgeClassName
                   )}
-                  data-fixed={option.fixed}
+                  data-fixed={option?.fixed}
                   data-disabled={disabled || undefined}
                 >
-                  {option.label}
+                  {option?.label}
                   {showIndividualX && (
                     <button
                       className={cn(
                         'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                        (disabled || option.fixed) && 'hidden'
+                        (disabled || option?.fixed) && 'hidden'
                       )}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -489,15 +491,16 @@ const MultipleSelector = React.forwardRef<
             <button
               type="button"
               onClick={() => {
-                setSelected(selected.filter((s) => s.fixed));
-                onChange?.(selected.filter((s) => s.fixed));
+                setSelected(selected.filter((s) => s?.fixed));
+                onChange?.(selected.filter((s) => s?.fixed));
               }}
               className={cn(
                 'absolute right-0 h-6 w-6 p-0',
                 (hideClearAllButton ||
                   disabled ||
                   selected.length < 1 ||
-                  selected.filter((s) => s.fixed).length === selected.length) &&
+                  selected.filter((s) => s?.fixed).length ===
+                    selected.length) &&
                   'hidden'
               )}
             >
@@ -541,9 +544,9 @@ const MultipleSelector = React.forwardRef<
                         {dropdowns.map((option, index) => {
                           return (
                             <CommandItem
-                              key={`${option.value}-${option.label}-${index}`}
-                              value={option.label}
-                              disabled={option.disable}
+                              key={`${option?.value}-${option?.label}-${index}`}
+                              value={option?.label}
+                              disabled={option?.disable}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -560,11 +563,11 @@ const MultipleSelector = React.forwardRef<
                               }}
                               className={cn(
                                 'cursor-pointer',
-                                option.disable &&
+                                option?.disable &&
                                   'text-muted-foreground cursor-default'
                               )}
                             >
-                              {option.label}
+                              {option?.label}
                             </CommandItem>
                           );
                         })}

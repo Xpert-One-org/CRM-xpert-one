@@ -1316,6 +1316,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      task_history: {
+        Row: {
+          action: Database['public']['Enums']['task_history_action'];
+          changed_at: string;
+          changed_by: string;
+          id: number;
+          new_values: Json | null;
+          old_values: Json | null;
+          task_id: number;
+        };
+        Insert: {
+          action: Database['public']['Enums']['task_history_action'];
+          changed_at?: string;
+          changed_by: string;
+          id?: number;
+          new_values?: Json | null;
+          old_values?: Json | null;
+          task_id: number;
+        };
+        Update: {
+          action?: Database['public']['Enums']['task_history_action'];
+          changed_at?: string;
+          changed_by?: string;
+          id?: number;
+          new_values?: Json | null;
+          old_values?: Json | null;
+          task_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'task_history_changed_by_fkey';
+            columns: ['changed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'task_history_task_id_fkey';
+            columns: ['task_id'];
+            isOneToOne: false;
+            referencedRelation: 'tasks';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       tasks: {
         Row: {
           assigned_to: string;
@@ -1592,6 +1637,7 @@ export type Database = {
         | 'proposes'
         | 'refuses'
         | 'valides';
+      task_history_action: 'created' | 'updated' | 'completed' | 'deleted';
       task_status: 'urgent' | 'pending' | 'done';
       task_subject_type: 'xpert' | 'supplier' | 'mission' | 'other';
     };
