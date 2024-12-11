@@ -92,7 +92,7 @@ export default function MissionEtatPage() {
   );
 }
 
-export const MissionContent = ({
+const MissionContent = ({
   isLoading,
   selectedState,
 }: {
