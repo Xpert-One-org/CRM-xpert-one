@@ -73,7 +73,9 @@ export default function UploadFileDialog({
         onClick={() => setOpen(true)}
       >
         {buttonText ?? ''}
-        <Download className="size-6 -rotate-90" />
+        <div>
+          <Download className="size-6 -rotate-90" />
+        </div>
       </Button>
       <Credenza open={open} onOpenChange={setOpen}>
         <CredenzaContent className="max-w-[600px] overflow-hidden rounded-sm border-0 bg-white p-0 backdrop-blur-sm">

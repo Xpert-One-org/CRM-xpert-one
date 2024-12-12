@@ -61,7 +61,7 @@ export default function FournisseurActivationMissionRow({
           <Eye className="size-6" />
         </Button>
         <UploadFileDialog
-          type="devis"
+          type="fournisseur_contrat_signed"
           title="Devis"
           missionData={missionData}
         />
@@ -74,7 +74,7 @@ export default function FournisseurActivationMissionRow({
         <Download className="ml-2 size-6" />
       </Button>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Box className="col-span-1 bg-[#D64242] text-white">{'Non reçu'}</Box>
+      <Box className="col-span-1 bg-[#D64242] text-white">{'Non envoyé'}</Box>
 
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Devis signé</Box>
       <div className="col-span-1 flex w-full gap-2">
@@ -86,12 +86,13 @@ export default function FournisseurActivationMissionRow({
         </Button>
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Button className="size-full text-white">
-        Loader devis signé
-        <Download className="ml-2 size-6" />
-      </Button>
+      <UploadFileDialog
+        type="fournisseur_devis_signed"
+        title="Loader devis signé"
+        buttonText="Loader devis signé"
+        missionData={missionData}
+      />
       <Box className="col-span-1 bg-[#D64242] text-white">{'Non reçu'}</Box>
-
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
         Contrat de mission / Commande
       </Box>
@@ -104,10 +105,12 @@ export default function FournisseurActivationMissionRow({
         </Button>
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Button className="size-full text-white">
-        Loader contrat signé
-        <Download className="ml-2 size-6" />
-      </Button>
+      <UploadFileDialog
+        type="fournisseur_contrat_signed"
+        title="Loader contrat signé"
+        buttonText="Loader contrat signé"
+        missionData={missionData}
+      />
       <Box className="col-span-1 bg-[#D64242] text-white">{'Non reçu'}</Box>
     </>
   );
