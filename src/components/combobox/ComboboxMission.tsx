@@ -1,5 +1,5 @@
 'use client';
-import Combobox from '@/components/inputs/Combobox';
+import Combobox from '@/components/combobox/Combobox';
 import { useMissionStore } from '@/store/mission';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
