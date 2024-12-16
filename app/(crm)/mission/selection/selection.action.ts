@@ -151,7 +151,11 @@ export async function updateSelectionMission(
     } else {
       const { error } = await supabase
         .from('mission')
-        .update({ xpert_associated_id: null, state: 'open' })
+        .update({
+          xpert_associated_id: null,
+          state: 'open',
+          xpert_associated_status: null,
+        })
         .eq('id', missionId)
         .select();
 
