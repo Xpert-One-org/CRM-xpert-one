@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Credenza, CredenzaContent } from '@/components/ui/credenza';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import type { FileType } from './XpertActivationMissionRow';
@@ -13,68 +13,37 @@ type ViewFileDialogProps = {
   type: FileType;
   title: string;
   missionData: DBMission;
-  onFileCheck: (hasFile: boolean, createdAt?: string) => void;
+  hasFile?: boolean;
 };
 
 export default function ViewFileDialog({
   type,
   title,
   missionData,
-  onFileCheck,
+  hasFile = false,
 }: ViewFileDialogProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [isInitialCheck, setIsInitialCheck] = useState(true);
-
-  const checkFile = useCallback(async () => {
-    const supabase = createSupabaseFrontendClient();
-    try {
-      const filePath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}`;
-
-      const { data: files, error: listError } = await supabase.storage
-        .from('mission_files')
-        .list(filePath);
-
-      if (!listError && files && files.length > 0) {
-        const lastFile = files[files.length - 1];
-        onFileCheck(true, lastFile.created_at);
-      } else {
-        onFileCheck(false);
-      }
-    } catch (error) {
-      console.error('Error checking file:', error);
-      onFileCheck(false);
-    }
-  }, [type, missionData, onFileCheck]);
-
-  useEffect(() => {
-    if (isInitialCheck) {
-      checkFile();
-      setIsInitialCheck(false);
-    }
-  }, [checkFile, isInitialCheck]);
 
   const handleViewFile = async () => {
-    setIsLoading(true);
     const supabase = createSupabaseFrontendClient();
 
     try {
       const filePath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}`;
 
-      const { data: files, error: listError } = await supabase.storage
+      const { data: files } = await supabase.storage
         .from('mission_files')
         .list(filePath);
 
-      if (listError || !files || files.length === 0) {
-        toast.error("Aucun fichier n'a été uploadé");
-        return;
-      }
+      const sortedFiles = files?.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
-      const lastFile = files[files.length - 1];
+      const mostRecentFile = sortedFiles?.[0];
       const { data: fileData, error: downloadError } = await supabase.storage
         .from('mission_files')
-        .createSignedUrl(`${filePath}/${lastFile.name}`, 3600);
+        .createSignedUrl(`${filePath}/${mostRecentFile?.name}`, 3600);
 
       if (downloadError || !fileData) {
         toast.error('Erreur lors de la récupération du fichier');
@@ -86,8 +55,6 @@ export default function ViewFileDialog({
     } catch (error) {
       console.error('Error viewing file:', error);
       toast.error('Erreur lors de la récupération du fichier');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -96,9 +63,9 @@ export default function ViewFileDialog({
       <Button
         className="size-full text-white"
         onClick={handleViewFile}
-        disabled={isLoading}
+        disabled={!hasFile}
       >
-        <Eye className="size-6" />
+        {hasFile ? <Eye className="size-6" /> : <EyeOff className="size-6" />}
       </Button>
 
       <Credenza open={open} onOpenChange={setOpen}>

@@ -12,7 +12,7 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
 
   const { missionsNumbers, searchMissions, isLoading } = useMissionStore();
   const pathname = usePathname();
-  const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
+  const currentMissionNumber = pathname.split('/').pop();
   const [currentValue] = useState(
     currentMissionNumber !== 'fiche' &&
       currentMissionNumber !== 'matching' &&
@@ -75,7 +75,8 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
         slug === 'matching' ||
         slug === 'selection' ||
         slug === 'fiche' ||
-        slug === 'activation-des-missions'
+        slug === 'activation-des-missions' ||
+        currentMissionNumber === currentMissionNumber
           ? 'Rechercher'
           : currentMissionNumber
       }

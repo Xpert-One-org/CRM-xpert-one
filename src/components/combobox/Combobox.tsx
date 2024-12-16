@@ -109,7 +109,6 @@ export default function Combobox({
           <CommandInput
             placeholder={placeholderSearch ?? placeholder}
             onValueChange={handleValueChange}
-            value={value}
           />
           <CommandList>
             {isLoading ? (

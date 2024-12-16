@@ -247,7 +247,6 @@ const SearchComponentFilter = ({
       className="border-none"
       icon={<FilterSvg className="size-4" />}
       onClear={handleClear}
-      showPlaceholderWithValue={false}
     />
   );
 };

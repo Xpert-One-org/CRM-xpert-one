@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
-import type { DBMission, DBProfileStatus } from '@/types/typesDb';
+import type { DBMission } from '@/types/typesDb';
 import UploadFileDialog from './UploadFileDialog';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-
 import ViewFileDialog from './ViewFileDialog';
 import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
 import { downloadMissionFile } from '../download-mission-file.action';
+import { getFileStatus } from '../_utils/fileStatus';
+import { getDocumentLabel } from '../_utils/documentLabel';
+import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
+import { checkFileExists } from '../check-file-mission.action';
+import DownloadOff from '@/components/svg/DownloadOff';
 
 export type FileType =
   // cdi
@@ -25,123 +29,142 @@ export type FileType =
   // portage
   | 'recap_mission_portage'
   | 'recap_mission_signed_portage'
-  | 'devis_portage'
   | 'commande_portage'
+  | 'devis_portage'
+  // fournisseur
   | 'fournisseur_devis_signed'
   | 'fournisseur_contrat_signed';
 
+type DownloadType = {
+  type: string;
+  isTemplate?: boolean;
+};
+
 export default function XpertActivationMissionRow({
-  status,
   missionData,
 }: {
-  status: DBProfileStatus['status'];
   missionData: DBMission;
 }) {
+  const missionXpertStatus = missionData.xpert_associated_status;
   const [fileStatuses, setFileStatuses] = useState<
     Record<string, { exists: boolean; createdAt?: string }>
   >({});
 
-  const handleFileCheck = (
-    type: string,
-    exists: boolean,
-    createdAt?: string
-  ) => {
-    setFileStatuses((prev) => ({
-      ...prev,
-      [type]: { exists, createdAt },
-    }));
-  };
+  const checkAllFiles = useCallback(async () => {
+    if (!missionXpertStatus) return;
 
-  const getFileTypeByStatus = (baseType: string): FileType => {
-    switch (missionData.xpert_associated_status) {
-      case 'cdi':
-        return `${baseType}_cdi` as FileType;
-      case 'freelance':
-        return `${baseType}_freelance` as FileType;
-      case 'portage':
-        return `${baseType}_portage` as FileType;
-      default:
-        return `${baseType}_cdi` as FileType;
+    const filesToCheck = [
+      getFileTypeByStatus('recap_mission', missionXpertStatus),
+      getFileTypeByStatus('recap_mission_signed', missionXpertStatus),
+      getFileTypeByStatus(
+        missionXpertStatus === 'cdi'
+          ? 'contrat'
+          : missionXpertStatus === 'freelance'
+            ? 'commande_societe'
+            : 'devis',
+        missionXpertStatus
+      ),
+      getFileTypeByStatus(
+        missionXpertStatus === 'cdi'
+          ? 'contrat_signed'
+          : missionXpertStatus === 'freelance'
+            ? 'commande_societe_signed'
+            : 'commande',
+        missionXpertStatus
+      ),
+    ];
+
+    const newFileStatuses: Record<
+      string,
+      { exists: boolean; createdAt?: string }
+    > = {};
+
+    for (const fileType of filesToCheck) {
+      const result = await checkFileExists(fileType, missionData);
+      newFileStatuses[fileType] = result;
     }
-  };
 
-  const handleDownloadTemplate = async ({ type }: { type: FileType }) => {
+    setFileStatuses(newFileStatuses);
+  }, [missionXpertStatus, missionData]);
+
+  const handleDownloadFile = async ({
+    type,
+    isTemplate = false,
+  }: DownloadType) => {
     const supabase = createSupabaseFrontendClient();
 
     try {
-      const { data: modelesData, error } = await supabase.storage
-        .from('mission_files')
-        .list(`modeles/${status}/${type}`);
-
-      if (error || !modelesData || modelesData.length === 0) {
-        toast.error('Aucun modèle disponible');
-        return;
-      }
-
-      const lastModelesFile = modelesData[modelesData.length - 1];
-      await downloadMissionFile(
-        `modeles/${status}/${type}/${lastModelesFile.name}`,
-        `${type}_${status}`
-      );
-    } catch (error) {
-      console.error('Error handling template download:', error);
-      toast.error('Erreur lors du téléchargement du modèle');
-    }
-  };
-
-  const handledownloadMissionFile = async ({ type }: { type: FileType }) => {
-    const supabase = createSupabaseFrontendClient();
-
-    try {
-      const filePath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}`;
+      const basePath = isTemplate
+        ? `modeles/${missionXpertStatus}/${type}`
+        : `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}`;
 
       const { data: files, error: listError } = await supabase.storage
         .from('mission_files')
-        .list(filePath);
+        .list(basePath);
 
       if (listError || !files || files.length === 0) {
-        toast.error("Aucun fichier n'a été uploadé");
+        toast.error(
+          isTemplate
+            ? 'Aucun modèle disponible'
+            : "Aucun fichier n'a été uploadé"
+        );
         return;
       }
 
-      const lastFile = files[files.length - 1];
-      await downloadMissionFile(`${filePath}/${lastFile.name}`, lastFile.name);
+      const sortedFiles = files.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      const mostRecentFile = sortedFiles[0];
+      const filePath = `${basePath}/${mostRecentFile.name}`;
+      const fileName = isTemplate
+        ? `${type}_${missionXpertStatus}`
+        : mostRecentFile.name;
+
+      await downloadMissionFile(filePath, fileName);
     } catch (error) {
       console.error('Error handling file download:', error);
-      toast.error('Erreur lors du téléchargement du fichier');
+      toast.error(
+        isTemplate
+          ? 'Erreur lors du téléchargement du modèle'
+          : 'Erreur lors du téléchargement du fichier'
+      );
     }
   };
 
+  useEffect(() => {
+    checkAllFiles();
+  }, [checkAllFiles]);
+
   return (
     <>
+      {/* Ligne 1 */}
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
         Récapitulatif de mission
       </Box>
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
-          type={getFileTypeByStatus('recap_mission')}
+          type={getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')}
           title="Récapitulatif de mission"
           missionData={missionData}
-          onFileCheck={(exists, createdAt) =>
-            handleFileCheck(
-              getFileTypeByStatus('recap_mission'),
-              exists,
-              createdAt
-            )
+          hasFile={
+            fileStatuses[
+              getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+            ]?.exists
           }
         />
         <UploadFileDialog
-          type={getFileTypeByStatus('recap_mission')}
+          type={getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')}
           title="Récapitulatif de mission"
           missionData={missionData}
+          onUploadSuccess={checkAllFiles}
         />
       </div>
       <Button
         className="size-full text-white"
         onClick={() =>
-          handleDownloadTemplate({
-            type: getFileTypeByStatus('recap_mission'),
-          })
+          handleDownloadFile({ type: 'recap_mission', isTemplate: true })
         }
       >
         Modèle
@@ -150,156 +173,233 @@ export default function XpertActivationMissionRow({
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <Box
         className={`col-span-1 flex-col text-white ${
-          fileStatuses[getFileTypeByStatus('recap_mission')]?.exists
+          fileStatuses[
+            getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+          ]?.exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
         }`}
       >
         <p>
-          {fileStatuses[getFileTypeByStatus('recap_mission')]?.exists
-            ? 'Envoyé le'
-            : 'Non envoyé'}
+          {fileStatuses[
+            getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+          ]?.exists
+            ? getFileStatus('recap_mission', missionXpertStatus ?? '').sentLabel
+            : getFileStatus('recap_mission', missionXpertStatus ?? '')
+                .notSentLabel}
         </p>
         <p>
-          {fileStatuses[getFileTypeByStatus('recap_mission')]?.exists
+          {fileStatuses[
+            getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+          ]?.exists
             ? formatDate(
-                fileStatuses[getFileTypeByStatus('recap_mission')]?.createdAt ??
-                  ''
+                fileStatuses[
+                  getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+                ]?.createdAt ?? ''
               )
             : ''}
         </p>
       </Box>
+      {/* ---------------------------- */}
+      {/* Ligne 2 */}
+      {/* ---------------------------- */}
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
         Récapitulatif de mission signé
       </Box>
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
-          type={getFileTypeByStatus('recap_mission_signed')}
+          type={getFileTypeByStatus(
+            'recap_mission_signed',
+            missionXpertStatus ?? ''
+          )}
           title="Récapitulatif de mission signé"
           missionData={missionData}
-          onFileCheck={(exists, createdAt) =>
-            handleFileCheck(
-              getFileTypeByStatus('recap_mission_signed'),
-              exists,
-              createdAt
-            )
+          hasFile={
+            fileStatuses[
+              getFileTypeByStatus(
+                'recap_mission_signed',
+                missionXpertStatus ?? ''
+              )
+            ]?.exists
           }
         />
         <Button
           className="size-full text-white"
           onClick={() =>
-            handledownloadMissionFile({
-              type: getFileTypeByStatus('recap_mission_signed'),
+            handleDownloadFile({
+              type: getFileTypeByStatus(
+                'recap_mission_signed',
+                missionXpertStatus ?? ''
+              ),
             })
           }
+          disabled={
+            !fileStatuses[
+              getFileTypeByStatus(
+                'recap_mission_signed',
+                missionXpertStatus ?? ''
+              )
+            ]?.exists
+          }
         >
-          <Download className="size-6" />
+          {fileStatuses[
+            getFileTypeByStatus(
+              'recap_mission_signed',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists ? (
+            <Download className="size-6" />
+          ) : (
+            <DownloadOff className="size-6" />
+          )}
         </Button>
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <UploadFileDialog
-        type={getFileTypeByStatus('recap_mission_signed')}
+        type={getFileTypeByStatus(
+          'recap_mission_signed',
+          missionXpertStatus ?? ''
+        )}
         title="Récapitulatif de mission signé"
         buttonText="Loader récap signé"
         missionData={missionData}
+        onUploadSuccess={checkAllFiles}
       />
       <Box
         className={`col-span-1 flex-col text-white ${
-          fileStatuses[getFileTypeByStatus('recap_mission_signed')]?.exists
+          fileStatuses[
+            getFileTypeByStatus(
+              'recap_mission_signed',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
         }`}
       >
         <p>
-          {fileStatuses[getFileTypeByStatus('recap_mission_signed')]?.exists
-            ? 'Reçu le'
-            : 'Non reçu'}
+          {fileStatuses[
+            getFileTypeByStatus(
+              'recap_mission_signed',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists
+            ? getFileStatus('recap_mission_signed', missionXpertStatus ?? '')
+                .sentLabel
+            : getFileStatus('recap_mission_signed', missionXpertStatus ?? '')
+                .notSentLabel}
         </p>
         <p>
-          {fileStatuses[getFileTypeByStatus('recap_mission_signed')]?.exists
+          {fileStatuses[
+            getFileTypeByStatus(
+              'recap_mission_signed',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists
             ? formatDate(
-                fileStatuses[getFileTypeByStatus('recap_mission_signed')]
-                  ?.createdAt ?? ''
+                fileStatuses[
+                  getFileTypeByStatus(
+                    'recap_mission_signed',
+                    missionXpertStatus ?? ''
+                  )
+                ]?.createdAt ?? ''
               )
             : ''}
         </p>
       </Box>
+      {/* ---------------------------- */}
+      {/* Ligne 3 */}
+      {/* ---------------------------- */}
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
-        {status === 'cdi'
-          ? 'Contrat CDI'
-          : status === 'freelance'
-            ? 'Commande de société'
-            : 'Devis de portage'}
+        {getDocumentLabel('contrat', missionXpertStatus ?? '')}
       </Box>
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
           type={getFileTypeByStatus(
-            status === 'cdi'
+            missionXpertStatus === 'cdi'
               ? 'contrat'
-              : status === 'freelance'
+              : missionXpertStatus === 'freelance'
                 ? 'commande_societe'
-                : 'devis_portage'
+                : 'devis',
+            missionXpertStatus ?? ''
           )}
-          title={
-            status === 'cdi'
-              ? 'Contrat CDI'
-              : status === 'freelance'
-                ? 'Commande de société'
-                : 'Devis de portage'
-          }
+          title={getDocumentLabel('contrat', missionXpertStatus ?? '')}
           missionData={missionData}
-          onFileCheck={(exists, createdAt) =>
-            handleFileCheck(
+          hasFile={
+            fileStatuses[
               getFileTypeByStatus(
-                status === 'cdi'
+                missionXpertStatus === 'cdi'
                   ? 'contrat'
-                  : status === 'freelance'
+                  : missionXpertStatus === 'freelance'
                     ? 'commande_societe'
-                    : 'devis_portage'
-              ),
-              exists,
-              createdAt
-            )
+                    : 'devis',
+                missionXpertStatus ?? ''
+              )
+            ]?.exists
           }
         />
-        {status !== 'portage' ? (
+        {missionXpertStatus !== 'portage' ? (
           <UploadFileDialog
             type={getFileTypeByStatus(
-              status === 'cdi'
+              missionXpertStatus === 'cdi'
                 ? 'contrat'
-                : status === 'freelance'
+                : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis_portage'
+                  : 'devis',
+              missionXpertStatus ?? ''
             )}
-            title={status === 'cdi' ? 'Contrat CDI' : 'Commande de société'}
+            title={getDocumentLabel('contrat', missionXpertStatus ?? '')}
             missionData={missionData}
+            onUploadSuccess={checkAllFiles}
           />
         ) : (
           <Button
             className="size-full text-white"
             onClick={() =>
-              handleDownloadTemplate({ type: getFileTypeByStatus('contrat') })
+              handleDownloadFile({
+                type: getFileTypeByStatus('devis', missionXpertStatus ?? ''),
+              })
+            }
+            disabled={
+              !fileStatuses[
+                getFileTypeByStatus('devis', missionXpertStatus ?? '')
+              ]?.exists
             }
           >
-            <Download className="size-6" />
+            {fileStatuses[
+              getFileTypeByStatus('devis', missionXpertStatus ?? '')
+            ]?.exists ? (
+              <Download className="size-6" />
+            ) : (
+              <DownloadOff className="size-6" />
+            )}
           </Button>
         )}
       </div>
       <Button
         className="size-full text-white"
         onClick={() =>
-          handleDownloadTemplate({ type: getFileTypeByStatus('contrat') })
+          handleDownloadFile({
+            type:
+              missionXpertStatus === 'freelance'
+                ? 'commande_societe'
+                : missionXpertStatus === 'cdi'
+                  ? 'contrat'
+                  : 'devis_portage',
+            isTemplate: true,
+          })
         }
       >
         Modèle
         <Download className="ml-2 size-6" />
       </Button>
-      {status === 'portage' ? (
+      {missionXpertStatus === 'portage' ? (
         <UploadFileDialog
-          type={getFileTypeByStatus('devis')}
+          type={getFileTypeByStatus('devis', missionXpertStatus ?? '')}
           title="Devis de portage"
           buttonText="Loader devis portage"
           missionData={missionData}
+          onUploadSuccess={checkAllFiles}
         />
       ) : (
         <Box className="size-full bg-[#b1b1b1]">{''}</Box>
@@ -308,11 +408,12 @@ export default function XpertActivationMissionRow({
         className={`col-span-1 flex-col text-white ${
           fileStatuses[
             getFileTypeByStatus(
-              status === 'cdi'
+              missionXpertStatus === 'cdi'
                 ? 'contrat'
-                : status === 'freelance'
+                : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis_portage'
+                  : 'devis',
+              missionXpertStatus ?? ''
             )
           ]?.exists
             ? 'bg-[#92C6B0]'
@@ -322,119 +423,155 @@ export default function XpertActivationMissionRow({
         <p>
           {fileStatuses[
             getFileTypeByStatus(
-              status === 'cdi'
+              missionXpertStatus === 'cdi'
                 ? 'contrat'
-                : status === 'freelance'
+                : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis_portage'
+                  : 'devis',
+              missionXpertStatus ?? ''
             )
           ]?.exists
-            ? 'Envoyé le'
-            : 'Non envoyé'}
+            ? getFileStatus(
+                missionXpertStatus === 'portage' ? 'devis' : 'contrat',
+                missionXpertStatus ?? ''
+              ).sentLabel
+            : getFileStatus(
+                missionXpertStatus === 'portage' ? 'devis' : 'contrat',
+                missionXpertStatus ?? ''
+              ).notSentLabel}
         </p>
         <p>
           {fileStatuses[
             getFileTypeByStatus(
-              status === 'cdi'
+              missionXpertStatus === 'cdi'
                 ? 'contrat'
-                : status === 'freelance'
+                : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis_portage'
+                  : 'devis',
+              missionXpertStatus ?? ''
             )
           ]?.exists
             ? formatDate(
                 fileStatuses[
                   getFileTypeByStatus(
-                    status === 'cdi'
+                    missionXpertStatus === 'cdi'
                       ? 'contrat'
-                      : status === 'freelance'
+                      : missionXpertStatus === 'freelance'
                         ? 'commande_societe'
-                        : 'devis_portage'
+                        : 'devis',
+                    missionXpertStatus ?? ''
                   )
                 ]?.createdAt ?? ''
               )
             : ''}
         </p>
       </Box>
+      {/* ---------------------------- */}
+      {/* Ligne 4 */}
+      {/* ---------------------------- */}
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
-        {status === 'cdi'
-          ? 'Contrat CDI signé'
-          : status === 'freelance'
-            ? 'Commande de société signé'
-            : 'Commande de portage'}
+        {getDocumentLabel('contrat_signed', missionXpertStatus ?? '')}
       </Box>
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
           type={
-            status === 'cdi'
+            missionXpertStatus === 'cdi'
               ? 'contrat_signed_cdi'
-              : status === 'freelance'
+              : missionXpertStatus === 'freelance'
                 ? 'commande_societe_signed_freelance'
                 : 'commande_portage'
           }
-          title={
-            status === 'cdi'
-              ? 'Contrat CDI signé'
-              : status === 'freelance'
-                ? 'Commande de société signé'
-                : 'Commande de portage'
-          }
+          title={getDocumentLabel('contrat_signed', missionXpertStatus ?? '')}
           missionData={missionData}
-          onFileCheck={(exists, createdAt) =>
-            handleFileCheck(
+          hasFile={
+            fileStatuses[
               getFileTypeByStatus(
-                status === 'cdi'
+                missionXpertStatus === 'cdi'
                   ? 'contrat_signed'
-                  : status === 'freelance'
+                  : missionXpertStatus === 'freelance'
                     ? 'commande_societe_signed'
-                    : 'commande_portage_signed'
-              ),
-              exists,
-              createdAt
-            )
+                    : 'commande',
+                missionXpertStatus ?? ''
+              )
+            ]?.exists
           }
         />
-        {status === 'portage' ? (
+        {missionXpertStatus === 'portage' ? (
           <UploadFileDialog
-            type={getFileTypeByStatus('commande')}
+            type={getFileTypeByStatus('commande', missionXpertStatus ?? '')}
             title="Commande de portage"
             missionData={missionData}
+            onUploadSuccess={checkAllFiles}
           />
         ) : (
           <Button
             className="size-full text-white"
             onClick={() =>
-              handledownloadMissionFile({
+              handleDownloadFile({
                 type: getFileTypeByStatus(
-                  status === 'cdi'
+                  missionXpertStatus === 'cdi'
                     ? 'contrat_signed'
-                    : status === 'freelance'
+                    : missionXpertStatus === 'freelance'
                       ? 'commande_societe_signed'
-                      : 'commande_portage_signed'
+                      : 'commande',
+                  missionXpertStatus ?? ''
                 ),
               })
             }
+            disabled={
+              !fileStatuses[
+                getFileTypeByStatus(
+                  missionXpertStatus === 'cdi'
+                    ? 'contrat_signed'
+                    : missionXpertStatus === 'freelance'
+                      ? 'commande_societe_signed'
+                      : 'commande',
+                  missionXpertStatus ?? ''
+                )
+              ]?.exists
+            }
           >
-            <Download className="size-6" />
+            {fileStatuses[
+              getFileTypeByStatus(
+                missionXpertStatus === 'cdi'
+                  ? 'contrat_signed'
+                  : missionXpertStatus === 'freelance'
+                    ? 'commande_societe_signed'
+                    : 'commande',
+                missionXpertStatus ?? ''
+              )
+            ]?.exists ? (
+              <Download className="size-6" />
+            ) : (
+              <DownloadOff className="size-6" />
+            )}
           </Button>
         )}
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      {status !== 'portage' ? (
+      {missionXpertStatus !== 'portage' ? (
         <>
-          {status === 'cdi' ? (
+          {missionXpertStatus === 'cdi' ? (
             <UploadFileDialog
-              type={getFileTypeByStatus('contrat_signed')}
+              type={getFileTypeByStatus(
+                'contrat_signed',
+                missionXpertStatus ?? ''
+              )}
               title="Contrat CDI"
               buttonText="Loader contrat CDI"
               missionData={missionData}
+              onUploadSuccess={checkAllFiles}
             />
           ) : (
             <UploadFileDialog
-              type={getFileTypeByStatus('commande_signed')}
+              type={getFileTypeByStatus(
+                'commande_societe_signed',
+                missionXpertStatus ?? ''
+              )}
               title="Commande signée"
               buttonText="Loader commande signée"
               missionData={missionData}
+              onUploadSuccess={checkAllFiles}
             />
           )}
         </>
@@ -445,11 +582,12 @@ export default function XpertActivationMissionRow({
         className={`col-span-1 flex-col text-white ${
           fileStatuses[
             getFileTypeByStatus(
-              status === 'cdi'
+              missionXpertStatus === 'cdi'
                 ? 'contrat_signed'
-                : status === 'freelance'
+                : missionXpertStatus === 'freelance'
                   ? 'commande_societe_signed'
-                  : 'devis_portage_signed'
+                  : 'commande',
+              missionXpertStatus ?? ''
             )
           ]?.exists
             ? 'bg-[#92C6B0]'
@@ -459,38 +597,47 @@ export default function XpertActivationMissionRow({
         <p>
           {fileStatuses[
             getFileTypeByStatus(
-              status === 'cdi'
+              missionXpertStatus === 'cdi'
                 ? 'contrat_signed'
-                : status === 'freelance'
+                : missionXpertStatus === 'freelance'
                   ? 'commande_societe_signed'
-                  : 'devis_portage_signed'
+                  : 'commande',
+              missionXpertStatus ?? ''
             )
           ]?.exists
-            ? status === 'portage'
-              ? 'Envoyé le'
-              : 'Reçu le'
-            : status === 'portage'
-              ? 'Non envoyé'
-              : 'Non reçu'}
+            ? getFileStatus(
+                missionXpertStatus === 'portage'
+                  ? 'commande'
+                  : 'contrat_signed',
+                missionXpertStatus ?? ''
+              ).sentLabel
+            : getFileStatus(
+                missionXpertStatus === 'portage'
+                  ? 'commande'
+                  : 'contrat_signed',
+                missionXpertStatus ?? ''
+              ).notSentLabel}
         </p>
         <p>
           {fileStatuses[
             getFileTypeByStatus(
-              status === 'cdi'
+              missionXpertStatus === 'cdi'
                 ? 'contrat_signed'
-                : status === 'freelance'
+                : missionXpertStatus === 'freelance'
                   ? 'commande_societe_signed'
-                  : 'devis_portage_signed'
+                  : 'commande',
+              missionXpertStatus ?? ''
             )
           ]?.exists
             ? formatDate(
                 fileStatuses[
                   getFileTypeByStatus(
-                    status === 'cdi'
+                    missionXpertStatus === 'cdi'
                       ? 'contrat_signed'
-                      : status === 'freelance'
+                      : missionXpertStatus === 'freelance'
                         ? 'commande_societe_signed'
-                        : 'devis_portage_signed'
+                        : 'commande',
+                    missionXpertStatus ?? ''
                   )
                 ]?.createdAt ?? ''
               )

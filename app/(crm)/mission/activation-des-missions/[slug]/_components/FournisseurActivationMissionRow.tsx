@@ -31,10 +31,17 @@ export default function FournisseurActivationMissionRow({
       }
 
       if (modelesData && modelesData.length > 0) {
-        const lastModelesFile = modelesData[modelesData.length - 1];
+        const sortedModelesData = modelesData.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+
+        const mostRecentModelesFile = sortedModelesData[0];
         const { data } = await supabase.storage
           .from('mission_files')
-          .download(`modeles/fournisseur/${type}/${lastModelesFile.name}`);
+          .download(
+            `modeles/fournisseur/${type}/${mostRecentModelesFile.name}`
+          );
 
         if (data) {
           const blob = new Blob([data], { type: data.type });
