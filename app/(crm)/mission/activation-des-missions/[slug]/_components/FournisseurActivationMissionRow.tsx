@@ -3,15 +3,15 @@ import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
-import UploadFileDialog from './UploadFileDialog';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import ViewFileDialog from './ViewFileDialog';
 import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
-import { downloadMissionFile } from '../download-mission-file.action';
-import { checkFileExists } from '../check-file-mission.action';
+import { downloadMissionFile } from '@functions/download-file-mission';
+import { checkFileExists } from '@functions/check-file-mission';
 import DownloadOff from '@/components/svg/DownloadOff';
 import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
+import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
+import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 
 export default function FournisseurActivationMissionRow({
   missionData,

@@ -9,7 +9,7 @@ import FournisseurActivationMissionTable from './_components/FournisseurActivati
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { getFileTypeByStatus } from './_utils/getFileTypeByStatus';
-import { checkFileExists } from './check-file-mission.action';
+import { checkFileExists } from '@functions/check-file-mission';
 
 export default function MissionActivationPage(props: {
   params: Promise<{ slug: string }>;

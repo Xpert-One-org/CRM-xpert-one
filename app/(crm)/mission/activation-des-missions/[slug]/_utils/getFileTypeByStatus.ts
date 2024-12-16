@@ -1,4 +1,4 @@
-import type { FileType } from '../_components/XpertActivationMissionRow';
+import type { FileType } from '@/types/mission';
 
 export const getFileTypeByStatus = (
   baseType: string,

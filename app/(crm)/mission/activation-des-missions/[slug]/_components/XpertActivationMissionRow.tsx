@@ -3,45 +3,18 @@ import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
-import UploadFileDialog from './UploadFileDialog';
+import UploadFileDialog from '../../../../../../src/components/dialogs/UploadFileDialog';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import ViewFileDialog from './ViewFileDialog';
+import ViewFileDialog from '../../../../../../src/components/dialogs/ViewFileDialog';
 import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
-import { downloadMissionFile } from '../download-mission-file.action';
 import { getFileStatus } from '../_utils/fileStatus';
 import { getDocumentLabel } from '../_utils/documentLabel';
 import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
-import { checkFileExists } from '../check-file-mission.action';
+import { checkFileExists } from '@functions/check-file-mission';
+import { downloadMissionFile } from '@functions/download-file-mission';
 import DownloadOff from '@/components/svg/DownloadOff';
-
-export type FileType =
-  // cdi
-  | 'recap_mission_cdi'
-  | 'recap_mission_cdi_signed'
-  | 'contrat_cdi'
-  | 'contrat_signed_cdi'
-  // freelance
-  | 'recap_mission_freelance'
-  | 'recap_mission_signed_freelance'
-  | 'commande_societe_freelance'
-  | 'commande_societe_signed_freelance'
-  // portage
-  | 'recap_mission_portage'
-  | 'recap_mission_signed_portage'
-  | 'commande_portage'
-  | 'devis_portage'
-  // fournisseur
-  | 'devis'
-  | 'devis_signed'
-  | 'contrat_commande'
-  // facturation
-  | 'salary';
-
-type DownloadType = {
-  type: string;
-  isTemplate?: boolean;
-};
+import type { DownloadType } from '@/types/mission';
 
 export default function XpertActivationMissionRow({
   missionData,
