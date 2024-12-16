@@ -15,8 +15,10 @@ import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
 
 export default function FournisseurActivationMissionRow({
   missionData,
+  onFileUpload,
 }: {
   missionData: DBMission;
+  onFileUpload: () => Promise<void>;
 }) {
   const missionXpertStatus = missionData.xpert_associated_status;
   const [fileStatuses, setFileStatuses] = useState<
@@ -41,7 +43,8 @@ export default function FournisseurActivationMissionRow({
     }
 
     setFileStatuses(newFileStatuses);
-  }, [missionData, missionXpertStatus]);
+    await onFileUpload();
+  }, [missionData, missionXpertStatus, onFileUpload]);
 
   const handleDownloadFile = async ({
     type,

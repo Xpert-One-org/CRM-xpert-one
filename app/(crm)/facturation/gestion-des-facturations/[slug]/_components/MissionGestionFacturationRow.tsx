@@ -4,6 +4,7 @@ import type { DBMission } from '@/types/typesDb';
 import { Box } from '@/components/ui/box';
 import { convertStateValue } from '@/utils/stateMissionConverter';
 import ComboboxMission from '@/components/combobox/ComboboxMission';
+import { uppercaseFirstLetter } from '@/utils/string';
 
 export default function MissionGestionFacturationRow({
   mission,
@@ -12,8 +13,7 @@ export default function MissionGestionFacturationRow({
 }) {
   const calculateTJMWithCharges = () => {
     const baseAmount = parseInt(mission.tjm ?? '0');
-    const gdAmount = 30 * 1.55;
-    return baseAmount + gdAmount;
+    return baseAmount * 1.55;
   };
 
   return (
@@ -22,7 +22,9 @@ export default function MissionGestionFacturationRow({
       <ComboboxMission slug="gestion-des-facturations" />
       <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
       <Box className="col-span-1">
-        {new Date().toLocaleString('fr-FR', { month: 'long' })}
+        {uppercaseFirstLetter(
+          new Date().toLocaleString('fr-FR', { month: 'long' })
+        )}
       </Box>
       <Box className="col-span-1">{calculateTJMWithCharges()} €</Box>
     </>

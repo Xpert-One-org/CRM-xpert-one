@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import MissionActivationTable from './_components/MissionActivationTable';
 import { convertStatusXpertValue } from '@/utils/statusXpertConverter';
 import XpertActivationMissionTable from './_components/XpertActivationMissionTable';
@@ -8,6 +8,8 @@ import { useMissionStore } from '@/store/mission';
 import FournisseurActivationMissionTable from './_components/FournisseurActivationMissionTable';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { getFileTypeByStatus } from './_utils/getFileTypeByStatus';
+import { checkFileExists } from './check-file-mission.action';
 
 export default function MissionActivationPage(props: {
   params: Promise<{ slug: string }>;
@@ -16,20 +18,78 @@ export default function MissionActivationPage(props: {
   const missionNumber = params.slug.replaceAll('-', ' ');
   const { missions, fetchMissions } = useMissionStore();
   const router = useRouter();
+  const [allFilesUploaded, setAllFilesUploaded] = useState(false);
 
   const missionData = missions.find(
     (mission) => mission.mission_number === missionNumber
   );
 
+  const checkAllFilesStatus = async () => {
+    if (!missionData?.xpert_associated_status) return;
+
+    // Check XPERT files
+    const xpertFilesToCheck = [
+      getFileTypeByStatus('recap_mission', missionData.xpert_associated_status),
+      getFileTypeByStatus(
+        'recap_mission_signed',
+        missionData.xpert_associated_status
+      ),
+      getFileTypeByStatus(
+        missionData.xpert_associated_status === 'cdi'
+          ? 'contrat'
+          : missionData.xpert_associated_status === 'freelance'
+            ? 'commande_societe'
+            : 'devis',
+        missionData.xpert_associated_status
+      ),
+      getFileTypeByStatus(
+        missionData.xpert_associated_status === 'cdi'
+          ? 'contrat_signed'
+          : missionData.xpert_associated_status === 'freelance'
+            ? 'commande_societe_signed'
+            : 'commande',
+        missionData.xpert_associated_status
+      ),
+    ];
+
+    // Check Fournisseur files
+    const fournisseurFilesToCheck = [
+      getFileTypeByStatus('devis', missionData.xpert_associated_status),
+      getFileTypeByStatus('devis_signed', missionData.xpert_associated_status),
+      getFileTypeByStatus(
+        'contrat_commande',
+        missionData.xpert_associated_status
+      ),
+    ];
+
+    const xpertResults = await Promise.all(
+      xpertFilesToCheck.map((type) => checkFileExists(type, missionData))
+    );
+
+    const fournisseurResults = await Promise.all(
+      fournisseurFilesToCheck.map((type) =>
+        checkFileExists(type, missionData, true)
+      )
+    );
+
+    const allFilesExist = [...xpertResults, ...fournisseurResults].every(
+      (result) => result.exists
+    );
+
+    setAllFilesUploaded(allFilesExist);
+  };
+
   useEffect(() => {
     fetchMissions();
   }, [fetchMissions]);
 
+  useEffect(() => {
+    checkAllFilesStatus();
+  }, [missionData]);
+
   return (
     <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
-      {/* <div className="flex w-3/4"> */}
       <MissionActivationTable missionData={missionData} />
-      {/* </div> */}
 
       {missionData?.xpert_associated_status && (
         <>
@@ -46,7 +106,10 @@ export default function MissionActivationPage(props: {
                   <span> - ( XPERT ONE )</span>
                 ) : null}
               </h3>
-              <XpertActivationMissionTable missionData={missionData} />
+              <XpertActivationMissionTable
+                missionData={missionData}
+                onFileUpload={checkAllFilesStatus}
+              />
             </div>
           </div>
 
@@ -55,7 +118,10 @@ export default function MissionActivationPage(props: {
               <h3 className="text-center text-md font-medium text-[#222222]">
                 FOURNISSEUR
               </h3>
-              <FournisseurActivationMissionTable missionData={missionData} />
+              <FournisseurActivationMissionTable
+                missionData={missionData}
+                onFileUpload={checkAllFilesStatus}
+              />
             </div>
           </div>
         </>
@@ -67,16 +133,21 @@ export default function MissionActivationPage(props: {
           continuer
         </div>
       )}
-      <div className="pt-4">
-        <Button
-          className="px-spaceLarge py-spaceContainer text-white"
-          onClick={() =>
-            router.push(`/facturation/gestion-des-facturations/${params.slug}`)
-          }
-        >
-          Vers gestion de facturation
-        </Button>
-      </div>
+
+      {allFilesUploaded && (
+        <div className="pt-4">
+          <Button
+            className="px-spaceLarge py-spaceContainer text-white"
+            onClick={() =>
+              router.push(
+                `/facturation/gestion-des-facturations/${params.slug}`
+              )
+            }
+          >
+            Vers gestion de facturation
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

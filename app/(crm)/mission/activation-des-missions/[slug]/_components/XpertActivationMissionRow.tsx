@@ -45,8 +45,10 @@ type DownloadType = {
 
 export default function XpertActivationMissionRow({
   missionData,
+  onFileUpload,
 }: {
   missionData: DBMission;
+  onFileUpload: () => Promise<void>;
 }) {
   const missionXpertStatus = missionData.xpert_associated_status;
   const [fileStatuses, setFileStatuses] = useState<
@@ -88,7 +90,8 @@ export default function XpertActivationMissionRow({
     }
 
     setFileStatuses(newFileStatuses);
-  }, [missionXpertStatus, missionData]);
+    await onFileUpload();
+  }, [missionData, missionXpertStatus, onFileUpload]);
 
   const handleDownloadFile = async ({
     type,

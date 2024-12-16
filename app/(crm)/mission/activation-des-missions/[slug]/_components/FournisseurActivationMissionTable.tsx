@@ -5,8 +5,10 @@ import type { DBMission } from '@/types/typesDb';
 
 export default function FournisseurActivationMissionTable({
   missionData,
+  onFileUpload,
 }: {
   missionData: DBMission;
+  onFileUpload: () => Promise<void>;
 }) {
   return (
     <>
@@ -32,7 +34,10 @@ export default function FournisseurActivationMissionTable({
           filter={false}
         />
 
-        <FournisseurActivationMissionRow missionData={missionData} />
+        <FournisseurActivationMissionRow
+          missionData={missionData}
+          onFileUpload={onFileUpload}
+        />
       </div>
     </>
   );
