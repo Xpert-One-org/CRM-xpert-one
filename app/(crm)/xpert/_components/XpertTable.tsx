@@ -21,11 +21,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
-// import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
-import { AdminOpinionValue } from '@/types/types';
 import RedirectButtons from './row/RedirectButtons';
 
 export type DocumentInfo = {
@@ -287,24 +284,9 @@ export default function XpertTable() {
               <p className="whitespace-nowrap">
                 {totalXpertOptimized} résultats
               </p>
-              {/* RESET */}
-              {(activeFilters.jobTitles ||
-                activeFilters.availability ||
-                activeFilters.cv ||
-                activeFilters.countries.length > 0 ||
-                activeFilters.sortDate ||
-                activeFilters.firstname ||
-                activeFilters.adminOpinion ||
-                activeFilters.generated_id ||
-                activeFilters.lastname ||
-                xpertIdParams) && (
-                <button
-                  className="font-[600] text-primary"
-                  onClick={resetXperts}
-                >
-                  Réinitialiser
-                </button>
-              )}
+              <button className="font-[600] text-primary" onClick={resetXperts}>
+                Réinitialiser
+              </button>
             </div>
           ) : (
             <Skeleton className="h-6 w-40" />

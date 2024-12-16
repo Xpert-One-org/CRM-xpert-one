@@ -27,22 +27,6 @@ export default function SelectionDragAndDropTable({
     }[]
   >([]);
 
-  useEffect(() => {
-    const fetchMatchedXperts = async () => {
-      if (missionId) {
-        const data = await getXpertsSelection(missionId);
-        if (data) {
-          const sortedData = [...data].sort(
-            (a, b) => b.matching_score - a.matching_score
-          );
-          setXpertsSelection(sortedData as DBMissionXpertsSelection[]);
-        }
-      }
-    };
-
-    fetchMatchedXperts();
-  }, [missionId]);
-
   const handleDragEnd = (result: any) => {
     const { source, destination, draggableId } = result;
 
@@ -103,6 +87,22 @@ export default function SelectionDragAndDropTable({
       toast.error("Erreur lors de l'enregistrement des modifications");
     }
   };
+
+  useEffect(() => {
+    const fetchMatchedXperts = async () => {
+      if (missionId) {
+        const data = await getXpertsSelection(missionId);
+        if (data) {
+          const sortedData = [...data].sort(
+            (a, b) => b.matching_score - a.matching_score
+          );
+          setXpertsSelection(sortedData as DBMissionXpertsSelection[]);
+        }
+      }
+    };
+
+    fetchMatchedXperts();
+  }, [missionId]);
 
   return (
     <>
