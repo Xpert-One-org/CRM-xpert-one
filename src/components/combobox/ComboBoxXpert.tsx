@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Combobox from '@/components/inputs/Combobox';
+import Combobox from '@/components/combobox/Combobox';
 import { useRouter } from 'next/navigation';
 import { searchXpert } from '../../../app/(crm)/xpert/xpert.action';
 import type { DBXpert } from '@/types/typesDb';

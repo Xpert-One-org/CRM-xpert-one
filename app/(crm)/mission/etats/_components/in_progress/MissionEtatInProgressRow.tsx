@@ -6,6 +6,9 @@ import React from 'react';
 import { Box } from '@/components/ui/box';
 import { empty } from '@/data/constant';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import BriefCase from '@/components/svg/BriefCase';
+import FacturationLogo from '@/components/svg/Facturation';
 
 export default function MissionEtatInProgressRow({
   mission,
@@ -46,6 +49,18 @@ export default function MissionEtatInProgressRow({
 
     return '';
   })();
+
+  const handleRedirectionActivation = () => {
+    router.push(
+      `/mission/activation-des-missions/${mission.mission_number?.replaceAll(' ', '-')}`
+    );
+  };
+
+  const handleRedirectionFacturation = () => {
+    router.push(
+      `/mission/facturation/${mission.mission_number?.replaceAll(' ', '-')}`
+    );
+  };
 
   return (
     <>
@@ -98,6 +113,18 @@ export default function MissionEtatInProgressRow({
             ? 'Non reçu'
             : `Reçu le ${endDate}`}
       </Box>
+      <Button
+        className="col-span-1 h-full"
+        onClick={handleRedirectionActivation}
+      >
+        <BriefCase width={28} height={28} className="fill-white" />
+      </Button>
+      {/* <Button
+        className="col-span-1 h-full"
+        onClick={handleRedirectionFacturation}
+      >
+        <FacturationLogo width={28} height={28} className="fill-white" />
+      </Button> */}
     </>
   );
 }

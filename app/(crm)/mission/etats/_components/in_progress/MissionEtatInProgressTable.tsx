@@ -8,7 +8,7 @@ export default function MissionEtatInProgressTable() {
 
   return (
     <>
-      <div className="grid grid-cols-9 gap-3">
+      <div className="grid grid-cols-10 gap-3">
         <FilterButton
           options={[]}
           onValueChange={() => {}}
@@ -25,6 +25,8 @@ export default function MissionEtatInProgressTable() {
         <FilterButton placeholder="Xpert: Documents mission" />
         <FilterButton placeholder="Xpert : Commande / Devis / CDI" />
         <FilterButton placeholder="Fournisseur : Commande" />
+        <FilterButton placeholder="Activation" filter={false} />
+        {/* <FilterButton placeholder="Facturation" filter={false} /> */}
         {missions.map((mission) => (
           <MissionEtatInProgressRow key={mission.id} mission={mission} />
         ))}
