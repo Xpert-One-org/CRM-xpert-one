@@ -5,18 +5,18 @@ import { FilterButton } from '@/components/FilterButton';
 import React, { useEffect, useState } from 'react';
 import SelectionDragAndDropColumns from './SelectionDragAndDropColumns';
 import type { ColumnStatus, DBMissionXpertsSelection } from '@/types/typesDb';
-import {
-  getXpertsSelection,
-  updateSelectionMission,
-} from '../../selection.action';
+import { getXpertsSelection } from '../../selection.action';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useMissionStore } from '@/store/mission';
 
 export default function SelectionDragAndDropTable({
   missionId,
 }: {
   missionId: number;
 }) {
+  const { updateSelectionMission } = useMissionStore();
+
   const [xpertsSelection, setXpertsSelection] = useState<
     DBMissionXpertsSelection[]
   >([]);
@@ -87,7 +87,13 @@ export default function SelectionDragAndDropTable({
     try {
       await Promise.all(
         pendingUpdates.map((update) =>
-          updateSelectionMission(update.selectionId, update.newStatus)
+          updateSelectionMission(
+            update.selectionId,
+            update.newStatus,
+            missionId,
+            xpertsSelection.find((xpert) => xpert.id === update.selectionId)
+              ?.xpert_id ?? ''
+          )
         )
       );
 

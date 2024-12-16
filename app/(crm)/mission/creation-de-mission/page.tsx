@@ -1,5 +1,4 @@
 'use client';
-import { Combobox } from '@/components/combobox/Combobox';
 import Info from '@/components/Info';
 import Input from '@/components/inputs/Input';
 import PhoneInputComponent from '@/components/inputs/PhoneInputComponent';
@@ -34,6 +33,7 @@ import Button from '@/components/Button';
 import { FilterButton } from '@/components/FilterButton';
 import { Box } from '@/components/ui/box';
 import ComboboxFournisseur from '@/components/combobox/ComboboxFournisseur';
+import { ComboboxSelect } from './_components/ComboboxSelect';
 
 export default function Page() {
   const [mission, setMission] = useState<DBMission>(emptyMission);
@@ -377,7 +377,7 @@ export default function Page() {
           disabled={loadingJobTitles}
         />
 
-        <Combobox
+        <ComboboxSelect
           hasError={checkIfRequiredAndNotMissing(
             creationMissionData.job_title?.name as keyof UserType
           )}
@@ -416,7 +416,7 @@ export default function Page() {
           onValueChange={handleChangeSelect}
         />
 
-        <Combobox
+        <ComboboxSelect
           label={creationMissionData.sector?.label}
           hasError={checkIfRequiredAndNotMissing(
             creationMissionData.sector?.name as keyof UserType
@@ -755,7 +755,7 @@ export default function Page() {
           onChange={handleChange}
         />
 
-        <Combobox
+        <ComboboxSelect
           hasError={checkIfRequiredAndNotMissing(
             creationMissionData.country?.name as keyof UserType
           )}
@@ -863,12 +863,12 @@ export default function Page() {
 
       <div className="grid grid-cols-4 gap-4">
         <ComboboxFournisseur
-          name={creationMissionData.supplier?.name ?? ''}
+          name={creationMissionData.created_by?.name ?? ''}
           required
-          label={creationMissionData.supplier?.label ?? ''}
+          label={creationMissionData.created_by?.label ?? ''}
           onChange={handleChange}
           hasError={checkIfRequiredAndNotMissing(
-            creationMissionData.supplier?.name as keyof UserType
+            creationMissionData.created_by?.name as keyof UserType
           )}
         />
       </div>

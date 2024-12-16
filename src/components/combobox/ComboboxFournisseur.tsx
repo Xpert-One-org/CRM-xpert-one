@@ -1,6 +1,6 @@
 import { useFournisseurStore } from '@/store/fournisseur';
 import React, { useEffect, useState } from 'react';
-import Combobox from '../inputs/Combobox';
+import Combobox from './Combobox';
 
 export default function ComboboxFournisseur({
   name,
@@ -28,14 +28,14 @@ export default function ComboboxFournisseur({
     const resultFoundFournisseur = `${findFournisseur?.firstname} ${findFournisseur?.lastname} (${findFournisseur?.generated_id})`;
     setSearchTerm(resultFoundFournisseur);
 
-    const syntheticEvent = {
+    const createdByEvent = {
       target: {
-        name,
-        value: findFournisseur?.generated_id || '',
+        name: 'created_by',
+        value: findFournisseur?.id?.toString() || '',
       },
     } as React.ChangeEvent<HTMLInputElement>;
 
-    onChange(syntheticEvent);
+    onChange(createdByEvent);
   };
 
   useEffect(() => {

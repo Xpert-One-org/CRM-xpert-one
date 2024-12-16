@@ -28,7 +28,16 @@ export default function ActualPageTitle({ className }: { className?: string }) {
     return null;
   };
 
-  const navbarText = findMenuTitle(pathnameSegments) || lastSegment;
+  const menuTitle = findMenuTitle(pathnameSegments);
+  const isSlug = !menuTitle && pathnameSegments.length > 1;
+  const previousSegment = isSlug
+    ? pathnameSegments[pathnameSegments.length - 2]
+        .replace(/-/g, ' ')
+        .toUpperCase()
+    : null;
+
+  const navbarText =
+    menuTitle || (isSlug ? `${previousSegment} - ${lastSegment}` : lastSegment);
 
   return (
     <div

@@ -320,7 +320,7 @@ export default function XpertRowContent({
         />
         {/* <FileInput
         isDownload={true}
-        download={downloadFile}
+        download={downloadMissionFile}
         name=""
         fileName={
           signed_quote_file_name
