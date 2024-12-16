@@ -19,6 +19,7 @@ type UploadFileDialogProps = {
   title: string;
   missionData: DBMission;
   onUploadSuccess?: () => void;
+  isFournisseurSide?: boolean;
 };
 
 export default function UploadFileDialog({
@@ -27,6 +28,7 @@ export default function UploadFileDialog({
   buttonText,
   missionData,
   onUploadSuccess,
+  isFournisseurSide = false,
 }: UploadFileDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -42,7 +44,11 @@ export default function UploadFileDialog({
     const supabase = createSupabaseFrontendClient();
 
     try {
-      const filePath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}/${selectedFile.name}`;
+      const filePath = `${missionData.mission_number}/${
+        isFournisseurSide
+          ? missionData.supplier?.generated_id
+          : missionData.xpert?.generated_id
+      }/activation/${type}/${selectedFile.name}`;
 
       const { error } = await supabase.storage
         .from('mission_files')

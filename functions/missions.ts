@@ -17,7 +17,7 @@ export const getAllMissions = async (): Promise<DBMission[]> => {
         profile_status (
           status
         )
-      ), 
+      ),
       supplier:profile!mission_created_by_fkey(*)
       `
   );

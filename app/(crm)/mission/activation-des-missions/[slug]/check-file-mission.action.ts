@@ -1,9 +1,15 @@
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import type { DBMission } from '@/types/typesDb';
 
-export async function checkFileExists(type: string, missionData: DBMission) {
+export async function checkFileExists(
+  type: string,
+  missionData: DBMission,
+  isFournisseur: boolean = false
+) {
   const supabase = createSupabaseFrontendClient();
-  const filePath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}`;
+  const filePath = isFournisseur
+    ? `${missionData.mission_number}/${missionData.supplier?.generated_id}/activation/${type}`
+    : `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}`;
 
   try {
     const { data: files, error } = await supabase.storage

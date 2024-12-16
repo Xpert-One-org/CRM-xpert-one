@@ -32,8 +32,9 @@ export type FileType =
   | 'commande_portage'
   | 'devis_portage'
   // fournisseur
-  | 'fournisseur_devis_signed'
-  | 'fournisseur_contrat_signed';
+  | 'devis'
+  | 'devis_signed'
+  | 'contrat_commande';
 
 type DownloadType = {
   type: string;
