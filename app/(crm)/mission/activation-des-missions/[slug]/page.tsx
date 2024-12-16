@@ -28,7 +28,7 @@ export default function MissionActivationPage(props: {
       <MissionActivationTable missionData={missionData} />
       {/* </div> */}
 
-      {missionData && (
+      {missionData?.xpert_associated_status && (
         <>
           <div className="flex w-full flex-col gap-3">
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
