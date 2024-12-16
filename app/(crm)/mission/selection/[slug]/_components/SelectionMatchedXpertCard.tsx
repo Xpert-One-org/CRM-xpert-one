@@ -6,7 +6,7 @@ import { uppercaseFirstLetter } from '@/utils/string';
 import { Draggable } from '@hello-pangea/dnd';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMissionStore } from '@/store/mission';
 
 export default function SelectionMatchedXpertCard({
@@ -40,6 +40,12 @@ export default function SelectionMatchedXpertCard({
       `/mission/activation-des-missions/${missionNumber.replace(' ', '-')}`
     );
   };
+
+  useEffect(() => {
+    if (xpertsSelection.column_status === 'valides') {
+      setIsExpanded(true);
+    }
+  }, [xpertsSelection.column_status]);
 
   return (
     <Draggable draggableId={xpertsSelection.xpert_id} index={index}>
