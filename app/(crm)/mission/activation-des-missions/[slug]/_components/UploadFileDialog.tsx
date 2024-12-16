@@ -15,16 +15,20 @@ import type { DBMission } from '@/types/typesDb';
 
 type UploadFileDialogProps = {
   type: FileType;
+  buttonText?: string;
   title: string;
   missionData: DBMission;
   onUploadSuccess?: () => void;
+  isFournisseurSide?: boolean;
 };
 
 export default function UploadFileDialog({
   type,
   title,
+  buttonText,
   missionData,
   onUploadSuccess,
+  isFournisseurSide = false,
 }: UploadFileDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -40,7 +44,11 @@ export default function UploadFileDialog({
     const supabase = createSupabaseFrontendClient();
 
     try {
-      const filePath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}/${selectedFile.name}`;
+      const filePath = `${missionData.mission_number}/${
+        isFournisseurSide
+          ? missionData.supplier?.generated_id
+          : missionData.xpert?.generated_id
+      }/activation/${type}/${selectedFile.name}`;
 
       const { error } = await supabase.storage
         .from('mission_files')
@@ -66,8 +74,14 @@ export default function UploadFileDialog({
 
   return (
     <>
-      <Button className="size-full text-white" onClick={() => setOpen(true)}>
-        <Download className="size-6 -rotate-90" />
+      <Button
+        className="size-full gap-1 text-white"
+        onClick={() => setOpen(true)}
+      >
+        {buttonText ?? ''}
+        <div>
+          <Download className="size-6 -rotate-90" />
+        </div>
       </Button>
       <Credenza open={open} onOpenChange={setOpen}>
         <CredenzaContent className="max-w-[600px] overflow-hidden rounded-sm border-0 bg-white p-0 backdrop-blur-sm">

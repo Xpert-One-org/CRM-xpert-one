@@ -28,6 +28,9 @@ import { profileDataExperience } from '@/data/profile';
 import SelectComponent from '@/components/inputs/SelectComponent';
 import TextArea from '@/components/inputs/TextArea';
 import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
+import Button from '@/components/Button';
+import FournisseurRedirectButtons from './FournisseurRedirectButtons';
+import DeleteFournisseurDialog from './DeleteFournisseurDialog';
 
 export default function FournisseurTable() {
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
@@ -77,8 +80,8 @@ export default function FournisseurTable() {
 
   return (
     <>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        {/* <CreateFournisseurXpertDialog role="company" /> */}
+      <div className="mb-2 flex w-fit items-center justify-between gap-2">
+        <CreateFournisseurXpertDialog role="company" />
         {/* {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
           <Button className="py-XSmall pl-spaceContainer text-white">
             Enregistrer
@@ -420,50 +423,67 @@ export default function FournisseurTable() {
             </div>
             <div
               className={cn(
-                'col-span-4 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
+                'col-span-4 hidden max-h-0 w-full flex-col justify-between gap-2 overflow-hidden rounded-lg rounded-b-xs transition-all',
                 {
-                  'block max-h-full':
+                  'flex max-h-full':
                     fournisseurIdOpened === fournisseur.generated_id,
                 }
               )}
             >
-              <div className="grid grid-cols-4 gap-3 p-[14px]">
-                <FilterButton
-                  options={[]}
-                  onValueChange={() => {}}
-                  placeholder="Date de début/fin"
-                />
-                <FilterButton
-                  options={[]}
-                  onValueChange={() => {}}
-                  placeholder="N° de mission"
-                />
-                <FilterButton
-                  options={[]}
-                  onValueChange={() => {}}
-                  placeholder="Intitulé de poste"
-                />
-                <FilterButton
-                  options={[]}
-                  onValueChange={() => {}}
-                  placeholder="État de la mission"
-                />
-                {fournisseur.mission.length > 0 ? (
-                  <>
-                    {fournisseur.mission.map((mission) => (
-                      <FournisseurMissionTable
-                        key={mission.id}
-                        mission={mission}
-                      />
-                    ))}
-                  </>
-                ) : (
-                  <div className="col-span-4 flex items-center justify-center">
-                    <p className="text-gray-secondary text-center text-sm">
-                      Aucune mission
-                    </p>
-                  </div>
+              <div
+                className={cn(
+                  'col-span-4 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
+                  {
+                    'block max-h-full':
+                      fournisseurIdOpened === fournisseur.generated_id,
+                  }
                 )}
+              >
+                <div className="grid grid-cols-4 gap-3 p-[14px]">
+                  <FilterButton
+                    options={[]}
+                    onValueChange={() => {}}
+                    placeholder="Date de début/fin"
+                  />
+                  <FilterButton
+                    options={[]}
+                    onValueChange={() => {}}
+                    placeholder="N° de mission"
+                  />
+                  <FilterButton
+                    options={[]}
+                    onValueChange={() => {}}
+                    placeholder="Intitulé de poste"
+                  />
+                  <FilterButton
+                    options={[]}
+                    onValueChange={() => {}}
+                    placeholder="État de la mission"
+                  />
+                  {fournisseur.mission.length > 0 ? (
+                    <>
+                      {fournisseur.mission.map((mission) => (
+                        <FournisseurMissionTable
+                          key={mission.id}
+                          mission={mission}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <div className="col-span-4 flex items-center justify-center">
+                      <p className="text-gray-secondary text-center text-sm">
+                        Aucune mission
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex w-full justify-between gap-2 py-2">
+                <FournisseurRedirectButtons user={fournisseur} />
+                <DeleteFournisseurDialog
+                  fournisseurId={fournisseur.id}
+                  fournisseurGeneratedId={fournisseur.generated_id}
+                />
               </div>
             </div>
           </React.Fragment>

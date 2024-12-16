@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 import { AdminOpinionValue } from '@/types/types';
+import RedirectButtons from './row/RedirectButtons';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -109,74 +110,99 @@ export default function XpertTable() {
       .list(`${xpert.generated_id}/habilitations/`);
 
     if (cvData && cvData.length > 0) {
-      const lastCV = cvData[cvData.length - 1];
+      const sortedCvData = cvData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentCV = sortedCvData[0];
       const { data } = supabase.storage
         .from('profile_files')
-        .getPublicUrl(`${xpert.generated_id}/cv/${lastCV.name}`);
+        .getPublicUrl(`${xpert.generated_id}/cv/${mostRecentCV.name}`);
       setCvInfo({
         publicUrl: data.publicUrl,
-        created_at: lastCV.created_at,
+        created_at: mostRecentCV.created_at,
       });
     }
 
     if (ursaffData && ursaffData.length > 0) {
-      const lastUrsaffFile = ursaffData[ursaffData.length - 1];
+      const sortedUrsaffData = ursaffData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentUrsaffFile = sortedUrsaffData[0];
       const { data } = await supabase.storage
         .from('profile_files')
-        .getPublicUrl(`${xpert.generated_id}/urssaf/${lastUrsaffFile.name}`);
+        .getPublicUrl(
+          `${xpert.generated_id}/urssaf/${mostRecentUrsaffFile.name}`
+        );
       setUrsaffInfo({
         publicUrl: data.publicUrl,
-        created_at: lastUrsaffFile.created_at,
+        created_at: mostRecentUrsaffFile.created_at,
       });
     }
 
     if (kbisData && kbisData.length > 0) {
-      const lastKbisFile = kbisData[kbisData.length - 1];
+      const sortedKbisData = kbisData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentKbisFile = sortedKbisData[0];
       const { data } = supabase.storage
         .from('profile_files')
-        .getPublicUrl(`${xpert.generated_id}/kbis/${lastKbisFile.name}`);
+        .getPublicUrl(`${xpert.generated_id}/kbis/${mostRecentKbisFile.name}`);
       setKbisInfo({
         publicUrl: data.publicUrl,
-        created_at: lastKbisFile.created_at,
+        created_at: mostRecentKbisFile.created_at,
       });
     }
 
     if (responsabiliteCivileData && responsabiliteCivileData.length > 0) {
-      const lastResponsabiliteCivileFile =
-        responsabiliteCivileData[responsabiliteCivileData.length - 1];
+      const sortedResponsabiliteCivileData = responsabiliteCivileData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentResponsabiliteCivileFile =
+        sortedResponsabiliteCivileData[0];
       const { data } = await supabase.storage
         .from('profile_files')
         .getPublicUrl(
-          `${xpert.generated_id}/civil_responsability/${lastResponsabiliteCivileFile.name}`
+          `${xpert.generated_id}/civil_responsability/${mostRecentResponsabiliteCivileFile.name}`
         );
       setResponsabiliteCivileInfo({
         publicUrl: data.publicUrl,
-        created_at: lastResponsabiliteCivileFile.created_at,
+        created_at: mostRecentResponsabiliteCivileFile.created_at,
       });
     }
 
     if (ribData && ribData.length > 0) {
-      const lastRibFile = ribData[ribData.length - 1];
+      const sortedRibData = ribData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentRibFile = sortedRibData[0];
       const { data } = await supabase.storage
         .from('profile_files')
-        .getPublicUrl(`${xpert.generated_id}/rib/${lastRibFile.name}`);
+        .getPublicUrl(`${xpert.generated_id}/rib/${mostRecentRibFile.name}`);
       setRibInfo({
         publicUrl: data.publicUrl,
-        created_at: lastRibFile.created_at,
+        created_at: mostRecentRibFile.created_at,
       });
     }
 
     if (habilitationData && habilitationData.length > 0) {
-      const lastHabilitationFile =
-        habilitationData[habilitationData.length - 1];
+      const sortedHabilitationData = habilitationData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentHabilitationFile = sortedHabilitationData[0];
       const { data } = await supabase.storage
         .from('profile_files')
         .getPublicUrl(
-          `${xpert.generated_id}/habilitations/${lastHabilitationFile.name}`
+          `${xpert.generated_id}/habilitations/${mostRecentHabilitationFile.name}`
         );
       setHabilitationInfo({
         publicUrl: data.publicUrl,
-        created_at: lastHabilitationFile.created_at,
+        created_at: mostRecentHabilitationFile.created_at,
       });
     }
 
@@ -328,7 +354,9 @@ export default function XpertTable() {
                     habilitationInfo={habilitationInfo}
                   />
                 )}
-                <div className="flex w-full justify-end py-2">
+                {/* task and redirection button here */}
+                <div className="flex w-full justify-between gap-2 py-2">
+                  <RedirectButtons user={xpert} />
                   <DeleteXpertDialog
                     xpertId={xpert.id}
                     xpertGeneratedId={xpert.generated_id}

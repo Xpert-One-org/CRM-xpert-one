@@ -95,13 +95,15 @@ export const FilterButton = ({
           <DropdownMenuTrigger asChild>
             <Button
               className={cn(
-                `flex h-auto cursor-default flex-wrap items-center gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
+                `flex h-auto cursor-default flex-col flex-wrap items-center justify-center gap-2 gap-x-2 text-wrap bg-chat-selected px-spaceContainer font-bold hover:bg-chat-selected`,
                 className
               )}
             >
-              {placeholder}
-              <div className="size-3">
-                <FilterSvg />
+              <div className="flex items-center gap-2">
+                {placeholder}
+                <div className="size-3">
+                  <FilterSvg />
+                </div>
               </div>
               {selectedOption.value !== '' && (
                 <div>

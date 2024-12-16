@@ -1,114 +1,300 @@
-import React from 'react';
-import { Download, Eye } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import UploadFileDialog from './UploadFileDialog';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-
-export type FournisseurFileType = 'devis';
+import ViewFileDialog from './ViewFileDialog';
+import { formatDate } from '@/utils/date';
+import { toast } from 'sonner';
+import { downloadMissionFile } from '../download-mission-file.action';
+import { checkFileExists } from '../check-file-mission.action';
+import DownloadOff from '@/components/svg/DownloadOff';
+import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
 
 export default function FournisseurActivationMissionRow({
   missionData,
 }: {
   missionData: DBMission;
 }) {
-  const handleDownloadTemplate = async ({
+  const missionXpertStatus = missionData.xpert_associated_status;
+  const [fileStatuses, setFileStatuses] = useState<
+    Record<string, { exists: boolean; createdAt?: string }>
+  >({});
+
+  const checkAllFiles = useCallback(async () => {
+    const filesToCheck = [
+      getFileTypeByStatus('devis', missionXpertStatus ?? ''),
+      getFileTypeByStatus('devis_signed', missionXpertStatus ?? ''),
+      getFileTypeByStatus('contrat_commande', missionXpertStatus ?? ''),
+    ];
+
+    const newFileStatuses: Record<
+      string,
+      { exists: boolean; createdAt?: string }
+    > = {};
+
+    for (const fileType of filesToCheck) {
+      const result = await checkFileExists(fileType, missionData, true);
+      newFileStatuses[fileType] = result;
+    }
+
+    setFileStatuses(newFileStatuses);
+  }, [missionData, missionXpertStatus]);
+
+  const handleDownloadFile = async ({
     type,
+    isTemplate = false,
   }: {
-    type: FournisseurFileType;
+    type: string;
+    isTemplate?: boolean;
   }) => {
     const supabase = createSupabaseFrontendClient();
 
     try {
-      const { data: modelesData, error } = await supabase.storage
-        .from('mission_files')
-        .list(`modeles/fournisseur/${type}`);
+      const basePath = isTemplate
+        ? `modeles/fournisseur/${type}`
+        : `${missionData.mission_number}/${missionData.supplier?.generated_id}/activation/${type}`;
 
-      if (error) {
-        console.error('Error downloading file:', error);
+      const { data: files, error: listError } = await supabase.storage
+        .from('mission_files')
+        .list(basePath);
+
+      if (listError || !files || files.length === 0) {
+        toast.error(
+          isTemplate
+            ? 'Aucun modèle disponible'
+            : "Aucun fichier n'a été uploadé"
+        );
         return;
       }
 
-      if (modelesData && modelesData.length > 0) {
-        const lastModelesFile = modelesData[modelesData.length - 1];
-        const { data } = await supabase.storage
-          .from('mission_files')
-          .download(`modeles/fournisseur/${type}/${lastModelesFile.name}`);
+      const sortedFiles = files.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
-        if (data) {
-          const blob = new Blob([data], { type: data.type });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `${type}_fournisseur`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        }
-      }
+      const mostRecentFile = sortedFiles[0];
+      const filePath = `${basePath}/${mostRecentFile.name}`;
+      const fileName = isTemplate ? `${type}_fournisseur` : mostRecentFile.name;
+
+      await downloadMissionFile(filePath, fileName);
     } catch (error) {
-      console.error('Error handling download:', error);
+      console.error('Error handling file download:', error);
+      toast.error(
+        isTemplate
+          ? 'Erreur lors du téléchargement du modèle'
+          : 'Erreur lors du téléchargement du fichier'
+      );
     }
   };
+
+  useEffect(() => {
+    checkAllFiles();
+  }, [checkAllFiles]);
 
   return (
     <>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Devis</Box>
       <div className="col-span-1 flex w-full gap-2">
-        <Button className="size-full text-white">
-          <Eye className="size-6" />
-        </Button>
-        <UploadFileDialog
-          type="devis"
-          title="Devis"
+        <ViewFileDialog
+          type={getFileTypeByStatus('devis', missionXpertStatus ?? '')}
+          title="Fournisseur - Devis"
           missionData={missionData}
+          hasFile={
+            fileStatuses[getFileTypeByStatus('devis', missionXpertStatus ?? '')]
+              ?.exists
+          }
+          isFournisseurSide
+        />
+        <UploadFileDialog
+          type={getFileTypeByStatus('devis', missionXpertStatus ?? '')}
+          title="Fournisseur - Devis"
+          missionData={missionData}
+          onUploadSuccess={checkAllFiles}
+          isFournisseurSide
         />
       </div>
       <Button
         className="size-full text-white"
-        onClick={() => handleDownloadTemplate({ type: 'devis' })}
+        onClick={() => handleDownloadFile({ type: 'devis', isTemplate: true })}
       >
         Modèle
         <Download className="ml-2 size-6" />
       </Button>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Box className="col-span-1 bg-[#D64242] text-white">{'Non reçu'}</Box>
+      <Box
+        className={`col-span-1 flex-col text-white ${
+          fileStatuses[getFileTypeByStatus('devis', missionXpertStatus ?? '')]
+            ?.exists
+            ? 'bg-[#92C6B0]'
+            : 'bg-[#D64242]'
+        }`}
+      >
+        <p>
+          {fileStatuses[getFileTypeByStatus('devis', missionXpertStatus ?? '')]
+            ?.exists
+            ? 'Envoyé'
+            : 'Non envoyé'}
+        </p>
+        <p>
+          {fileStatuses[getFileTypeByStatus('devis', missionXpertStatus ?? '')]
+            ?.exists
+            ? formatDate(
+                fileStatuses[
+                  getFileTypeByStatus('devis', missionXpertStatus ?? '')
+                ]?.createdAt ?? ''
+              )
+            : ''}
+        </p>
+      </Box>
 
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Devis signé</Box>
       <div className="col-span-1 flex w-full gap-2">
-        <Button className="size-full text-white">
-          <Eye className="size-6" />
-        </Button>
-        <Button className="size-full text-white">
-          <Download className="size-6" />
+        <ViewFileDialog
+          type={getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')}
+          title="Fournisseur - Devis signé"
+          missionData={missionData}
+          hasFile={
+            fileStatuses[
+              getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
+            ]?.exists
+          }
+          isFournisseurSide
+        />
+        <Button
+          className="size-full text-white"
+          onClick={() => handleDownloadFile({ type: 'devis_signed' })}
+          disabled={
+            !fileStatuses[
+              getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
+            ]?.exists
+          }
+        >
+          {fileStatuses[
+            getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
+          ]?.exists ? (
+            <Download className="size-6" />
+          ) : (
+            <DownloadOff className="size-6" />
+          )}
         </Button>
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Button className="size-full text-white">
-        Loader devis signé
-        <Download className="ml-2 size-6" />
-      </Button>
-      <Box className="col-span-1 bg-[#D64242] text-white">{'Non reçu'}</Box>
+      <UploadFileDialog
+        type={getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')}
+        title="Fournisseur - Devis signé"
+        buttonText="Loader devis signé"
+        missionData={missionData}
+        onUploadSuccess={checkAllFiles}
+        isFournisseurSide
+      />
+      <Box
+        className={`col-span-1 flex-col text-white ${
+          fileStatuses[
+            getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
+          ]?.exists
+            ? 'bg-[#92C6B0]'
+            : 'bg-[#D64242]'
+        }`}
+      >
+        <p>
+          {fileStatuses[
+            getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
+          ]?.exists
+            ? 'Reçu'
+            : 'Non reçu'}
+        </p>
+        <p>
+          {fileStatuses[
+            getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
+          ]?.exists
+            ? formatDate(
+                fileStatuses[
+                  getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
+                ]?.createdAt ?? ''
+              )
+            : ''}
+        </p>
+      </Box>
 
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
         Contrat de mission / Commande
       </Box>
       <div className="col-span-1 flex w-full gap-2">
-        <Button className="size-full text-white">
-          <Eye className="size-6" />
-        </Button>
-        <Button className="size-full text-white">
-          <Download className="size-6" />
+        <ViewFileDialog
+          type={getFileTypeByStatus(
+            'contrat_commande',
+            missionXpertStatus ?? ''
+          )}
+          title="Fournisseur - Contrat de mission / Commande"
+          missionData={missionData}
+          hasFile={
+            fileStatuses[
+              getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+            ]?.exists
+          }
+          isFournisseurSide
+        />
+        <Button
+          className="size-full text-white"
+          onClick={() => handleDownloadFile({ type: 'contrat_commande' })}
+          disabled={
+            !fileStatuses[
+              getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+            ]?.exists
+          }
+        >
+          {fileStatuses[
+            getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+          ]?.exists ? (
+            <Download className="size-6" />
+          ) : (
+            <DownloadOff className="size-6" />
+          )}
         </Button>
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Button className="size-full text-white">
-        Loader contrat signé
-        <Download className="ml-2 size-6" />
-      </Button>
-      <Box className="col-span-1 bg-[#D64242] text-white">{'Non reçu'}</Box>
+      <UploadFileDialog
+        type={getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')}
+        title="Fournisseur - Contrat de mission / Commande"
+        buttonText="Loader contrat signé"
+        missionData={missionData}
+        onUploadSuccess={checkAllFiles}
+        isFournisseurSide
+      />
+      <Box
+        className={`col-span-1 flex-col text-white ${
+          fileStatuses[
+            getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+          ]?.exists
+            ? 'bg-[#92C6B0]'
+            : 'bg-[#D64242]'
+        }`}
+      >
+        <p>
+          {fileStatuses[
+            getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+          ]?.exists
+            ? 'Reçu'
+            : 'Non reçu'}
+        </p>
+        <p>
+          {fileStatuses[
+            getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+          ]?.exists
+            ? formatDate(
+                fileStatuses[
+                  getFileTypeByStatus(
+                    'contrat_commande',
+                    missionXpertStatus ?? ''
+                  )
+                ]?.createdAt ?? ''
+              )
+            : ''}
+        </p>
+      </Box>
     </>
   );
 }

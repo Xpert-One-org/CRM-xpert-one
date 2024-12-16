@@ -484,14 +484,28 @@ export default function RightSideFicheMission({
         </div>
       </div>
       <div className="flex w-full flex-row justify-between gap-4">
-        <Link
-          href={`/mission/matching/${missionDetails.mission_number?.replace(
-            ' ',
-            '-'
-          )}`}
-        >
-          <Button className="px-12 py-3 text-white">Vers le matching</Button>
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href={`/mission/matching/${missionDetails.mission_number?.replace(
+              ' ',
+              '-'
+            )}`}
+          >
+            <Button className="px-12 py-3 text-white">Vers le matching</Button>
+          </Link>
+          {missionDetails.xpert_associated_id && (
+            <Link
+              href={`/mission/activation-des-missions/${missionDetails.mission_number?.replace(
+                ' ',
+                '-'
+              )}`}
+            >
+              <Button className="px-12 py-3 text-white">
+                Vers activation de mission
+              </Button>
+            </Link>
+          )}
+        </div>
         {missionDetails.state != 'deleted' && (
           <DeleteMissionDialog missionId={missionDetails.id} />
         )}

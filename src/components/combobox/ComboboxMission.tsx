@@ -1,5 +1,5 @@
 'use client';
-import Combobox from '@/components/inputs/Combobox';
+import Combobox from '@/components/combobox/Combobox';
 import { useMissionStore } from '@/store/mission';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -12,7 +12,7 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
 
   const { missionsNumbers, searchMissions, isLoading } = useMissionStore();
   const pathname = usePathname();
-  const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
+  const currentMissionNumber = pathname.split('/').pop();
   const [currentValue] = useState(
     currentMissionNumber !== 'fiche' &&
       currentMissionNumber !== 'matching' &&
@@ -80,11 +80,11 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
         slug === 'selection' ||
         slug === 'fiche' ||
         slug === 'activation-des-missions' ||
-        slug === 'gestion-des-facturations'
+        currentMissionNumber === currentMissionNumber
           ? 'Rechercher'
           : currentMissionNumber
       }
-      className="bg-primary py-spaceContainer text-white hover:bg-secondary"
+      className="h-full bg-primary py-spaceContainer text-white hover:bg-secondary"
     />
   );
 }

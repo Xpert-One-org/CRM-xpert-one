@@ -1,10 +1,9 @@
 import { FilterButton } from '@/components/FilterButton';
 import React, { useState, useEffect } from 'react';
 import type { DBXpertOptimized } from '@/types/typesDb';
-import { useSearchParams } from 'next/navigation';
 import CountryFilterButton from '@/components/CountryFilterButton';
 import { useXpertStore } from '@/store/xpert';
-import Combobox from '@/components/inputs/Combobox';
+import Combobox from '@/components/combobox/Combobox';
 import FilterSvg from '@/components/svg/FIlterSvg';
 import { useDebounce } from 'use-debounce';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
@@ -20,11 +19,6 @@ export default function XpertFilter({
 }: {
   xperts: DBXpertOptimized[];
 }) {
-  const searchParams = useSearchParams();
-  const [selectedXpertId, setSelectedXpertId] = useState<string | null>(
-    searchParams.get('id') || null
-  );
-
   const checkIfFilterIsNotEmpty = (filter: FilterXpert) => {
     return Object.values(filter).some((value) => {
       if (Array.isArray(value)) {
@@ -217,6 +211,14 @@ const SearchComponentFilter = ({
   const { fetchXpertOptimizedFiltered, activeFilters, setActiveFilters } =
     useXpertStore();
 
+  const handleClear = () => {
+    useXpertStore.setState({ loading: true });
+    setSearchTerm('');
+    const newActiveFilter = { ...activeFilters, [filterKey]: '' };
+    setActiveFilters(newActiveFilter);
+    fetchXpertOptimizedFiltered(true);
+  };
+
   const handleSearch = (value: string) => {
     if (value === '') {
       handleClear();
@@ -234,18 +236,9 @@ const SearchComponentFilter = ({
     handleSetValue(value);
   }, [value]);
 
-  const handleClear = () => {
-    useXpertStore.setState({ loading: true });
-    setSearchTerm('');
-    const newActiveFilter = { ...activeFilters, [filterKey]: '' };
-    setActiveFilters(newActiveFilter);
-    fetchXpertOptimizedFiltered(true);
-  };
-
   return (
     <Combobox
       data={[]}
-      disabledProposals
       value={searchTerm}
       handleSetValue={handleSearch}
       handleValueChange={handleSearch}

@@ -10,6 +10,7 @@ export default function FournisseurGestionFacturationRow({
 }: {
   missionData: DBMission;
 }) {
+  const missionXpertStatus = missionData.xpert_associated_status;
   return (
     <>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Facture</Box>
@@ -31,12 +32,12 @@ export default function FournisseurGestionFacturationRow({
       </Box>
       <Box className="col-span-2 h-[70px] w-full bg-[#F5F5F5]">Paiement</Box>
       <div className="col-span-1 flex gap-2">
-        {status !== 'cdi' ? (
+        {missionXpertStatus !== 'cdi' ? (
           <Button className="size-full text-white">
             <Eye className="size-6" />
           </Button>
         ) : null}
-        {status === 'cdi' ? (
+        {missionXpertStatus === 'cdi' ? (
           <UploadFileDialog
             type="salary"
             title="Feuille de salaire"
