@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download } from 'lucide-react';
+import { Download, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
 import type { DBMission, DBProfileStatus } from '@/types/typesDb';
@@ -20,6 +20,11 @@ type XpertGestionFacturationRowProps = {
   selectedMonth: number;
   fileStatuses: FileStatuses;
   onFileUpdate: () => Promise<void>;
+  onPendingChange?: (
+    type: 'validation' | 'deletion',
+    key: string,
+    value: boolean
+  ) => void;
 };
 
 export default function XpertGestionFacturationRow({
@@ -29,6 +34,7 @@ export default function XpertGestionFacturationRow({
   selectedMonth,
   fileStatuses,
   onFileUpdate,
+  onPendingChange,
 }: XpertGestionFacturationRowProps) {
   const handleDownloadFile = async ({
     type,
@@ -80,12 +86,30 @@ export default function XpertGestionFacturationRow({
     selectedMonth
   );
 
+  const presenceSheetValidatedStatus = checkFileExistsForDate(
+    fileStatuses['presence_sheet_validated']?.xpertFiles || [],
+    selectedYear,
+    selectedMonth
+  );
+
   const salaryOrInvoiceStatus = checkFileExistsForDate(
     fileStatuses[status === 'cdi' ? 'salary_sheet' : 'invoice_received']
       ?.xpertFiles || [],
     selectedYear,
     selectedMonth
   );
+
+  const handleValidatePresenceSheet = () => {
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}`;
+    onPendingChange?.('validation', key, true);
+    onPendingChange?.('deletion', key, false);
+  };
+
+  const handleDeletePresenceSheet = () => {
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}`;
+    onPendingChange?.('deletion', key, true);
+    onPendingChange?.('validation', key, false);
+  };
 
   return (
     <>
@@ -148,6 +172,24 @@ export default function XpertGestionFacturationRow({
             : ''}
         </p>
       </Box>
+      <div className="col-span-1 flex gap-2">
+        <Button
+          className="flex size-full w-1/2 bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80"
+          onClick={handleValidatePresenceSheet}
+          disabled={!presenceSheetStatus.exists}
+        >
+          <Check className="size-6" />
+        </Button>
+        <Button
+          className="flex size-full w-1/2 bg-[#D64242] text-white hover:bg-[#D64242]/80"
+          onClick={handleDeletePresenceSheet}
+          disabled={
+            !presenceSheetStatus.exists || presenceSheetValidatedStatus.exists
+          }
+        >
+          <X className="size-6" />
+        </Button>
+      </div>
 
       <Box className="col-span-2 h-[70px] w-full bg-[#F5F5F5]">
         {status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
@@ -217,18 +259,8 @@ export default function XpertGestionFacturationRow({
       </Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Box
-        className={`col-span-1 flex-col text-white ${
-          salaryOrInvoiceStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-        }`}
-      >
-        <p>{salaryOrInvoiceStatus.exists ? 'Payé le ' : 'Non effectuée'}</p>
-        <p>
-          {salaryOrInvoiceStatus.exists
-            ? formatDate(salaryOrInvoiceStatus.createdAt ?? '')
-            : ''}
-        </p>
-      </Box>
+      {/* TODO: manag logic later with etat facturations  */}
+      <Box className="size-full bg-[#b1b1b1]">{''}</Box>
     </>
   );
 }

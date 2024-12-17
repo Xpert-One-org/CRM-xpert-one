@@ -14,7 +14,7 @@ export function checkMonthFilesStatus(
   );
 
   const presenceSheetStatus = checkFileExistsForDate(
-    fileStatuses['presence_sheet_signed']?.xpertFiles || [],
+    fileStatuses['presence_sheet_validated']?.xpertFiles || [],
     year,
     month
   );

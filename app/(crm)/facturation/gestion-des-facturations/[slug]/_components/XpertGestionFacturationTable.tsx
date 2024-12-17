@@ -11,6 +11,7 @@ export default function XpertGestionFacturationTable({
   selectedMonth,
   fileStatuses,
   onFileUpdate,
+  onPendingChange,
 }: {
   status: DBProfileStatus['status'];
   missionData: DBMission;
@@ -18,9 +19,14 @@ export default function XpertGestionFacturationTable({
   selectedMonth: number;
   fileStatuses: FileStatuses;
   onFileUpdate: () => Promise<void>;
+  onPendingChange?: (
+    type: 'validation' | 'deletion',
+    key: string,
+    value: boolean
+  ) => void;
 }) {
   return (
-    <div className="grid grid-cols-6 gap-3">
+    <div className="grid grid-cols-7 gap-3">
       <FilterButton
         className="col-span-3"
         placeholder="Document"
@@ -37,6 +43,11 @@ export default function XpertGestionFacturationTable({
         filter={false}
       />
       <FilterButton className="col-span-1" placeholder="Etat" filter={false} />
+      <FilterButton
+        className="col-span-1"
+        placeholder="Validation"
+        filter={false}
+      />
 
       <XpertGestionFacturationRow
         status={status}
@@ -45,6 +56,7 @@ export default function XpertGestionFacturationTable({
         selectedMonth={selectedMonth}
         fileStatuses={fileStatuses}
         onFileUpdate={onFileUpdate}
+        onPendingChange={onPendingChange}
       />
     </div>
   );

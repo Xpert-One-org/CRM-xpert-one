@@ -28,12 +28,6 @@ export default function FournisseurGestionFacturationRow({
     selectedMonth
   );
 
-  const invoicePaidStatus = checkFileExistsForDate(
-    fileStatuses['invoice_paid']?.fournisseurFiles || [],
-    selectedYear,
-    selectedMonth
-  );
-
   return (
     <>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Facture</Box>
@@ -86,30 +80,7 @@ export default function FournisseurGestionFacturationRow({
       <Box className="col-span-1 bg-primary text-white">
         {missionData.mission_number}
       </Box>
-      <Box className="col-span-2 h-[70px] w-full bg-[#F5F5F5]">Paiement</Box>
-      <div className="col-span-1 flex gap-2">
-        <ViewFileDialog
-          type="invoice_paid"
-          title="Fournisseur - Paiement"
-          missionData={missionData}
-          hasFile={invoicePaidStatus.exists}
-          isFacturation
-          isFournisseurSide
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-        />
-        <UploadFileDialog
-          type="invoice_paid"
-          title="Fournisseur - Paiement"
-          missionData={missionData}
-          disabled
-          isFacturation
-          isFournisseurSide
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-          onUploadSuccess={onFileUpdate}
-        />
-      </div>
+      <Box className="col-span-3 h-[70px] w-full bg-[#F5F5F5]">Paiement</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
