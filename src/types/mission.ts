@@ -23,6 +23,7 @@ export type FileType =
   | 'invoice_received'
   | 'invoice_paid'
   | 'presence_sheet_signed'
+  | 'presence_sheet_validated'
   // facturation fournisseur
   | 'invoice';
 
