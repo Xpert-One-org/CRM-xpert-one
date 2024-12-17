@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@/components/Button';
 import { months } from '@/data/date';
 import {
@@ -11,15 +11,59 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { FileStatuses } from '@/types/mission';
+import { checkMonthFilesStatus } from '../_utils/checkMonthFilesStatus';
 
-export default function HeaderCalendar() {
+type HeaderCalendarProps = {
+  startDate?: string;
+  onDateChange: (year: number, month: number) => void;
+  fileStatuses: FileStatuses;
+  status: string;
+};
+
+export default function HeaderCalendar({
+  startDate,
+  onDateChange,
+  fileStatuses,
+  status,
+}: HeaderCalendarProps) {
+  const missionStartDate = startDate ? new Date(startDate) : null;
+  const missionStartYear = missionStartDate?.getFullYear();
+
+  const currentYear = new Date().getFullYear();
+  const maxYear =
+    missionStartYear && missionStartYear > currentYear
+      ? missionStartYear
+      : currentYear;
+
   const yearsSince2010 = Array.from(
-    { length: new Date().getFullYear() - 2010 + 1 },
+    { length: maxYear - 2010 + 1 },
     (_, i) => 2010 + i
   ).sort((a, b) => b - a);
 
-  const [yearSelected, setYearSelected] = useState(yearsSince2010[0]);
-  const [monthSelected, setMonthSelected] = useState(new Date().getMonth());
+  const [yearSelected, setYearSelected] = useState(
+    missionStartYear || yearsSince2010[0]
+  );
+  const [monthSelected, setMonthSelected] = useState(
+    missionStartDate?.getMonth() || new Date().getMonth()
+  );
+
+  const isMonthDisabled = (year: number, monthIndex: number) => {
+    if (!missionStartDate) return false;
+
+    const isFuture = year > maxYear || (year === maxYear && monthIndex > 11);
+
+    const isBeforeMissionStart =
+      year < missionStartDate.getFullYear() ||
+      (year === missionStartDate.getFullYear() &&
+        monthIndex < missionStartDate.getMonth());
+
+    return isFuture || isBeforeMissionStart;
+  };
+
+  useEffect(() => {
+    onDateChange(yearSelected, monthSelected);
+  }, [yearSelected, monthSelected, onDateChange]);
 
   return (
     <>
@@ -54,16 +98,20 @@ export default function HeaderCalendar() {
               <SelectContent>
                 <SelectGroup>
                   {months.map((month, index) => {
-                    const isFuture =
-                      yearSelected > new Date().getFullYear() ||
-                      (yearSelected === new Date().getFullYear() &&
-                        index > new Date().getMonth());
+                    const disabled = isMonthDisabled(yearSelected, index);
+                    const allFilesExist = checkMonthFilesStatus(
+                      fileStatuses,
+                      yearSelected,
+                      index,
+                      status
+                    );
 
                     return (
                       <SelectItem
                         key={index}
                         value={String(month.value)}
-                        disabled={isFuture}
+                        disabled={disabled}
+                        className={`${allFilesExist ? 'bg-[#92C6B0]' : 'bg-[#D64242]'}`}
                       >
                         {month.label.slice(0, 4)}
                       </SelectItem>
@@ -75,25 +123,24 @@ export default function HeaderCalendar() {
           </div>
           <div className="hidden w-full justify-evenly gap-spaceXXSmall lg:flex">
             {months.map((month, index) => {
-              const isFuture =
-                yearSelected > new Date().getFullYear() ||
-                (yearSelected === new Date().getFullYear() &&
-                  index > new Date().getMonth());
+              const disabled = isMonthDisabled(yearSelected, index);
               const isSelected = monthSelected === index;
+              const allFilesExist = checkMonthFilesStatus(
+                fileStatuses,
+                yearSelected,
+                index,
+                status
+              );
+
               return (
                 <Button
                   key={index}
                   onClick={() => setMonthSelected(index)}
                   shadow={'container'}
                   hover={'only_brightness'}
-                  variant={
-                    isFuture
-                      ? 'disabled'
-                      : isSelected
-                        ? 'tertiary'
-                        : 'secondary'
-                  }
-                  className="flex grow items-center justify-center pb-2.5 pt-3 text-center font-bold uppercase disabled:bg-light-gray-third disabled:text-white lg:w-fit"
+                  variant={disabled ? 'disabled' : 'secondary'}
+                  className={`flex grow items-center justify-center p-4 text-center font-bold uppercase disabled:bg-light-gray-third disabled:text-white lg:w-fit ${isSelected ? 'border-4 border-accent' : ''} ${!disabled && allFilesExist ? 'bg-[#92C6B0]' : !disabled ? 'bg-[#D64242]' : ''}`}
+                  disabled={disabled}
                 >
                   {month.label.slice(0, 4)}
                 </Button>

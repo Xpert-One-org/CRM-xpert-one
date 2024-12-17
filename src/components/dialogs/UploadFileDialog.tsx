@@ -23,6 +23,8 @@ type UploadFileDialogProps = {
   isFournisseurSide?: boolean;
   isFacturation?: boolean;
   disabled?: boolean;
+  selectedYear?: number;
+  selectedMonth?: number;
 };
 
 export default function UploadFileDialog({
@@ -34,6 +36,8 @@ export default function UploadFileDialog({
   isFournisseurSide = false,
   isFacturation = false,
   disabled = false,
+  selectedYear,
+  selectedMonth,
 }: UploadFileDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -49,11 +53,18 @@ export default function UploadFileDialog({
     const supabase = createSupabaseFrontendClient();
 
     try {
+      const dateFolder =
+        isFacturation && selectedYear && selectedMonth !== undefined
+          ? `${selectedYear}/${(selectedMonth + 1).toString().padStart(2, '0')}`
+          : '';
+
       const filePath = `${missionData.mission_number}/${
         isFournisseurSide
           ? missionData.supplier?.generated_id
           : missionData.xpert?.generated_id
-      }/${isFacturation ? 'facturation' : 'activation'}/${type}/${selectedFile.name}`;
+      }/${isFacturation ? `facturation/${dateFolder}` : 'activation'}/${type}/${
+        selectedFile.name
+      }`;
 
       const { error } = await supabase.storage
         .from('mission_files')

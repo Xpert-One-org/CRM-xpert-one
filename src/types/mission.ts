@@ -22,7 +22,6 @@ export type FileType =
   | 'salary_sheet'
   | 'invoice_received'
   | 'invoice_paid'
-  | 'presence_sheet'
   | 'presence_sheet_signed'
   // facturation fournisseur
   | 'invoice';
@@ -31,3 +30,11 @@ export type DownloadType = {
   type: string;
   isTemplate?: boolean;
 };
+
+export type FileStatuses = Record<
+  string,
+  {
+    xpertFiles: { year: number; month: number; createdAt: string }[];
+    fournisseurFiles: { year: number; month: number; createdAt: string }[];
+  }
+>;

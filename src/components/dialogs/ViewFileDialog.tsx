@@ -16,6 +16,8 @@ type ViewFileDialogProps = {
   hasFile?: boolean;
   isFournisseurSide?: boolean;
   isFacturation?: boolean;
+  selectedYear?: number;
+  selectedMonth?: number;
 };
 
 export default function ViewFileDialog({
@@ -25,6 +27,8 @@ export default function ViewFileDialog({
   hasFile = false,
   isFournisseurSide = false,
   isFacturation = false,
+  selectedYear,
+  selectedMonth,
 }: ViewFileDialogProps) {
   const [open, setOpen] = useState(false);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -33,13 +37,16 @@ export default function ViewFileDialog({
     const supabase = createSupabaseFrontendClient();
 
     try {
+      const dateFolder =
+        isFacturation && selectedYear && selectedMonth !== undefined
+          ? `${selectedYear}/${(selectedMonth + 1).toString().padStart(2, '0')}`
+          : '';
+
       const filePath = `${missionData.mission_number}/${
         isFournisseurSide
           ? missionData.supplier?.generated_id
           : missionData.xpert?.generated_id
-      }/${isFacturation ? 'facturation' : 'activation'}/${type}`;
-
-      console.log('filePath', filePath);
+      }/${isFacturation ? `facturation/${dateFolder}` : 'activation'}/${type}`;
 
       const { data: files } = await supabase.storage
         .from('mission_files')

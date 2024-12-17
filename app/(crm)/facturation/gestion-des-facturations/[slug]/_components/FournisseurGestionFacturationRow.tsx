@@ -1,42 +1,38 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Download, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 import { formatDate } from '@/utils/date';
-import { checkFileExists } from '@functions/check-file-mission';
+import type { FileStatuses } from '@/types/mission';
+import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
+
+type FournisseurGestionFacturationRowProps = {
+  missionData: DBMission;
+  selectedYear: number;
+  selectedMonth: number;
+  fileStatuses: FileStatuses;
+  onFileUpdate: () => Promise<void>;
+};
 
 export default function FournisseurGestionFacturationRow({
   missionData,
-}: {
-  missionData: DBMission;
-}) {
-  const missionXpertStatus = missionData.xpert_associated_status;
-  const [fileStatuses, setFileStatuses] = useState<
-    Record<string, { exists: boolean; createdAt?: string }>
-  >({});
+  selectedYear,
+  selectedMonth,
+  fileStatuses,
+  onFileUpdate,
+}: FournisseurGestionFacturationRowProps) {
+  const invoiceStatus = checkFileExistsForDate(
+    fileStatuses['invoice']?.fournisseurFiles || [],
+    selectedYear,
+    selectedMonth
+  );
 
-  const checkAllFiles = useCallback(async () => {
-    const filesToCheck = ['invoice'];
-
-    const newFileStatuses: Record<
-      string,
-      { exists: boolean; createdAt?: string }
-    > = {};
-
-    for (const fileType of filesToCheck) {
-      const result = await checkFileExists(fileType, missionData, true, true);
-      newFileStatuses[fileType] = result;
-    }
-
-    setFileStatuses(newFileStatuses);
-  }, [missionData]);
-
-  useEffect(() => {
-    checkAllFiles();
-  }, [checkAllFiles]);
+  const invoicePaidStatus = checkFileExistsForDate(
+    fileStatuses['invoice_paid']?.fournisseurFiles || [],
+    selectedYear,
+    selectedMonth
+  );
 
   return (
     <>
@@ -46,37 +42,43 @@ export default function FournisseurGestionFacturationRow({
           type="invoice"
           title="Facture"
           missionData={missionData}
-          hasFile={fileStatuses['invoice']?.exists}
+          hasFile={invoiceStatus.exists}
           isFacturation
           isFournisseurSide
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
         />
         <UploadFileDialog
           type="invoice"
           title="Facture"
           missionData={missionData}
-          onUploadSuccess={checkAllFiles}
           isFacturation
           isFournisseurSide
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          onUploadSuccess={onFileUpdate}
         />
       </div>
       <UploadFileDialog
         type="invoice"
         title="Facture"
         missionData={missionData}
-        onUploadSuccess={checkAllFiles}
         isFacturation
         isFournisseurSide
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
         buttonText="Loader facture signée"
+        onUploadSuccess={onFileUpdate}
       />
       <Box
         className={`col-span-1 flex-col text-white ${
-          fileStatuses['invoice']?.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+          invoiceStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
       >
-        <p>{fileStatuses['invoice']?.exists ? 'Envoyé le' : 'À envoyer'}</p>
+        <p>{invoiceStatus.exists ? 'Envoyé le' : 'À envoyer'}</p>
         <p>
-          {fileStatuses['invoice']?.exists
-            ? formatDate(fileStatuses['invoice']?.createdAt ?? '')
+          {invoiceStatus.exists
+            ? formatDate(invoiceStatus.createdAt ?? '')
             : ''}
         </p>
       </Box>
@@ -90,9 +92,11 @@ export default function FournisseurGestionFacturationRow({
           type="invoice_paid"
           title="Fournisseur - Paiement"
           missionData={missionData}
-          hasFile={fileStatuses['invoice_paid']?.exists}
+          hasFile={invoicePaidStatus.exists}
           isFacturation
           isFournisseurSide
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
         />
         <UploadFileDialog
           type="invoice_paid"
@@ -101,6 +105,9 @@ export default function FournisseurGestionFacturationRow({
           disabled
           isFacturation
           isFournisseurSide
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          onUploadSuccess={onFileUpdate}
         />
       </div>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>

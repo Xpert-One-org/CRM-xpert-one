@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
@@ -9,42 +9,27 @@ import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
 import DownloadOff from '@/components/svg/DownloadOff';
-import type { DownloadType } from '@/types/mission';
-import { checkFileExists } from '@functions/check-file-mission';
+import type { DownloadType, FileStatuses } from '@/types/mission';
 import { downloadMissionFile } from '@functions/download-file-mission';
+import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
+
+type XpertGestionFacturationRowProps = {
+  status: DBProfileStatus['status'];
+  missionData: DBMission;
+  selectedYear: number;
+  selectedMonth: number;
+  fileStatuses: FileStatuses;
+  onFileUpdate: () => Promise<void>;
+};
 
 export default function XpertGestionFacturationRow({
   status,
   missionData,
-}: {
-  status: DBProfileStatus['status'];
-  missionData: DBMission;
-}) {
-  const [fileStatuses, setFileStatuses] = useState<
-    Record<string, { exists: boolean; createdAt?: string }>
-  >({});
-
-  const checkAllFiles = useCallback(async () => {
-    const filesToCheck = [
-      'presence_sheet',
-      'presence_sheet_signed',
-      status === 'cdi' ? 'salary_sheet' : 'invoice_received',
-      status === 'cdi' ? 'salary_payment' : 'invoice_paid',
-    ];
-
-    const newFileStatuses: Record<
-      string,
-      { exists: boolean; createdAt?: string }
-    > = {};
-
-    for (const fileType of filesToCheck) {
-      const result = await checkFileExists(fileType, missionData, false, true);
-      newFileStatuses[fileType] = result;
-    }
-
-    setFileStatuses(newFileStatuses);
-  }, [missionData, status]);
-
+  selectedYear,
+  selectedMonth,
+  fileStatuses,
+  onFileUpdate,
+}: XpertGestionFacturationRowProps) {
   const handleDownloadFile = async ({
     type,
     isTemplate = false,
@@ -89,9 +74,18 @@ export default function XpertGestionFacturationRow({
     }
   };
 
-  useEffect(() => {
-    checkAllFiles();
-  }, [checkAllFiles]);
+  const presenceSheetStatus = checkFileExistsForDate(
+    fileStatuses['presence_sheet_signed']?.xpertFiles || [],
+    selectedYear,
+    selectedMonth
+  );
+
+  const salaryOrInvoiceStatus = checkFileExistsForDate(
+    fileStatuses[status === 'cdi' ? 'salary_sheet' : 'invoice_received']
+      ?.xpertFiles || [],
+    selectedYear,
+    selectedMonth
+  );
 
   return (
     <>
@@ -100,18 +94,20 @@ export default function XpertGestionFacturationRow({
       </Box>
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
-          type="presence_sheet"
+          type="presence_sheet_signed"
           title="Feuille de présence"
           missionData={missionData}
-          hasFile={fileStatuses['presence_sheet']?.exists}
+          hasFile={presenceSheetStatus.exists}
           isFacturation
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
         />
         <Button
           className="size-full text-white"
-          onClick={() => handleDownloadFile({ type: 'presence_sheet' })}
-          disabled={!fileStatuses['presence_sheet']?.exists}
+          onClick={() => handleDownloadFile({ type: 'presence_sheet_signed' })}
+          disabled={!presenceSheetStatus.exists}
         >
-          {fileStatuses['presence_sheet']?.exists ? (
+          {presenceSheetStatus.exists ? (
             <Download className="size-6" />
           ) : (
             <DownloadOff className="size-6" />
@@ -121,7 +117,10 @@ export default function XpertGestionFacturationRow({
       <Button
         className="size-full text-white"
         onClick={() =>
-          handleDownloadFile({ type: 'presence_sheet', isTemplate: true })
+          handleDownloadFile({
+            type: 'presence_sheet_signed',
+            isTemplate: true,
+          })
         }
       >
         Modèle
@@ -132,20 +131,20 @@ export default function XpertGestionFacturationRow({
         title="Feuille de présence signée"
         buttonText="Loader heure signée"
         missionData={missionData}
-        onUploadSuccess={checkAllFiles}
+        onUploadSuccess={onFileUpdate}
         isFacturation
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
       />
       <Box
         className={`col-span-1 flex-col text-white ${
-          fileStatuses['presence_sheet']?.exists
-            ? 'bg-[#92C6B0]'
-            : 'bg-[#D64242]'
+          presenceSheetStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
       >
-        <p>{fileStatuses['presence_sheet']?.exists ? 'Reçu' : 'Non reçu'}</p>
+        <p>{presenceSheetStatus.exists ? 'Reçu' : 'Non reçu'}</p>
         <p>
-          {fileStatuses['presence_sheet']?.exists
-            ? formatDate(fileStatuses['presence_sheet']?.createdAt ?? '')
+          {presenceSheetStatus.exists
+            ? formatDate(presenceSheetStatus.createdAt ?? '')
             : ''}
         </p>
       </Box>
@@ -159,8 +158,10 @@ export default function XpertGestionFacturationRow({
             type="invoice_received"
             title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
             missionData={missionData}
-            hasFile={fileStatuses['invoice_received']?.exists}
+            hasFile={salaryOrInvoiceStatus.exists}
             isFacturation
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
           />
         ) : null}
         {status === 'cdi' ? (
@@ -168,14 +169,16 @@ export default function XpertGestionFacturationRow({
             type="salary_sheet"
             title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
             missionData={missionData}
-            onUploadSuccess={checkAllFiles}
+            onUploadSuccess={onFileUpdate}
             isFacturation
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
           />
         ) : (
           <Button
             className="size-full text-white"
             onClick={() => handleDownloadFile({ type: 'invoice_received' })}
-            disabled={!fileStatuses['invoice_received']?.exists}
+            disabled={!salaryOrInvoiceStatus.exists}
           >
             <Download className="size-6" />
           </Button>
@@ -188,34 +191,23 @@ export default function XpertGestionFacturationRow({
           title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
           buttonText="Loader facture reçue"
           missionData={missionData}
-          onUploadSuccess={checkAllFiles}
+          onUploadSuccess={onFileUpdate}
           isFacturation
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
         />
       ) : (
         <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       )}
       <Box
         className={`col-span-1 flex-col text-white ${
-          fileStatuses[status === 'cdi' ? 'salary_sheet' : 'invoice_received']
-            ?.exists
-            ? 'bg-[#92C6B0]'
-            : 'bg-[#D64242]'
+          salaryOrInvoiceStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
       >
+        <p>{salaryOrInvoiceStatus.exists ? 'Reçu' : 'Non reçu'}</p>
         <p>
-          {fileStatuses[status === 'cdi' ? 'salary_sheet' : 'invoice_received']
-            ?.exists
-            ? 'Reçu'
-            : 'Non reçu'}
-        </p>
-        <p>
-          {fileStatuses[status === 'cdi' ? 'salary_sheet' : 'invoice_received']
-            ?.exists
-            ? formatDate(
-                fileStatuses[
-                  status === 'cdi' ? 'salary_sheet' : 'invoice_received'
-                ]?.createdAt ?? ''
-              )
+          {salaryOrInvoiceStatus.exists
+            ? formatDate(salaryOrInvoiceStatus.createdAt ?? '')
             : ''}
         </p>
       </Box>
@@ -227,26 +219,13 @@ export default function XpertGestionFacturationRow({
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <Box
         className={`col-span-1 flex-col text-white ${
-          fileStatuses[status === 'cdi' ? 'salary_payment' : 'invoice_paid']
-            ?.exists
-            ? 'bg-[#92C6B0]'
-            : 'bg-[#D64242]'
+          salaryOrInvoiceStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
       >
+        <p>{salaryOrInvoiceStatus.exists ? 'Payé le ' : 'Non effectuée'}</p>
         <p>
-          {fileStatuses[status === 'cdi' ? 'salary_payment' : 'invoice_paid']
-            ?.exists
-            ? 'Reçu'
-            : 'Non reçu'}
-        </p>
-        <p>
-          {fileStatuses[status === 'cdi' ? 'salary_payment' : 'invoice_paid']
-            ?.exists
-            ? formatDate(
-                fileStatuses[
-                  status === 'cdi' ? 'salary_payment' : 'invoice_paid'
-                ]?.createdAt ?? ''
-              )
+          {salaryOrInvoiceStatus.exists
+            ? formatDate(salaryOrInvoiceStatus.createdAt ?? '')
             : ''}
         </p>
       </Box>
