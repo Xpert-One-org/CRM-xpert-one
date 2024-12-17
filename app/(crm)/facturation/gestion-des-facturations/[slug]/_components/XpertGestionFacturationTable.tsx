@@ -2,29 +2,27 @@ import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
 import type { DBMission, DBProfileStatus } from '@/types/typesDb';
 import XpertGestionFacturationRow from './XpertGestionFacturationRow';
-import type { FileStatuses } from '@/types/mission';
+import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 
 export default function XpertGestionFacturationTable({
   status,
   missionData,
   selectedYear,
   selectedMonth,
-  fileStatuses,
-  onFileUpdate,
   onPendingChange,
 }: {
   status: DBProfileStatus['status'];
   missionData: DBMission;
   selectedYear: number;
   selectedMonth: number;
-  fileStatuses: FileStatuses;
-  onFileUpdate: () => Promise<void>;
   onPendingChange?: (
     type: 'validation' | 'deletion',
     key: string,
     value: boolean
   ) => void;
 }) {
+  const { checkAllFiles } = useFileStatusFacturationStore();
+
   return (
     <div className="grid grid-cols-7 gap-3">
       <FilterButton
@@ -54,8 +52,7 @@ export default function XpertGestionFacturationTable({
         missionData={missionData}
         selectedYear={selectedYear}
         selectedMonth={selectedMonth}
-        fileStatuses={fileStatuses}
-        onFileUpdate={onFileUpdate}
+        onFileUpdate={() => checkAllFiles(missionData)}
         onPendingChange={onPendingChange}
       />
     </div>

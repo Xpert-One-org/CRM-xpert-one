@@ -1,14 +1,13 @@
 'use client';
 
-import React, { use, useEffect, useState, useCallback } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useMissionStore } from '@/store/mission';
+import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import HeaderCalendar from './_components/HeaderCalendar';
 import XpertGestionFacturationTable from './_components/XpertGestionFacturationTable';
 import FournisseurGestionFacturationTable from './_components/FournisseurGestionFacturationTable';
 import { convertStatusXpertValue } from '@/utils/statusXpertConverter';
 import MissionGestionFacturationTable from './_components/MissionGestionFacturationTable';
-import { checkFileExistsFacturations } from './_utils/check-file-mission.action';
-import type { FileStatuses } from '@/types/mission';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -21,13 +20,14 @@ export default function GestionDesFacturationsPage(props: {
   const missionNumber = params.slug.replaceAll('-', ' ');
   const router = useRouter();
   const { missions, fetchMissions } = useMissionStore();
+  const { fileStatusesByMission, checkAllFiles } =
+    useFileStatusFacturationStore();
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear()
   );
   const [selectedMonth, setSelectedMonth] = useState<number>(
     new Date().getMonth()
   );
-  const [fileStatuses, setFileStatuses] = useState<FileStatuses>({});
   const [pendingChanges, setPendingChanges] = useState<{
     validations: { [key: string]: boolean };
     deletions: { [key: string]: boolean };
@@ -40,32 +40,12 @@ export default function GestionDesFacturationsPage(props: {
     (mission) => mission.mission_number === missionNumber
   );
 
+  const fileStatuses = fileStatusesByMission[missionNumber] || {};
+
   const handleDateChange = (year: number, month: number) => {
     setSelectedYear(year);
     setSelectedMonth(month);
   };
-
-  const checkAllFiles = useCallback(async () => {
-    if (!missionData) return;
-
-    const filesToCheck = [
-      'presence_sheet_signed',
-      'presence_sheet_validated',
-      missionData.xpert_associated_status === 'cdi'
-        ? 'salary_sheet'
-        : 'invoice_received',
-      'invoice',
-    ];
-
-    const newFileStatuses: FileStatuses = {};
-
-    for (const fileType of filesToCheck) {
-      const result = await checkFileExistsFacturations(fileType, missionData);
-      newFileStatuses[fileType] = result;
-    }
-
-    setFileStatuses(newFileStatuses);
-  }, [missionData]);
 
   const handlePendingChange = (
     type: 'validation' | 'deletion',
@@ -129,7 +109,9 @@ export default function GestionDesFacturationsPage(props: {
 
       toast.success('Modifications enregistrées avec succès');
       setPendingChanges({ validations: {}, deletions: {} });
-      checkAllFiles();
+      if (missionData) {
+        checkAllFiles(missionData);
+      }
     } catch (error) {
       console.error('Error saving changes:', error);
       toast.error("Erreur lors de l'enregistrement des modifications");
@@ -141,10 +123,10 @@ export default function GestionDesFacturationsPage(props: {
   }, [fetchMissions]);
 
   useEffect(() => {
-    checkAllFiles();
-  }, [checkAllFiles]);
-
-  console.log(pendingChanges);
+    if (missionData) {
+      checkAllFiles(missionData);
+    }
+  }, [missionData, checkAllFiles]);
 
   return (
     <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
@@ -178,8 +160,6 @@ export default function GestionDesFacturationsPage(props: {
                 missionData={missionData}
                 selectedYear={selectedYear}
                 selectedMonth={selectedMonth}
-                fileStatuses={fileStatuses}
-                onFileUpdate={checkAllFiles}
                 onPendingChange={handlePendingChange}
               />
             </div>
@@ -194,8 +174,6 @@ export default function GestionDesFacturationsPage(props: {
                 missionData={missionData}
                 selectedYear={selectedYear}
                 selectedMonth={selectedMonth}
-                fileStatuses={fileStatuses}
-                onFileUpdate={checkAllFiles}
               />
             </div>
           </div>

@@ -2,21 +2,19 @@ import { FilterButton } from '@/components/FilterButton';
 import React from 'react';
 import type { DBMission } from '@/types/typesDb';
 import FournisseurGestionFacturationRow from './FournisseurGestionFacturationRow';
-import type { FileStatuses } from '@/types/mission';
+import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 
 export default function FournisseurGestionFacturationTable({
   missionData,
   selectedYear,
   selectedMonth,
-  fileStatuses,
-  onFileUpdate,
 }: {
   missionData: DBMission;
   selectedYear: number;
   selectedMonth: number;
-  fileStatuses: FileStatuses;
-  onFileUpdate: () => Promise<void>;
 }) {
+  const { checkAllFiles } = useFileStatusFacturationStore();
+
   return (
     <div className="grid grid-cols-6 gap-3">
       <FilterButton
@@ -40,8 +38,7 @@ export default function FournisseurGestionFacturationTable({
         missionData={missionData}
         selectedYear={selectedYear}
         selectedMonth={selectedMonth}
-        fileStatuses={fileStatuses}
-        onFileUpdate={onFileUpdate}
+        onFileUpdate={() => checkAllFiles(missionData)}
       />
     </div>
   );

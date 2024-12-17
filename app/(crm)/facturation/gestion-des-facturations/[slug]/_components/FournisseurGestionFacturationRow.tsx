@@ -4,14 +4,13 @@ import type { DBMission } from '@/types/typesDb';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 import { formatDate } from '@/utils/date';
-import type { FileStatuses } from '@/types/mission';
 import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
+import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 
 type FournisseurGestionFacturationRowProps = {
   missionData: DBMission;
   selectedYear: number;
   selectedMonth: number;
-  fileStatuses: FileStatuses;
   onFileUpdate: () => Promise<void>;
 };
 
@@ -19,9 +18,12 @@ export default function FournisseurGestionFacturationRow({
   missionData,
   selectedYear,
   selectedMonth,
-  fileStatuses,
   onFileUpdate,
-}: FournisseurGestionFacturationRowProps) {
+}: Omit<FournisseurGestionFacturationRowProps, 'fileStatuses'>) {
+  const { fileStatusesByMission } = useFileStatusFacturationStore();
+  const fileStatuses =
+    fileStatusesByMission[missionData.mission_number || ''] || {};
+
   const invoiceStatus = checkFileExistsForDate(
     fileStatuses['invoice']?.fournisseurFiles || [],
     selectedYear,

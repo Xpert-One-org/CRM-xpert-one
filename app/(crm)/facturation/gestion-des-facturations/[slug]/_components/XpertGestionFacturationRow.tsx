@@ -9,16 +9,16 @@ import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
 import DownloadOff from '@/components/svg/DownloadOff';
-import type { DownloadType, FileStatuses } from '@/types/mission';
+import type { DownloadType } from '@/types/mission';
 import { downloadMissionFile } from '@functions/download-file-mission';
 import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
+import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 
 type XpertGestionFacturationRowProps = {
   status: DBProfileStatus['status'];
   missionData: DBMission;
   selectedYear: number;
   selectedMonth: number;
-  fileStatuses: FileStatuses;
   onFileUpdate: () => Promise<void>;
   onPendingChange?: (
     type: 'validation' | 'deletion',
@@ -32,10 +32,13 @@ export default function XpertGestionFacturationRow({
   missionData,
   selectedYear,
   selectedMonth,
-  fileStatuses,
   onFileUpdate,
   onPendingChange,
-}: XpertGestionFacturationRowProps) {
+}: Omit<XpertGestionFacturationRowProps, 'fileStatuses'>) {
+  const { fileStatusesByMission } = useFileStatusFacturationStore();
+  const fileStatuses =
+    fileStatusesByMission[missionData.mission_number || ''] || {};
+
   const handleDownloadFile = async ({
     type,
     isTemplate = false,
