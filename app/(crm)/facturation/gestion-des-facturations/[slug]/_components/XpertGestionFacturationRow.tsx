@@ -13,6 +13,7 @@ import type { DownloadType } from '@/types/mission';
 import { downloadMissionFile } from '@functions/download-file-mission';
 import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
+import { getFileTypeByStatusFacturation } from '../_utils/getFileTypeByStatusFacturation';
 
 type XpertGestionFacturationRowProps = {
   status: DBProfileStatus['status'];
@@ -84,20 +85,34 @@ export default function XpertGestionFacturationRow({
   };
 
   const presenceSheetStatus = checkFileExistsForDate(
-    fileStatuses['presence_sheet_signed']?.xpertFiles || [],
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        'presence_sheet_signed',
+        missionData?.xpert_associated_status || ''
+      )
+    ]?.xpertFiles || [],
     selectedYear,
     selectedMonth
   );
 
   const presenceSheetValidatedStatus = checkFileExistsForDate(
-    fileStatuses['presence_sheet_validated']?.xpertFiles || [],
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        'presence_sheet_validated',
+        missionData?.xpert_associated_status || ''
+      )
+    ]?.xpertFiles || [],
     selectedYear,
     selectedMonth
   );
 
   const salaryOrInvoiceStatus = checkFileExistsForDate(
-    fileStatuses[status === 'cdi' ? 'salary_sheet' : 'invoice_received']
-      ?.xpertFiles || [],
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        status === 'cdi' ? 'salary_sheet' : 'invoice_received',
+        missionData?.xpert_associated_status || ''
+      )
+    ]?.xpertFiles || [],
     selectedYear,
     selectedMonth
   );
@@ -125,7 +140,10 @@ export default function XpertGestionFacturationRow({
       </Box>
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
-          type="presence_sheet_signed"
+          type={getFileTypeByStatusFacturation(
+            'presence_sheet_signed',
+            missionData?.xpert_associated_status || ''
+          )}
           title="Feuille de présence"
           missionData={missionData}
           hasFile={presenceSheetStatus.exists}
@@ -158,7 +176,10 @@ export default function XpertGestionFacturationRow({
         <Download className="ml-2 size-6" />
       </Button>
       <UploadFileDialog
-        type="presence_sheet_signed"
+        type={getFileTypeByStatusFacturation(
+          'presence_sheet_signed',
+          missionData?.xpert_associated_status || ''
+        )}
         title="Feuille de présence signée"
         buttonText="Loader heure signée"
         missionData={missionData}
@@ -210,7 +231,10 @@ export default function XpertGestionFacturationRow({
       <div className="col-span-1 flex gap-2">
         {status !== 'cdi' ? (
           <ViewFileDialog
-            type="invoice_received"
+            type={getFileTypeByStatusFacturation(
+              'invoice_received',
+              missionData?.xpert_associated_status || ''
+            )}
             title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
             missionData={missionData}
             hasFile={salaryOrInvoiceStatus.exists}
@@ -221,7 +245,10 @@ export default function XpertGestionFacturationRow({
         ) : null}
         {status === 'cdi' ? (
           <UploadFileDialog
-            type="salary_sheet"
+            type={getFileTypeByStatusFacturation(
+              'salary_sheet',
+              missionData?.xpert_associated_status || ''
+            )}
             title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
             missionData={missionData}
             onUploadSuccess={onFileUpdate}
@@ -242,7 +269,10 @@ export default function XpertGestionFacturationRow({
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       {status !== 'cdi' ? (
         <UploadFileDialog
-          type="invoice_received"
+          type={getFileTypeByStatusFacturation(
+            'invoice_received',
+            missionData?.xpert_associated_status || ''
+          )}
           title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
           buttonText="Loader facture reçue"
           missionData={missionData}

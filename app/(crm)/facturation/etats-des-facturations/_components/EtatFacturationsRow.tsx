@@ -7,6 +7,7 @@ import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
 import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';
+import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 
 export default function EtatFacturationsRow({
   missionData,
@@ -79,7 +80,10 @@ export default function EtatFacturationsRow({
             selectedMonthYear.year,
             selectedMonthYear.month,
             false,
-            'presence_sheet_validated'
+            getFileTypeByStatusFacturation(
+              'presence_sheet_validated',
+              missionData?.xpert_associated_status || ''
+            )
           ).exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
@@ -90,7 +94,10 @@ export default function EtatFacturationsRow({
           selectedMonthYear.year,
           selectedMonthYear.month,
           false,
-          'presence_sheet_validated'
+          getFileTypeByStatusFacturation(
+            'presence_sheet_validated',
+            missionData?.xpert_associated_status || ''
+          )
         ).exists
           ? formatDate(
               checkFileStatusForDate(
@@ -98,7 +105,10 @@ export default function EtatFacturationsRow({
                 selectedMonthYear.year,
                 selectedMonthYear.month,
                 false,
-                'presence_sheet_validated'
+                getFileTypeByStatusFacturation(
+                  'presence_sheet_validated',
+                  missionData?.xpert_associated_status || ''
+                )
               ).createdAt!
             )
           : 'NON'}
@@ -110,7 +120,10 @@ export default function EtatFacturationsRow({
             selectedMonthYear.year,
             selectedMonthYear.month,
             false,
-            'salary_sheet'
+            getFileTypeByStatusFacturation(
+              'salary_sheet',
+              missionData?.xpert_associated_status || ''
+            )
           ).exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
@@ -121,7 +134,10 @@ export default function EtatFacturationsRow({
           selectedMonthYear.year,
           selectedMonthYear.month,
           false,
-          'salary_sheet'
+          getFileTypeByStatusFacturation(
+            'salary_sheet',
+            missionData?.xpert_associated_status || ''
+          )
         ).exists
           ? formatDate(
               checkFileStatusForDate(
@@ -129,7 +145,10 @@ export default function EtatFacturationsRow({
                 selectedMonthYear.year,
                 selectedMonthYear.month,
                 false,
-                'salary_sheet'
+                getFileTypeByStatusFacturation(
+                  'salary_sheet',
+                  missionData?.xpert_associated_status || ''
+                )
               ).createdAt!
             )
           : 'NON'}
@@ -141,7 +160,10 @@ export default function EtatFacturationsRow({
             selectedMonthYear.year,
             selectedMonthYear.month,
             true,
-            'invoice'
+            getFileTypeByStatusFacturation(
+              'invoice',
+              missionData?.xpert_associated_status || ''
+            )
           ).exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
@@ -152,7 +174,10 @@ export default function EtatFacturationsRow({
           selectedMonthYear.year,
           selectedMonthYear.month,
           true,
-          'invoice'
+          getFileTypeByStatusFacturation(
+            'invoice',
+            missionData?.xpert_associated_status || ''
+          )
         ).exists
           ? formatDate(
               checkFileStatusForDate(
@@ -160,7 +185,10 @@ export default function EtatFacturationsRow({
                 selectedMonthYear.year,
                 selectedMonthYear.month,
                 true,
-                'invoice'
+                getFileTypeByStatusFacturation(
+                  'invoice',
+                  missionData?.xpert_associated_status || ''
+                )
               ).createdAt!
             )
           : 'NON'}
@@ -172,7 +200,10 @@ export default function EtatFacturationsRow({
             selectedMonthYear.year,
             selectedMonthYear.month,
             false,
-            'salary_sheet'
+            getFileTypeByStatusFacturation(
+              'salary_sheet',
+              missionData?.xpert_associated_status || ''
+            )
           ).exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
@@ -183,7 +214,10 @@ export default function EtatFacturationsRow({
           selectedMonthYear.year,
           selectedMonthYear.month,
           false,
-          'salary_sheet'
+          getFileTypeByStatusFacturation(
+            'salary_sheet',
+            missionData?.xpert_associated_status || ''
+          )
         ).exists
           ? formatDate(
               checkFileStatusForDate(
@@ -191,7 +225,10 @@ export default function EtatFacturationsRow({
                 selectedMonthYear.year,
                 selectedMonthYear.month,
                 false,
-                'salary_sheet'
+                getFileTypeByStatusFacturation(
+                  'salary_sheet',
+                  missionData?.xpert_associated_status || ''
+                )
               ).createdAt!
             )
           : 'NON'}
@@ -203,7 +240,10 @@ export default function EtatFacturationsRow({
             selectedMonthYear.year,
             selectedMonthYear.month,
             true,
-            'invoice'
+            getFileTypeByStatusFacturation(
+              'invoice',
+              missionData?.xpert_associated_status || ''
+            )
           ).exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
@@ -214,7 +254,10 @@ export default function EtatFacturationsRow({
           selectedMonthYear.year,
           selectedMonthYear.month,
           true,
-          'invoice'
+          getFileTypeByStatusFacturation(
+            'invoice',
+            missionData?.xpert_associated_status || ''
+          )
         ).exists
           ? formatDate(
               checkFileStatusForDate(
@@ -222,7 +265,10 @@ export default function EtatFacturationsRow({
                 selectedMonthYear.year,
                 selectedMonthYear.month,
                 true,
-                'invoice'
+                getFileTypeByStatusFacturation(
+                  'invoice',
+                  missionData?.xpert_associated_status || ''
+                )
               ).createdAt!
             )
           : 'NON'}
@@ -234,7 +280,10 @@ export default function EtatFacturationsRow({
             selectedMonthYear.year,
             selectedMonthYear.month,
             true,
-            'invoice'
+            getFileTypeByStatusFacturation(
+              'invoice',
+              missionData?.xpert_associated_status || ''
+            )
           ).exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
@@ -245,7 +294,10 @@ export default function EtatFacturationsRow({
           selectedMonthYear.year,
           selectedMonthYear.month,
           true,
-          'invoice'
+          getFileTypeByStatusFacturation(
+            'invoice',
+            missionData?.xpert_associated_status || ''
+          )
         ).exists
           ? formatDate(
               checkFileStatusForDate(
@@ -253,7 +305,10 @@ export default function EtatFacturationsRow({
                 selectedMonthYear.year,
                 selectedMonthYear.month,
                 true,
-                'invoice'
+                getFileTypeByStatusFacturation(
+                  'invoice',
+                  missionData?.xpert_associated_status || ''
+                )
               ).createdAt!
             )
           : 'NON'}
@@ -265,7 +320,10 @@ export default function EtatFacturationsRow({
             selectedMonthYear.year,
             selectedMonthYear.month,
             true,
-            'invoice'
+            getFileTypeByStatusFacturation(
+              'invoice',
+              missionData?.xpert_associated_status || ''
+            )
           ).exists
             ? 'bg-[#92C6B0]'
             : 'bg-[#D64242]'
@@ -276,7 +334,10 @@ export default function EtatFacturationsRow({
           selectedMonthYear.year,
           selectedMonthYear.month,
           true,
-          'invoice'
+          getFileTypeByStatusFacturation(
+            'invoice',
+            missionData?.xpert_associated_status || ''
+          )
         ).exists
           ? formatDate(
               checkFileStatusForDate(
@@ -284,7 +345,10 @@ export default function EtatFacturationsRow({
                 selectedMonthYear.year,
                 selectedMonthYear.month,
                 true,
-                'invoice'
+                getFileTypeByStatusFacturation(
+                  'invoice',
+                  missionData?.xpert_associated_status || ''
+                )
               ).createdAt!
             )
           : 'NON REÇU'}

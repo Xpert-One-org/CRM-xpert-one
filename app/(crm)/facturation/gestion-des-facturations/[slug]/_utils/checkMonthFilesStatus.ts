@@ -1,27 +1,40 @@
 import { checkFileExistsForDate } from './checkFileExistsForDate';
 import type { FileStatuses } from '@/types/mission';
+import { getFileTypeByStatusFacturation } from './getFileTypeByStatusFacturation';
 
 export function checkMonthFilesStatus(
   fileStatuses: FileStatuses,
   year: number,
   month: number,
-  status: string
+  status: string,
+  missionXpertAssociatedStatus: string
 ): boolean {
   const invoiceStatus = checkFileExistsForDate(
-    fileStatuses['invoice']?.fournisseurFiles || [],
+    fileStatuses[
+      getFileTypeByStatusFacturation('invoice', missionXpertAssociatedStatus)
+    ]?.fournisseurFiles || [],
     year,
     month
   );
 
   const presenceSheetStatus = checkFileExistsForDate(
-    fileStatuses['presence_sheet_validated']?.xpertFiles || [],
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        'presence_sheet_validated',
+        missionXpertAssociatedStatus
+      )
+    ]?.xpertFiles || [],
     year,
     month
   );
 
   const salaryOrInvoiceStatus = checkFileExistsForDate(
-    fileStatuses[status === 'cdi' ? 'salary_sheet' : 'invoice_received']
-      ?.xpertFiles || [],
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        status === 'cdi' ? 'salary_sheet' : 'invoice_received',
+        missionXpertAssociatedStatus
+      )
+    ]?.xpertFiles || [],
     year,
     month
   );

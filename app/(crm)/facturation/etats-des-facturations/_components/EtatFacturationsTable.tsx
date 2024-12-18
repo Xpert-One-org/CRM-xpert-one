@@ -64,7 +64,7 @@ export default function EtatFacturationsTable({
         <FilterButton className="col-span-1" placeholder="Paiement" />
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="overflow-y-auto">
         <div className="grid grid-cols-10 gap-3">
           {rows.map(({ mission, monthYear }, index) => (
             <EtatFacturationsRow

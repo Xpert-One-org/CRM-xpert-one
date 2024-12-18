@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { FileStatuses } from '@/types/mission';
 import type { DBMission } from '@/types/typesDb';
 import { checkFileExistsFacturations } from '../../app/(crm)/facturation/gestion-des-facturations/[slug]/_utils/check-file-mission.action';
+import { getFileTypeByStatusFacturation } from '../../app/(crm)/facturation/gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 
 type FileStatusFacturationStore = {
   fileStatusesByMission: Record<string, FileStatuses>;
@@ -17,12 +18,24 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
       if (!mission) return;
 
       const filesToCheck = [
-        'presence_sheet_signed',
-        'presence_sheet_validated',
-        mission.xpert_associated_status === 'cdi'
-          ? 'salary_sheet'
-          : 'invoice_received',
-        'invoice',
+        `${getFileTypeByStatusFacturation(
+          'presence_sheet_signed',
+          mission.xpert_associated_status || ''
+        )}`,
+        `${getFileTypeByStatusFacturation(
+          'presence_sheet_validated',
+          mission.xpert_associated_status || ''
+        )}`,
+        `${getFileTypeByStatusFacturation(
+          mission.xpert_associated_status === 'cdi'
+            ? 'salary_sheet'
+            : 'invoice_received',
+          mission.xpert_associated_status || ''
+        )}`,
+        `${getFileTypeByStatusFacturation(
+          'invoice',
+          mission.xpert_associated_status || ''
+        )}`,
       ];
 
       const newFileStatuses: FileStatuses = {};
@@ -47,12 +60,24 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
         if (!mission) continue;
 
         const filesToCheck = [
-          'presence_sheet_signed',
-          'presence_sheet_validated',
-          mission.xpert_associated_status === 'cdi'
-            ? 'salary_sheet'
-            : 'invoice_received',
-          'invoice',
+          `${getFileTypeByStatusFacturation(
+            'presence_sheet_signed',
+            mission.xpert_associated_status || ''
+          )}`,
+          `${getFileTypeByStatusFacturation(
+            'presence_sheet_validated',
+            mission.xpert_associated_status || ''
+          )}`,
+          `${getFileTypeByStatusFacturation(
+            mission.xpert_associated_status === 'cdi'
+              ? 'salary_sheet'
+              : 'invoice_received',
+            mission.xpert_associated_status || ''
+          )}`,
+          `${getFileTypeByStatusFacturation(
+            'invoice',
+            mission.xpert_associated_status || ''
+          )}`,
         ];
 
         const newFileStatuses: FileStatuses = {};

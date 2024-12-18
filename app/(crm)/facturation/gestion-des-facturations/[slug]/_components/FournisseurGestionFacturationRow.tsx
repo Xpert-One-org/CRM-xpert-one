@@ -6,6 +6,7 @@ import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 import { formatDate } from '@/utils/date';
 import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
+import { getFileTypeByStatusFacturation } from '../_utils/getFileTypeByStatusFacturation';
 
 type FournisseurGestionFacturationRowProps = {
   missionData: DBMission;
@@ -25,7 +26,12 @@ export default function FournisseurGestionFacturationRow({
     fileStatusesByMission[missionData.mission_number || ''] || {};
 
   const invoiceStatus = checkFileExistsForDate(
-    fileStatuses['invoice']?.fournisseurFiles || [],
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        'invoice',
+        missionData?.xpert_associated_status || ''
+      )
+    ]?.fournisseurFiles || [],
     selectedYear,
     selectedMonth
   );
@@ -35,7 +41,10 @@ export default function FournisseurGestionFacturationRow({
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Facture</Box>
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
-          type="invoice"
+          type={getFileTypeByStatusFacturation(
+            'invoice',
+            missionData?.xpert_associated_status || ''
+          )}
           title="Facture"
           missionData={missionData}
           hasFile={invoiceStatus.exists}
@@ -45,7 +54,10 @@ export default function FournisseurGestionFacturationRow({
           selectedMonth={selectedMonth}
         />
         <UploadFileDialog
-          type="invoice"
+          type={getFileTypeByStatusFacturation(
+            'invoice',
+            missionData?.xpert_associated_status || ''
+          )}
           title="Facture"
           missionData={missionData}
           isFacturation
@@ -56,7 +68,10 @@ export default function FournisseurGestionFacturationRow({
         />
       </div>
       <UploadFileDialog
-        type="invoice"
+        type={getFileTypeByStatusFacturation(
+          'invoice',
+          missionData?.xpert_associated_status || ''
+        )}
         title="Facture"
         missionData={missionData}
         isFacturation

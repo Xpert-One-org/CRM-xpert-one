@@ -19,6 +19,7 @@ type HeaderCalendarProps = {
   onDateChange: (year: number, month: number) => void;
   fileStatuses: FileStatuses;
   status: string;
+  missionXpertAssociatedStatus: string;
 };
 
 export default function HeaderCalendar({
@@ -26,6 +27,7 @@ export default function HeaderCalendar({
   onDateChange,
   fileStatuses,
   status,
+  missionXpertAssociatedStatus,
 }: HeaderCalendarProps) {
   const missionStartDate = useMemo(
     () => (startDate ? new Date(startDate) : null),
@@ -117,7 +119,8 @@ export default function HeaderCalendar({
                       fileStatuses,
                       yearSelected,
                       index,
-                      status
+                      status,
+                      missionXpertAssociatedStatus
                     );
 
                     return (
@@ -143,7 +146,8 @@ export default function HeaderCalendar({
                 fileStatuses,
                 yearSelected,
                 index,
-                status
+                status,
+                missionXpertAssociatedStatus
               );
 
               return (

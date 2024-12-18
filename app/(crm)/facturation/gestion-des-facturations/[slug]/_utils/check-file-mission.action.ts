@@ -14,10 +14,11 @@ type FileExistsResult = {
 };
 
 async function listFilesInPath(
-  supabase: any,
   basePath: string,
   type: string
 ): Promise<FileInfo[]> {
+  const supabase = createSupabaseFrontendClient();
+
   const { data: years, error: yearsError } = await supabase.storage
     .from('mission_files')
     .list(basePath);
@@ -73,20 +74,14 @@ export async function checkFileExistsFacturations(
   type: string,
   missionData: DBMission
 ): Promise<FileExistsResult> {
-  const supabase = createSupabaseFrontendClient();
-
   try {
     // Check XPERT files
     const xpertPath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/facturation`;
-    const xpertFiles = await listFilesInPath(supabase, xpertPath, type);
+    const xpertFiles = await listFilesInPath(xpertPath, type);
 
     // Check Fournisseur files
     const fournisseurPath = `${missionData.mission_number}/${missionData.supplier?.generated_id}/facturation`;
-    const fournisseurFiles = await listFilesInPath(
-      supabase,
-      fournisseurPath,
-      type
-    );
+    const fournisseurFiles = await listFilesInPath(fournisseurPath, type);
 
     return {
       xpertFiles,

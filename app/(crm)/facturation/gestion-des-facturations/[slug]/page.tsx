@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
+import { getFileTypeByStatusFacturation } from './_utils/getFileTypeByStatusFacturation';
 
 export default function GestionDesFacturationsPage(props: {
   params: Promise<{ slug: string }>;
@@ -80,7 +81,10 @@ export default function GestionDesFacturationsPage(props: {
       )) {
         if (isValidated) {
           const [missionNumber, xpertId, year, month] = key.split('|');
-          const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/presence_sheet_signed`;
+          const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/${getFileTypeByStatusFacturation(
+            'presence_sheet_signed',
+            missionData?.xpert_associated_status || ''
+          )}`;
 
           const { data: files } = await supabase.storage
             .from('mission_files')
@@ -90,8 +94,14 @@ export default function GestionDesFacturationsPage(props: {
             const mostRecentFile = files[0];
             const sourceFilePath = `${basePath}/${mostRecentFile.name}`;
             const validatedFilePath = sourceFilePath.replace(
-              'presence_sheet_signed',
-              'presence_sheet_validated'
+              `${getFileTypeByStatusFacturation(
+                'presence_sheet_signed',
+                missionData?.xpert_associated_status || ''
+              )}`,
+              `${getFileTypeByStatusFacturation(
+                'presence_sheet_validated',
+                missionData?.xpert_associated_status || ''
+              )}`
             );
             await supabase.storage
               .from('mission_files')
@@ -103,7 +113,10 @@ export default function GestionDesFacturationsPage(props: {
       for (const [key, isDeleted] of Object.entries(pendingChanges.deletions)) {
         if (isDeleted) {
           const [missionNumber, xpertId, year, month] = key.split('|');
-          const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/presence_sheet_signed`;
+          const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/${getFileTypeByStatusFacturation(
+            'presence_sheet_signed',
+            missionData?.xpert_associated_status || ''
+          )}`;
 
           const { data: files } = await supabase.storage
             .from('mission_files')
@@ -145,6 +158,9 @@ export default function GestionDesFacturationsPage(props: {
         onDateChange={handleDateChange}
         fileStatuses={fileStatuses}
         status={missionData?.xpert_associated_status ?? ''}
+        missionXpertAssociatedStatus={
+          missionData?.xpert_associated_status ?? ''
+        }
       />
       <div className="flex w-1/2">
         <MissionGestionFacturationTable missionData={missionData} />
