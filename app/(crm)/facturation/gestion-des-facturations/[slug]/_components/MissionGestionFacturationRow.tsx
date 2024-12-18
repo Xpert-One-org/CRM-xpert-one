@@ -23,7 +23,9 @@ export default function MissionGestionFacturationRow({
       <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
       <Box className="col-span-1">
         {uppercaseFirstLetter(
-          new Date().toLocaleString('fr-FR', { month: 'long' })
+          new Date(mission.start_date ?? new Date()).toLocaleString('fr-FR', {
+            month: 'long',
+          })
         )}
       </Box>
       <Box className="col-span-1">{calculateTJMWithCharges()} €</Box>

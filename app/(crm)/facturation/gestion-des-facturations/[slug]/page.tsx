@@ -22,12 +22,7 @@ export default function GestionDesFacturationsPage(props: {
   const { missions, fetchMissions } = useMissionStore();
   const { fileStatusesByMission, checkAllFiles } =
     useFileStatusFacturationStore();
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear()
-  );
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    new Date().getMonth()
-  );
+
   const [pendingChanges, setPendingChanges] = useState<{
     validations: { [key: string]: boolean };
     deletions: { [key: string]: boolean };
@@ -40,7 +35,22 @@ export default function GestionDesFacturationsPage(props: {
     (mission) => mission.mission_number === missionNumber
   );
 
+  const [selectedYear, setSelectedYear] = useState<number>(
+    missionData?.start_date
+      ? new Date(missionData.start_date).getFullYear()
+      : new Date().getFullYear()
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    missionData?.start_date
+      ? new Date(missionData.start_date).getMonth()
+      : new Date().getMonth()
+  );
   const fileStatuses = fileStatusesByMission[missionNumber] || {};
+
+  const isBeforeMissionStart =
+    selectedYear < new Date(missionData?.start_date ?? '').getFullYear() ||
+    (selectedYear === new Date(missionData?.start_date ?? '').getFullYear() &&
+      selectedMonth < new Date(missionData?.start_date ?? '').getMonth());
 
   const handleDateChange = (year: number, month: number) => {
     setSelectedYear(year);
@@ -140,7 +150,7 @@ export default function GestionDesFacturationsPage(props: {
         <MissionGestionFacturationTable missionData={missionData} />
       </div>
 
-      {missionData && (
+      {missionData && !isBeforeMissionStart ? (
         <>
           <div className="flex w-full flex-col gap-3">
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
@@ -178,6 +188,11 @@ export default function GestionDesFacturationsPage(props: {
             </div>
           </div>
         </>
+      ) : (
+        <p>
+          Vous ne pouvez pas modifier les gérer les documents de facturation
+          avant la date de début de la mission
+        </p>
       )}
       <div className="flex justify-between">
         <Button

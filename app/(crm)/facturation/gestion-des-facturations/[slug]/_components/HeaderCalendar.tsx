@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Button from '@/components/Button';
 import { months } from '@/data/date';
 import {
@@ -27,10 +27,15 @@ export default function HeaderCalendar({
   fileStatuses,
   status,
 }: HeaderCalendarProps) {
-  const missionStartDate = startDate ? new Date(startDate) : null;
+  const missionStartDate = useMemo(
+    () => (startDate ? new Date(startDate) : null),
+    [startDate]
+  );
   const missionStartYear = missionStartDate?.getFullYear();
 
   const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+
   const maxYear =
     missionStartYear && missionStartYear > currentYear
       ? missionStartYear
@@ -41,12 +46,8 @@ export default function HeaderCalendar({
     (_, i) => 2010 + i
   ).sort((a, b) => b - a);
 
-  const [yearSelected, setYearSelected] = useState(
-    missionStartYear || yearsSince2010[0]
-  );
-  const [monthSelected, setMonthSelected] = useState(
-    missionStartDate?.getMonth() || new Date().getMonth()
-  );
+  const [yearSelected, setYearSelected] = useState(currentYear);
+  const [monthSelected, setMonthSelected] = useState(currentMonth);
 
   const isMonthDisabled = (year: number, monthIndex: number) => {
     if (!missionStartDate) return false;
@@ -62,6 +63,13 @@ export default function HeaderCalendar({
   };
 
   useEffect(() => {
+    if (missionStartDate) {
+      setYearSelected(missionStartDate.getFullYear());
+      setMonthSelected(missionStartDate.getMonth());
+    }
+  }, [missionStartDate]);
+
+  useEffect(() => {
     onDateChange(yearSelected, monthSelected);
   }, [yearSelected, monthSelected, onDateChange]);
 
@@ -69,9 +77,12 @@ export default function HeaderCalendar({
     <>
       <div className="flex flex-col">
         <div className="mt-spaceContainer flex items-center gap-x-spaceSmall gap-y-spaceXXSmall overflow-x-auto md:gap-x-spaceXXSmall lg:justify-evenly">
-          <Select onValueChange={(value) => setYearSelected(Number(value))}>
+          <Select
+            value={String(yearSelected)}
+            onValueChange={(value) => setYearSelected(Number(value))}
+          >
             <SelectTrigger className="h-auto w-fit bg-accent px-5 pb-2.5 pt-3 text-md font-bold text-white">
-              <SelectValue placeholder={yearSelected} />
+              <SelectValue placeholder={String(yearSelected)} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -87,7 +98,10 @@ export default function HeaderCalendar({
           </Select>
 
           <div className="flex lg:hidden">
-            <Select onValueChange={(value) => setMonthSelected(Number(value))}>
+            <Select
+              value={String(monthSelected)}
+              onValueChange={(value) => setMonthSelected(Number(value))}
+            >
               <SelectTrigger>
                 <SelectValue
                   placeholder={months
