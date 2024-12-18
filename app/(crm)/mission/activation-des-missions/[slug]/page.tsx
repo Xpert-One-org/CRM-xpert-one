@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useState, useCallback } from 'react';
 import MissionActivationTable from './_components/MissionActivationTable';
 import { convertStatusXpertValue } from '@/utils/statusXpertConverter';
 import XpertActivationMissionTable from './_components/XpertActivationMissionTable';
@@ -19,12 +19,15 @@ export default function MissionActivationPage(props: {
   const { missions, fetchMissions } = useMissionStore();
   const router = useRouter();
   const [allFilesUploaded, setAllFilesUploaded] = useState(false);
+  const [fileStatuses, setFileStatuses] = useState<
+    Record<string, { exists: boolean; createdAt?: string }>
+  >({});
 
   const missionData = missions.find(
     (mission) => mission.mission_number === missionNumber
   );
 
-  const checkAllFilesStatus = async () => {
+  const checkAllFilesStatus = useCallback(async () => {
     if (!missionData?.xpert_associated_status) return;
 
     // Check XPERT files
@@ -62,22 +65,31 @@ export default function MissionActivationPage(props: {
       ),
     ];
 
-    const xpertResults = await Promise.all(
-      xpertFilesToCheck.map((type) => checkFileExists(type, missionData))
-    );
+    const newFileStatuses: Record<
+      string,
+      { exists: boolean; createdAt?: string }
+    > = {};
 
-    const fournisseurResults = await Promise.all(
-      fournisseurFilesToCheck.map((type) =>
-        checkFileExists(type, missionData, true)
-      )
-    );
+    // Check XPERT files
+    for (const fileType of xpertFilesToCheck) {
+      const result = await checkFileExists(fileType, missionData);
+      newFileStatuses[fileType] = result;
+    }
 
-    const allFilesExist = [...xpertResults, ...fournisseurResults].every(
+    // Check Fournisseur files
+    for (const fileType of fournisseurFilesToCheck) {
+      const result = await checkFileExists(fileType, missionData, true);
+      newFileStatuses[fileType] = result;
+    }
+
+    setFileStatuses(newFileStatuses);
+
+    const allFilesExist = [...Object.values(newFileStatuses)].every(
       (result) => result.exists
     );
 
     setAllFilesUploaded(allFilesExist);
-  };
+  }, [missionData]);
 
   useEffect(() => {
     fetchMissions();
@@ -85,7 +97,7 @@ export default function MissionActivationPage(props: {
 
   useEffect(() => {
     checkAllFilesStatus();
-  }, [missionData]);
+  }, [checkAllFilesStatus]);
 
   return (
     <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
@@ -98,9 +110,7 @@ export default function MissionActivationPage(props: {
               <h3 className="text-center text-md font-medium text-[#222222]">
                 XPERT
                 {missionData.xpert_associated_status
-                  ? ` - ${convertStatusXpertValue(
-                      missionData.xpert_associated_status
-                    )}`
+                  ? ` - ${convertStatusXpertValue(missionData.xpert_associated_status)}`
                   : null}
                 {missionData.xpert_associated_status === 'cdi' ? (
                   <span> - ( XPERT ONE )</span>
@@ -108,6 +118,7 @@ export default function MissionActivationPage(props: {
               </h3>
               <XpertActivationMissionTable
                 missionData={missionData}
+                fileStatuses={fileStatuses}
                 onFileUpload={checkAllFilesStatus}
               />
             </div>
@@ -120,6 +131,7 @@ export default function MissionActivationPage(props: {
               </h3>
               <FournisseurActivationMissionTable
                 missionData={missionData}
+                fileStatuses={fileStatuses}
                 onFileUpload={checkAllFilesStatus}
               />
             </div>

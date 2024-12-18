@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
@@ -7,7 +7,6 @@ import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
 import { downloadMissionFile } from '@functions/download-file-mission';
-import { checkFileExists } from '@functions/check-file-mission';
 import DownloadOff from '@/components/svg/DownloadOff';
 import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
@@ -15,37 +14,14 @@ import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 
 export default function FournisseurActivationMissionRow({
   missionData,
+  fileStatuses,
   onFileUpload,
 }: {
   missionData: DBMission;
+  fileStatuses: Record<string, { exists: boolean; createdAt?: string }>;
   onFileUpload: () => Promise<void>;
 }) {
   const missionXpertStatus = missionData.xpert_associated_status;
-  const [fileStatuses, setFileStatuses] = useState<
-    Record<string, { exists: boolean; createdAt?: string }>
-  >({});
-
-  const checkAllFiles = useCallback(async () => {
-    const filesToCheck = [
-      getFileTypeByStatus('devis', missionXpertStatus ?? ''),
-      getFileTypeByStatus('devis_signed', missionXpertStatus ?? ''),
-      getFileTypeByStatus('contrat_commande', missionXpertStatus ?? ''),
-    ];
-
-    const newFileStatuses: Record<
-      string,
-      { exists: boolean; createdAt?: string }
-    > = {};
-
-    for (const fileType of filesToCheck) {
-      const result = await checkFileExists(fileType, missionData, true);
-      newFileStatuses[fileType] = result;
-    }
-
-    setFileStatuses(newFileStatuses);
-    await onFileUpload();
-  }, [missionData, missionXpertStatus, onFileUpload]);
-
   const handleDownloadFile = async ({
     type,
     isTemplate = false,
@@ -93,10 +69,6 @@ export default function FournisseurActivationMissionRow({
     }
   };
 
-  useEffect(() => {
-    checkAllFiles();
-  }, [checkAllFiles]);
-
   return (
     <>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Devis</Box>
@@ -115,7 +87,7 @@ export default function FournisseurActivationMissionRow({
           type={getFileTypeByStatus('devis', missionXpertStatus ?? '')}
           title="Fournisseur - Devis"
           missionData={missionData}
-          onUploadSuccess={checkAllFiles}
+          onUploadSuccess={onFileUpload}
           isFournisseurSide
         />
       </div>
@@ -190,7 +162,7 @@ export default function FournisseurActivationMissionRow({
         title="Fournisseur - Devis signé"
         buttonText="Loader devis signé"
         missionData={missionData}
-        onUploadSuccess={checkAllFiles}
+        onUploadSuccess={onFileUpload}
         isFournisseurSide
       />
       <Box
@@ -264,7 +236,7 @@ export default function FournisseurActivationMissionRow({
         title="Fournisseur - Contrat de mission / Commande"
         buttonText="Loader contrat signé"
         missionData={missionData}
-        onUploadSuccess={checkAllFiles}
+        onUploadSuccess={onFileUpload}
         isFournisseurSide
       />
       <Box

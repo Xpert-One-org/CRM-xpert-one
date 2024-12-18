@@ -1,71 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
-import UploadFileDialog from '../../../../../../src/components/dialogs/UploadFileDialog';
-import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import ViewFileDialog from '../../../../../../src/components/dialogs/ViewFileDialog';
 import { formatDate } from '@/utils/date';
-import { toast } from 'sonner';
 import { getFileStatus } from '../_utils/fileStatus';
 import { getDocumentLabel } from '../_utils/documentLabel';
 import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
-import { checkFileExists } from '@functions/check-file-mission';
-import { downloadMissionFile } from '@functions/download-file-mission';
 import DownloadOff from '@/components/svg/DownloadOff';
+import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import type { DownloadType } from '@/types/mission';
+import { toast } from 'sonner';
+import { downloadMissionFile } from '@functions/download-file-mission';
+import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
+import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
 
 export default function XpertActivationMissionRow({
   missionData,
+  fileStatuses,
   onFileUpload,
 }: {
   missionData: DBMission;
+  fileStatuses: Record<string, { exists: boolean; createdAt?: string }>;
   onFileUpload: () => Promise<void>;
 }) {
   const missionXpertStatus = missionData.xpert_associated_status;
-  const [fileStatuses, setFileStatuses] = useState<
-    Record<string, { exists: boolean; createdAt?: string }>
-  >({});
-
-  const checkAllFiles = useCallback(async () => {
-    if (!missionXpertStatus) return;
-
-    const filesToCheck = [
-      getFileTypeByStatus('recap_mission', missionXpertStatus),
-      getFileTypeByStatus('recap_mission_signed', missionXpertStatus),
-      getFileTypeByStatus(
-        missionXpertStatus === 'cdi'
-          ? 'contrat'
-          : missionXpertStatus === 'freelance'
-            ? 'commande_societe'
-            : 'devis',
-        missionXpertStatus
-      ),
-      getFileTypeByStatus(
-        missionXpertStatus === 'cdi'
-          ? 'contrat_signed'
-          : missionXpertStatus === 'freelance'
-            ? 'commande_societe_signed'
-            : 'commande',
-        missionXpertStatus
-      ),
-    ];
-
-    const newFileStatuses: Record<
-      string,
-      { exists: boolean; createdAt?: string }
-    > = {};
-
-    for (const fileType of filesToCheck) {
-      const result = await checkFileExists(fileType, missionData);
-      newFileStatuses[fileType] = result;
-    }
-
-    setFileStatuses(newFileStatuses);
-    await onFileUpload();
-  }, [missionData, missionXpertStatus, onFileUpload]);
-
   const handleDownloadFile = async ({
     type,
     isTemplate = false,
@@ -112,10 +71,6 @@ export default function XpertActivationMissionRow({
     }
   };
 
-  useEffect(() => {
-    checkAllFiles();
-  }, [checkAllFiles]);
-
   return (
     <>
       {/* Ligne 1 */}
@@ -137,7 +92,7 @@ export default function XpertActivationMissionRow({
           type={getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')}
           title="Récapitulatif de mission"
           missionData={missionData}
-          onUploadSuccess={checkAllFiles}
+          onUploadSuccess={onFileUpload}
         />
       </div>
       <Button
@@ -242,7 +197,7 @@ export default function XpertActivationMissionRow({
         title="Récapitulatif de mission signé"
         buttonText="Loader récap signé"
         missionData={missionData}
-        onUploadSuccess={checkAllFiles}
+        onUploadSuccess={onFileUpload}
       />
       <Box
         className={`col-span-1 flex-col text-white ${
@@ -329,7 +284,7 @@ export default function XpertActivationMissionRow({
             )}
             title={getDocumentLabel('contrat', missionXpertStatus ?? '')}
             missionData={missionData}
-            onUploadSuccess={checkAllFiles}
+            onUploadSuccess={onFileUpload}
           />
         ) : (
           <Button
@@ -378,7 +333,7 @@ export default function XpertActivationMissionRow({
           title="Devis de portage"
           buttonText="Loader devis portage"
           missionData={missionData}
-          onUploadSuccess={checkAllFiles}
+          onUploadSuccess={onFileUpload}
         />
       ) : (
         <Box className="size-full bg-[#b1b1b1]">{''}</Box>
@@ -480,7 +435,7 @@ export default function XpertActivationMissionRow({
             type={getFileTypeByStatus('commande', missionXpertStatus ?? '')}
             title="Commande de portage"
             missionData={missionData}
-            onUploadSuccess={checkAllFiles}
+            onUploadSuccess={onFileUpload}
           />
         ) : (
           <Button
@@ -539,7 +494,7 @@ export default function XpertActivationMissionRow({
               title="Contrat CDI"
               buttonText="Loader contrat CDI"
               missionData={missionData}
-              onUploadSuccess={checkAllFiles}
+              onUploadSuccess={onFileUpload}
             />
           ) : (
             <UploadFileDialog
@@ -550,7 +505,7 @@ export default function XpertActivationMissionRow({
               title="Commande signée"
               buttonText="Loader commande signée"
               missionData={missionData}
-              onUploadSuccess={checkAllFiles}
+              onUploadSuccess={onFileUpload}
             />
           )}
         </>

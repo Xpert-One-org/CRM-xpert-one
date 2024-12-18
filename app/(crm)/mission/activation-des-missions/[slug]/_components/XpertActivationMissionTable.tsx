@@ -6,9 +6,11 @@ import type { DBMission } from '@/types/typesDb';
 export default function XpertActivationMissionTable({
   missionData,
   onFileUpload,
+  fileStatuses,
 }: {
   missionData: DBMission;
   onFileUpload: () => Promise<void>;
+  fileStatuses: Record<string, { exists: boolean; createdAt?: string }>;
 }) {
   return (
     <div className="grid grid-cols-6 gap-3">
@@ -32,6 +34,7 @@ export default function XpertActivationMissionTable({
       <XpertActivationMissionRow
         missionData={missionData}
         onFileUpload={onFileUpload}
+        fileStatuses={fileStatuses}
       />
     </div>
   );
