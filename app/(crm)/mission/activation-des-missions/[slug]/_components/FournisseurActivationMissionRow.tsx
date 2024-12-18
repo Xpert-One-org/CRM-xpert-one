@@ -178,7 +178,7 @@ export default function FournisseurActivationMissionRow({
           {fileStatuses[
             getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
           ]?.exists
-            ? 'Reçu'
+            ? 'Reçu le'
             : 'Non reçu'}
         </p>
         <p>
@@ -252,7 +252,7 @@ export default function FournisseurActivationMissionRow({
           {fileStatuses[
             getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
           ]?.exists
-            ? 'Reçu'
+            ? 'Reçu le'
             : 'Non reçu'}
         </p>
         <p>

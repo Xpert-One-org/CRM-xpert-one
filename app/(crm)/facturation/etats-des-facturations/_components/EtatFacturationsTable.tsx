@@ -4,6 +4,7 @@ import React from 'react';
 import EtatFacturationsRow from './EtatFacturationsRow';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getUniqueBillingMonths } from '../_utils/getUniqueBillingMonths';
+import EtatFacturationUploadRow from './EtatFacturationUploadRow';
 
 export default function EtatFacturationsTable({
   missions,
@@ -37,24 +38,7 @@ export default function EtatFacturationsTable({
     });
 
   return (
-    <>
-      <div className="grid grid-cols-10 gap-3">
-        <FilterButton
-          className="col-span-3 font-bold text-black"
-          placeholder="Traité / À traiter"
-          filter={false}
-        />
-        <FilterButton
-          className="col-span-5 font-bold text-black"
-          placeholder="XPERT"
-          filter={false}
-        />
-        <FilterButton
-          className="col-span-2 font-bold text-black"
-          placeholder="FOURNISSEUR"
-          filter={false}
-        />
-      </div>
+    <div className="flex h-[calc(100vh-260px)] flex-col gap-3">
       <div className="grid grid-cols-10 gap-3">
         <FilterButton
           className="col-span-1"
@@ -78,15 +62,23 @@ export default function EtatFacturationsTable({
         <FilterButton className="col-span-1" placeholder="Facture payée" />
         <FilterButton className="col-span-1" placeholder="Facture" />
         <FilterButton className="col-span-1" placeholder="Paiement" />
-
-        {rows.map(({ mission, monthYear }, index) => (
-          <EtatFacturationsRow
-            key={`${mission.id}-${monthYear.year}-${monthYear.month}`}
-            missionData={mission}
-            selectedMonthYear={monthYear}
-          />
-        ))}
       </div>
-    </>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="grid grid-cols-10 gap-3">
+          {rows.map(({ mission, monthYear }, index) => (
+            <EtatFacturationsRow
+              key={`${mission.id}-${monthYear.year}-${monthYear.month}`}
+              missionData={mission}
+              selectedMonthYear={monthYear}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-10 gap-3">
+        <EtatFacturationUploadRow />
+      </div>
+    </div>
   );
 }

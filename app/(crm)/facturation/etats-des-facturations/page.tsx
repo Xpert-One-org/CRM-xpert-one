@@ -4,6 +4,7 @@ import React, { useEffect, useCallback } from 'react';
 import EtatFacturationsTable from './_components/EtatFacturationsTable';
 import { useMissionStore } from '@/store/mission';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
+import { FilterButton } from '@/components/FilterButton';
 
 export default function EtatsFacturationsPage() {
   const { missions, fetchMissions } = useMissionStore();
@@ -38,7 +39,24 @@ export default function EtatsFacturationsPage() {
   }, [filteredMissions, checkAllMissionsFiles, shouldUpdateFileStatuses]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-10 gap-3">
+        <FilterButton
+          className="col-span-3 font-bold text-black"
+          placeholder="Traité / À traiter"
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-5 font-bold text-black"
+          placeholder="XPERT"
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-2 font-bold text-black"
+          placeholder="FOURNISSEUR"
+          filter={false}
+        />
+      </div>
       <EtatFacturationsTable missions={filteredMissions} />
     </div>
   );

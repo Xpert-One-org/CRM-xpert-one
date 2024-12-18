@@ -103,6 +103,10 @@ export default function XpertGestionFacturationRow({
   );
 
   const handleValidatePresenceSheet = () => {
+    if (presenceSheetValidatedStatus.exists) {
+      toast.info('La feuille de présence a déjà été validée');
+      return;
+    }
     const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}`;
     onPendingChange?.('validation', key, true);
     onPendingChange?.('deletion', key, false);
@@ -168,7 +172,13 @@ export default function XpertGestionFacturationRow({
           presenceSheetStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
       >
-        <p>{presenceSheetStatus.exists ? 'Reçu' : 'Non reçu'}</p>
+        <p>
+          {presenceSheetStatus.exists
+            ? presenceSheetValidatedStatus.exists
+              ? 'Validé le'
+              : 'Reçu le'
+            : 'Non reçu'}
+        </p>
         <p>
           {presenceSheetStatus.exists
             ? formatDate(presenceSheetStatus.createdAt ?? '')
@@ -249,7 +259,7 @@ export default function XpertGestionFacturationRow({
           salaryOrInvoiceStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
       >
-        <p>{salaryOrInvoiceStatus.exists ? 'Reçu' : 'Non reçu'}</p>
+        <p>{salaryOrInvoiceStatus.exists ? 'Reçu le' : 'Non reçu'}</p>
         <p>
           {salaryOrInvoiceStatus.exists
             ? formatDate(salaryOrInvoiceStatus.createdAt ?? '')
