@@ -16,7 +16,6 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
 
     checkAllFiles: async (mission: DBMission) => {
       if (!mission) return;
-
       const filesToCheck = [
         `${getFileTypeByStatusFacturation(
           'presence_sheet_signed',

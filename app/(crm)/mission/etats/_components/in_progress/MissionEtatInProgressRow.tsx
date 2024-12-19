@@ -58,7 +58,7 @@ export default function MissionEtatInProgressRow({
 
   const handleRedirectionFacturation = () => {
     router.push(
-      `/mission/facturation/${mission.mission_number?.replaceAll(' ', '-')}`
+      `/facturation/gestion-des-facturations/${mission.mission_number?.replaceAll(' ', '-')}`
     );
   };
 
@@ -92,7 +92,7 @@ export default function MissionEtatInProgressRow({
       >
         {mission.xpert?.generated_id ?? empty}
       </Box>
-      <Box className={`col-span-1 ${getBackgroundClass}`}>
+      <Box className={`col-span-2 ${getBackgroundClass}`}>
         {getBackgroundClass === 'bg-[#D64242] text-white'
           ? 'Non reçu'
           : getBackgroundClass === 'bg-accent text-white'
@@ -119,12 +119,12 @@ export default function MissionEtatInProgressRow({
       >
         <BriefCase width={28} height={28} className="fill-white" />
       </Button>
-      {/* <Button
+      <Button
         className="col-span-1 h-full"
         onClick={handleRedirectionFacturation}
       >
         <FacturationLogo width={28} height={28} className="fill-white" />
-      </Button> */}
+      </Button>
     </>
   );
 }

@@ -154,7 +154,12 @@ export default function GestionDesFacturationsPage(props: {
   return (
     <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
       <HeaderCalendar
-        startDate={missionData?.start_date ?? undefined}
+        startDate={
+          missionData?.start_date ? new Date(missionData.start_date) : undefined
+        }
+        endDate={
+          missionData?.end_date ? new Date(missionData.end_date) : undefined
+        }
         onDateChange={handleDateChange}
         fileStatuses={fileStatuses}
         missionXpertAssociatedStatus={

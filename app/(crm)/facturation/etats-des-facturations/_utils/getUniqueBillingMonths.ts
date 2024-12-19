@@ -1,23 +1,27 @@
+import { generateMonthsRange } from './generateMonthsRange';
 import type { FileStatuses } from '@/types/mission';
+import type { DBMission } from '@/types/typesDb';
 
-export const getUniqueBillingMonths = (fileStatuses: FileStatuses) => {
-  const months = new Set<string>();
+export const getUniqueBillingMonths = (
+  fileStatuses: FileStatuses,
+  mission: DBMission
+) => {
+  const allMissionMonths = generateMonthsRange(
+    mission.start_date || '',
+    mission.end_date || ''
+  );
 
+  const fileMonths = new Set<string>();
   Object.values(fileStatuses).forEach((status: any) => {
     ['xpertFiles', 'fournisseurFiles'].forEach((fileType) => {
       status[fileType]?.forEach((file: any) => {
-        months.add(`${file.year}-${file.month}`);
+        fileMonths.add(`${file.year}-${file.month}`);
       });
     });
   });
 
-  return Array.from(months)
-    .map((monthStr) => {
-      const [year, month] = monthStr.split('-').map(Number);
-      return { year, month };
-    })
-    .sort((a, b) => {
-      if (a.year !== b.year) return a.year - b.year;
-      return a.month - b.month;
-    });
+  return allMissionMonths.sort((a, b) => {
+    if (a.year !== b.year) return a.year - b.year;
+    return a.month - b.month;
+  });
 };

@@ -91,6 +91,7 @@ export async function checkFileExistsFacturations(
       xpertFiles,
       fournisseurFiles,
       noFilesFound,
+      disabled: false,
     };
   } catch (error) {
     console.error('Error checking file existence:', error);
@@ -98,6 +99,7 @@ export async function checkFileExistsFacturations(
       xpertFiles: [],
       fournisseurFiles: [],
       noFilesFound: true,
+      disabled: false,
     };
   }
 }

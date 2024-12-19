@@ -15,10 +15,10 @@ export default function EtatFacturationsTable({
 
   const rows = missions
     .flatMap((mission) => {
-      const fileStatuses = fileStatusesByMission[mission.mission_number || ''];
-      if (!fileStatuses) return [];
+      const fileStatuses =
+        fileStatusesByMission[mission.mission_number || ''] || {};
 
-      const monthsForMission = getUniqueBillingMonths(fileStatuses);
+      const monthsForMission = getUniqueBillingMonths(fileStatuses, mission);
 
       return monthsForMission.map((monthYear) => ({
         mission,
