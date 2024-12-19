@@ -66,12 +66,6 @@ export default function MultiSelectComponent({
       {label && (
         <Label htmlFor={id} className={cn('flex items-center', classNameLabel)}>
           {label}
-          {required && <span className="text-accent">*</span>}
-          {explain ? (
-            <Info className="ml-2 w-fit">{explain}</Info>
-          ) : (
-            <div className="h-6" />
-          )}
         </Label>
       )}
 
@@ -83,7 +77,7 @@ export default function MultiSelectComponent({
         maxSelected={maxSelected}
         showIndividualX={showIndividualX}
         className={cn(
-          'bg-white py-1 pr-4 transition',
+          'border-gray-200 bg-white py-1 pr-4 transition',
           { 'border-important': hasError },
           { 'hover:border-primary': !hasError }
         )}

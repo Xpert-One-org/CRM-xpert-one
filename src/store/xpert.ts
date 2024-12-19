@@ -21,7 +21,9 @@ type XpertState = {
   totalXpertOptimized: number | null;
   offset: number;
   openedXpert: DBXpert | null;
+  openedXpertNotSaved: DBXpert | null;
   setOpenedXpert: (xpertId: string) => void;
+  setOpenedXpertNotSaved: (xpert: DBXpert) => void;
   getXpertSelected: (xpertId: string) => Promise<{ xpert: DBXpert | null }>;
   resetXperts: () => void;
   fetchXperts: () => void;
@@ -52,9 +54,14 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     set({ activeFilters: filter });
   },
   openedXpert: null,
+  openedXpertNotSaved: null,
   xpertFilterKey: new Date().getTime(),
   setXpertFilterKey: () => {
     set({ xpertFilterKey: new Date().getTime() });
+  },
+
+  setOpenedXpertNotSaved: (xpert: DBXpert) => {
+    set({ openedXpertNotSaved: xpert });
   },
 
   totalXpertOptimized: null,
@@ -98,6 +105,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     const openedXpert = xperts.find((xpert) => xpert.id === xpertId);
     set({ openedXpert });
   },
+
   fetchSpecificXpert: async (xpertId: string) => {
     set({ loading: true });
     const xpert = await getSpecificXpert(xpertId);
