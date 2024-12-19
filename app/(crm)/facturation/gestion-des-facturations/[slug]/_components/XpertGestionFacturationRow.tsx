@@ -48,10 +48,9 @@ export default function XpertGestionFacturationRow({
     isTemplate = false,
   }: DownloadType) => {
     const supabase = createSupabaseFrontendClient();
-
     try {
       const basePath = isTemplate
-        ? `modeles_facturation/${status === 'cdi' ? 'cdi' : 'freelance_portage'}/`
+        ? `modeles_facturation/${type}`
         : `${missionData.mission_number}/${missionData.xpert?.generated_id}/facturation/${type}`;
 
       const { data: files, error: listError } = await supabase.storage
@@ -148,7 +147,7 @@ export default function XpertGestionFacturationRow({
       <div className="col-span-1 flex w-full gap-2">
         <ViewFileDialog
           type={getFileTypeByStatusFacturation(
-            'presence_sheet_signed',
+            `presence_sheet${presenceSheetStatus.exists ? '_signed' : ''}`,
             missionData?.xpert_associated_status || ''
           )}
           title="Feuille de présence"
@@ -174,7 +173,10 @@ export default function XpertGestionFacturationRow({
         className="size-full text-white"
         onClick={() =>
           handleDownloadFile({
-            type: 'presence_sheet_signed',
+            type: getFileTypeByStatusFacturation(
+              `presence_sheet${presenceSheetStatus.exists ? '_signed' : ''}`,
+              missionData?.xpert_associated_status || ''
+            ),
             isTemplate: true,
           })
         }

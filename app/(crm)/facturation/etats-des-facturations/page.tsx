@@ -11,9 +11,13 @@ export default function EtatsFacturationsPage() {
   const { fileStatusesByMission, checkAllMissionsFiles } =
     useFileStatusFacturationStore();
 
-  const filteredMissions = missions.filter(
-    (mission) => mission.state === 'in_progress'
-  );
+  const filteredMissions = missions
+    .filter((mission) => mission.state === 'in_progress')
+    .sort((a, b) => {
+      const dateA = new Date(a.start_date || '').getTime();
+      const dateB = new Date(b.start_date || '').getTime();
+      return dateA - dateB;
+    });
 
   const shouldUpdateFileStatuses = useCallback(
     (missions: typeof filteredMissions) => {

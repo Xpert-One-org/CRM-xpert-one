@@ -53,6 +53,11 @@ export default function GestionDesFacturationsPage(props: {
     (selectedYear === new Date(missionData?.start_date ?? '').getFullYear() &&
       selectedMonth < new Date(missionData?.start_date ?? '').getMonth());
 
+  const isAfterMissionEnd =
+    selectedYear > new Date(missionData?.end_date ?? '').getFullYear() ||
+    (selectedYear === new Date(missionData?.end_date ?? '').getFullYear() &&
+      selectedMonth > new Date(missionData?.end_date ?? '').getMonth());
+
   const handleDateChange = (year: number, month: number) => {
     setSelectedYear(year);
     setSelectedMonth(month);
@@ -174,7 +179,7 @@ export default function GestionDesFacturationsPage(props: {
         />
       </div>
 
-      {missionData && !isBeforeMissionStart ? (
+      {missionData && !isBeforeMissionStart && !isAfterMissionEnd ? (
         <>
           <div className="flex w-full flex-col gap-3">
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">

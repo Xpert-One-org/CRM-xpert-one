@@ -11,7 +11,8 @@ export default function EtatFacturationsTable({
 }: {
   missions: DBMission[];
 }) {
-  const { fileStatusesByMission } = useFileStatusFacturationStore();
+  const { fileStatusesByMission, checkAllMissionsFiles } =
+    useFileStatusFacturationStore();
 
   const rows = missions
     .flatMap((mission) => {
@@ -32,9 +33,13 @@ export default function EtatFacturationsTable({
       if (a.monthYear.month !== b.monthYear.month) {
         return a.monthYear.month - b.monthYear.month;
       }
-      return (a.mission.mission_number || '').localeCompare(
-        b.mission.mission_number || ''
+      const missionNumberA = parseInt(
+        a.mission.mission_number?.split(' ')[1] || '0'
       );
+      const missionNumberB = parseInt(
+        b.mission.mission_number?.split(' ')[1] || '0'
+      );
+      return missionNumberA - missionNumberB;
     });
 
   return (
@@ -77,7 +82,12 @@ export default function EtatFacturationsTable({
       </div>
 
       <div className="grid grid-cols-10 gap-3">
-        <EtatFacturationUploadRow />
+        <EtatFacturationUploadRow
+          missions={missions}
+          onUploadSuccess={() => {
+            checkAllMissionsFiles(missions);
+          }}
+        />
       </div>
     </div>
   );

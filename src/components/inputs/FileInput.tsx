@@ -9,6 +9,7 @@ type Props = {
   label?: string | React.ReactNode;
   fileName?: string;
   hasError?: boolean;
+  errorMessageText?: string;
   classNameInput?: string;
   isDownload?: boolean;
   download?: () => void;
@@ -17,6 +18,7 @@ type Props = {
 export default function FileInput({
   onChange,
   hasError,
+  errorMessageText,
   classNameInput,
   className,
   placeholder = 'CV.png',
@@ -67,6 +69,9 @@ export default function FileInput({
           />
         </div>
       </label>
+      {hasError && errorMessageText && (
+        <p className="mt-1 text-sm text-important">{errorMessageText}</p>
+      )}
     </div>
   );
 }

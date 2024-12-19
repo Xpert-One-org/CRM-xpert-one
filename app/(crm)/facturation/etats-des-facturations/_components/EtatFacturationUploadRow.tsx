@@ -1,18 +1,26 @@
-import { Button } from '@/components/ui/button';
-import { DownloadIcon } from 'lucide-react';
 import React from 'react';
+import UploadMultipleSalarySheetDialog from './UploadMultipleSalarySheetDialog';
+import type { DBMission } from '@/types/typesDb';
 
-export default function EtatFacturationUploadRow() {
+export default function EtatFacturationUploadRow({
+  missions,
+  onUploadSuccess,
+}: {
+  missions: DBMission[];
+  onUploadSuccess?: () => void;
+}) {
   return (
     <>
       <div className="col-span-5" />
-      <Button className="h-spaceLarge w-full">
-        <DownloadIcon className="size-6 -rotate-90 text-white" />
-      </Button>
+      <UploadMultipleSalarySheetDialog
+        missions={missions}
+        onUploadSuccess={onUploadSuccess}
+      />
       <div className="col-span-2" />
-      <Button className="h-spaceLarge w-full">
-        <DownloadIcon className="size-6 -rotate-90 text-white" />
-      </Button>
+      <UploadMultipleSalarySheetDialog
+        missions={missions}
+        onUploadSuccess={onUploadSuccess}
+      />
     </>
   );
 }
