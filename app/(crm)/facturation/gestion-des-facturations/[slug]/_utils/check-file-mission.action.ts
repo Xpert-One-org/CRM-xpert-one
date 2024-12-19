@@ -11,6 +11,7 @@ type FileExistsResult = {
   disabled?: boolean;
   xpertFiles: FileInfo[];
   fournisseurFiles: FileInfo[];
+  noFilesFound: boolean;
 };
 
 async function listFilesInPath(
@@ -83,15 +84,20 @@ export async function checkFileExistsFacturations(
     const fournisseurPath = `${missionData.mission_number}/${missionData.supplier?.generated_id}/facturation`;
     const fournisseurFiles = await listFilesInPath(fournisseurPath, type);
 
+    const noFilesFound =
+      xpertFiles.length === 0 && fournisseurFiles.length === 0;
+
     return {
       xpertFiles,
       fournisseurFiles,
+      noFilesFound,
     };
   } catch (error) {
     console.error('Error checking file existence:', error);
     return {
       xpertFiles: [],
       fournisseurFiles: [],
+      noFilesFound: true,
     };
   }
 }

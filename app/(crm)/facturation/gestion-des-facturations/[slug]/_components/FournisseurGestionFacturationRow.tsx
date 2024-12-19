@@ -99,7 +99,7 @@ export default function FournisseurGestionFacturationRow({
       </Box>
       <Box className="col-span-3 h-[70px] w-full bg-[#F5F5F5]">Paiement</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Box className="size-full bg-[#b1b1b1]">{''}</Box>
+      <Box className="size-full bg-[#D64242] text-white">{'Non reçu'}</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
     </>
   );

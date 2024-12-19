@@ -6,7 +6,6 @@ export function checkMonthFilesStatus(
   fileStatuses: FileStatuses,
   year: number,
   month: number,
-  status: string,
   missionXpertAssociatedStatus: string
 ): boolean {
   const invoiceStatus = checkFileExistsForDate(
@@ -31,7 +30,9 @@ export function checkMonthFilesStatus(
   const salaryOrInvoiceStatus = checkFileExistsForDate(
     fileStatuses[
       getFileTypeByStatusFacturation(
-        status === 'cdi' ? 'salary_sheet' : 'invoice_received',
+        missionXpertAssociatedStatus === 'cdi'
+          ? 'salary_sheet'
+          : 'invoice_received',
         missionXpertAssociatedStatus
       )
     ]?.xpertFiles || [],

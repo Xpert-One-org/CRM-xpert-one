@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Download, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
@@ -36,6 +36,9 @@ export default function XpertGestionFacturationRow({
   onFileUpdate,
   onPendingChange,
 }: Omit<XpertGestionFacturationRowProps, 'fileStatuses'>) {
+  const [isPendingValidation, setIsPendingValidation] = useState(false);
+  const [isPendingDeletion, setIsPendingDeletion] = useState(false);
+
   const { fileStatusesByMission } = useFileStatusFacturationStore();
   const fileStatuses =
     fileStatusesByMission[missionData.mission_number || ''] || {};
@@ -48,7 +51,7 @@ export default function XpertGestionFacturationRow({
 
     try {
       const basePath = isTemplate
-        ? `modeles_facturation/${status === 'cdi' ? 'cdi' : 'freelance-portage'}/`
+        ? `modeles_facturation/${status === 'cdi' ? 'cdi' : 'freelance_portage'}/`
         : `${missionData.mission_number}/${missionData.xpert?.generated_id}/facturation/${type}`;
 
       const { data: files, error: listError } = await supabase.storage
@@ -125,12 +128,16 @@ export default function XpertGestionFacturationRow({
     const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}`;
     onPendingChange?.('validation', key, true);
     onPendingChange?.('deletion', key, false);
+    setIsPendingValidation(true);
+    setIsPendingDeletion(false);
   };
 
   const handleDeletePresenceSheet = () => {
     const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}`;
     onPendingChange?.('deletion', key, true);
     onPendingChange?.('validation', key, false);
+    setIsPendingDeletion(true);
+    setIsPendingValidation(false);
   };
 
   return (
@@ -208,14 +215,18 @@ export default function XpertGestionFacturationRow({
       </Box>
       <div className="col-span-1 flex gap-2">
         <Button
-          className="flex size-full w-1/2 bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80"
+          className={`flex size-full w-1/2 bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80 ${
+            isPendingValidation && 'border-4 border-accent'
+          }`}
           onClick={handleValidatePresenceSheet}
           disabled={!presenceSheetStatus.exists}
         >
           <Check className="size-6" />
         </Button>
         <Button
-          className="flex size-full w-1/2 bg-[#D64242] text-white hover:bg-[#D64242]/80"
+          className={`flex size-full w-1/2 bg-[#b32f2f] text-white hover:bg-[#b32f2f]/80 ${
+            isPendingDeletion && 'border-4 border-accent'
+          }`}
           onClick={handleDeletePresenceSheet}
           disabled={
             !presenceSheetStatus.exists || presenceSheetValidatedStatus.exists
@@ -303,7 +314,7 @@ export default function XpertGestionFacturationRow({
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       {/* TODO: manag logic later with etat facturations  */}
-      <Box className="size-full bg-[#b1b1b1]">{''}</Box>
+      <Box className="size-full bg-[#D64242] text-white">{'Non effectué'}</Box>
     </>
   );
 }

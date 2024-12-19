@@ -16,5 +16,6 @@ export function checkFileStatusForDate(
   return {
     exists: !!file,
     createdAt: file?.createdAt,
+    noFilesFound: files.length === 0,
   };
 }

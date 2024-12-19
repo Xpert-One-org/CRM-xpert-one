@@ -37,5 +37,6 @@ export type FileStatuses = Record<
   {
     xpertFiles: { year: number; month: number; createdAt: string }[];
     fournisseurFiles: { year: number; month: number; createdAt: string }[];
+    noFilesFound: boolean;
   }
 >;

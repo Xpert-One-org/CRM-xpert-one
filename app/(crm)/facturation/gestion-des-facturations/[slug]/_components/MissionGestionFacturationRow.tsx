@@ -8,8 +8,12 @@ import { uppercaseFirstLetter } from '@/utils/string';
 
 export default function MissionGestionFacturationRow({
   mission,
+  selectedYear,
+  selectedMonth,
 }: {
   mission: DBMission;
+  selectedYear: number;
+  selectedMonth: number;
 }) {
   const calculateTJMWithCharges = () => {
     const baseAmount = parseInt(mission.tjm ?? '0');
@@ -27,7 +31,21 @@ export default function MissionGestionFacturationRow({
             month: 'long',
           })
         )}
+        {` ${new Date(mission.start_date ?? new Date()).getFullYear()}`}
       </Box>
+      <Box className="col-span-1">
+        {uppercaseFirstLetter(
+          new Date(mission.end_date ?? new Date()).toLocaleString('fr-FR', {
+            month: 'long',
+          })
+        )}
+        {` ${new Date(mission.end_date ?? new Date()).getFullYear()}`}
+      </Box>
+      <Box className="col-span-1">{`${uppercaseFirstLetter(
+        new Date(selectedYear, selectedMonth).toLocaleString('fr-FR', {
+          month: 'long',
+        })
+      )} ${selectedYear}`}</Box>
       <Box className="col-span-1">{calculateTJMWithCharges()} €</Box>
     </>
   );

@@ -157,13 +157,16 @@ export default function GestionDesFacturationsPage(props: {
         startDate={missionData?.start_date ?? undefined}
         onDateChange={handleDateChange}
         fileStatuses={fileStatuses}
-        status={missionData?.xpert_associated_status ?? ''}
         missionXpertAssociatedStatus={
           missionData?.xpert_associated_status ?? ''
         }
       />
       <div className="flex w-1/2">
-        <MissionGestionFacturationTable missionData={missionData} />
+        <MissionGestionFacturationTable
+          missionData={missionData}
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+        />
       </div>
 
       {missionData && !isBeforeMissionStart ? (

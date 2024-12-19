@@ -18,7 +18,6 @@ type HeaderCalendarProps = {
   startDate?: string;
   onDateChange: (year: number, month: number) => void;
   fileStatuses: FileStatuses;
-  status: string;
   missionXpertAssociatedStatus: string;
 };
 
@@ -26,7 +25,6 @@ export default function HeaderCalendar({
   startDate,
   onDateChange,
   fileStatuses,
-  status,
   missionXpertAssociatedStatus,
 }: HeaderCalendarProps) {
   const missionStartDate = useMemo(
@@ -63,13 +61,6 @@ export default function HeaderCalendar({
 
     return isFuture || isBeforeMissionStart;
   };
-
-  useEffect(() => {
-    if (missionStartDate) {
-      setYearSelected(missionStartDate.getFullYear());
-      setMonthSelected(missionStartDate.getMonth());
-    }
-  }, [missionStartDate]);
 
   useEffect(() => {
     onDateChange(yearSelected, monthSelected);
@@ -119,7 +110,6 @@ export default function HeaderCalendar({
                       fileStatuses,
                       yearSelected,
                       index,
-                      status,
                       missionXpertAssociatedStatus
                     );
 
@@ -146,7 +136,6 @@ export default function HeaderCalendar({
                 fileStatuses,
                 yearSelected,
                 index,
-                status,
                 missionXpertAssociatedStatus
               );
 
