@@ -15,11 +15,13 @@ export default function EtatFacturationUploadRow({
       <UploadMultipleSalarySheetDialog
         missions={missions}
         onUploadSuccess={onUploadSuccess}
+        isFournisseur={false}
       />
       <div className="col-span-2" />
       <UploadMultipleSalarySheetDialog
         missions={missions}
         onUploadSuccess={onUploadSuccess}
+        isFournisseur={true}
       />
     </>
   );

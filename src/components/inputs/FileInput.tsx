@@ -65,7 +65,7 @@ export default function FileInput({
         <div className="m-[7px] rounded-xxs bg-lightgray-secondary p-1 outline-none">
           <Upload
             onClick={isDownload ? download : undefined}
-            className={isDownload ? 'stroke-primary' : ''}
+            className={isDownload ? 'stroke-colors-primary' : '-rotate-90'}
           />
         </div>
       </label>

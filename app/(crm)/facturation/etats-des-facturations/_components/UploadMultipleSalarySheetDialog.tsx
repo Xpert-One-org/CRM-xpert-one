@@ -25,14 +25,17 @@ type MissionUpload = {
   file: File | null;
   isError?: boolean;
   errorMessage?: string;
+  fileName?: string;
 };
 
 export default function UploadMultipleSalarySheetDialog({
   missions,
   onUploadSuccess,
+  isFournisseur = false,
 }: {
   missions: DBMission[];
   onUploadSuccess?: () => void;
+  isFournisseur?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -40,47 +43,45 @@ export default function UploadMultipleSalarySheetDialog({
   const { fileStatusesByMission } = useFileStatusFacturationStore();
 
   const handleOpenDialog = () => {
-    const cdiMissionsWithoutSalarySheet = missions.filter(
-      (mission) => mission.xpert_associated_status === 'cdi'
-    );
+    const filteredMissions = isFournisseur
+      ? missions
+      : missions.filter((mission) => mission.xpert_associated_status === 'cdi');
 
-    const uploads: MissionUpload[] = cdiMissionsWithoutSalarySheet.flatMap(
-      (mission) => {
-        const months: MissionUpload[] = [];
-        const fileStatuses =
-          fileStatusesByMission[mission.mission_number || ''] || {};
+    const uploads: MissionUpload[] = filteredMissions.flatMap((mission) => {
+      const months: MissionUpload[] = [];
+      const fileStatuses =
+        fileStatusesByMission[mission.mission_number || ''] || {};
 
-        const missionMonths = generateMonthsRange(
-          mission.start_date || '',
-          mission.end_date || ''
+      const missionMonths = generateMonthsRange(
+        mission.start_date || '',
+        mission.end_date || ''
+      );
+
+      for (const monthYear of missionMonths) {
+        const fileStatus = checkFileStatusForDate(
+          fileStatuses,
+          monthYear.year,
+          monthYear.month,
+          isFournisseur,
+          getFileTypeByStatusFacturation(
+            isFournisseur ? 'invoice' : 'salary_sheet',
+            mission.xpert_associated_status || ''
+          )
         );
 
-        for (const monthYear of missionMonths) {
-          const fileStatus = checkFileStatusForDate(
-            fileStatuses,
-            monthYear.year,
-            monthYear.month,
-            false,
-            getFileTypeByStatusFacturation(
-              'salary_sheet',
-              mission.xpert_associated_status || ''
-            )
-          );
-
-          if (!fileStatus.exists) {
-            months.push({
-              mission,
-              monthYear: {
-                month: monthYear.month,
-                year: monthYear.year,
-              },
-              file: null,
-            });
-          }
+        if (!fileStatus.exists) {
+          months.push({
+            mission,
+            monthYear: {
+              month: monthYear.month,
+              year: monthYear.year,
+            },
+            file: null,
+          });
         }
-        return months;
       }
-    );
+      return months;
+    });
 
     const sortedUploads = uploads.sort((a, b) => {
       if (a.monthYear.year !== b.monthYear.year) {
@@ -105,9 +106,17 @@ export default function UploadMultipleSalarySheetDialog({
     mission: DBMission,
     monthYear: { month: number; year: number }
   ) => {
-    const expectedName = `${mission.mission_number}_${mission.xpert?.generated_id}_${monthYear.year}_${monthYear.month < 10 ? '0' : ''}${monthYear.month + 1}`;
-    const fileName = file.name.split('.')[0]; // Retire l'extension
+    const monthNumber = monthYear.month + 1;
+    const formattedMonth =
+      monthNumber < 10 ? `0${monthNumber}` : `${monthNumber}`;
 
+    const expectedName = `${mission.mission_number}_${
+      isFournisseur
+        ? mission.supplier?.generated_id
+        : mission.xpert?.generated_id
+    }_${monthYear.year}_${formattedMonth}`;
+
+    const fileName = file.name.split('.')[0];
     return fileName === expectedName;
   };
 
@@ -130,6 +139,7 @@ export default function UploadMultipleSalarySheetDialog({
         newUploads[index] = {
           ...currentUpload,
           file,
+          fileName: file.name,
           isError: !isValidNaming,
           errorMessage: !isValidNaming
             ? 'Le nom du fichier ne respecte pas la convention de nommage'
@@ -162,20 +172,22 @@ export default function UploadMultipleSalarySheetDialog({
         if (!upload.file) continue;
 
         const { mission, monthYear, file } = upload;
-        const filePath = `${mission.mission_number}/${
-          mission.xpert?.generated_id
-        }/facturation/${getFileTypeByStatusFacturation(
-          'salary_sheet',
-          mission.xpert_associated_status || ''
-        )}/${monthYear.year}-${(monthYear.month + 1)
+        const formattedMonth = (monthYear.month + 1)
           .toString()
-          .padStart(2, '0')}-${file.name}`;
+          .padStart(2, '0');
+
+        const filePath = `${mission.mission_number}/${
+          isFournisseur
+            ? mission.supplier?.generated_id
+            : mission.xpert?.generated_id
+        }/facturation/${monthYear.year}/${formattedMonth}/${getFileTypeByStatusFacturation(
+          isFournisseur ? 'invoice' : 'salary_sheet',
+          mission.xpert_associated_status || ''
+        )}/${file.name}`;
 
         const { error } = await supabase.storage
           .from('mission_files')
           .upload(filePath, file);
-
-        console.log(filePath);
 
         if (error) {
           console.error('Error uploading file:', error);
@@ -221,7 +233,10 @@ export default function UploadMultipleSalarySheetDialog({
           <div className="grid gap-4">
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
-                Upload Multiple des Bulletins de Salaire
+                Upload plusieurs{' '}
+                {isFournisseur
+                  ? 'Factures - FOURNISSEUR'
+                  : 'Bulletins de Salaires - XPERT'}
               </h2>
               <div className="flex flex-col gap-2 overflow-y-auto">
                 {missionsToUpload.map((upload, index) => (
@@ -249,10 +264,19 @@ export default function UploadMultipleSalarySheetDialog({
                       onChange={(e) => handleFileChange(e, index)}
                       accept=".pdf,.doc,.docx"
                       disabled={isUploading}
-                      label={'Bulletin de salaire'}
-                      placeholder={`${upload.mission.mission_number}_${upload.mission.xpert?.generated_id}_${upload.monthYear.year}_${upload.monthYear.month < 10 ? '0' : ''}${upload.monthYear.month + 1}.pdf`}
+                      label={isFournisseur ? 'Facture' : 'Bulletin de salaire'}
+                      placeholder={`${upload.mission.mission_number}_${
+                        isFournisseur
+                          ? upload.mission.supplier?.generated_id
+                          : upload.mission.xpert?.generated_id
+                      }_${upload.monthYear.year}_${
+                        upload.monthYear.month + 1 < 10
+                          ? `0${upload.monthYear.month + 1}`
+                          : upload.monthYear.month + 1
+                      }.pdf`}
                       hasError={upload.isError}
                       errorMessageText={upload.errorMessage}
+                      fileName={upload.isError ? '' : upload.fileName}
                     />
                   </div>
                 ))}
@@ -269,13 +293,27 @@ export default function UploadMultipleSalarySheetDialog({
                 onClick={handleUploadFiles}
                 disabled={
                   isUploading ||
-                  !missionsToUpload.some((upload) => upload.file !== null)
+                  missionsToUpload.some((upload) => !upload.file) ||
+                  missionsToUpload.some((upload) => upload.isError)
                 }
                 className="bg-primary text-white hover:bg-primary/80"
               >
                 {isUploading
                   ? 'Upload en cours...'
-                  : 'Uploader tous les fichiers'}
+                  : `Uploader tous les fichiers ${
+                      missionsToUpload.filter((upload) => !upload.file).length >
+                      0
+                        ? `(${
+                            missionsToUpload.filter((upload) => !upload.file)
+                              .length
+                          } restant${
+                            missionsToUpload.filter((upload) => !upload.file)
+                              .length > 1
+                              ? 's'
+                              : ''
+                          })`
+                        : ''
+                    }`}
               </Button>
             </div>
           </div>
