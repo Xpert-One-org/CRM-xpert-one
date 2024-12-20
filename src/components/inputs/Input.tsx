@@ -3,7 +3,7 @@ import SearchWBg from '@/components/svg/SearchWBg';
 import type { ComponentProps } from 'react';
 import React, { useState } from 'react';
 import Info from '../Info';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Ban, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -66,6 +66,7 @@ export default function Input({
         className={cn(
           'relative flex h-[42px] w-full items-center rounded-xs border-[1px] border-border-gray bg-white transition',
           { 'border-important': hasError },
+          { 'bg-gray-100': props.disabled },
           { 'hover:border-primary': !hasError && !props.disabled }
         )}
       >
@@ -74,6 +75,14 @@ export default function Input({
             size={20}
             color="black"
             className="ml-3 outline-none"
+            type="button"
+          />
+        )}
+
+        {hasPreIcon && props.disabled && (
+          <Ban
+            color="black"
+            className="mx-3 bg-transparent outline-none"
             type="button"
           />
         )}
@@ -94,7 +103,8 @@ export default function Input({
           placeholder={placeholder}
           className={cn(
             'h-full w-full rounded-xs bg-white px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary',
-            { uppercase: props.id === 'lastname' || uppercase }
+            { uppercase: props.id === 'lastname' || uppercase },
+            { 'cursor-not-allowed': props.disabled }
           )}
         />
         {props.type === 'search' && (

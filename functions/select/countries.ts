@@ -18,3 +18,19 @@ export const getCountries = async () => {
 
   return { data: sortedCountries, error: null };
 };
+
+export const getRegions = async () => {
+  const response = await fetch('https://geo.api.gouv.fr/regions');
+  const data = await response.json();
+  const regions = data.map((region: any) => {
+    return {
+      value: region.code,
+      label: region.nom,
+    };
+  });
+  const sortedRegions = regions.sort((a: any, b: any) =>
+    a.label.localeCompare(b.label)
+  );
+
+  return { data: sortedRegions, error: null };
+};
