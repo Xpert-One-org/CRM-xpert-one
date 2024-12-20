@@ -199,7 +199,7 @@ export default function MultiCreatableSelect({
               <div className="flex flex-wrap items-center gap-1">
                 {state.values.length > 0 ? (
                   state.values.map((value) => (
-                    <Badge key={value} className="mr-1 font-[300]">
+                    <Badge key={value} className="mr-1 text-wrap font-[300]">
                       {getLabel({
                         value,
                         select: optionsOther

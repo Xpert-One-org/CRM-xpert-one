@@ -2,7 +2,9 @@ import Input from '@/components/inputs/Input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSelect } from '@/store/select';
 import type {
+  DBProfile,
   DBProfileExpertise,
+  DBProfileStatus,
   DBXpert,
   DBXpertOptimized,
 } from '@/types/typesDb';
@@ -24,25 +26,27 @@ import {
 import { ageMax, empty } from '@/data/constant';
 import { Slider } from '@/components/ui/slider';
 import XpertExperience from '../XpertExperience';
-import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { getYears } from '@/utils/string';
 import TextArea from '@/components/inputs/TextArea';
 import { useXpertStore } from '@/store/xpert';
-import SelectComponent from '@/components/SelectComponent';
 import PhoneInputComponent from '@/components/inputs/PhoneInputComponent';
 import CreatableSelect from '@/components/CreatableSelect';
 import MultiCreatableSelect from '@/components/MultiCreatableSelect';
+import Button from '@/components/Button';
+import Plus from '@/components/svg/Plus';
+import { Minus } from 'lucide-react';
 
 export type NestedTableKey =
   | 'profile_expertise'
   | 'profile_mission'
-  | 'profile_status'
-  | 'mission';
+  | 'profile_status';
 
 export default function XpertRowContent({
   xpertOptimized,
+  handleKeyChanges,
 }: {
   xpertOptimized: DBXpertOptimized;
+  handleKeyChanges: (table: NestedTableKey | undefined, name: string) => void;
 }) {
   // remove duplicate status
   const selectStatus = [...statusSelectEmployee, ...statusSelectInde].filter(
@@ -53,11 +57,22 @@ export default function XpertRowContent({
       )
   );
 
-  const [xpert, setXpert] = useState<DBXpert | null>(null);
-
   const { countries, languages } = useSelect();
 
-  const { getXpertSelected, setOpenedXpert } = useXpertStore();
+  const {
+    getXpertSelected,
+    setOpenedXpert,
+    openedXpertNotSaved: xpert,
+    setOpenedXpertNotSaved: setXpert,
+    keyDBProfileChanged,
+    keyDBProfileStatusChanged,
+    setKeyDBProfileChanged,
+    setKeyDBProfileStatusChanged,
+    setKeyDBProfileExpertiseChanged,
+    keyDBProfileExpertiseChanged,
+    keyDBProfileMissionChanged,
+    setKeyDBProfileMissionChanged,
+  } = useXpertStore();
 
   const handleGetSpecificXpert = async () => {
     try {
@@ -79,16 +94,17 @@ export default function XpertRowContent({
   ) => {
     const name = e.target.name;
     const value = e.target.value;
-    if (table) {
-      const newXpert = xpert
-        ? { ...xpert, [table]: { ...xpert[table], [name]: value } }
-        : null;
-      console.log(name, value);
-      setXpert(newXpert);
-      return;
-    }
-    console.log(name, value);
-    const newXpert = xpert ? { ...xpert, [name]: value } : null;
+
+    handleKeyChanges(table, name);
+
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          [table ? table : name]: table
+            ? { ...xpert[table], [name]: value }
+            : value,
+        }
+      : null;
     setXpert(newXpert);
   };
 
@@ -97,17 +113,16 @@ export default function XpertRowContent({
     name: string,
     table?: NestedTableKey
   ) => {
-    if (table) {
-      const newXpert = xpert
-        ? { ...xpert, [table]: { ...xpert[table], [name]: value } }
-        : null;
-      console.log(name, value);
-      setXpert(newXpert);
-      return;
-    }
-    console.log(name, value);
+    handleKeyChanges(table, name);
 
-    const newXpert = xpert ? { ...xpert, [name]: value } : null;
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          [table ? table : name]: table
+            ? { ...xpert[table], [name]: value }
+            : value,
+        }
+      : null;
     setXpert(newXpert);
   };
 
@@ -116,16 +131,16 @@ export default function XpertRowContent({
     name: string,
     table?: NestedTableKey
   ) => {
-    if (table) {
-      const newXpert = xpert
-        ? { ...xpert, [table]: { ...xpert[table], [name]: value } }
-        : null;
-      console.log(name, value);
-      setXpert(newXpert);
-      return;
-    }
-    const newXpert = xpert ? { ...xpert, [name]: value } : null;
-    console.log(name, value);
+    handleKeyChanges(table, name);
+
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          [table ? table : name]: table
+            ? { ...xpert[table], [name]: value }
+            : value,
+        }
+      : null;
     setXpert(newXpert);
   };
 
@@ -145,6 +160,8 @@ export default function XpertRowContent({
         return lang;
       }
     );
+    handleKeyChanges('profile_expertise', 'other_language');
+
     const newXpert = xpert
       ? {
           ...xpert,
@@ -162,26 +179,56 @@ export default function XpertRowContent({
     name: string,
     table?: NestedTableKey
   ) => {
+    handleKeyChanges(table, name);
+
     if (table) {
       const newXpert = xpert
         ? { ...xpert, [table]: { ...xpert[table], [name]: value } }
         : null;
-      console.log(name, value);
       setXpert(newXpert);
       return;
     }
     const newXpert = xpert ? { ...xpert, [name]: value } : null;
-    console.log(name, value);
+    setXpert(newXpert);
+  };
+
+  const addNewLanguage = () => {
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          profile_expertise: {
+            ...xpert.profile_expertise!,
+            other_language: [
+              ...(xpert.profile_expertise?.other_language ?? []),
+              { language: '', level: '' },
+            ],
+          },
+        }
+      : null;
+    setXpert(newXpert);
+  };
+
+  const removeLanguage = (index: number) => {
+    const newOtherLanguage = xpert?.profile_expertise?.other_language?.filter(
+      (_, i) => i !== index
+    );
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          profile_expertise: {
+            ...xpert.profile_expertise!,
+            other_language: newOtherLanguage!,
+          },
+        }
+      : null;
+    handleKeyChanges('profile_expertise', 'other_language');
+
     setXpert(newXpert);
   };
 
   useEffect(() => {
     handleGetSpecificXpert();
-  }, [xpertOptimized.generated_id]);
-
-  useEffect(() => {
-    console.log(xpert);
-  }, [xpert]);
+  }, [xpertOptimized]);
 
   if (!xpert) {
     return null;
@@ -432,7 +479,7 @@ export default function XpertRowContent({
         )}
       />
       <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
-      <XpertExperience xpert={xpert} setXpert={setXpert} />
+      <XpertExperience handleKeyChanges={handleKeyChanges} />
       <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
       <div className="grid w-full grid-cols-2 gap-4">
         <MultiCreatableSelect
@@ -454,7 +501,7 @@ export default function XpertRowContent({
           }
           optionsOther={xpert.profile_expertise?.specialties_other}
           options={
-            xpert.profile_expertise?.specialties
+            xpert.profile_expertise?.specialties_other
               ? [
                   ...specialitySelect,
                   {
@@ -644,7 +691,7 @@ export default function XpertRowContent({
             />
             <CreatableSelect
               creatable
-              label={`Niveau ${index + 2}`}
+              label={`Niveau langue ${index + 2}`}
               defaultValue={{
                 label:
                   getLabel({
@@ -660,45 +707,23 @@ export default function XpertRowContent({
               }
               options={languageLevelSelect}
             />
-            {/* <Input
-              label="Niveau"
-              value={lang.level ?? ''}
-              name="level"
-              onChange={(e) => handleChangeInput(e, 'profile_expertise')}
-              /> */}
+            <Button
+              className="flex size-fit self-end"
+              variant={'previous'}
+              onClick={() => removeLanguage(index)}
+            >
+              <Minus />
+            </Button>
           </div>
         ))}
+        {/* 
+        Add new language
+         */}
+        <Button className="w-fit" onClick={addNewLanguage}>
+          <Plus />
+        </Button>
       </div>
-      {/* <MultiSelectComponent
-          disabled
-          label="Autres langues parlées"
-          defaultSelectedKeys={[
-            ...(xpert.profile_expertise?.other_language?.map(
-              (lang: any) => lang?.language
-            ) ?? []),
-            xpert.profile_expertise?.other_language_detail ?? empty,
-          ]}
-          options={languages}
-          placeholder={empty}
-          name=""
-          onValueChange={() => ({})}
-        /> */}
 
-      {/* <FileInput
-        isDownload={true}
-        download={downloadMissionFile}
-        name=""
-        fileName={
-          signed_quote_file_name
-            ? signed_quote_file_name
-            : devisFileName
-        }
-        label="Télécharger mon CV"
-        placeholder="Uploader le devis signé"
-        onChange={(e) =>
-          handleFileChange({ e: e, file_name: 'devis' })
-        }
-      /> */}
       <div className="grid w-full grid-cols-2 gap-4">
         <Input
           hasPreIcon

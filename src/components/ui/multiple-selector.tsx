@@ -1,7 +1,7 @@
 'use client';
 
 import { Command as CommandPrimitive, useCommandState } from 'cmdk';
-import { X } from 'lucide-react';
+import { Ban, X } from 'lucide-react';
 import * as React from 'react';
 import { forwardRef, useEffect } from 'react';
 
@@ -30,6 +30,7 @@ type GroupOption = {
 
 type MultipleSelectorProps = {
   value?: Option[];
+  hasPreIcon?: boolean;
   defaultOptions?: Option[];
   showIndividualX?: boolean;
   /** manually controlled options */
@@ -181,6 +182,7 @@ const MultipleSelector = React.forwardRef<
       value,
       onChange,
       placeholder,
+      hasPreIcon,
       showIndividualX = true,
       defaultOptions: arrayDefaultOptions = [],
       options: arrayOptions,
@@ -312,7 +314,7 @@ const MultipleSelector = React.forwardRef<
       const Item = (
         <CommandItem
           value={inputValue}
-          className="cursor-pointer"
+          className={cn('cursor-pointer')}
           onMouseDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -453,6 +455,13 @@ const MultipleSelector = React.forwardRef<
               );
             })}
             {/* Avoid having the "Search" Icon */}
+            {hasPreIcon && disabled && (
+              <Ban
+                color="black"
+                className="mx-3 bg-transparent outline-none"
+                type="button"
+              />
+            )}
             <CommandPrimitive.Input
               {...inputProps}
               ref={inputRef}
@@ -488,6 +497,7 @@ const MultipleSelector = React.forwardRef<
                 inputProps?.className
               )}
             />
+
             <button
               type="button"
               onClick={() => {

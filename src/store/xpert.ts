@@ -1,10 +1,21 @@
-import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
+import type {
+  DBProfile,
+  DBProfileExpertise,
+  DBProfileMission,
+  DBProfileStatus,
+  DBXpert,
+  DBXpertOptimized,
+} from '@/types/typesDb';
 import { create } from 'zustand';
 import {
   deleteXpert,
   getAllXperts,
   getSpecificXpert,
   getXpertsOptimized,
+  updateProfile,
+  updateProfileExpertise,
+  updateProfileMission,
+  updateProfileStatus,
 } from '../../app/(crm)/xpert/xpert.action';
 import { toast } from 'sonner';
 import type { FilterXpert } from '@/types/types';
@@ -23,7 +34,7 @@ type XpertState = {
   openedXpert: DBXpert | null;
   openedXpertNotSaved: DBXpert | null;
   setOpenedXpert: (xpertId: string) => void;
-  setOpenedXpertNotSaved: (xpert: DBXpert) => void;
+  setOpenedXpertNotSaved: (xpert: DBXpert | null) => void;
   getXpertSelected: (xpertId: string) => Promise<{ xpert: DBXpert | null }>;
   resetXperts: () => void;
   fetchXperts: () => void;
@@ -33,12 +44,40 @@ type XpertState = {
   ) => Promise<{ xperts: DBXpertOptimized[] }>;
   fetchSpecificXpert: (xpertId: string) => void;
   deleteXpert: (xpertId: string, xpertGeneratedId: string) => void;
+  keyDBProfileChanged: [keyof DBProfile][] | [];
+  keyDBProfileMissionChanged: [keyof DBProfileMission][] | [];
+  keyDBProfileStatusChanged: [keyof DBProfileStatus][] | [];
+  keyDBProfileExpertiseChanged: [keyof DBProfileExpertise][] | [];
+  setKeyDBProfileChanged: (keys: [keyof DBProfile][]) => void;
+  setKeyDBProfileMissionChanged: (keys: [keyof DBProfileMission][]) => void;
+  setKeyDBProfileStatusChanged: (keys: [keyof DBProfileStatus][]) => void;
+  setKeyDBProfileExpertiseChanged: (keys: [keyof DBProfileExpertise][]) => void;
+
+  handleSaveUpdatedXpert: () => void;
 };
 
 export const useXpertStore = create<XpertState>((set, get) => ({
   loading: true,
   xperts: null,
   xpertsOptimized: null,
+  keyDBProfileChanged: [],
+  keyDBProfileMissionChanged: [],
+  keyDBProfileStatusChanged: [],
+  keyDBProfileExpertiseChanged: [],
+
+  setKeyDBProfileChanged: (keys) => {
+    set({ keyDBProfileChanged: keys });
+  },
+  setKeyDBProfileMissionChanged: (keys) => {
+    set({ keyDBProfileMissionChanged: keys });
+  },
+  setKeyDBProfileStatusChanged: (keys) => {
+    set({ keyDBProfileStatusChanged: keys });
+  },
+  setKeyDBProfileExpertiseChanged: (keys) => {
+    set({ keyDBProfileExpertiseChanged: keys });
+  },
+
   activeFilters: {
     jobTitles: '',
     availability: '',
@@ -60,7 +99,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     set({ xpertFilterKey: new Date().getTime() });
   },
 
-  setOpenedXpertNotSaved: (xpert: DBXpert) => {
+  setOpenedXpertNotSaved: (xpert: DBXpert | null) => {
     set({ openedXpertNotSaved: xpert });
   },
 
@@ -221,5 +260,126 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       }));
     }
     set({ loading: false });
+  },
+
+  handleSaveUpdatedXpert: async () => {
+    const xpertNotSaved = get().openedXpertNotSaved;
+    if (!xpertNotSaved) return;
+
+    // Pour profile
+    const newDataProfile = Object.keys(xpertNotSaved)
+      .filter((key) => (get().keyDBProfileChanged as any).includes(key))
+      .map((key) => {
+        return {
+          [key]: xpertNotSaved[key as keyof DBXpert],
+        };
+      }); // Récupération des valeurs
+
+    // Pour profile_mission
+    const newDataProfileMission = xpertNotSaved.profile_mission
+      ? Object.keys(xpertNotSaved.profile_mission)
+          .filter((key) =>
+            (get().keyDBProfileMissionChanged as any).includes(key)
+          )
+          .map((key) => {
+            return {
+              [key]:
+                xpertNotSaved.profile_mission?.[
+                  key as keyof typeof xpertNotSaved.profile_mission
+                ],
+            };
+          }) // Récupération des valeurs
+      : [];
+
+    // Pour profile_status
+    const newDataProfileStatus = xpertNotSaved.profile_status
+      ? Object.keys(xpertNotSaved.profile_status)
+          .filter((key) =>
+            (get().keyDBProfileStatusChanged as any).includes(key)
+          )
+          .map(
+            (key) => {
+              return {
+                [key]:
+                  xpertNotSaved.profile_status?.[
+                    key as keyof typeof xpertNotSaved.profile_status
+                  ],
+              };
+            } // return object {key: value}
+          ) // Récupération des valeurs
+      : [];
+
+    // Pour profile_expertise
+
+    const newDataProfileExpertise = xpertNotSaved.profile_expertise
+      ? Object.keys(xpertNotSaved.profile_expertise)
+          .filter((key) =>
+            (get().keyDBProfileExpertiseChanged as any).includes(key)
+          )
+          .map((key) => {
+            return {
+              [key]: xpertNotSaved.profile_expertise?.[
+                key as keyof DBProfileExpertise
+              ] as any,
+            };
+          }) // Récupération des valeurs
+      : [];
+
+    if (newDataProfileExpertise.length > 0) {
+      console.log({ newDataProfileExpertise });
+      const { error } = await updateProfileExpertise({
+        xpert_id: xpertNotSaved.id,
+        newData: newDataProfileExpertise,
+      });
+      if (error) {
+        toast.error('Erreur lors de la sauvegarde');
+        console.error('Error updating profile expertise:', error);
+        return;
+      }
+    }
+    if (newDataProfileStatus.length > 0) {
+      const { error } = await updateProfileStatus({
+        xpert_id: xpertNotSaved.id,
+        newData: newDataProfileStatus,
+      });
+      if (error) {
+        toast.error('Erreur lors de la sauvegarde');
+        console.error('Error updating profile status:', error);
+        return;
+      }
+    }
+    if (newDataProfileMission.length > 0) {
+      const { error } = await updateProfileMission({
+        xpert_id: xpertNotSaved.id,
+        newData: newDataProfileMission,
+      });
+      if (error) {
+        toast.error('Erreur lors de la sauvegarde');
+        console.error('Error updating profile mission:', error);
+        return;
+      }
+    }
+    if (newDataProfile.length > 0) {
+      const { error } = await updateProfile({
+        xpert_id: xpertNotSaved.id,
+        newData: newDataProfile,
+      });
+      if (error) {
+        toast.error('Erreur lors de la sauvegarde');
+        console.error('Error updating profile:', error);
+        return;
+      }
+    }
+    set({ openedXpert: xpertNotSaved });
+    set({
+      xperts: get().xperts?.map((xpert) => {
+        if (xpert.id === xpertNotSaved.id) {
+          return xpertNotSaved;
+        }
+        return xpert;
+      }),
+    });
+    set({ openedXpertNotSaved: null });
+    toast.success('Modifications enregistrées');
   },
 }));

@@ -26,6 +26,7 @@ type Props = {
   showIndividualX?: boolean;
   side?: 'top' | 'bottom';
   disabled?: boolean;
+  hasPreIcon?: boolean;
 } & ComponentProps<'div'>;
 
 export default function MultiSelectComponent({
@@ -34,6 +35,7 @@ export default function MultiSelectComponent({
   classNameLabel,
   showIndividualX = true,
   side,
+  hasPreIcon,
   explain,
   required,
   name,
@@ -71,6 +73,7 @@ export default function MultiSelectComponent({
 
       <MultipleSelector
         side={side}
+        hasPreIcon={hasPreIcon}
         hidePlaceholderWhenSelected
         onChange={handleOnChange}
         creatable={creatable}
@@ -79,7 +82,7 @@ export default function MultiSelectComponent({
         className={cn(
           'border-gray-200 bg-white py-1 pr-4 transition',
           { 'border-important': hasError },
-          { 'hover:border-primary': !hasError }
+          { 'hover:border-primary': !hasError && !disabled }
         )}
         badgeClassName=""
         value={defaultsOptions}
