@@ -4,10 +4,10 @@ import type { DBMission } from '@/types/typesDb';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
-import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
-import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';
-import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
+import StatusBox from './_boxes/StatusBox';
+import XpertStatusBox from './_boxes/XpertStatusBox';
+import SalaryPaymentBox from './_boxes/SalaryPaymentBox';
 
 export default function EtatFacturationsRow({
   missionData,
@@ -36,102 +36,6 @@ export default function EtatFacturationsRow({
     });
     setCreateTaskDialogOpen(true);
     router.push('/dashboard/todo');
-  };
-
-  const renderStatusBox = (
-    fileType: string,
-    isFournisseur: boolean = false
-  ) => {
-    const fileStatus = checkFileStatusForDate(
-      fileStatuses,
-      selectedMonthYear.year,
-      selectedMonthYear.month,
-      isFournisseur,
-      getFileTypeByStatusFacturation(
-        fileType,
-        missionData?.xpert_associated_status || ''
-      )
-    );
-
-    if (fileStatus.noFilesFound) {
-      return (
-        <Box className="size-full bg-[#D64242] text-white">{'Non reçu'}</Box>
-      );
-    }
-
-    return (
-      <Box
-        className={`size-full text-white ${
-          fileStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-        }`}
-      >
-        {fileStatus.exists
-          ? formatDate(fileStatus.createdAt!)
-          : fileStatus.noFilesFound
-            ? ''
-            : 'NON'}
-      </Box>
-    );
-  };
-
-  const renderInvoiceStatusBox = (
-    fileType: string,
-    isFournisseur: boolean = false,
-    isCdiSide: boolean = false,
-    isFreelancePortageSide: boolean = false
-  ) => {
-    const fileStatus = checkFileStatusForDate(
-      fileStatuses,
-      selectedMonthYear.year,
-      selectedMonthYear.month,
-      isFournisseur,
-      getFileTypeByStatusFacturation(
-        fileType,
-        missionData?.xpert_associated_status || ''
-      )
-    );
-
-    if (isFreelancePortageSide) {
-      if (fileStatus.noFilesFound) {
-        if (missionData.xpert_associated_status === 'cdi') {
-          return <Box className="size-full bg-[#b1b1b1]">{''}</Box>;
-        } else {
-          return (
-            <Box className="size-full bg-[#D64242] text-white">
-              {'Non reçu'}
-            </Box>
-          );
-        }
-      }
-    }
-
-    if (isCdiSide) {
-      if (fileStatus.noFilesFound) {
-        if (missionData.xpert_associated_status !== 'cdi') {
-          return <Box className="size-full bg-[#b1b1b1]">{''}</Box>;
-        } else {
-          return (
-            <Box className="size-full bg-[#D64242] text-white">
-              {'Non reçu'}
-            </Box>
-          );
-        }
-      }
-    }
-
-    return (
-      <Box
-        className={`size-full text-white ${
-          fileStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-        }`}
-      >
-        {fileStatus.exists
-          ? formatDate(fileStatus.createdAt!)
-          : fileStatus.noFilesFound
-            ? ''
-            : 'NON'}
-      </Box>
-    );
   };
 
   return (
@@ -170,33 +74,49 @@ export default function EtatFacturationsRow({
       >
         {missionData.referent_name}
       </Box>
-      {renderStatusBox('presence_sheet_validated')}
-      {renderInvoiceStatusBox(
-        missionStatus === 'cdi' ? 'salary_sheet' : '',
-        false,
-        true,
-        false
-      )}
-      {renderInvoiceStatusBox(
-        missionStatus === 'cdi' ? 'salary_sheet' : '',
-        false,
-        true,
-        false
-      )}
-      {renderInvoiceStatusBox(
-        missionStatus !== 'cdi' ? 'salary_sheet' : '',
-        false,
-        false,
-        true
-      )}
-      {renderInvoiceStatusBox(
-        missionStatus !== 'cdi' ? 'salary_sheet' : '',
-        false,
-        false,
-        true
-      )}
-      {renderStatusBox('invoice', true)}
-      {renderStatusBox('', true)}
+      <StatusBox
+        fileStatuses={fileStatuses}
+        selectedMonthYear={selectedMonthYear}
+        fileType="presence_sheet_validated"
+        xpertAssociatedStatus={missionStatus || ''}
+      />
+      <SalaryPaymentBox selectedMonthYear={selectedMonthYear} />
+      <XpertStatusBox
+        fileStatuses={fileStatuses}
+        selectedMonthYear={selectedMonthYear}
+        fileType={missionStatus === 'cdi' ? 'salary_sheet' : ''}
+        isCdiSide
+        xpertAssociatedStatus={missionStatus || ''}
+      />
+      <XpertStatusBox
+        fileStatuses={fileStatuses}
+        selectedMonthYear={selectedMonthYear}
+        fileType={missionStatus !== 'cdi' ? 'salary_sheet' : ''}
+        isFreelancePortageSide
+        xpertAssociatedStatus={missionStatus || ''}
+      />
+      <XpertStatusBox
+        fileStatuses={fileStatuses}
+        selectedMonthYear={selectedMonthYear}
+        fileType={missionStatus !== 'cdi' ? 'salary_sheet' : ''}
+        isFreelancePortageSide
+        xpertAssociatedStatus={missionStatus || ''}
+      />
+      <StatusBox
+        fileStatuses={fileStatuses}
+        selectedMonthYear={selectedMonthYear}
+        fileType="invoice"
+        isFournisseur
+        xpertAssociatedStatus={missionStatus || ''}
+      />
+      <StatusBox
+        fileStatuses={fileStatuses}
+        selectedMonthYear={selectedMonthYear}
+        fileType=""
+        isFournisseur
+        xpertAssociatedStatus={missionStatus || ''}
+        isSalaryPayment
+      />
     </>
   );
 }

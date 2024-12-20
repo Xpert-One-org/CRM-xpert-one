@@ -293,8 +293,9 @@ export default function UploadMultipleSalarySheetDialog({
                 onClick={handleUploadFiles}
                 disabled={
                   isUploading ||
-                  missionsToUpload.some((upload) => !upload.file) ||
-                  missionsToUpload.some((upload) => upload.isError)
+                  !missionsToUpload.some(
+                    (upload) => upload.file && !upload.isError
+                  )
                 }
                 className="bg-primary text-white hover:bg-primary/80"
               >
