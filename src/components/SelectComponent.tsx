@@ -91,7 +91,7 @@ export default function SelectComponent({
                 <SelectItem
                   key={item.value || ''}
                   value={item.value || ''}
-                  className="hover:bg-hover transition duration-150"
+                  className="hover:bg-hover font-[400] text-black transition duration-150"
                 >
                   {item.label}
                 </SelectItem>

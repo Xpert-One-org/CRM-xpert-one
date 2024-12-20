@@ -52,7 +52,7 @@ export default function PhoneInputComponent({
             {explain ? (
               <Info className="ml-2 w-fit">{explain}</Info>
             ) : (
-              <div className="h-6" />
+              <div className="" />
             )}
           </Label>
           <PhoneInput

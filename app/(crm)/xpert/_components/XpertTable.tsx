@@ -4,12 +4,13 @@ import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import React, { useCallback, useEffect, useState } from 'react';
 import XpertRow from './row/XpertRow';
 import XpertMissionRow from './row/mission/XpertMissionRow';
-import { cn } from '@/lib/utils';
+import { areObjectsEqual, cn } from '@/lib/utils';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { useSearchParams } from 'next/navigation';
 import { useXpertStore } from '@/store/xpert';
 import Loader from '@/components/Loader';
 import XpertFilter from './XpertFilter';
+import type { NestedTableKey } from './row/XpertRowContent';
 import XpertRowContent from './row/XpertRowContent';
 import XpertMissionFilter from './row/mission/XpertMissionFilter';
 import XpertRowContentBis from './row/XpertRowContentBis';
@@ -24,6 +25,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog';
 import RedirectButtons from './row/RedirectButtons';
+import Button from '@/components/Button';
+import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -36,16 +39,30 @@ export default function XpertTable() {
     totalXpertOptimized,
     loading,
     xpertFilterKey,
-    activeFilters,
+    handleSaveUpdatedXpert,
+    openedXpertNotSaved,
     fetchSpecificXpert,
     fetchXpertOptimizedFiltered,
     resetXperts,
     openedXpert,
+    keyDBProfileChanged,
+    keyDBProfileExpertiseChanged,
+    keyDBProfileStatusChanged,
+    keyDBProfileMissionChanged,
+    setKeyDBProfileChanged,
+    setKeyDBProfileExpertiseChanged,
+    setKeyDBProfileStatusChanged,
+    setKeyDBProfileMissionChanged,
+    setOpenedXpertNotSaved,
+    setOpenedXpert,
   } = useXpertStore();
+
+  useWarnIfUnsavedChanges(!areObjectsEqual(openedXpert, openedXpertNotSaved));
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');
   const [cvInfo, setCvInfo] = useState<DocumentInfo>({ publicUrl: '' });
-  const [ursaffInfo, setUrsaffInfo] = useState<DocumentInfo>({ publicUrl: '' });
+  const [urssafInfo, setUrssafInfo] = useState<DocumentInfo>({ publicUrl: '' });
+  const [hasChanged, setHasChanged] = useState(false);
   const [kbisInfo, setKbisInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [responsabiliteCivileInfo, setResponsabiliteCivileInfo] =
     useState<DocumentInfo>({ publicUrl: '' });
@@ -66,9 +83,12 @@ export default function XpertTable() {
         : true;
 
   const handleXpertIdOpened = useCallback((xpert: DBXpertOptimized) => {
+    setOpenedXpertNotSaved(null);
+    setOpenedXpert('');
+
     setXpertIdOpened((prevId) => {
       setCvInfo({ publicUrl: '' });
-      setUrsaffInfo({ publicUrl: '' });
+      setUrssafInfo({ publicUrl: '' });
       setKbisInfo({ publicUrl: '' });
 
       return prevId === xpert.generated_id.toString()
@@ -78,6 +98,29 @@ export default function XpertTable() {
     fetchXpertDocumentsUrl(xpert);
   }, []);
 
+  const handleKeyChanges = (
+    table: NestedTableKey | undefined,
+    name: string
+  ) => {
+    if (table === 'profile_expertise') {
+      const prevKeys = keyDBProfileExpertiseChanged as string[];
+      const newKeys = prevKeys.includes(name) ? prevKeys : [...prevKeys, name];
+      setKeyDBProfileExpertiseChanged(newKeys as any);
+    } else if (table === 'profile_status') {
+      const prevKeys = keyDBProfileStatusChanged as string[];
+      const newKeys = prevKeys.includes(name) ? prevKeys : [...prevKeys, name];
+      setKeyDBProfileStatusChanged(newKeys as any);
+    } else if (table === 'profile_mission') {
+      const prevKeys = keyDBProfileMissionChanged as string[];
+      const newKeys = prevKeys.includes(name) ? prevKeys : [...prevKeys, name];
+      setKeyDBProfileMissionChanged(newKeys as any);
+    } else {
+      const prevKeys = keyDBProfileChanged as string[];
+      const newKeys = prevKeys.includes(name) ? prevKeys : [...prevKeys, name];
+      setKeyDBProfileChanged(newKeys as any);
+    }
+  };
+
   const fetchXpertDocumentsUrl = async (xpert: DBXpertOptimized) => {
     setIsLoading(true);
     const supabase = createSupabaseFrontendClient();
@@ -86,7 +129,7 @@ export default function XpertTable() {
       .from('profile_files')
       .list(`${xpert.generated_id}/cv/`);
 
-    const { data: ursaffData } = await supabase.storage
+    const { data: urssafData } = await supabase.storage
       .from('profile_files')
       .list(`${xpert.generated_id}/urssaf/`);
 
@@ -121,20 +164,20 @@ export default function XpertTable() {
       });
     }
 
-    if (ursaffData && ursaffData.length > 0) {
-      const sortedUrsaffData = ursaffData.sort(
+    if (urssafData && urssafData.length > 0) {
+      const sortedUrssafData = urssafData.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
-      const mostRecentUrsaffFile = sortedUrsaffData[0];
+      const mostRecentUrssafFile = sortedUrssafData[0];
       const { data } = await supabase.storage
         .from('profile_files')
         .getPublicUrl(
-          `${xpert.generated_id}/urssaf/${mostRecentUrsaffFile.name}`
+          `${xpert.generated_id}/urssaf/${mostRecentUrssafFile.name}`
         );
-      setUrsaffInfo({
+      setUrssafInfo({
         publicUrl: data.publicUrl,
-        created_at: mostRecentUrsaffFile.created_at,
+        created_at: mostRecentUrssafFile.created_at,
       });
     }
 
@@ -205,6 +248,10 @@ export default function XpertTable() {
 
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    setHasChanged(!areObjectsEqual(openedXpert, openedXpertNotSaved));
+  }, [openedXpertNotSaved, openedXpert]);
 
   const renderMissions = (xpert: DBXpert) => {
     const isProfileComplete = xpert.totale_progression >= 80;
@@ -307,7 +354,10 @@ export default function XpertTable() {
                 )}
               >
                 {xpertIdOpened === xpert.generated_id && (
-                  <XpertRowContent xpertOptimized={xpert} />
+                  <XpertRowContent
+                    xpertOptimized={xpert}
+                    handleKeyChanges={handleKeyChanges}
+                  />
                 )}
               </div>
               <div
@@ -329,20 +379,30 @@ export default function XpertTable() {
                   <XpertRowContentBis
                     isLoading={isLoading}
                     cvInfo={cvInfo}
-                    ursaffInfo={ursaffInfo}
+                    urssafInfo={urssafInfo}
                     kbisInfo={kbisInfo}
                     responsabiliteCivileInfo={responsabiliteCivileInfo}
                     ribInfo={ribInfo}
                     habilitationInfo={habilitationInfo}
+                    handleKeyChanges={handleKeyChanges}
                   />
                 )}
                 {/* task and redirection button here */}
                 <div className="flex w-full justify-between gap-2 py-2">
                   <RedirectButtons user={xpert} />
-                  <DeleteXpertDialog
-                    xpertId={xpert.id}
-                    xpertGeneratedId={xpert.generated_id}
-                  />
+                  <div className="flex gap-x-4">
+                    <Button
+                      className="size-fit disabled:bg-gray-200"
+                      onClick={handleSaveUpdatedXpert}
+                      disabled={!hasChanged}
+                    >
+                      Enregistrer
+                    </Button>
+                    <DeleteXpertDialog
+                      xpertId={xpert.id}
+                      xpertGeneratedId={xpert.generated_id}
+                    />
+                  </div>
                 </div>
               </div>
             </React.Fragment>
