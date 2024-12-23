@@ -167,9 +167,7 @@ export default function GestionDesFacturationsPage(props: {
         }
         onDateChange={handleDateChange}
         fileStatuses={fileStatuses}
-        missionXpertAssociatedStatus={
-          missionData?.xpert_associated_status ?? ''
-        }
+        missionData={missionData}
       />
       <div className="flex w-1/2">
         <MissionGestionFacturationTable

@@ -149,31 +149,36 @@ export default function EtatFacturationsRow({
       >
         {missionData.referent_name}
       </Box>
+      {/* Feuille de présence validée */}
       <StatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
         fileType="presence_sheet_validated"
         xpertAssociatedStatus={missionStatus || ''}
       />
+      {/* Paiement de salaire */}
       <SalaryPaymentBox
         selectedMonthYear={selectedMonthYear}
         xpertAssociatedStatus={missionStatus || ''}
         onSalaryPaymentClick={handleSalaryPaymentClick}
         isSelected={isSalaryPaymentSelected}
       />
+      {/* Bulletin de salaire */}
       <XpertStatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
         fileType={missionStatus === 'cdi' ? 'salary_sheet' : ''}
         xpertAssociatedStatus={missionStatus || ''}
       />
+      {/* Facture validée */}
       <XpertStatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
-        fileType={missionStatus !== 'cdi' ? 'salary_sheet' : ''}
+        fileType={missionStatus !== 'cdi' ? 'invoice_received' : ''}
         isFreelancePortageSide
         xpertAssociatedStatus={missionStatus || ''}
       />
+      {/* Facture payée */}
       <XpertStatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
@@ -183,6 +188,7 @@ export default function EtatFacturationsRow({
         onInvoicePaidClick={handleInvoicePaidClick}
         isSelected={isInvoicePaidSelected}
       />
+      {/* Facture */}
       <StatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
@@ -190,6 +196,7 @@ export default function EtatFacturationsRow({
         isFournisseur
         xpertAssociatedStatus={missionStatus || ''}
       />
+      {/* Paiement */}
       <StatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}

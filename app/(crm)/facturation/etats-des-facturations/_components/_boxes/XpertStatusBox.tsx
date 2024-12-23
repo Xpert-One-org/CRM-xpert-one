@@ -60,22 +60,26 @@ export default function XpertStatusBox({
     if (xpertAssociatedStatus === 'cdi') {
       return <Box className="size-full bg-[#b1b1b1]">{''}</Box>;
     }
-    return (
-      <>
-        <Box
-          className={`size-full cursor-pointer text-white ${
-            localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-          }`}
-          onClick={handleClick}
-        >
-          {!localIsSelected
-            ? 'NON'
-            : localIsSelected && currentDate
-              ? formatDate(currentDate)
-              : 'NON'}
-        </Box>
-      </>
-    );
+    if (onInvoicePaidClick) {
+      return (
+        <>
+          <Box
+            className={`size-full cursor-pointer text-white ${
+              localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+            }`}
+            onClick={handleClick}
+          >
+            {!localIsSelected
+              ? 'NON'
+              : localIsSelected && currentDate
+                ? formatDate(currentDate)
+                : 'NON'}
+          </Box>
+        </>
+      );
+    } else {
+      return <Box className="size-full bg-[#D64242] text-white">{'NON'}</Box>;
+    }
   }
 
   if (fileStatus.noFilesFound) {

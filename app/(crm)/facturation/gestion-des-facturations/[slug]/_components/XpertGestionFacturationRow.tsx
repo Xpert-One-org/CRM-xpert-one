@@ -284,7 +284,11 @@ export default function XpertGestionFacturationRow({
             onClick={() => handleDownloadFile({ type: 'invoice_received' })}
             disabled={!salaryOrInvoiceStatus.exists}
           >
-            <Download className="size-6" />
+            {salaryOrInvoiceStatus.exists ? (
+              <Download className="size-6" />
+            ) : (
+              <DownloadOff className="size-6" />
+            )}
           </Button>
         )}
       </div>

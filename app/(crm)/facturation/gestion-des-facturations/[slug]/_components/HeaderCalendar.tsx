@@ -14,13 +14,14 @@ import {
 import type { FileStatuses } from '@/types/mission';
 import { checkMonthFilesStatus } from '../_utils/checkMonthFilesStatus';
 import { isMonthDisabled } from '../_utils/isMonthDisabled';
+import type { DBMission } from '@/types/typesDb';
 
 type HeaderCalendarProps = {
   startDate?: Date;
   endDate?: Date;
   onDateChange: (year: number, month: number) => void;
   fileStatuses: FileStatuses;
-  missionXpertAssociatedStatus: string;
+  missionData: DBMission | undefined;
 };
 
 export default function HeaderCalendar({
@@ -28,7 +29,7 @@ export default function HeaderCalendar({
   endDate,
   onDateChange,
   fileStatuses,
-  missionXpertAssociatedStatus,
+  missionData,
 }: HeaderCalendarProps) {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -103,7 +104,7 @@ export default function HeaderCalendar({
                     fileStatuses,
                     yearSelected,
                     index,
-                    missionXpertAssociatedStatus
+                    missionData
                   );
 
                   return (
@@ -142,7 +143,7 @@ export default function HeaderCalendar({
               fileStatuses,
               yearSelected,
               index,
-              missionXpertAssociatedStatus
+              missionData
             );
 
             return (
