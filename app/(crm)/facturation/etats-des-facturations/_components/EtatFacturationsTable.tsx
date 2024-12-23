@@ -1,6 +1,6 @@
 import { FilterButton } from '@/components/FilterButton';
 import type { DBMission } from '@/types/typesDb';
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import EtatFacturationsRow from './EtatFacturationsRow';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getUniqueBillingMonths } from '../_utils/getUniqueBillingMonths';
@@ -8,12 +8,28 @@ import EtatFacturationUploadRow from './EtatFacturationUploadRow';
 import { updateMissionFacturationPayment } from '../etats-facturation.action';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import type { PaymentType, PendingPayments } from '@/types/mission';
+import type {
+  PaymentStatus,
+  PaymentType,
+  PendingPayments,
+} from '@/types/mission';
+import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
+import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
 
 const yesNoOptions = [
   { label: 'OUI', value: 'yes', color: '#92C6B0' },
   { label: 'NON', value: 'no', color: '#D64242' },
 ];
+
+type FilterState = {
+  presenceSheetValidated?: string;
+  salaryPayment?: string;
+  salarySheet?: string;
+  invoiceValidated?: string;
+  invoicePaid?: string;
+  invoice?: string;
+  payment?: string;
+};
 
 export default function EtatFacturationsTable({
   missions,
@@ -28,6 +44,8 @@ export default function EtatFacturationsTable({
   >([]);
 
   const [pendingPayments, setPendingPayments] = useState<PendingPayments>({});
+
+  const [activeFilters, setActiveFilters] = useState<FilterState>({});
 
   const baseRows = missions
     .flatMap((mission) => {
@@ -166,7 +184,106 @@ export default function EtatFacturationsTable({
     setPendingPayments({});
   };
 
-  const displayRows = sortedRows.length > 0 ? sortedRows : baseRows;
+  const handleFilterChange = (filterKey: keyof FilterState, value: string) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      [filterKey]: value === prev[filterKey] ? undefined : value,
+    }));
+  };
+
+  const filterRows = useCallback(
+    (rows: typeof baseRows) => {
+      return rows.filter(({ mission, monthYear }) => {
+        const fileStatuses =
+          fileStatusesByMission[mission.mission_number || ''] || {};
+        const missionStatus = mission.xpert_associated_status;
+
+        const checkFileStatus = (fileType: string, isFournisseur = false) => {
+          const status = checkFileStatusForDate(
+            fileStatuses,
+            monthYear.year,
+            monthYear.month,
+            isFournisseur,
+            getFileTypeByStatusFacturation(fileType, missionStatus || '')
+          );
+          return status.exists;
+        };
+
+        const checkPayment = (
+          payments: PaymentStatus[] | null,
+          type: string
+        ) => {
+          if (!Array.isArray(payments)) return false;
+          const key = `${monthYear.year}-${(monthYear.month + 1).toString().padStart(2, '0')}`;
+          return payments.some((payment) => payment.period === key);
+        };
+
+        for (const [key, value] of Object.entries(activeFilters)) {
+          if (!value) continue;
+
+          const isYes = value === 'yes';
+
+          switch (key) {
+            case 'presenceSheetValidated':
+              if (checkFileStatus('presence_sheet_validated') !== isYes)
+                return false;
+              break;
+            case 'salaryPayment':
+              if (
+                checkPayment(
+                  mission.facturation_salary_payment as PaymentStatus[],
+                  'salary'
+                ) !== isYes
+              )
+                return false;
+              break;
+            case 'salarySheet':
+              if (
+                missionStatus === 'cdi' &&
+                checkFileStatus('salary_sheet') !== isYes
+              )
+                return false;
+              break;
+            case 'invoiceValidated':
+              if (
+                missionStatus !== 'cdi' &&
+                checkFileStatus('invoice_received') !== isYes
+              )
+                return false;
+              break;
+            case 'invoicePaid':
+              if (
+                checkPayment(
+                  mission.facturation_invoice_paid as PaymentStatus[],
+                  'invoice'
+                ) !== isYes
+              )
+                return false;
+              break;
+            case 'invoice':
+              if (checkFileStatus('invoice', true) !== isYes) return false;
+              break;
+            case 'payment':
+              if (
+                checkPayment(
+                  mission.facturation_fournisseur_payment as PaymentStatus[],
+                  'payment'
+                ) !== isYes
+              )
+                return false;
+              break;
+          }
+        }
+        return true;
+      });
+    },
+    [fileStatusesByMission, activeFilters]
+  );
+
+  const displayRows = useMemo(() => {
+    const rows = sortedRows.length > 0 ? sortedRows : baseRows;
+    return filterRows(rows);
+  }, [sortedRows, baseRows, filterRows]);
 
   return (
     <div className="flex h-[calc(100vh-260px)] flex-col gap-3">
@@ -192,6 +309,16 @@ export default function EtatFacturationsTable({
           filter={true}
           options={yesNoOptions}
           coloredOptions
+          onValueChange={(value) =>
+            handleFilterChange('presenceSheetValidated', value)
+          }
+          selectedOption={{
+            value: activeFilters.presenceSheetValidated ?? '',
+            label:
+              yesNoOptions.find(
+                (opt) => opt.value === activeFilters.presenceSheetValidated
+              )?.label ?? '',
+          }}
         />
         <FilterButton
           className="col-span-1"
@@ -199,6 +326,14 @@ export default function EtatFacturationsTable({
           filter={true}
           options={yesNoOptions}
           coloredOptions
+          onValueChange={(value) => handleFilterChange('salaryPayment', value)}
+          selectedOption={{
+            value: activeFilters.salaryPayment ?? '',
+            label:
+              yesNoOptions.find(
+                (opt) => opt.value === activeFilters.salaryPayment
+              )?.label ?? '',
+          }}
         />
         <FilterButton
           className="col-span-1"
@@ -206,6 +341,14 @@ export default function EtatFacturationsTable({
           filter={true}
           options={yesNoOptions}
           coloredOptions
+          onValueChange={(value) => handleFilterChange('salarySheet', value)}
+          selectedOption={{
+            value: activeFilters.salarySheet ?? '',
+            label:
+              yesNoOptions.find(
+                (opt) => opt.value === activeFilters.salarySheet
+              )?.label ?? '',
+          }}
         />
         <FilterButton
           className="col-span-1"
@@ -213,6 +356,16 @@ export default function EtatFacturationsTable({
           filter={true}
           options={yesNoOptions}
           coloredOptions
+          onValueChange={(value) =>
+            handleFilterChange('invoiceValidated', value)
+          }
+          selectedOption={{
+            value: activeFilters.invoiceValidated ?? '',
+            label:
+              yesNoOptions.find(
+                (opt) => opt.value === activeFilters.invoiceValidated
+              )?.label ?? '',
+          }}
         />
         <FilterButton
           className="col-span-1"
@@ -220,6 +373,14 @@ export default function EtatFacturationsTable({
           filter={true}
           options={yesNoOptions}
           coloredOptions
+          onValueChange={(value) => handleFilterChange('invoicePaid', value)}
+          selectedOption={{
+            value: activeFilters.invoicePaid ?? '',
+            label:
+              yesNoOptions.find(
+                (opt) => opt.value === activeFilters.invoicePaid
+              )?.label ?? '',
+          }}
         />
         <FilterButton
           className="col-span-1"
@@ -227,6 +388,13 @@ export default function EtatFacturationsTable({
           filter={true}
           options={yesNoOptions}
           coloredOptions
+          onValueChange={(value) => handleFilterChange('invoice', value)}
+          selectedOption={{
+            value: activeFilters.invoice ?? '',
+            label:
+              yesNoOptions.find((opt) => opt.value === activeFilters.invoice)
+                ?.label ?? '',
+          }}
         />
         <FilterButton
           className="col-span-1"
@@ -234,6 +402,13 @@ export default function EtatFacturationsTable({
           filter={true}
           options={yesNoOptions}
           coloredOptions
+          onValueChange={(value) => handleFilterChange('payment', value)}
+          selectedOption={{
+            value: activeFilters.payment ?? '',
+            label:
+              yesNoOptions.find((opt) => opt.value === activeFilters.payment)
+                ?.label ?? '',
+          }}
         />
       </div>
 
