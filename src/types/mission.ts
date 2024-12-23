@@ -40,3 +40,8 @@ export type FileStatuses = Record<
     noFilesFound: boolean;
   }
 >;
+
+export type PaymentStatus = {
+  period: string;
+  payment_date: string;
+};

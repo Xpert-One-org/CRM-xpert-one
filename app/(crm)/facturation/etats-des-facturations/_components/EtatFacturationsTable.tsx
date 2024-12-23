@@ -5,11 +5,23 @@ import EtatFacturationsRow from './EtatFacturationsRow';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getUniqueBillingMonths } from '../_utils/getUniqueBillingMonths';
 import EtatFacturationUploadRow from './EtatFacturationUploadRow';
+import { updateMissionFacturationPayment } from '../etats-facturation.action';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const yesNoOptions = [
   { label: 'OUI', value: 'yes', color: '#92C6B0' },
   { label: 'NON', value: 'no', color: '#D64242' },
 ];
+
+type PendingPayment = {
+  monthYear: { month: number; year: number };
+  date: string | null;
+};
+
+type PendingPayments = {
+  [missionId: string]: PendingPayment[];
+};
 
 export default function EtatFacturationsTable({
   missions,
@@ -22,6 +34,8 @@ export default function EtatFacturationsTable({
   const [sortedRows, setSortedRows] = useState<
     { mission: DBMission; monthYear: { month: number; year: number } }[]
   >([]);
+
+  const [pendingPayments, setPendingPayments] = useState<PendingPayments>({});
 
   const baseRows = missions
     .flatMap((mission) => {
@@ -64,6 +78,87 @@ export default function EtatFacturationsTable({
     });
 
     setSortedRows(newSortedRows);
+  };
+
+  const handleSalaryPaymentChange = (
+    mission: DBMission,
+    monthYear: { month: number; year: number },
+    isSelected: boolean,
+    isNull: boolean
+  ) => {
+    setPendingPayments((prev) => {
+      const existingPayments = prev[mission.id] || [];
+      if (isNull) {
+        return {
+          ...prev,
+          [mission.id]: [
+            ...existingPayments.filter(
+              (p) =>
+                p.monthYear.month !== monthYear.month ||
+                p.monthYear.year !== monthYear.year
+            ),
+            {
+              monthYear,
+              date: null,
+            },
+          ],
+        };
+      }
+
+      const paymentExists = existingPayments.some(
+        (p) =>
+          p.monthYear.month === monthYear.month &&
+          p.monthYear.year === monthYear.year
+      );
+
+      if (paymentExists) {
+        return {
+          ...prev,
+          [mission.id]: existingPayments.filter(
+            (p) =>
+              p.monthYear.month !== monthYear.month ||
+              p.monthYear.year !== monthYear.year
+          ),
+        };
+      }
+
+      return {
+        ...prev,
+        [mission.id]: [
+          ...existingPayments,
+          {
+            monthYear,
+            date: isSelected ? new Date().toISOString() : null,
+          },
+        ],
+      };
+    });
+  };
+
+  const handleSavePayments = async () => {
+    for (const [missionId, payments] of Object.entries(pendingPayments)) {
+      if (payments.length === 0) continue;
+
+      const mission = missions.find(
+        (mission) => mission.id === parseInt(missionId)
+      );
+
+      const paymentData = payments.reduce(
+        (acc, { monthYear, date }) => ({
+          ...acc,
+          [`${monthYear.year}-${(monthYear.month + 1)
+            .toString()
+            .padStart(2, '0')}`]: date,
+        }),
+        {}
+      );
+
+      await updateMissionFacturationPayment(parseInt(missionId), paymentData);
+      toast.success(
+        `Paiements enregistrés pour la mission ${mission?.mission_number}`
+      );
+    }
+    setPendingPayments({});
   };
 
   const displayRows = sortedRows.length > 0 ? sortedRows : baseRows;
@@ -144,10 +239,22 @@ export default function EtatFacturationsTable({
               key={`${mission.id}-${monthYear.year}-${monthYear.month}`}
               missionData={mission}
               selectedMonthYear={monthYear}
+              onSalaryPaymentChange={handleSalaryPaymentChange}
             />
           ))}
         </div>
       </div>
+
+      {Object.keys(pendingPayments).length > 0 && (
+        <div className="fixed bottom-10 right-10">
+          <Button
+            className="bg-primary px-spaceLarge py-spaceContainer text-white"
+            onClick={handleSavePayments}
+          >
+            Enregistrer
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-10 gap-3">
         <EtatFacturationUploadRow

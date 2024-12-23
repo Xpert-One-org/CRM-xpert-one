@@ -7,6 +7,7 @@ import { formatDate } from '@/utils/date';
 import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getFileTypeByStatusFacturation } from '../_utils/getFileTypeByStatusFacturation';
+import { checkPaymentStatusForDate } from '../_utils/checkPaymentStatusForDate';
 
 type FournisseurGestionFacturationRowProps = {
   missionData: DBMission;
@@ -32,6 +33,12 @@ export default function FournisseurGestionFacturationRow({
         missionData?.xpert_associated_status || ''
       )
     ]?.fournisseurFiles || [],
+    selectedYear,
+    selectedMonth
+  );
+
+  const paymentStatus = checkPaymentStatusForDate(
+    missionData.facturation_fournisseur_payment,
     selectedYear,
     selectedMonth
   );
@@ -99,7 +106,15 @@ export default function FournisseurGestionFacturationRow({
       </Box>
       <Box className="col-span-3 h-[70px] w-full bg-[#F5F5F5]">Paiement</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Box className="size-full bg-[#D64242] text-white">{'Non reçu'}</Box>
+      <Box
+        className={`size-full ${
+          paymentStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+        } text-white`}
+      >
+        {paymentStatus.exists
+          ? formatDate(paymentStatus.paymentDate!)
+          : 'Non reçu'}
+      </Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
     </>
   );

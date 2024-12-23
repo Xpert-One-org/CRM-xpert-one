@@ -2,19 +2,27 @@ import { Box } from '@/components/ui/box';
 import { useTasksStore } from '@/store/task';
 import type { DBMission } from '@/types/typesDb';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { uppercaseFirstLetter } from '@/utils/string';
 import StatusBox from './_boxes/StatusBox';
 import XpertStatusBox from './_boxes/XpertStatusBox';
 import SalaryPaymentBox from './_boxes/SalaryPaymentBox';
+import type { PaymentStatus } from '@/types/mission';
 
 export default function EtatFacturationsRow({
   missionData,
   selectedMonthYear,
+  onSalaryPaymentChange,
 }: {
   missionData: DBMission;
   selectedMonthYear: { month: number; year: number };
+  onSalaryPaymentChange?: (
+    mission: DBMission,
+    monthYear: { month: number; year: number },
+    isSelected: boolean,
+    isNull: boolean
+  ) => void;
 }) {
   const router = useRouter();
   const { setCreateTaskDialogOpen, setInitialTaskData } = useTasksStore();
@@ -23,6 +31,16 @@ export default function EtatFacturationsRow({
 
   const fileStatuses =
     fileStatusesByMission[missionData.mission_number || ''] || {};
+
+  const isPaymentSelected = useMemo(() => {
+    const payments = Array.isArray(missionData.facturation_fournisseur_payment)
+      ? (missionData.facturation_fournisseur_payment as PaymentStatus[])
+      : [];
+    const key = `${selectedMonthYear.year}-${(selectedMonthYear.month + 1)
+      .toString()
+      .padStart(2, '0')}`;
+    return payments.some((payment) => payment.period === key);
+  }, [missionData.facturation_fournisseur_payment, selectedMonthYear]);
 
   const handleRedirectFicheMission = (number: string) => {
     const formattedNumber = number.replaceAll(' ', '-');
@@ -36,6 +54,15 @@ export default function EtatFacturationsRow({
     });
     setCreateTaskDialogOpen(true);
     router.push('/dashboard/todo');
+  };
+
+  const handleSalaryPaymentClick = (isNull: boolean) => {
+    onSalaryPaymentChange?.(
+      missionData,
+      selectedMonthYear,
+      !isPaymentSelected,
+      isNull
+    );
   };
 
   return (
@@ -80,12 +107,14 @@ export default function EtatFacturationsRow({
         fileType="presence_sheet_validated"
         xpertAssociatedStatus={missionStatus || ''}
       />
-      <SalaryPaymentBox selectedMonthYear={selectedMonthYear} />
+      <SalaryPaymentBox
+        selectedMonthYear={selectedMonthYear}
+        xpertAssociatedStatus={missionStatus || ''}
+      />
       <XpertStatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
         fileType={missionStatus === 'cdi' ? 'salary_sheet' : ''}
-        isCdiSide
         xpertAssociatedStatus={missionStatus || ''}
       />
       <XpertStatusBox
@@ -116,6 +145,8 @@ export default function EtatFacturationsRow({
         isFournisseur
         xpertAssociatedStatus={missionStatus || ''}
         isSalaryPayment
+        onSalaryPaymentClick={handleSalaryPaymentClick}
+        isSelected={isPaymentSelected}
       />
     </>
   );

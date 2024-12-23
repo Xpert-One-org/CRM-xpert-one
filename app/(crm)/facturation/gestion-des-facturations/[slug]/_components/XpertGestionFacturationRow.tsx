@@ -14,6 +14,7 @@ import { downloadMissionFile } from '@functions/download-file-mission';
 import { checkFileExistsForDate } from '../_utils/checkFileExistsForDate';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getFileTypeByStatusFacturation } from '../_utils/getFileTypeByStatusFacturation';
+import { checkPaymentStatusForDate } from '../_utils/checkPaymentStatusForDate';
 
 type XpertGestionFacturationRowProps = {
   status: DBProfileStatus['status'];
@@ -138,6 +139,14 @@ export default function XpertGestionFacturationRow({
     setIsPendingDeletion(true);
     setIsPendingValidation(false);
   };
+
+  const paymentStatus = checkPaymentStatusForDate(
+    status === 'cdi'
+      ? missionData.facturation_salary_payment
+      : missionData.facturation_invoice_paid,
+    selectedYear,
+    selectedMonth
+  );
 
   return (
     <>
@@ -315,8 +324,15 @@ export default function XpertGestionFacturationRow({
       </Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      {/* TODO: manag logic later with etat facturations  */}
-      <Box className="size-full bg-[#D64242] text-white">{'Non effectué'}</Box>
+      <Box
+        className={`size-full ${
+          paymentStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+        } text-white`}
+      >
+        {paymentStatus.exists
+          ? formatDate(paymentStatus.paymentDate!)
+          : 'Non effectué'}
+      </Box>
     </>
   );
 }

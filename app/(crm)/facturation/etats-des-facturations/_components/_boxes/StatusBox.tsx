@@ -3,6 +3,7 @@ import { formatDate } from '@/utils/date';
 import { checkFileStatusForDate } from '../../_utils/checkFileStatusForDate';
 import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import type { FileStatuses } from '@/types/mission';
+import { useState, useEffect } from 'react';
 
 type StatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -11,6 +12,8 @@ type StatusBoxProps = {
   isFournisseur?: boolean;
   xpertAssociatedStatus: string;
   isSalaryPayment?: boolean;
+  onSalaryPaymentClick?: (isNull: boolean) => void;
+  isSelected?: boolean;
 };
 
 export default function StatusBox({
@@ -20,7 +23,19 @@ export default function StatusBox({
   isFournisseur = false,
   xpertAssociatedStatus,
   isSalaryPayment = false,
+  onSalaryPaymentClick,
+  isSelected = false,
 }: StatusBoxProps) {
+  const [localIsSelected, setLocalIsSelected] = useState(false);
+  const [currentDate, setCurrentDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isSelected && !currentDate) {
+      setCurrentDate(new Date().toISOString());
+    }
+    setLocalIsSelected(isSelected);
+  }, [isSelected]);
+
   const fileStatus = checkFileStatusForDate(
     fileStatuses,
     selectedMonthYear.year,
@@ -28,6 +43,34 @@ export default function StatusBox({
     isFournisseur,
     getFileTypeByStatusFacturation(fileType, xpertAssociatedStatus)
   );
+
+  if (isSalaryPayment) {
+    const handleClick = () => {
+      setLocalIsSelected(!localIsSelected);
+      if (!localIsSelected) {
+        setCurrentDate(new Date().toISOString());
+        onSalaryPaymentClick?.(false);
+      } else {
+        setCurrentDate(null);
+        onSalaryPaymentClick?.(true);
+      }
+    };
+
+    return (
+      <Box
+        className={`size-full cursor-pointer text-white ${
+          localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+        }`}
+        onClick={handleClick}
+      >
+        {!localIsSelected
+          ? 'NON REÇU'
+          : localIsSelected && currentDate
+            ? formatDate(currentDate)
+            : 'NON REÇU'}
+      </Box>
+    );
+  }
 
   if (fileStatus.noFilesFound) {
     return (

@@ -19,7 +19,6 @@ export default function XpertStatusBox({
   selectedMonthYear,
   fileType,
   isFournisseur = false,
-  isCdiSide = false,
   isFreelancePortageSide = false,
   xpertAssociatedStatus,
 }: XpertStatusBoxProps) {
@@ -38,7 +37,7 @@ export default function XpertStatusBox({
     return <Box className="size-full bg-[#D64242] text-white">{'NON'}</Box>;
   }
 
-  if (isCdiSide && fileStatus.noFilesFound) {
+  if (fileStatus.noFilesFound) {
     if (xpertAssociatedStatus !== 'cdi') {
       return <Box className="size-full bg-[#b1b1b1]">{''}</Box>;
     }

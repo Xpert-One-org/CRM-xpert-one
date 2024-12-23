@@ -6,10 +6,12 @@ type SalaryPaymentBoxProps = {
     month: number;
     year: number;
   };
+  xpertAssociatedStatus: string;
 };
 
 export default function SalaryPaymentBox({
   selectedMonthYear,
+  xpertAssociatedStatus,
 }: SalaryPaymentBoxProps) {
   const getBackgroundColor = () => {
     const today = new Date();
@@ -30,7 +32,9 @@ export default function SalaryPaymentBox({
     return 'bg-[#D64242]';
   };
 
-  return (
+  return xpertAssociatedStatus !== 'cdi' ? (
+    <Box className={`size-full bg-[#b1b1b1] text-white`}>{''}</Box>
+  ) : (
     <Box className={`size-full text-white ${getBackgroundColor()}`}>
       {'NON'}
     </Box>
