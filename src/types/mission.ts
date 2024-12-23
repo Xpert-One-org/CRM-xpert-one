@@ -41,7 +41,21 @@ export type FileStatuses = Record<
   }
 >;
 
+export type PendingPayment = {
+  monthYear: { month: number; year: number };
+  date: string | null;
+};
+
+export type PendingPayments = {
+  [missionId: string]: PendingPayment[];
+};
+
 export type PaymentStatus = {
   period: string;
   payment_date: string;
 };
+
+export type PaymentType =
+  | 'facturation_salary_payment'
+  | 'facturation_fournisseur_payment'
+  | 'facturation_invoice_paid';

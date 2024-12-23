@@ -8,20 +8,12 @@ import EtatFacturationUploadRow from './EtatFacturationUploadRow';
 import { updateMissionFacturationPayment } from '../etats-facturation.action';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import type { PaymentType, PendingPayments } from '@/types/mission';
 
 const yesNoOptions = [
   { label: 'OUI', value: 'yes', color: '#92C6B0' },
   { label: 'NON', value: 'no', color: '#D64242' },
 ];
-
-type PendingPayment = {
-  monthYear: { month: number; year: number };
-  date: string | null;
-};
-
-type PendingPayments = {
-  [missionId: string]: PendingPayment[];
-};
 
 export default function EtatFacturationsTable({
   missions,
@@ -84,14 +76,17 @@ export default function EtatFacturationsTable({
     mission: DBMission,
     monthYear: { month: number; year: number },
     isSelected: boolean,
-    isNull: boolean
+    isNull: boolean,
+    paymentType: PaymentType
   ) => {
     setPendingPayments((prev) => {
-      const existingPayments = prev[mission.id] || [];
+      const missionKey = `${mission.id}_${paymentType}`;
+      const existingPayments = prev[missionKey] || [];
+
       if (isNull) {
         return {
           ...prev,
-          [mission.id]: [
+          [missionKey]: [
             ...existingPayments.filter(
               (p) =>
                 p.monthYear.month !== monthYear.month ||
@@ -100,6 +95,7 @@ export default function EtatFacturationsTable({
             {
               monthYear,
               date: null,
+              paymentType,
             },
           ],
         };
@@ -114,7 +110,7 @@ export default function EtatFacturationsTable({
       if (paymentExists) {
         return {
           ...prev,
-          [mission.id]: existingPayments.filter(
+          [missionKey]: existingPayments.filter(
             (p) =>
               p.monthYear.month !== monthYear.month ||
               p.monthYear.year !== monthYear.year
@@ -124,11 +120,12 @@ export default function EtatFacturationsTable({
 
       return {
         ...prev,
-        [mission.id]: [
+        [missionKey]: [
           ...existingPayments,
           {
             monthYear,
             date: isSelected ? new Date().toISOString() : null,
+            paymentType,
           },
         ],
       };
@@ -136,8 +133,11 @@ export default function EtatFacturationsTable({
   };
 
   const handleSavePayments = async () => {
-    for (const [missionId, payments] of Object.entries(pendingPayments)) {
+    for (const [key, payments] of Object.entries(pendingPayments)) {
       if (payments.length === 0) continue;
+
+      const [missionId, ...paymentTypeParts] = key.split('_');
+      const paymentType = paymentTypeParts.join('_') as PaymentType;
 
       const mission = missions.find(
         (mission) => mission.id === parseInt(missionId)
@@ -153,9 +153,14 @@ export default function EtatFacturationsTable({
         {}
       );
 
-      await updateMissionFacturationPayment(parseInt(missionId), paymentData);
+      await updateMissionFacturationPayment(
+        parseInt(missionId),
+        paymentData,
+        paymentType
+      );
+
       toast.success(
-        `Paiements enregistrés pour la mission ${mission?.mission_number}`
+        `${paymentType === 'facturation_salary_payment' ? 'Paiements salaire' : 'Paiements fournisseur'} enregistrés pour la mission ${mission?.mission_number}`
       );
     }
     setPendingPayments({});

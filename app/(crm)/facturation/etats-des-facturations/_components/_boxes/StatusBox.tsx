@@ -2,7 +2,7 @@ import { Box } from '@/components/ui/box';
 import { formatDate } from '@/utils/date';
 import { checkFileStatusForDate } from '../../_utils/checkFileStatusForDate';
 import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
-import type { FileStatuses } from '@/types/mission';
+import type { FileStatuses, PaymentType } from '@/types/mission';
 import { useState, useEffect } from 'react';
 
 type StatusBoxProps = {
@@ -12,7 +12,7 @@ type StatusBoxProps = {
   isFournisseur?: boolean;
   xpertAssociatedStatus: string;
   isSalaryPayment?: boolean;
-  onSalaryPaymentClick?: (isNull: boolean) => void;
+  onSalaryPaymentClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean;
 };
 
@@ -49,10 +49,10 @@ export default function StatusBox({
       setLocalIsSelected(!localIsSelected);
       if (!localIsSelected) {
         setCurrentDate(new Date().toISOString());
-        onSalaryPaymentClick?.(false);
+        onSalaryPaymentClick?.(false, 'facturation_fournisseur_payment');
       } else {
         setCurrentDate(null);
-        onSalaryPaymentClick?.(true);
+        onSalaryPaymentClick?.(true, 'facturation_fournisseur_payment');
       }
     };
 

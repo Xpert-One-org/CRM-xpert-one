@@ -1,20 +1,23 @@
 'use server';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
+import type { PaymentType } from '@/types/mission';
 
 export async function updateMissionFacturationPayment(
   missionId: number,
-  paymentData: { [key: string]: string | null }
+  paymentData: { [key: string]: string | null },
+  paymentType: PaymentType
 ) {
   const supabase = await createSupabaseAppServerClient();
 
   const { data: existingMission } = await supabase
     .from('mission')
-    .select('facturation_fournisseur_payment')
+    .select(
+      'facturation_fournisseur_payment, facturation_salary_payment, facturation_invoice_paid'
+    )
     .eq('id', missionId)
     .single();
 
-  const existingPayments = (existingMission?.facturation_fournisseur_payment ||
-    []) as {
+  const existingPayments = (existingMission?.[paymentType] || []) as {
     period: string;
     payment_date: string;
   }[];
@@ -33,12 +36,12 @@ export async function updateMissionFacturationPayment(
   const { data, error } = await supabase
     .from('mission')
     .update({
-      facturation_fournisseur_payment: updatedPayments,
+      [paymentType]: updatedPayments,
     })
     .eq('id', missionId);
 
   if (error) {
-    throw new Error('Failed to update payment status');
+    throw new Error(`Failed to update ${paymentType} status`);
   }
 
   return data;
