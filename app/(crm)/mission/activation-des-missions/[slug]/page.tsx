@@ -57,7 +57,6 @@ export default function MissionActivationPage(props: {
 
     // Check Fournisseur files
     const fournisseurFilesToCheck = [
-      getFileTypeByStatus('devis', missionData.xpert_associated_status),
       getFileTypeByStatus('devis_signed', missionData.xpert_associated_status),
       getFileTypeByStatus(
         'contrat_commande',

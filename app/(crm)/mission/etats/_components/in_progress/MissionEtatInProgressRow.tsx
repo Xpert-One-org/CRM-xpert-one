@@ -2,23 +2,106 @@ import type { DBMission } from '@/types/typesDb';
 import { getTimeBeforeMission } from '@/utils/string';
 import { formatDate } from '@/utils/date';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@/components/ui/box';
 import { empty } from '@/data/constant';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import BriefCase from '@/components/svg/BriefCase';
 import FacturationLogo from '@/components/svg/Facturation';
+import { createSupabaseFrontendClient } from '@/utils/supabase/client';
+import { getFileTypeByStatus } from '../../../activation-des-missions/[slug]/_utils/getFileTypeByStatus';
 
 export default function MissionEtatInProgressRow({
   mission,
 }: {
   mission: DBMission;
 }) {
+  const [fileStatuses, setFileStatuses] = useState<
+    Record<string, { exists: boolean; createdAt?: string }>
+  >({});
   const router = useRouter();
+  const missionXpertStatus = mission.xpert_associated_status;
+
+  useEffect(() => {
+    const fetchFileStatuses = async () => {
+      const supabase = createSupabaseFrontendClient();
+
+      const xpertTypes = [
+        getFileTypeByStatus('recap_mission_signed', missionXpertStatus ?? ''),
+        getFileTypeByStatus('contrat_signed', missionXpertStatus ?? ''),
+        getFileTypeByStatus(
+          'commande_societe_signed',
+          missionXpertStatus ?? ''
+        ),
+        getFileTypeByStatus('devis', missionXpertStatus ?? ''),
+      ];
+
+      const statuses: Record<string, { exists: boolean; createdAt?: string }> =
+        {};
+
+      if (mission.xpert?.generated_id) {
+        for (const type of xpertTypes) {
+          const basePath = `${mission.mission_number}/${mission.xpert?.generated_id}/activation/${type}`;
+
+          const { data: files, error } = await supabase.storage
+            .from('mission_files')
+            .list(basePath);
+
+          if (!error && files && files.length > 0) {
+            const sortedFiles = files.sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime()
+            );
+            statuses[type] = {
+              exists: true,
+              createdAt: sortedFiles[0].created_at,
+            };
+          } else {
+            statuses[type] = { exists: false };
+          }
+        }
+      }
+
+      if (mission.supplier?.generated_id) {
+        const fournisseurType = getFileTypeByStatus(
+          'contrat_commande',
+          missionXpertStatus ?? ''
+        );
+        const basePath = `${mission.mission_number}/${mission.supplier?.generated_id}/activation/${fournisseurType}`;
+
+        const { data: files, error } = await supabase.storage
+          .from('mission_files')
+          .list(basePath);
+
+        if (!error && files && files.length > 0) {
+          const sortedFiles = files.sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          );
+          statuses[fournisseurType] = {
+            exists: true,
+            createdAt: sortedFiles[0].created_at,
+          };
+        } else {
+          statuses[fournisseurType] = { exists: false };
+        }
+      }
+
+      setFileStatuses(statuses);
+    };
+
+    fetchFileStatuses();
+  }, [
+    mission.mission_number,
+    mission.xpert?.generated_id,
+    mission.supplier?.generated_id,
+    missionXpertStatus,
+  ]);
 
   const createdAt = formatDate(mission.created_at);
-  const endDate = formatDate(mission.end_date ?? '');
   const timeBeforeMission = getTimeBeforeMission(mission.start_date ?? '');
 
   const handleRedirectFicheMission = (number: string) => {
@@ -92,26 +175,58 @@ export default function MissionEtatInProgressRow({
       >
         {mission.xpert?.generated_id ?? empty}
       </Box>
-      <Box className={`col-span-2 ${getBackgroundClass}`}>
-        {getBackgroundClass === 'bg-[#D64242] text-white'
-          ? 'Non reçu'
-          : getBackgroundClass === 'bg-accent text-white'
-            ? 'Non reçu'
-            : `Reçu le ${endDate}`}
+      <Box className={`col-span-2`}>
+        {fileStatuses[
+          getFileTypeByStatus('recap_mission_signed', missionXpertStatus ?? '')
+        ]?.exists
+          ? `Reçu le ${formatDate(
+              fileStatuses[
+                getFileTypeByStatus(
+                  'recap_mission_signed',
+                  missionXpertStatus ?? ''
+                )
+              ].createdAt ?? ''
+            )}`
+          : 'Non reçu'}
       </Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
-        {getBackgroundClass === 'bg-[#D64242] text-white'
-          ? 'Non reçu'
-          : getBackgroundClass === 'bg-accent text-white'
-            ? 'Non reçu'
-            : `Reçu le ${endDate}`}
+        {fileStatuses[
+          getFileTypeByStatus(
+            missionXpertStatus === 'cdi'
+              ? 'contrat_signed'
+              : missionXpertStatus === 'freelance'
+                ? 'commande_societe_signed'
+                : 'devis',
+            missionXpertStatus ?? ''
+          )
+        ]?.exists
+          ? `Reçu le ${formatDate(
+              fileStatuses[
+                getFileTypeByStatus(
+                  missionXpertStatus === 'cdi'
+                    ? 'contrat_signed'
+                    : missionXpertStatus === 'freelance'
+                      ? 'commande_societe_signed'
+                      : 'devis',
+                  missionXpertStatus ?? ''
+                )
+              ].createdAt ?? ''
+            )}`
+          : 'Non reçu'}
       </Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
-        {getBackgroundClass === 'bg-[#D64242] text-white'
-          ? 'Non reçu'
-          : getBackgroundClass === 'bg-accent text-white'
-            ? 'Non reçu'
-            : `Reçu le ${endDate}`}
+        {fileStatuses[
+          getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+        ]?.exists
+          ? `Reçu le ${formatDate(
+              fileStatuses[
+                getFileTypeByStatus(
+                  'contrat_commande',
+                  missionXpertStatus ?? ''
+                )
+              ].createdAt ?? ''
+            )}`
+          : 'Non reçu'}
       </Box>
       <Button
         className="col-span-1 h-full"
