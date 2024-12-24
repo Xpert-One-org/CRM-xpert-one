@@ -88,4 +88,9 @@ export const emptyMission: DBMission = {
   contract_file_name: null,
   signed_quote_file_name: null,
   xpert_associated_status: null,
+  facturation_fournisseur_payment: null,
+  facturation_invoice_paid: null,
+  facturation_salary_payment: null,
+  xpert: null,
+  supplier: null,
 };

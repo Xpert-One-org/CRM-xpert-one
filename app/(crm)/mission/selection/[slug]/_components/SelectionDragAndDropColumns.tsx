@@ -5,34 +5,7 @@ import React from 'react';
 import SelectionMatchedXpertCard from './SelectionMatchedXpertCard';
 import { Droppable } from '@hello-pangea/dnd';
 import type { ColumnStatus, DBMissionXpertsSelection } from '@/types/typesDb';
-
-const columns: ColumnStatus[] = [
-  'postulant',
-  'matching',
-  'etude',
-  'non-retenu',
-  'discussions',
-  'proposes',
-  'refuses',
-  'valides',
-];
-
-const getColumnBackground = (columnIndex: number, isDraggingOver: boolean) => {
-  if (isDraggingOver) return 'bg-[#d1dde0]/20';
-  if (columnIndex === 0) return 'bg-[#d1dde0]';
-  if (columnIndex === 1) return 'bg-[#bebec0]';
-  return '';
-};
-
-const isDropDisabled = (
-  droppableId: string,
-  xpertsByColumn: Record<ColumnStatus, DBMissionXpertsSelection[]>
-) => {
-  if (droppableId === 'valides' && xpertsByColumn['valides'].length >= 1) {
-    return true;
-  }
-  return false;
-};
+import { columns } from '@/constants/columnStatus';
 
 export default function SelectionDragAndDropColumns({
   xpertsSelection,
@@ -46,6 +19,26 @@ export default function SelectionDragAndDropColumns({
     },
     {} as Record<ColumnStatus, DBMissionXpertsSelection[]>
   );
+
+  const getColumnBackground = (
+    columnIndex: number,
+    isDraggingOver: boolean
+  ) => {
+    if (isDraggingOver) return 'bg-[#d1dde0]/20';
+    if (columnIndex === 0) return 'bg-[#d1dde0]';
+    if (columnIndex === 1) return 'bg-[#bebec0]';
+    return '';
+  };
+
+  const isDropDisabled = (
+    droppableId: string,
+    xpertsByColumn: Record<ColumnStatus, DBMissionXpertsSelection[]>
+  ) => {
+    if (droppableId === 'valides' && xpertsByColumn['valides'].length >= 1) {
+      return true;
+    }
+    return false;
+  };
 
   return (
     <>

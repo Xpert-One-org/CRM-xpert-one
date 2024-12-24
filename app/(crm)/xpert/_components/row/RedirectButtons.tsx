@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { MessageSquare, ListTodo, ListTodoIcon } from 'lucide-react';
+import { MessageSquare, ListTodo } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useTasksStore } from '@/store/task';

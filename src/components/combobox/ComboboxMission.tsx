@@ -17,7 +17,8 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
     currentMissionNumber !== 'fiche' &&
       currentMissionNumber !== 'matching' &&
       currentMissionNumber !== 'selection' &&
-      currentMissionNumber !== 'activation-des-missions'
+      currentMissionNumber !== 'activation-des-missions' &&
+      currentMissionNumber !== 'gestion-des-facturations'
       ? currentMissionNumber
       : ''
   );
@@ -29,7 +30,6 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
   };
 
   const handleSetValue = (value: string) => {
-    //! check if the value is the same as the current mission number
     if (value.toUpperCase() === currentMissionNumber?.toUpperCase()) {
       return;
     }
@@ -46,6 +46,10 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
     } else if (slug === 'activation-des-missions') {
       router.push(
         `/mission/activation-des-missions/${value.split(' ').join('-').toUpperCase()}`
+      );
+    } else if (slug === 'gestion-des-facturations') {
+      router.push(
+        `/facturation/gestion-des-facturations/${value.split(' ').join('-').toUpperCase()}`
       );
     } else {
       router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);

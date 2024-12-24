@@ -4,12 +4,13 @@ import type { DBMission } from '@/types/typesDb';
 export async function checkFileExists(
   type: string,
   missionData: DBMission,
-  isFournisseur: boolean = false
+  isFournisseur: boolean = false,
+  isFacturation: boolean = false
 ) {
   const supabase = createSupabaseFrontendClient();
   const filePath = isFournisseur
-    ? `${missionData.mission_number}/${missionData.supplier?.generated_id}/activation/${type}`
-    : `${missionData.mission_number}/${missionData.xpert?.generated_id}/activation/${type}`;
+    ? `${missionData.mission_number}/${missionData.supplier?.generated_id}/${isFacturation ? 'facturation' : 'activation'}/${type}`
+    : `${missionData.mission_number}/${missionData.xpert?.generated_id}/${isFacturation ? 'facturation' : 'activation'}/${type}`;
 
   try {
     const { data: files, error } = await supabase.storage

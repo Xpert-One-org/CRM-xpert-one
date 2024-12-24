@@ -83,7 +83,7 @@ export default function FournisseurTable() {
       <div className="mb-2 flex w-fit items-center justify-between gap-2">
         <CreateFournisseurXpertDialog role="company" />
         {/* {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
-          <Button className="py-spaceXSmall pl-spaceContainer text-white">
+          <Button className="py-XSmall pl-spaceContainer text-white">
             Enregistrer
           </Button>
         )} */}

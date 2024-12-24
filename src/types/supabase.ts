@@ -417,6 +417,9 @@ export type Database = {
           end_date: string | null;
           expertises: string[] | null;
           expertises_other: string | null;
+          facturation_fournisseur_payment: Json[] | null;
+          facturation_invoice_paid: Json[] | null;
+          facturation_salary_payment: Json[] | null;
           id: number;
           image_url: string | null;
           job_title: string | null;
@@ -470,6 +473,9 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
+          facturation_fournisseur_payment?: Json[] | null;
+          facturation_invoice_paid?: Json[] | null;
+          facturation_salary_payment?: Json[] | null;
           id?: never;
           image_url?: string | null;
           job_title?: string | null;
@@ -523,6 +529,9 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
+          facturation_fournisseur_payment?: Json[] | null;
+          facturation_invoice_paid?: Json[] | null;
+          facturation_salary_payment?: Json[] | null;
           id?: never;
           image_url?: string | null;
           job_title?: string | null;

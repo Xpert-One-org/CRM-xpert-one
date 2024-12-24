@@ -68,7 +68,7 @@ export default async function DashboardPage() {
         iconButton={
           <FacturationLogo className="fill-white" width={24} height={24} />
         }
-        link="/facturation/etats"
+        link="/facturation/etats-des-facturations"
       /> */}
       <DashBoardCards
         count={(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}
