@@ -183,7 +183,7 @@ export default function XpertGestionFacturationRow({
         onClick={() =>
           handleDownloadFile({
             type: getFileTypeByStatusFacturation(
-              `presence_sheet${presenceSheetStatus.exists ? '_signed' : ''}`,
+              `presence_sheet_signed`,
               missionData?.xpert_associated_status || ''
             ),
             isTemplate: true,

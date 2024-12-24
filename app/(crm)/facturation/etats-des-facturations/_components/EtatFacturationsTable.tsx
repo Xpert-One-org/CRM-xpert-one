@@ -47,6 +47,8 @@ export default function EtatFacturationsTable({
 
   const [activeFilters, setActiveFilters] = useState<FilterState>({});
 
+  const [filterKey, setFilterKey] = useState(0);
+
   const baseRows = missions
     .flatMap((mission) => {
       const fileStatuses =
@@ -285,14 +287,22 @@ export default function EtatFacturationsTable({
     return filterRows(rows);
   }, [sortedRows, baseRows, filterRows]);
 
+  const resetFilters = () => {
+    setActiveFilters({});
+    setSortedRows([]);
+    setFilterKey((prev) => prev + 1);
+  };
+
   return (
     <div className="flex h-[calc(100vh-260px)] flex-col gap-3">
       <div className="grid grid-cols-10 gap-3">
         <FilterButton
+          key={`gestion-${filterKey}`}
           className="col-span-1"
           placeholder="Gestion de facturation"
         />
         <FilterButton
+          key={`date-${filterKey}`}
           className="col-span-1"
           placeholder="Mois / Année"
           filter={true}
@@ -302,8 +312,13 @@ export default function EtatFacturationsTable({
           ]}
           onValueChange={handleDateSort}
         />
-        <FilterButton className="col-span-1" placeholder="Référent Xpert One" />
         <FilterButton
+          key={`referent-${filterKey}`}
+          className="col-span-1"
+          placeholder="Référent Xpert One"
+        />
+        <FilterButton
+          key={`presence-${filterKey}`}
           className="col-span-1"
           placeholder="Feuille de présence validée"
           filter={true}
@@ -312,45 +327,27 @@ export default function EtatFacturationsTable({
           onValueChange={(value) =>
             handleFilterChange('presenceSheetValidated', value)
           }
-          selectedOption={{
-            value: activeFilters.presenceSheetValidated ?? '',
-            label:
-              yesNoOptions.find(
-                (opt) => opt.value === activeFilters.presenceSheetValidated
-              )?.label ?? '',
-          }}
         />
         <FilterButton
+          key={`salary-payment-${filterKey}`}
           className="col-span-1"
           placeholder="Paiement de salaire"
           filter={true}
           options={yesNoOptions}
           coloredOptions
           onValueChange={(value) => handleFilterChange('salaryPayment', value)}
-          selectedOption={{
-            value: activeFilters.salaryPayment ?? '',
-            label:
-              yesNoOptions.find(
-                (opt) => opt.value === activeFilters.salaryPayment
-              )?.label ?? '',
-          }}
         />
         <FilterButton
+          key={`salary-sheet-${filterKey}`}
           className="col-span-1"
           placeholder="Bulletin de salaire"
           filter={true}
           options={yesNoOptions}
           coloredOptions
           onValueChange={(value) => handleFilterChange('salarySheet', value)}
-          selectedOption={{
-            value: activeFilters.salarySheet ?? '',
-            label:
-              yesNoOptions.find(
-                (opt) => opt.value === activeFilters.salarySheet
-              )?.label ?? '',
-          }}
         />
         <FilterButton
+          key={`invoice-validated-${filterKey}`}
           className="col-span-1"
           placeholder="Facture validée"
           filter={true}
@@ -359,57 +356,46 @@ export default function EtatFacturationsTable({
           onValueChange={(value) =>
             handleFilterChange('invoiceValidated', value)
           }
-          selectedOption={{
-            value: activeFilters.invoiceValidated ?? '',
-            label:
-              yesNoOptions.find(
-                (opt) => opt.value === activeFilters.invoiceValidated
-              )?.label ?? '',
-          }}
         />
         <FilterButton
+          key={`invoice-paid-${filterKey}`}
           className="col-span-1"
           placeholder="Facture payée"
           filter={true}
           options={yesNoOptions}
           coloredOptions
           onValueChange={(value) => handleFilterChange('invoicePaid', value)}
-          selectedOption={{
-            value: activeFilters.invoicePaid ?? '',
-            label:
-              yesNoOptions.find(
-                (opt) => opt.value === activeFilters.invoicePaid
-              )?.label ?? '',
-          }}
         />
         <FilterButton
+          key={`invoice-${filterKey}`}
           className="col-span-1"
           placeholder="Facture"
           filter={true}
           options={yesNoOptions}
           coloredOptions
           onValueChange={(value) => handleFilterChange('invoice', value)}
-          selectedOption={{
-            value: activeFilters.invoice ?? '',
-            label:
-              yesNoOptions.find((opt) => opt.value === activeFilters.invoice)
-                ?.label ?? '',
-          }}
         />
         <FilterButton
+          key={`payment-${filterKey}`}
           className="col-span-1"
           placeholder="Paiement"
           filter={true}
           options={yesNoOptions}
           coloredOptions
           onValueChange={(value) => handleFilterChange('payment', value)}
-          selectedOption={{
-            value: activeFilters.payment ?? '',
-            label:
-              yesNoOptions.find((opt) => opt.value === activeFilters.payment)
-                ?.label ?? '',
-          }}
         />
+      </div>
+
+      <div className="flex items-center gap-x-4 px-1">
+        <p className="whitespace-nowrap">{displayRows.length} résultats</p>
+        {(Object.keys(activeFilters).some(
+          (key) => activeFilters[key as keyof FilterState]
+        ) ||
+          sortedRows.length > 0) && (
+          <button className="font-[600] text-primary" onClick={resetFilters}>
+            Réinitialiser
+          </button>
+        )}
       </div>
 
       <div className="overflow-y-auto">
