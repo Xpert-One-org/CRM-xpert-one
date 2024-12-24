@@ -32,6 +32,10 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
           mission.xpert_associated_status || ''
         )}`,
         `${getFileTypeByStatusFacturation(
+          'invoice_validated',
+          mission.xpert_associated_status || ''
+        )}`,
+        `${getFileTypeByStatusFacturation(
           'invoice',
           mission.xpert_associated_status || ''
         )}`,
@@ -71,6 +75,10 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
             mission.xpert_associated_status === 'cdi'
               ? 'salary_sheet'
               : 'invoice_received',
+            mission.xpert_associated_status || ''
+          )}`,
+          `${getFileTypeByStatusFacturation(
+            'invoice_validated',
             mission.xpert_associated_status || ''
           )}`,
           `${getFileTypeByStatusFacturation(

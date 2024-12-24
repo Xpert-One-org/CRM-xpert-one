@@ -85,9 +85,11 @@ export default function GestionDesFacturationsPage(props: {
         pendingChanges.validations
       )) {
         if (isValidated) {
-          const [missionNumber, xpertId, year, month] = key.split('|');
+          const [missionNumber, xpertId, year, month, type] = key.split('|');
+          const isInvoice = type === 'invoice';
+
           const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/${getFileTypeByStatusFacturation(
-            'presence_sheet_signed',
+            isInvoice ? 'invoice_received' : 'presence_sheet_signed',
             missionData?.xpert_associated_status || ''
           )}`;
 
@@ -100,11 +102,11 @@ export default function GestionDesFacturationsPage(props: {
             const sourceFilePath = `${basePath}/${mostRecentFile.name}`;
             const validatedFilePath = sourceFilePath.replace(
               `${getFileTypeByStatusFacturation(
-                'presence_sheet_signed',
+                isInvoice ? 'invoice_received' : 'presence_sheet_signed',
                 missionData?.xpert_associated_status || ''
               )}`,
               `${getFileTypeByStatusFacturation(
-                'presence_sheet_validated',
+                isInvoice ? 'invoice_validated' : 'presence_sheet_validated',
                 missionData?.xpert_associated_status || ''
               )}`
             );
@@ -117,9 +119,11 @@ export default function GestionDesFacturationsPage(props: {
 
       for (const [key, isDeleted] of Object.entries(pendingChanges.deletions)) {
         if (isDeleted) {
-          const [missionNumber, xpertId, year, month] = key.split('|');
+          const [missionNumber, xpertId, year, month, type] = key.split('|');
+          const isInvoice = type === 'invoice';
+
           const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/${getFileTypeByStatusFacturation(
-            'presence_sheet_signed',
+            isInvoice ? 'invoice_received' : 'presence_sheet_signed',
             missionData?.xpert_associated_status || ''
           )}`;
 

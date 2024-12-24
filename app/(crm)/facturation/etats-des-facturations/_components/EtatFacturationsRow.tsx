@@ -174,7 +174,7 @@ export default function EtatFacturationsRow({
       <XpertStatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
-        fileType={missionStatus !== 'cdi' ? 'invoice_received' : ''}
+        fileType={missionStatus !== 'cdi' ? 'invoice_validated' : ''}
         isFreelancePortageSide
         xpertAssociatedStatus={missionStatus || ''}
       />

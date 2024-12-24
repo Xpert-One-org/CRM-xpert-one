@@ -39,6 +39,10 @@ export default function XpertGestionFacturationRow({
 }: Omit<XpertGestionFacturationRowProps, 'fileStatuses'>) {
   const [isPendingValidation, setIsPendingValidation] = useState(false);
   const [isPendingDeletion, setIsPendingDeletion] = useState(false);
+  const [isInvoicePendingValidation, setIsInvoicePendingValidation] =
+    useState(false);
+  const [isInvoicePendingDeletion, setIsInvoicePendingDeletion] =
+    useState(false);
 
   const { fileStatusesByMission } = useFileStatusFacturationStore();
   const fileStatuses =
@@ -120,12 +124,23 @@ export default function XpertGestionFacturationRow({
     selectedMonth
   );
 
+  const invoiceValidatedStatus = checkFileExistsForDate(
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        'invoice_validated',
+        missionData?.xpert_associated_status || ''
+      )
+    ]?.xpertFiles || [],
+    selectedYear,
+    selectedMonth
+  );
+
   const handleValidatePresenceSheet = () => {
     if (presenceSheetValidatedStatus.exists) {
       toast.info('La feuille de présence a déjà été validée');
       return;
     }
-    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}`;
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|presence_sheet_signed`;
     onPendingChange?.('validation', key, true);
     onPendingChange?.('deletion', key, false);
     setIsPendingValidation(true);
@@ -133,11 +148,31 @@ export default function XpertGestionFacturationRow({
   };
 
   const handleDeletePresenceSheet = () => {
-    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}`;
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|presence_sheet_signed`;
     onPendingChange?.('deletion', key, true);
     onPendingChange?.('validation', key, false);
     setIsPendingDeletion(true);
     setIsPendingValidation(false);
+  };
+
+  const handleValidateInvoice = () => {
+    if (invoiceValidatedStatus.exists) {
+      toast.info('La facture a déjà été validée');
+      return;
+    }
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|invoice`;
+    onPendingChange?.('validation', key, true);
+    onPendingChange?.('deletion', key, false);
+    setIsInvoicePendingValidation(true);
+    setIsInvoicePendingDeletion(false);
+  };
+
+  const handleDeleteInvoice = () => {
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|invoice`;
+    onPendingChange?.('deletion', key, true);
+    onPendingChange?.('validation', key, false);
+    setIsInvoicePendingDeletion(true);
+    setIsInvoicePendingValidation(false);
   };
 
   const paymentStatus = checkPaymentStatusForDate(
@@ -315,13 +350,43 @@ export default function XpertGestionFacturationRow({
           salaryOrInvoiceStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
       >
-        <p>{salaryOrInvoiceStatus.exists ? 'Reçu le' : 'Non reçu'}</p>
+        <p>
+          {salaryOrInvoiceStatus.exists
+            ? invoiceValidatedStatus.exists
+              ? 'Validé le'
+              : 'Reçu le'
+            : 'Non reçu'}
+        </p>
         <p>
           {salaryOrInvoiceStatus.exists
             ? formatDate(salaryOrInvoiceStatus.createdAt ?? '')
             : ''}
         </p>
       </Box>
+      {status !== 'cdi' && (
+        <div className="col-span-1 flex gap-2">
+          <Button
+            className={`flex size-full w-1/2 bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80 ${
+              isInvoicePendingValidation && 'border-4 border-accent'
+            }`}
+            onClick={handleValidateInvoice}
+            disabled={!salaryOrInvoiceStatus.exists}
+          >
+            <Check className="size-6" />
+          </Button>
+          <Button
+            className={`flex size-full w-1/2 bg-[#b32f2f] text-white hover:bg-[#b32f2f]/80 ${
+              isInvoicePendingDeletion && 'border-4 border-accent'
+            }`}
+            onClick={handleDeleteInvoice}
+            disabled={
+              !salaryOrInvoiceStatus.exists || invoiceValidatedStatus.exists
+            }
+          >
+            <X className="size-6" />
+          </Button>
+        </div>
+      )}
 
       <Box className="col-span-3 h-[70px] bg-[#F5F5F5]">
         {status === 'cdi' ? 'Paiement salaire' : 'Facture payée'}
