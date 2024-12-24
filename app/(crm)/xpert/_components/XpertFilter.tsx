@@ -95,12 +95,6 @@ export default function XpertFilter({
         sortable
         data={xperts}
         sortKey="created_at"
-        selectedOption={{
-          value: activeFilters.sortDate,
-          label:
-            sortDateOptions.find((opt) => opt.value === activeFilters.sortDate)
-              ?.label ?? '',
-        }}
       />
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <SearchComponentFilter
@@ -155,38 +149,18 @@ export default function XpertFilter({
         onValueChange={handleAvailabilityChange}
         placeholder="Disponible"
         coloredOptions
-        selectedOption={{
-          value: activeFilters.availability,
-          label:
-            availabilityOptions.find(
-              (option) => option.value === activeFilters.availability
-            )?.label ?? '',
-        }}
       />
       <FilterButton
         options={cvOptions}
         onValueChange={handleCvChange}
         placeholder="CV"
         coloredOptions
-        selectedOption={{
-          value: activeFilters.cv,
-          label:
-            cvOptions.find((option) => option.value === activeFilters.cv)
-              ?.label ?? '',
-        }}
       />
       <FilterButton
         options={adminOpinionOptions}
         onValueChange={handleAdminOpinionChange}
         placeholder="Qualité"
         coloredOptions
-        selectedOption={{
-          value: activeFilters.adminOpinion ?? '',
-          label:
-            adminOpinionOptions.find(
-              (option) => option.value === activeFilters.adminOpinion
-            )?.label ?? '',
-        }}
       />
       <FilterButton
         className="font-bold"

@@ -135,15 +135,15 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/facturation/gestion-facturations',
+    url: '/facturation/gestion-des-facturations',
     sub: [
       {
         title: 'Gestion des facturations',
-        url: '/facturation/gestion-facturations',
+        url: '/facturation/gestion-des-facturations',
       },
       {
         title: 'Etat des facturations',
-        url: '/facturation/etats',
+        url: '/facturation/etats-des-facturations',
       },
     ],
   },

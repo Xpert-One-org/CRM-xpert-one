@@ -26,7 +26,6 @@ type FilterButtonProps = {
   sortKey?: string;
   onSort?: (sortedData: any[]) => void;
   coloredOptions?: boolean;
-  selectedOption?: SelectedOption;
 };
 
 export const FilterButton = ({

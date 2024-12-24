@@ -10,8 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import type { FileType } from './XpertActivationMissionRow';
 import type { DBMission } from '@/types/typesDb';
+import type { FileType } from '@/types/mission';
+import DownloadOff from '../svg/DownloadOff';
 
 type UploadFileDialogProps = {
   type: FileType;
@@ -20,6 +21,10 @@ type UploadFileDialogProps = {
   missionData: DBMission;
   onUploadSuccess?: () => void;
   isFournisseurSide?: boolean;
+  isFacturation?: boolean;
+  disabled?: boolean;
+  selectedYear?: number;
+  selectedMonth?: number;
 };
 
 export default function UploadFileDialog({
@@ -29,6 +34,10 @@ export default function UploadFileDialog({
   missionData,
   onUploadSuccess,
   isFournisseurSide = false,
+  isFacturation = false,
+  disabled = false,
+  selectedYear,
+  selectedMonth,
 }: UploadFileDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -44,11 +53,18 @@ export default function UploadFileDialog({
     const supabase = createSupabaseFrontendClient();
 
     try {
+      const dateFolder =
+        isFacturation && selectedYear && selectedMonth !== undefined
+          ? `${selectedYear}/${(selectedMonth + 1).toString().padStart(2, '0')}`
+          : '';
+
       const filePath = `${missionData.mission_number}/${
         isFournisseurSide
           ? missionData.supplier?.generated_id
           : missionData.xpert?.generated_id
-      }/activation/${type}/${selectedFile.name}`;
+      }/${isFacturation ? `facturation/${dateFolder}` : 'activation'}/${type}/${
+        selectedFile.name
+      }`;
 
       const { error } = await supabase.storage
         .from('mission_files')
@@ -77,10 +93,15 @@ export default function UploadFileDialog({
       <Button
         className="size-full gap-1 text-white"
         onClick={() => setOpen(true)}
+        disabled={disabled}
       >
         {buttonText ?? ''}
         <div>
-          <Download className="size-6 -rotate-90" />
+          {disabled ? (
+            <DownloadOff className="size-8 -rotate-90" />
+          ) : (
+            <Download className="size-6 -rotate-90" />
+          )}
         </div>
       </Button>
       <Credenza open={open} onOpenChange={setOpen}>

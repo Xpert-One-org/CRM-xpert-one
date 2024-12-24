@@ -11,8 +11,6 @@ type TaskState = {
   loadTasks: (replacing?: boolean) => void;
   activeFilters: FilterTasks;
   setActiveFilters: (filters: FilterTasks) => void;
-  resetTasks: () => void;
-  // Nouveaux états pour la création de tâche
   createTaskDialogOpen: boolean;
   initialTaskData: {
     subjectType?: 'xpert' | 'supplier';
@@ -52,16 +50,6 @@ export const useTasksStore = create<TaskState>((set, get) => ({
   activeFilters: {},
   setActiveFilters: (filter) => {
     set({ activeFilters: filter });
-  },
-  resetTasks: () => {
-    set({
-      activeFilters: {
-        assignedTo: '',
-        status: undefined,
-        subjectType: '',
-      },
-    });
-    get().loadTasks(true);
   },
   // Nouveaux états et actions pour la création de tâche
   createTaskDialogOpen: false,
