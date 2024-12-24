@@ -103,4 +103,12 @@ to authenticated
 using ((bucket_id = 'chat'::text));
 
 
+create policy "Delete mission file 14rm0as_0"
+on "storage"."objects"
+as permissive
+for delete
+to public
+using ((bucket_id = 'mission_files'::text));
+
+
 

@@ -417,6 +417,9 @@ export type Database = {
           end_date: string | null;
           expertises: string[] | null;
           expertises_other: string | null;
+          facturation_fournisseur_payment: Json[] | null;
+          facturation_invoice_paid: Json[] | null;
+          facturation_salary_payment: Json[] | null;
           id: number;
           image_url: string | null;
           job_title: string | null;
@@ -452,6 +455,7 @@ export type Database = {
           street_number: number | null;
           tjm: string | null;
           xpert_associated_id: string | null;
+          xpert_associated_status: string | null;
         };
         Insert: {
           address?: string | null;
@@ -469,6 +473,9 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
+          facturation_fournisseur_payment?: Json[] | null;
+          facturation_invoice_paid?: Json[] | null;
+          facturation_salary_payment?: Json[] | null;
           id?: never;
           image_url?: string | null;
           job_title?: string | null;
@@ -504,6 +511,7 @@ export type Database = {
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
+          xpert_associated_status?: string | null;
         };
         Update: {
           address?: string | null;
@@ -521,6 +529,9 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
+          facturation_fournisseur_payment?: Json[] | null;
+          facturation_invoice_paid?: Json[] | null;
+          facturation_salary_payment?: Json[] | null;
           id?: never;
           image_url?: string | null;
           job_title?: string | null;
@@ -556,6 +567,7 @@ export type Database = {
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
+          xpert_associated_status?: string | null;
         };
         Relationships: [
           {

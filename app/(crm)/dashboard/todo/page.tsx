@@ -92,7 +92,6 @@ export default function TaskTable() {
   const {
     loadTasks,
     loading,
-    resetTasks,
     tasks,
     activeFilters,
     setActiveFilters,
@@ -111,6 +110,8 @@ export default function TaskTable() {
   const [adminOptions, setAdminOptions] = useState<
     { label: string; value: string }[]
   >([]);
+
+  const [filterKey, setFilterKey] = useState(0);
 
   const hasSomethingNotSaved =
     newStatusNotSaved.length > 0 || newAssignedToNotSaved.length > 0;
@@ -259,6 +260,11 @@ export default function TaskTable() {
     setIsSaving(false);
   };
 
+  const resetTasks = () => {
+    loadTasks(true);
+    setFilterKey((prev) => prev + 1);
+  };
+
   return (
     <div
       className={cn(
@@ -285,15 +291,8 @@ export default function TaskTable() {
             </Box>
             <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
               <FilterButton
+                key={`admin-${filterKey}`}
                 options={adminOptions}
-                selectedOption={
-                  activeFilters.createdBy
-                    ? {
-                        label: activeFilters.createdBy,
-                        value: activeFilters.createdBy,
-                      }
-                    : { label: '', value: '' }
-                }
                 onValueChange={(value) =>
                   handleFilterChange('createdBy', value)
                 }
@@ -302,15 +301,8 @@ export default function TaskTable() {
             </Box>
             <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
               <FilterButton
+                key={`assigned-${filterKey}`}
                 options={adminOptions}
-                selectedOption={
-                  activeFilters.assignedTo
-                    ? {
-                        label: activeFilters.assignedTo,
-                        value: activeFilters.assignedTo,
-                      }
-                    : { label: '', value: '' }
-                }
                 onValueChange={(value) =>
                   handleFilterChange('assignedTo', value)
                 }
@@ -326,15 +318,9 @@ export default function TaskTable() {
             </Box>
             <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
               <FilterButton
+                key={`status-${filterKey}`}
                 options={statusOptions}
                 coloredOptions
-                selectedOption={{
-                  value: activeFilters.status ?? '',
-                  label:
-                    statusOptions.find(
-                      (opt) => opt.value === activeFilters.status
-                    )?.label ?? '',
-                }}
                 onValueChange={(value) => handleFilterChange('status', value)}
                 placeholder="État"
               />

@@ -95,8 +95,6 @@ export async function getAdminUsers() {
 // Mettre à jour une tâche
 export async function updateTask(id: number, updates: UpdateTask) {
   const supabase = await createSupabaseAppServerClient();
-  console.log('Starting update for task:', id, 'with updates:', updates);
-
   try {
     // 1. Récupérer l'ancienne version de la tâche
     const { data: oldTask, error: oldTaskError } = await supabase
@@ -159,8 +157,6 @@ export async function updateTask(id: number, updates: UpdateTask) {
       changed_at: new Date().toISOString(),
     };
 
-    console.log('History entry prepared:', historyEntry);
-
     const { error: historyError } = await supabase
       .from('task_history')
       .insert(historyEntry);
@@ -170,7 +166,6 @@ export async function updateTask(id: number, updates: UpdateTask) {
       throw historyError;
     }
 
-    console.log('Update completed successfully');
     return { error: null };
   } catch (error) {
     console.error('Unexpected error in updateTask:', error);

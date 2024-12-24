@@ -142,9 +142,9 @@ export const creationMissionData: CreationMission = {
     name: 'referent_fix',
     required: 'false',
   },
-  supplier: {
-    label: 'N° d’identification du fournisseur',
-    name: 'supplier',
+  created_by: {
+    label: "N° d'identification du fournisseur",
+    name: 'created_by',
     required: 'true',
   },
 };

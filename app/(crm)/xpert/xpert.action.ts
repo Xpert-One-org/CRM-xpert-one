@@ -5,8 +5,17 @@ import type {
   UserData,
 } from '@/components/dialogs/CreateXpertDialog';
 import { limitXpert } from '@/data/constant';
+import { transformArray } from '@/lib/utils';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
-import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
+import type {
+  DBProfile,
+  DBProfileExperience,
+  DBProfileExpertise,
+  DBProfileMission,
+  DBProfileStatus,
+  DBXpert,
+  DBXpertOptimized,
+} from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
@@ -366,5 +375,238 @@ export const updateAdminOpinion = async (
     return { error: error.message };
   } else {
     return { error: null };
+  }
+};
+
+// const {error} = await updateProfileExpertise({xpert_id: xpertNotSaved.id, newData: newDataProfileExpertise});
+
+export const updateProfileExpertise = async ({
+  xpert_id,
+  newData,
+}: {
+  xpert_id: string;
+  newData: Partial<Record<keyof DBProfileExpertise, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const transformedData = transformArray(newData);
+
+  const { experiences, educations, ...rest } = transformedData;
+
+  console.log({ experiences });
+  console.log({ educations });
+
+  if (experiences && experiences.length === 0) {
+    // if experiences == undefined, there is no experience to update
+    // but if it's an empty array, we need to delete all experiences
+
+    // Delete all experiences matching the xpert_id
+    const { error: errorDeletingExp } = await supabase
+      .from('profile_experience')
+      .delete()
+      .eq('profile_id', xpert_id);
+
+    if (errorDeletingExp) {
+      console.error('Error deleting profile experiences:', errorDeletingExp);
+    }
+  }
+
+  if (experiences && experiences.length > 0) {
+    // promise.all
+    // if id is defined, update the experience
+    // if id is undefined, create the experience
+
+    const { data, count } = await supabase
+      .from('profile_experience')
+      .select('id', { count: 'exact' })
+      .eq('profile_id', xpert_id);
+
+    // check if one experience has been removed from the front
+    if (count ?? 0 > experiences.length) {
+      const experiencesId = data?.map(
+        (experience: { id: number }) => experience.id
+      );
+
+      const experiencesToRemove = experiencesId?.filter(
+        (id: number) =>
+          !experiences.find(
+            (experience: { id: number }) => experience.id === id
+          )
+      );
+      if (experiencesToRemove) {
+        const { error: errorDeletingExp } = await supabase
+          .from('profile_experience')
+          .delete()
+          .in('id', experiencesToRemove);
+
+        if (errorDeletingExp) {
+          console.error(
+            'Error deleting profile experiences:',
+            errorDeletingExp
+          );
+        }
+      }
+    }
+
+    const promises = experiences.map(
+      async (experience: DBProfileExperience) => {
+        if (experience.id) {
+          const { error } = await supabase
+            .from('profile_experience')
+            .update(experience)
+            .eq('id', experience.id);
+
+          if (error) {
+            console.error('Error updating profile experience:', error);
+          }
+        } else {
+          const { error } = await supabase
+            .from('profile_experience')
+            .insert({ ...experience, profile_id: xpert_id });
+
+          if (error) {
+            console.error('Error inserting profile experience:', error);
+          }
+        }
+      }
+    );
+
+    await Promise.all(promises);
+  }
+
+  const { data, error } = await supabase
+    .from('profile_expertise')
+    .select('id')
+    .eq('profile_id', xpert_id);
+
+  if (data?.length === 0) {
+    const { error } = await supabase
+      .from('profile_expertise')
+      .insert({ ...rest, profile_id: xpert_id });
+
+    if (error) {
+      console.error('Error inserting profile expertise:', error);
+      return { error: error.message };
+    } else {
+      return { error: null };
+    }
+  } else {
+    const { error: errorUpdate } = await supabase
+      .from('profile_expertise')
+      .update(rest)
+      .eq('profile_id', xpert_id);
+
+    if (error) {
+      console.error('Error updating profile expertise:', error);
+      return { error: error.message };
+    } else {
+      return { error: null };
+    }
+  }
+};
+
+export const updateProfile = async ({
+  xpert_id,
+  newData,
+}: {
+  xpert_id: string;
+  newData: Partial<Record<keyof DBProfile, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+  const transformedData = transformArray(newData);
+
+  const { error } = await supabase
+    .from('profile')
+    .update(transformedData)
+    .eq('id', xpert_id);
+
+  if (error) {
+    console.error('Error updating profile expertise:', error);
+    return { error: error.message };
+  } else {
+    return { error: null };
+  }
+};
+
+export const updateProfileStatus = async ({
+  xpert_id,
+  newData,
+}: {
+  xpert_id: string;
+  newData: Partial<Record<keyof DBProfileStatus, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+  const transformedData = transformArray(newData);
+
+  const { data, error } = await supabase
+    .from('profile_status')
+    .select('id')
+    .eq('profile_id', xpert_id);
+
+  if (data?.length === 0) {
+    const { error } = await supabase
+      .from('profile_status')
+      .insert({ ...transformedData, profile_id: xpert_id });
+
+    if (error) {
+      console.error('Error inserting profile status:', error);
+      return { error: error.message };
+    } else {
+      return { error: null };
+    }
+  }
+
+  const { error: errorUpdate } = await supabase
+    .from('profile_status')
+    .update(transformedData)
+    .eq('profile_id', xpert_id);
+
+  if (errorUpdate) {
+    console.error('Error updating profile status:', errorUpdate);
+    return { error: errorUpdate.message };
+  } else {
+    return { error: null };
+  }
+};
+
+export const updateProfileMission = async ({
+  xpert_id,
+  newData,
+}: {
+  xpert_id: string;
+  newData: Partial<Record<keyof DBProfileMission, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const transformedData = transformArray(newData);
+
+  const { data, error } = await supabase
+    .from('profile_mission')
+    .select('id')
+    .eq('profile_id', xpert_id);
+
+  if (data?.length === 0) {
+    const { error } = await supabase
+      .from('profile_mission')
+      .insert({ ...transformedData, profile_id: xpert_id });
+
+    if (error) {
+      console.error('Error inserting profile mission:', error);
+      return { error: error.message };
+    } else {
+      return { error: null };
+    }
+  } else {
+    const { error: errorUpdate } = await supabase
+      .from('profile_mission')
+      .update(transformedData)
+      .eq('profile_id', xpert_id);
+
+    if (errorUpdate) {
+      console.error('Error updating profile expertise:', errorUpdate);
+      return { error: errorUpdate.message };
+    } else {
+      return { error: null };
+    }
   }
 };

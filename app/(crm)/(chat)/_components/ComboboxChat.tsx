@@ -1,5 +1,5 @@
 'use client';
-import Combobox from '@/components/inputs/Combobox';
+import Combobox from '@/components/combobox/Combobox';
 import useUser from '@/store/useUser';
 import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';

@@ -1,10 +1,9 @@
 import { FilterButton } from '@/components/FilterButton';
 import React, { useState, useEffect } from 'react';
 import type { DBXpertOptimized } from '@/types/typesDb';
-import { useSearchParams } from 'next/navigation';
 import CountryFilterButton from '@/components/CountryFilterButton';
 import { useXpertStore } from '@/store/xpert';
-import Combobox from '@/components/inputs/Combobox';
+import Combobox from '@/components/combobox/Combobox';
 import FilterSvg from '@/components/svg/FIlterSvg';
 import { useDebounce } from 'use-debounce';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
@@ -20,11 +19,6 @@ export default function XpertFilter({
 }: {
   xperts: DBXpertOptimized[];
 }) {
-  const searchParams = useSearchParams();
-  const [selectedXpertId, setSelectedXpertId] = useState<string | null>(
-    searchParams.get('id') || null
-  );
-
   const checkIfFilterIsNotEmpty = (filter: FilterXpert) => {
     return Object.values(filter).some((value) => {
       if (Array.isArray(value)) {
@@ -101,12 +95,6 @@ export default function XpertFilter({
         sortable
         data={xperts}
         sortKey="created_at"
-        selectedOption={{
-          value: activeFilters.sortDate,
-          label:
-            sortDateOptions.find((opt) => opt.value === activeFilters.sortDate)
-              ?.label ?? '',
-        }}
       />
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <SearchComponentFilter
@@ -161,38 +149,18 @@ export default function XpertFilter({
         onValueChange={handleAvailabilityChange}
         placeholder="Disponible"
         coloredOptions
-        selectedOption={{
-          value: activeFilters.availability,
-          label:
-            availabilityOptions.find(
-              (option) => option.value === activeFilters.availability
-            )?.label ?? '',
-        }}
       />
       <FilterButton
         options={cvOptions}
         onValueChange={handleCvChange}
         placeholder="CV"
         coloredOptions
-        selectedOption={{
-          value: activeFilters.cv,
-          label:
-            cvOptions.find((option) => option.value === activeFilters.cv)
-              ?.label ?? '',
-        }}
       />
       <FilterButton
         options={adminOpinionOptions}
         onValueChange={handleAdminOpinionChange}
         placeholder="Qualité"
         coloredOptions
-        selectedOption={{
-          value: activeFilters.adminOpinion ?? '',
-          label:
-            adminOpinionOptions.find(
-              (option) => option.value === activeFilters.adminOpinion
-            )?.label ?? '',
-        }}
       />
       <FilterButton
         className="font-bold"
@@ -217,6 +185,14 @@ const SearchComponentFilter = ({
   const { fetchXpertOptimizedFiltered, activeFilters, setActiveFilters } =
     useXpertStore();
 
+  const handleClear = () => {
+    useXpertStore.setState({ loading: true });
+    setSearchTerm('');
+    const newActiveFilter = { ...activeFilters, [filterKey]: '' };
+    setActiveFilters(newActiveFilter);
+    fetchXpertOptimizedFiltered(true);
+  };
+
   const handleSearch = (value: string) => {
     if (value === '') {
       handleClear();
@@ -234,18 +210,9 @@ const SearchComponentFilter = ({
     handleSetValue(value);
   }, [value]);
 
-  const handleClear = () => {
-    useXpertStore.setState({ loading: true });
-    setSearchTerm('');
-    const newActiveFilter = { ...activeFilters, [filterKey]: '' };
-    setActiveFilters(newActiveFilter);
-    fetchXpertOptimizedFiltered(true);
-  };
-
   return (
     <Combobox
       data={[]}
-      disabledProposals
       value={searchTerm}
       handleSetValue={handleSearch}
       handleValueChange={handleSearch}

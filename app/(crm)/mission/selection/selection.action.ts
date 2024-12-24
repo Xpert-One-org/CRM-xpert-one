@@ -119,7 +119,9 @@ export async function sendMatchedXpertsToSelectionBoard(
 
 export async function updateSelectionMission(
   selectionId: number,
-  columnStatus: ColumnStatus
+  columnStatus: ColumnStatus,
+  missionId: number,
+  xpertId: string
 ) {
   const supabase = await createSupabaseAppServerClient();
 
@@ -136,7 +138,30 @@ export async function updateSelectionMission(
       .select();
 
     if (error) throw error;
-    return { data: data[0], error: null };
+
+    if (columnStatus === 'valides') {
+      const { error } = await supabase
+        .from('mission')
+        .update({ xpert_associated_id: xpertId, state: 'in_progress' })
+        .eq('id', missionId)
+        .select();
+
+      if (error) throw error;
+      return { data: data[0], error: null };
+    } else {
+      const { error } = await supabase
+        .from('mission')
+        .update({
+          xpert_associated_id: null,
+          state: 'open',
+          xpert_associated_status: null,
+        })
+        .eq('id', missionId)
+        .select();
+
+      if (error) throw error;
+      return { data: data[0], error: null };
+    }
   } catch (error) {
     return { data: null, error };
   }

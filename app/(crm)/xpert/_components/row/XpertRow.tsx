@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
 import { Button } from '@/components/ui/button';
 import { empty } from '@/data/constant';
-import { cn } from '@/lib/utils';
+import { areObjectsEqual, cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
 import type { DBXpertOptimized } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
@@ -18,6 +18,7 @@ import { jobTitleSelect } from '@/data/mocked_select';
 import type { AdminOpinionValue } from '@/types/types';
 import { adminOpinionOptions } from '@/data/filter';
 import { updateAdminOpinion } from '../../xpert.action';
+import { useXpertStore } from '@/store/xpert';
 
 export default function XpertRow({
   xpert,
@@ -32,13 +33,9 @@ export default function XpertRow({
   const [pendingOpinion, setPendingOpinion] = useState<AdminOpinionValue>(
     xpert.admin_opinion ?? ''
   );
-  const [hasChanges, setHasChanges] = useState(false);
   const { countries } = useSelect();
 
-  // useEffect(() => {
-  //   fetchJobTitles();
-  //   fetchCountries();
-  // }, [fetchJobTitles, fetchCountries]);
+  const { openedXpert, openedXpertNotSaved } = useXpertStore();
 
   const handleSave = async (value: string) => {
     const adminOpinion = value as AdminOpinionValue;
@@ -50,7 +47,6 @@ export default function XpertRow({
       return;
     }
     toast.success('Modifications enregistrées');
-    setHasChanges(false);
   };
 
   const postTypes = xpert.profile_mission
@@ -104,6 +100,21 @@ export default function XpertRow({
         return 'bg-light-gray-third';
     }
   })();
+
+  const handleClick = () => {
+    const areEqual = areObjectsEqual(openedXpert, openedXpertNotSaved);
+
+    if (!areEqual && openedXpert && openedXpertNotSaved) {
+      const confirmLeave = window.confirm(
+        'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter la page ?'
+      );
+      if (!confirmLeave) {
+        return;
+      }
+    }
+
+    onClick();
+  };
 
   return (
     <>
@@ -170,7 +181,10 @@ export default function XpertRow({
           }
         />
       </Box>
-      <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
+      <Button
+        className="col-span-1 h-full gap-1 text-white"
+        onClick={handleClick}
+      >
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}
       </Button>
     </>

@@ -1,5 +1,5 @@
 'use client';
-import Combobox from '@/components/inputs/Combobox';
+import Combobox from '@/components/combobox/Combobox';
 import { useMissionStore } from '@/store/mission';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -12,11 +12,13 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
 
   const { missionsNumbers, searchMissions, isLoading } = useMissionStore();
   const pathname = usePathname();
-  const currentMissionNumber = pathname.split('/').pop()?.split('-').join(' ');
+  const currentMissionNumber = pathname.split('/').pop();
   const [currentValue] = useState(
     currentMissionNumber !== 'fiche' &&
       currentMissionNumber !== 'matching' &&
-      currentMissionNumber !== 'selection'
+      currentMissionNumber !== 'selection' &&
+      currentMissionNumber !== 'activation-des-missions' &&
+      currentMissionNumber !== 'gestion-des-facturations'
       ? currentMissionNumber
       : ''
   );
@@ -28,7 +30,6 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
   };
 
   const handleSetValue = (value: string) => {
-    //! check if the value is the same as the current mission number
     if (value.toUpperCase() === currentMissionNumber?.toUpperCase()) {
       return;
     }
@@ -41,6 +42,14 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
     } else if (slug === 'selection') {
       router.push(
         `/mission/selection/${value.split(' ').join('-').toUpperCase()}`
+      );
+    } else if (slug === 'activation-des-missions') {
+      router.push(
+        `/mission/activation-des-missions/${value.split(' ').join('-').toUpperCase()}`
+      );
+    } else if (slug === 'gestion-des-facturations') {
+      router.push(
+        `/facturation/gestion-des-facturations/${value.split(' ').join('-').toUpperCase()}`
       );
     } else {
       router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
@@ -67,7 +76,11 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
       isLoading={isLoading}
       handleValueChange={handleValueChange}
       placeholder={
-        slug === 'matching' || slug === 'selection' || slug === 'fiche'
+        slug === 'matching' ||
+        slug === 'selection' ||
+        slug === 'fiche' ||
+        slug === 'activation-des-missions' ||
+        currentMissionNumber === currentMissionNumber
           ? 'Rechercher'
           : currentMissionNumber
       }

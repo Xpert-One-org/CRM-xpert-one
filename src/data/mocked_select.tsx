@@ -61,6 +61,174 @@ export const how = [
     label: 'Un Xpert',
     value: 'xpert',
   },
+  {
+    label: 'Autre',
+    value: 'other',
+  },
+];
+
+export const posts = [
+  {
+    label: 'Adjoint Directeur',
+    value: 'adjoint_directeur',
+  },
+  {
+    label: 'Automaticien',
+    value: 'automaticien',
+  },
+  {
+    label: "Chargé d'affaires",
+    value: 'charge_d_affaires',
+  },
+  {
+    label: 'Chef de chantier',
+    value: 'chef_de_chantier',
+  },
+  {
+    label: 'Chef de quart',
+    value: 'chef_de_quart',
+  },
+  {
+    label: 'Chimiste',
+    value: 'chimiste',
+  },
+  {
+    label: 'Commisionning Manager',
+    value: 'commisionning_manager',
+  },
+  {
+    label: 'Conducteur de travaux',
+    value: 'conducteur_de_travaux',
+  },
+  {
+    label: 'Dessinateur/projeteur',
+    value: 'dessinateur_projeteur',
+  },
+  {
+    label: 'Directeur de projet',
+    value: 'directeur_de_projet',
+  },
+  {
+    label: 'Directeur de site',
+    value: 'directeur_de_site',
+  },
+  {
+    label: 'Directeur HSE',
+    value: 'directeur_hse',
+  },
+  {
+    label: 'Electricien',
+    value: 'electricien',
+  },
+  {
+    label: "Ingénieur d'étude",
+    value: 'ingenieur_etude',
+  },
+  {
+    label: 'Ingénieur HSE',
+    value: 'ingenieur_hse',
+  },
+  {
+    label: 'Ingénieur Process',
+    value: 'ingenieur_process',
+  },
+  {
+    label: 'Instrumentiste',
+    value: 'instrumentiste',
+  },
+  {
+    label: 'Mécanicien',
+    value: 'mecanicien',
+  },
+  {
+    label: 'Metteur en route',
+    value: 'metteur_en_route',
+  },
+  {
+    label: 'Planer',
+    value: 'planer',
+  },
+  {
+    label: 'Pontier',
+    value: 'pontier',
+  },
+  {
+    label: 'Responsable achat',
+    value: 'responsable_achat',
+  },
+  {
+    label: 'Responsable de site',
+    value: 'responsable_de_site',
+  },
+  {
+    label: 'Responsable Maintenance',
+    value: 'responsable_maintenance',
+  },
+  {
+    label: 'Responsable Qualité',
+    value: 'responsable_qualite',
+  },
+  {
+    label: 'Responsable supply chain',
+    value: 'responsable_supply_chain',
+  },
+  {
+    label: "Conducteur d'installations Rondier Pontier",
+    value: "Conducteur d'installations Rondier Pontier",
+  },
+  {
+    label: 'Adjoint au Chef Quart',
+    value: 'Adjoint au Chef Quart',
+  },
+  {
+    label: 'Consultant RPA & IA',
+    value: 'Consultant RPA & IA',
+  },
+  {
+    label: 'Directeur général',
+    value: 'Directeur général',
+  },
+  {
+    label: 'Consultant formateur',
+    value: 'Consultant formateur',
+  },
+  {
+    label: 'Consultante Biodiversité',
+    value: 'Consultante Biodiversité',
+  },
+
+  {
+    label: 'Responsable electrique',
+    value: 'Responsable electrique',
+  },
+  {
+    label: 'electrical Supervisor',
+    value: 'electrical Supervisor',
+  },
+  {
+    label: 'Responsable Maintenance RTUs',
+    value: 'Responsable Maintenance RTUs',
+  },
+  {
+    label: 'Ingénieur en hydraulique',
+    value: 'Ingénieur en hydraulique',
+  },
+  {
+    label: 'Ingénieur Projet solaire Photovoltaïque',
+    value: 'Ingénieur Projet solaire Photovoltaïque',
+  },
+  {
+    label: 'Superviseur chaudière et turboalternateur',
+    value: 'Superviseur chaudière et turboalternateur',
+  },
+  {
+    label: 'Assistante opératrice',
+    value: 'Assistante opératrice',
+  },
+  {
+    label: 'Autre',
+    value: 'other',
+  },
 ];
 
 export const postTypesSelect = [
@@ -124,12 +292,58 @@ export const dureeSelect = [
 
 export const booleanSelect = [
   {
+    label: 'Oui',
+    value: 'true',
+  },
+  {
     label: 'Non',
     value: 'false',
   },
+];
+
+export const sectorSelect = [
   {
-    label: 'Oui',
-    value: 'true',
+    label: 'Energie',
+    value: 'energy',
+  },
+  {
+    label: 'Energie renouvelable',
+    value: 'renewable_energy',
+  },
+  {
+    label: 'Industries des procédés',
+    value: 'process_industries',
+  },
+  {
+    label: 'Infrastructure',
+    value: 'infrastructure',
+  },
+  {
+    label: "Traitement de l'eau",
+    value: 'water_treatment',
+  },
+  {
+    label: 'Traitement des Déchêts',
+    value: 'waste_treatment',
+  },
+  {
+    label: 'Autre',
+    value: 'others',
+  },
+];
+
+export const infrastructureSelect = [
+  {
+    label: 'Port',
+    value: 'port',
+  },
+  {
+    label: 'Tunnel',
+    value: 'tunnel',
+  },
+  {
+    label: 'Autre',
+    value: 'other',
   },
 ];
 
@@ -645,6 +859,365 @@ export const reasonDeleteMissionSelect: {
   {
     label: 'Mission suspendue par un fournisseur',
     value: 'mission_suspended_by_supplier',
+  },
+  {
+    label: 'Autre',
+    value: 'other',
+  },
+];
+
+export const specialitySelect = [
+  {
+    label: 'Achats',
+    value: 'purchases',
+  },
+  {
+    label: 'AMOEX',
+    value: 'amoex',
+  },
+  {
+    label: 'Automatismes/ Contrôle commande',
+    value: 'automation_control',
+  },
+  {
+    label: 'CVC',
+    value: 'cvc',
+  },
+  {
+    label: 'Chimie',
+    value: 'chemistry',
+  },
+  {
+    label: 'Combustion',
+    value: 'combustion',
+  },
+  {
+    label: 'Conduite installation',
+    value: 'installation_management',
+  },
+  {
+    label: 'Direction de projets',
+    value: 'dir',
+  },
+  {
+    label: 'Elaboration budget',
+    value: 'budget',
+  },
+  {
+    label: 'Electricité CFA',
+    value: 'electricity_cfa',
+  },
+  {
+    label: 'Electricité CFO',
+    value: 'electricity_cfo',
+  },
+  {
+    label: 'Génie civil',
+    value: 'civil_engineering',
+  },
+  {
+    label: 'Gestion de projets',
+    value: 'project_management',
+  },
+  {
+    label: 'Hygiène sécurité Environnement',
+    value: 'hse',
+  },
+  {
+    label: 'Logistique',
+    value: 'logistics',
+  },
+  {
+    label: 'Maintenance',
+    value: 'maintenance',
+  },
+  {
+    label: 'Mécanique',
+    value: 'mechanics',
+  },
+  {
+    label: 'Mise en service',
+    value: 'commissioning',
+  },
+  {
+    label: "Ouvrage d'art",
+    value: 'art_work',
+  },
+  {
+    label: 'Piping',
+    value: 'piping',
+  },
+  {
+    label: 'Process',
+    value: 'process',
+  },
+  {
+    label: 'Qualité',
+    value: 'quality',
+  },
+  {
+    label: 'Suivi environnementale',
+    value: 'environmental_monitoring',
+  },
+  {
+    label: 'Valorisation énergétique',
+    value: 'energy_recovery',
+  },
+  {
+    label: 'VRD',
+    value: 'vrd',
+  },
+  {
+    label: 'Autre',
+    value: 'others',
+  },
+];
+
+export const expertiseSelect = [
+  {
+    label: 'Analyse chimique',
+    value: 'analyse_chimique',
+  },
+  {
+    label: 'Analyse fonctionnelle',
+    value: 'analyse_fonctionnelle',
+  },
+  {
+    label: 'Conception',
+    value: 'conception',
+  },
+  {
+    label: 'Conduite d installation',
+    value: 'conduite_installation',
+  },
+  {
+    label: 'Développement de la supervision',
+    value: 'supervision',
+  },
+  {
+    label: 'Dimensionnement projet',
+    value: 'dimensionnement_projet',
+  },
+  {
+    label: 'Dessin',
+    value: 'dessin',
+  },
+  {
+    label: 'Encadrement d equipe',
+    value: 'encadrement_equipe',
+  },
+  {
+    label: 'Elaboration budget',
+    value: 'budget',
+  },
+  {
+    label: 'FAT/SAT',
+    value: 'fat_sat',
+  },
+  {
+    label: 'Gestion Appels d offres',
+    value: 'appels_offres',
+  },
+  {
+    label: 'Gestion relation client final',
+    value: 'relation_client',
+  },
+  {
+    label: 'Instrumentation',
+    value: 'instrumentation',
+  },
+  {
+    label: 'Maintenance électrique',
+    value: 'maintenance_electrique',
+  },
+  {
+    label: 'Maintenance électro-technique',
+    value: 'maintenance_electro_technique',
+  },
+  {
+    label: 'Maintenance mécanique',
+    value: 'maintenance_mecanique',
+  },
+  {
+    label: 'Organisation du chantier OPC',
+    value: 'organisation_chantier',
+  },
+  {
+    label: 'Programmation',
+    value: 'programmation',
+  },
+  {
+    label: 'Rédaction cahier des charges',
+    value: 'cahier_des_charges',
+  },
+  {
+    label: 'Rédaction des Procédures',
+    value: 'procedures',
+  },
+  {
+    label: 'Suivi des travaux',
+    value: 'suivi_travaux',
+  },
+  {
+    label: 'Suivi Montage',
+    value: 'suivi_montage',
+  },
+  {
+    label: 'Suivi sous-traitant',
+    value: 'suivi_sous_traitant',
+  },
+  {
+    label: 'Test de boucles',
+    value: 'test_boucles',
+  },
+  {
+    label: 'Autre',
+    value: 'others',
+  },
+  {
+    label: "Pas d'expertise",
+    value: 'no_expertise',
+  },
+];
+
+export const habilitationsSelect = [
+  {
+    label: 'Habilitation amiante',
+    value: 'habilitation_amiante',
+  },
+  {
+    label: 'Habilitation ATEX',
+    value: 'habilitation_atex',
+  },
+  {
+    label: 'Habilitation CACES',
+    value: 'habilitation_caces',
+  },
+  {
+    label: 'Habilitation électrique',
+    value: 'habilitation_electrique',
+  },
+  {
+    label: 'Habilitation gaz',
+    value: 'habilitation_gaz',
+  },
+  {
+    label: 'Habilitation plomb',
+    value: 'habilitation_plomb',
+  },
+  {
+    label: 'Autre',
+    value: 'others',
+  },
+];
+
+export const degreeSelect = [
+  {
+    label: 'Baccalauréat',
+    value: 'baccalaureat',
+  },
+  {
+    label: 'BEP',
+    value: 'bep',
+  },
+  {
+    label: 'BTS',
+    value: 'bts',
+  },
+  {
+    label: 'BUT',
+    value: 'but',
+  },
+  {
+    label: 'CAP',
+    value: 'cap',
+  },
+  {
+    label: 'DEUG',
+    value: 'deug',
+  },
+  {
+    label: 'DEUST',
+    value: 'deust',
+  },
+  {
+    label: 'Diplôme d études approfondies',
+    value: 'diplome_etudes_approfondies',
+  },
+  {
+    label: 'Diplôme d études supérieures spécialisées',
+    value: 'diplome_etudes_superieures_specialisees',
+  },
+  {
+    label: 'Diplôme d ingénieur',
+    value: 'diplome_ingenieur',
+  },
+  {
+    label: 'Doctorat',
+    value: 'doctorat',
+  },
+  {
+    label: 'Habilitation à diriger des recherches',
+    value: 'habilitation_diriger_recherches',
+  },
+  {
+    label: 'Licence',
+    value: 'licence',
+  },
+  {
+    label: 'Licence professionnelle',
+    value: 'licence_professionnelle',
+  },
+  {
+    label: 'Maîtrise',
+    value: 'maitrise',
+  },
+  {
+    label: 'Master',
+    value: 'master',
+  },
+  {
+    label: 'Autre',
+    value: 'other',
+  },
+];
+
+export const languageSelect = [
+  {
+    label: 'Allemand',
+    value: 'de',
+  },
+  {
+    label: 'Anglais',
+    value: 'en',
+  },
+  {
+    label: 'Arabe',
+    value: 'ar',
+  },
+  {
+    label: 'Chinois',
+    value: 'zh',
+  },
+  {
+    label: 'Espagnol',
+    value: 'es',
+  },
+  {
+    label: 'Français',
+    value: 'fr',
+  },
+  {
+    label: 'Italien',
+    value: 'it',
+  },
+  {
+    label: 'Russe',
+    value: 'ru',
+  },
+  {
+    label: 'Portugais',
+    value: 'pt',
   },
   {
     label: 'Autre',

@@ -8,8 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import React, { useState } from 'react';
-import { toast } from 'sonner';
-import TextArea from '@/components/inputs/TextArea';
+
 import FakeInput from '@/components/inputs/FakeInput';
 import { useXpertStore } from '@/store/xpert';
 

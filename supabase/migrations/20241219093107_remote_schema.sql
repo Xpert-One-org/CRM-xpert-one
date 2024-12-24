@@ -1237,7 +1237,8 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "state" "public"."mission_state" DEFAULT 'in_process'::"public"."mission_state" NOT NULL,
     "image_url" "text",
     "reason_deletion" "public"."reason_mission_deletion",
-    "deleted_at" timestamp with time zone
+    "deleted_at" timestamp with time zone,
+    "xpert_associated_status" "text"
 );
 
 
