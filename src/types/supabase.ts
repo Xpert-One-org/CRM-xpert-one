@@ -746,7 +746,7 @@ export type Database = {
           profile_progression: number;
           referent_id: string | null;
           regions: string[] | null;
-          role: string;
+          role: Database['public']['Enums']['profile_roles'];
           sector: string | null;
           sector_energy: string | null;
           sector_infrastructure: string | null;
@@ -803,7 +803,7 @@ export type Database = {
           profile_progression?: number;
           referent_id?: string | null;
           regions?: string[] | null;
-          role?: string;
+          role?: Database['public']['Enums']['profile_roles'];
           sector?: string | null;
           sector_energy?: string | null;
           sector_infrastructure?: string | null;
@@ -860,7 +860,7 @@ export type Database = {
           profile_progression?: number;
           referent_id?: string | null;
           regions?: string[] | null;
-          role?: string;
+          role?: Database['public']['Enums']['profile_roles'];
           sector?: string | null;
           sector_energy?: string | null;
           sector_infrastructure?: string | null;
@@ -877,6 +877,13 @@ export type Database = {
           username?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'profile_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'profile_referent_id_fkey';
             columns: ['referent_id'];
@@ -1634,6 +1641,14 @@ export type Database = {
         | 'in_process'
         | 'validated'
         | 'refused';
+      profile_roles:
+        | 'xpert'
+        | 'company'
+        | 'admin'
+        | 'project_manager'
+        | 'intern'
+        | 'hr'
+        | 'adv';
       reason_mission_deletion:
         | 'status_candidate_not_found'
         | 'won_competition'
@@ -1753,19 +1768,4 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
-    : never;
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database;
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

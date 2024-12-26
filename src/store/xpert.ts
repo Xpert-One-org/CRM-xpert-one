@@ -107,20 +107,6 @@ export const useXpertStore = create<XpertState>((set, get) => ({
   totalXperts: null,
   offset: 0,
 
-  // const resetFilter = () => {
-  //   setActiveFilters({
-  //     jobTitles: '',
-  //     availability: '',
-  //     cv: '',
-  //     countries: [],
-  //     sortDate: '',
-  //     firstname: '',
-  //     generated_id: '',
-  //     lastname: '',
-  //   });
-  //   setXpertFilterKey(new Date().getTime());
-  //   fetchXpertOptimizedFiltered(true);
-  // };
   resetXperts: () => {
     set({
       activeFilters: {

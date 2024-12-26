@@ -89,19 +89,16 @@ export type DBBaseMsg = Pick<
   DBMessage,
   'id' | 'content' | 'created_at' | 'send_by'
 > & {
-  profile:
-    | Pick<
-        DBProfile,
-        | 'role'
-        | 'company_name'
-        | 'generated_id'
-        | 'firstname'
-        | 'lastname'
-        | 'avatar_url'
-        | 'username'
-      >
-    | null
-    | undefined;
+  profile: Pick<
+    DBProfile,
+    | 'role'
+    | 'company_name'
+    | 'generated_id'
+    | 'firstname'
+    | 'lastname'
+    | 'avatar_url'
+    | 'username'
+  > | null;
 };
 
 export type DBForum = Database['public']['Tables']['chat']['Row'] & {
@@ -197,4 +194,15 @@ export type DBXpertOptimized = Pick<
 > & {
   mission: Pick<DBMission, 'xpert_associated_id'>[];
   profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+};
+
+export type DBCollaboratorRole = Database['public']['Enums']['profile_roles'];
+
+export type DBCollaborator = {
+  id: string;
+  firstname: string;
+  lastname: string;
+  mobile: string;
+  email: string;
+  role: DBCollaboratorRole;
 };

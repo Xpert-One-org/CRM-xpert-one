@@ -86,7 +86,7 @@ export default function InputSend({
       content: msg_answered.content,
       created_at: msg_answered.created_at,
       send_by: msg_answered.send_by,
-      profile: msg_answered.user,
+      profile: msg_answered.user ?? null,
     };
 
     const message: DBMessage = {
