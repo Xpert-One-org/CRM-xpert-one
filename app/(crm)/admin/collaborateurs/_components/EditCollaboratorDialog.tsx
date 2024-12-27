@@ -60,6 +60,7 @@ export default function EditCollaboratorDialog({
     }
 
     toast.success('Le collaborateur a été modifié avec succès');
+    setOpen(false);
   };
 
   const handleDelete = async () => {

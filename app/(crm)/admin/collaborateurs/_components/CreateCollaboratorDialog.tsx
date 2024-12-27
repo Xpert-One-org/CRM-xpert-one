@@ -24,6 +24,7 @@ import { z } from 'zod';
 
 export default function CreateCollaboratorDialog() {
   const { addCollaborator } = useAdminCollaborators();
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -54,6 +55,7 @@ export default function CreateCollaboratorDialog() {
         mobile: '',
         role: '',
       });
+      setOpen(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -62,7 +64,7 @@ export default function CreateCollaboratorDialog() {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-primary text-white">
           Créer un nouveau collaborateur
