@@ -15,6 +15,7 @@ type XpertStatusBoxProps = {
   xpertAssociatedStatus: string;
   onInvoicePaidClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean;
+  isProjectManager?: boolean;
 };
 
 export default function XpertStatusBox({
@@ -26,6 +27,7 @@ export default function XpertStatusBox({
   xpertAssociatedStatus,
   onInvoicePaidClick,
   isSelected = false,
+  isProjectManager = false,
 }: XpertStatusBoxProps) {
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
@@ -46,6 +48,8 @@ export default function XpertStatusBox({
   );
 
   const handleClick = () => {
+    if (isProjectManager) return;
+
     setLocalIsSelected(!localIsSelected);
     if (!localIsSelected) {
       setCurrentDate(new Date().toISOString());
@@ -64,10 +68,10 @@ export default function XpertStatusBox({
       return (
         <>
           <Box
-            className={`size-full cursor-pointer text-white ${
+            className={`size-full ${!isProjectManager ? 'cursor-pointer' : ''} text-white ${
               localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
             }`}
-            onClick={handleClick}
+            onClick={!isProjectManager ? handleClick : undefined}
           >
             {!localIsSelected
               ? 'NON'

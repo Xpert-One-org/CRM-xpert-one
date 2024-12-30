@@ -11,6 +11,7 @@ type SalaryPaymentBoxProps = {
   xpertAssociatedStatus: string;
   onSalaryPaymentClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean;
+  isProjectManager: boolean;
 };
 
 export default function SalaryPaymentBox({
@@ -18,6 +19,7 @@ export default function SalaryPaymentBox({
   xpertAssociatedStatus,
   onSalaryPaymentClick,
   isSelected = false,
+  isProjectManager,
 }: SalaryPaymentBoxProps) {
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export default function SalaryPaymentBox({
   }, [isSelected]);
 
   const handleClick = () => {
-    if (xpertAssociatedStatus !== 'cdi') return;
+    if (isProjectManager || xpertAssociatedStatus !== 'cdi') return;
 
     setLocalIsSelected(!localIsSelected);
     if (!localIsSelected) {
@@ -69,8 +71,8 @@ export default function SalaryPaymentBox({
     <Box className={`size-full bg-[#b1b1b1] text-white`}>{''}</Box>
   ) : (
     <Box
-      className={`size-full cursor-pointer text-white ${getBackgroundColor()}`}
-      onClick={handleClick}
+      className={`size-full ${!isProjectManager ? 'cursor-pointer' : ''} text-white ${getBackgroundColor()}`}
+      onClick={!isProjectManager ? handleClick : undefined}
     >
       {!localIsSelected
         ? 'NON'

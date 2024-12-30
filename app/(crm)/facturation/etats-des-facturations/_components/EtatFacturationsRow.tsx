@@ -14,6 +14,7 @@ export default function EtatFacturationsRow({
   missionData,
   selectedMonthYear,
   onSalaryPaymentChange,
+  isProjectManager,
 }: {
   missionData: DBMission;
   selectedMonthYear: { month: number; year: number };
@@ -24,6 +25,7 @@ export default function EtatFacturationsRow({
     isNull: boolean,
     paymentType: PaymentType
   ) => void;
+  isProjectManager: boolean;
 }) {
   const router = useRouter();
   const { setCreateTaskDialogOpen, setInitialTaskData } = useTasksStore();
@@ -155,6 +157,7 @@ export default function EtatFacturationsRow({
         selectedMonthYear={selectedMonthYear}
         fileType="presence_sheet_validated"
         xpertAssociatedStatus={missionStatus || ''}
+        isProjectManager={isProjectManager}
       />
       {/* Paiement de salaire */}
       <SalaryPaymentBox
@@ -162,6 +165,7 @@ export default function EtatFacturationsRow({
         xpertAssociatedStatus={missionStatus || ''}
         onSalaryPaymentClick={handleSalaryPaymentClick}
         isSelected={isSalaryPaymentSelected}
+        isProjectManager={isProjectManager}
       />
       {/* Bulletin de salaire */}
       <XpertStatusBox
@@ -187,6 +191,7 @@ export default function EtatFacturationsRow({
         xpertAssociatedStatus={missionStatus || ''}
         onInvoicePaidClick={handleInvoicePaidClick}
         isSelected={isInvoicePaidSelected}
+        isProjectManager={isProjectManager}
       />
       {/* Facture */}
       <StatusBox
@@ -195,6 +200,7 @@ export default function EtatFacturationsRow({
         fileType="invoice"
         isFournisseur
         xpertAssociatedStatus={missionStatus || ''}
+        isProjectManager={isProjectManager}
       />
       {/* Paiement */}
       <StatusBox
@@ -206,6 +212,7 @@ export default function EtatFacturationsRow({
         isSalaryPayment
         onSalaryPaymentClick={handleSalaryPaymentClick}
         isSelected={isPaymentSelected}
+        isProjectManager={isProjectManager}
       />
     </>
   );

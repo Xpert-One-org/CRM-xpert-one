@@ -230,7 +230,7 @@ export const menuCrm = [
         className="fill-transparent stroke-white transition group-hover:stroke-accent"
       />
     ),
-    url: '/stats',
+    url: '/statistiques',
   },
   {
     id: 11,

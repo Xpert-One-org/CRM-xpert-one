@@ -5,10 +5,23 @@ import type { DBMission } from '@/types/typesDb';
 export default function EtatFacturationUploadRow({
   missions,
   onUploadSuccess,
+  isProjectManager,
 }: {
   missions: DBMission[];
   onUploadSuccess?: () => void;
+  isProjectManager: boolean;
 }) {
+  if (isProjectManager) {
+    return (
+      <>
+        <div className="col-span-5" />
+        <div className="col-span-1" />
+        <div className="col-span-2" />
+        <div className="col-span-1" />
+      </>
+    );
+  }
+
   return (
     <>
       <div className="col-span-5" />

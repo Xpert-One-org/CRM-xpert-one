@@ -14,6 +14,7 @@ type StatusBoxProps = {
   isSalaryPayment?: boolean;
   onSalaryPaymentClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean;
+  isProjectManager: boolean;
 };
 
 export default function StatusBox({
@@ -25,6 +26,7 @@ export default function StatusBox({
   isSalaryPayment = false,
   onSalaryPaymentClick,
   isSelected = false,
+  isProjectManager,
 }: StatusBoxProps) {
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
@@ -46,6 +48,7 @@ export default function StatusBox({
 
   if (isSalaryPayment) {
     const handleClick = () => {
+      if (isProjectManager) return;
       setLocalIsSelected(!localIsSelected);
       if (!localIsSelected) {
         setCurrentDate(new Date().toISOString());
@@ -58,10 +61,10 @@ export default function StatusBox({
 
     return (
       <Box
-        className={`size-full cursor-pointer text-white ${
+        className={`size-full ${!isProjectManager ? 'cursor-pointer' : ''} text-white ${
           localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
         }`}
-        onClick={handleClick}
+        onClick={!isProjectManager ? handleClick : undefined}
       >
         {!localIsSelected
           ? 'NON REÇU'

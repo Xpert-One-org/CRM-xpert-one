@@ -41,8 +41,14 @@ export const signIn = async (formData: FormData) => {
     return { user: null, error: "Vous n'êtes pas autorisé à vous connecter" };
   }
 
-  if (data.role !== 'admin') {
-    console.error('User is not an admin');
+  if (
+    data.role !== 'admin' &&
+    data.role !== 'project_manager' &&
+    data.role !== 'intern' &&
+    data.role !== 'hr' &&
+    data.role !== 'adv'
+  ) {
+    console.error('User is not authorized to access this resource');
     // Sign out the user if they're not an admin
     await supabase.auth.signOut();
     return { user: null, error: "Vous n'êtes pas autorisé à vous connecter" };
