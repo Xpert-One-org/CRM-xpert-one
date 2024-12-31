@@ -11,14 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RotateCcw, Trash } from 'lucide-react';
 import CreateTaskDialog from './CreateTaskDialog';
-import {
-  updateTask,
-  completeTask,
-  getAdminUsers,
-  deleteTask,
-} from '../../../../functions/tasks';
+import { updateTask, completeTask } from '../../../../functions/tasks';
 import type {
   FilterTasks,
   TaskSubjectType,
@@ -33,9 +27,9 @@ import { useTasksStore } from '@/store/task';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import DeleteTaskDialog from './DeleteTaskDialog';
 import DialogTaskHistory from './HistoryTaskDialog';
+import { useAdminCollaborators } from '@/store/adminCollaborators';
 
 type TaskStatus = 'urgent' | 'pending' | 'done';
-type SubjectType = 'xpert' | 'supplier' | 'mission' | 'other';
 
 const statusOptions = [
   { label: 'Urgent', value: 'urgent', color: '#D75D5D' },
@@ -98,6 +92,8 @@ export default function TaskTable() {
     totalTasks,
   } = useTasksStore();
 
+  const { collaborators, fetchCollaborators } = useAdminCollaborators();
+
   const [newStatusNotSaved, setNewStatusNotSaved] = useState<
     NewStatusNotSaved[]
   >([]);
@@ -119,18 +115,19 @@ export default function TaskTable() {
   useWarnIfUnsavedChanges(hasSomethingNotSaved);
 
   useEffect(() => {
-    const fetchAdminUsers = async () => {
-      const admins = await getAdminUsers();
-      setAdminOptions(
-        admins.map((admin) => ({
-          label: `${admin.firstname} ${admin.lastname}`,
-          value: admin.id,
-        }))
-      );
-    };
+    if (collaborators.length === 0) {
+      fetchCollaborators();
+    }
 
-    fetchAdminUsers();
-  }, []);
+    setAdminOptions(
+      collaborators
+        .filter((collaborator) => collaborator.role === 'admin')
+        .map((collaborator) => ({
+          label: `${collaborator.firstname} ${collaborator.lastname}`,
+          value: collaborator.id,
+        }))
+    );
+  }, [collaborators, fetchCollaborators]);
 
   const handleUpdateStatus = async () => {
     if (!newStatusNotSaved.length) {
@@ -220,23 +217,6 @@ export default function TaskTable() {
       : totalTasks === 0
         ? false
         : true;
-
-  const handleDeleteTask = async (taskId: number) => {
-    try {
-      const { error } = await deleteTask(taskId);
-
-      if (error) {
-        toast.error('Erreur lors de la suppression de la tâche');
-        return;
-      }
-
-      toast.success('Tâche supprimée avec succès');
-      loadTasks(true); // Recharge la liste des tâches
-    } catch (error) {
-      toast.error('Erreur lors de la suppression de la tâche');
-      console.error('Error deleting task:', error);
-    }
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
