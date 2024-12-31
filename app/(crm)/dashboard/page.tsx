@@ -19,6 +19,7 @@ import {
   getLastSignUpNewUsersWeek,
 } from '@functions/dashboard';
 import { getCountTasksToTreatAndUrgent } from '@functions/tasks';
+import OutlookButton from '@/components/OutlookButton';
 
 export default async function DashboardPage() {
   const { data: newUsers } = await getLastSignupNewUsers();
@@ -40,26 +41,31 @@ export default async function DashboardPage() {
   const { data: missionsClosed } = await getCountMissionsState('finished');
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <DashBoardCards
-        count={missionsOpen.length}
-        title="Missions ouvertes"
-        urgentTitle="Urgentes"
-        urgentCount={0}
-        buttonTitle="Missions ouvertes"
-        iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=open"
-      />
-      <DashBoardCards
-        count={missionInProgress.length}
-        title="Missions placées"
-        urgentTitle="Urgentes"
-        urgentCount={0}
-        buttonTitle="Missions placées"
-        iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=in_progress"
-      />
-      {/* <DashBoardCards
+    <>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <DashBoardCards
+          count={missionsOpen.length}
+          title="Missions ouvertes"
+          urgentTitle="Urgentes"
+          urgentCount={0}
+          buttonTitle="Missions ouvertes"
+          iconButton={
+            <BriefCase className="fill-white" width={24} height={24} />
+          }
+          link="/mission/etats?etat=open"
+        />
+        <DashBoardCards
+          count={missionInProgress.length}
+          title="Missions placées"
+          urgentTitle="Urgentes"
+          urgentCount={0}
+          buttonTitle="Missions placées"
+          iconButton={
+            <BriefCase className="fill-white" width={24} height={24} />
+          }
+          link="/mission/etats?etat=in_progress"
+        />
+        {/* <DashBoardCards
         count={newUsers.length}
         title="Gestion de facturations"
         urgentTitle="Retards"
@@ -70,16 +76,16 @@ export default async function DashboardPage() {
         }
         link="/facturation/etats-des-facturations"
       /> */}
-      <DashBoardCards
-        count={(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}
-        title="TO DO à traiter"
-        urgentTitle="Urgentes"
-        urgentCount={urgentTaskCount ?? 0}
-        buttonTitle={`TODO : ${(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}`}
-        iconButton={<SquarePen width={24} height={24} />}
-        link="/dashboard/todo"
-      />
-      {/* <DashBoardCards
+        <DashBoardCards
+          count={(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}
+          title="TO DO à traiter"
+          urgentTitle="Urgentes"
+          urgentCount={urgentTaskCount ?? 0}
+          buttonTitle={`TODO : ${(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}`}
+          iconButton={<SquarePen width={24} height={24} />}
+          link="/dashboard/todo"
+        />
+        {/* <DashBoardCards
         count={newUsers.length}
         title="Messagerie externe"
         urgentTitle="Non lus"
@@ -88,46 +94,52 @@ export default async function DashboardPage() {
         iconButton={<ChatBubbles width={24} height={24} />}
         link="/messagerie"
       /> */}
-      <DashBoardCards
-        count={missionsToValidate.length}
-        title="Missions à valider"
-        urgentTitle="Urgentes"
-        urgentCount={0}
-        buttonTitle="Missions à valider"
-        iconButton={
-          <BriefCaseAdd className="fill-white" width={24} height={24} />
-        }
-        link="/mission/etats?etat=in_process"
-      />
-      <DashBoardCards
-        count={newUsers.length}
-        title="Total inscrits"
-        urgentTitle="Semaine"
-        urgentCount={newUsersLastWeek.length || 0}
-        buttonTitle="Nouveaux inscrits"
-        iconButton={
-          <PeopleUsersAdd className="fill-white" width={24} height={24} />
-        }
-        link="/nouveau-inscrits?role=xpert"
-      />
-      <DashBoardCards
-        count={missions.length}
-        title="Suivi des missions"
-        urgentTitle="Urgentes"
-        urgentCount={0}
-        buttonTitle="Suivi des missions"
-        iconButton={<Phone className="fill-white" width={24} height={24} />}
-        link="/mission/suivi-des-missions"
-      />
-      <DashBoardCards
-        count={missionsClosed.length}
-        title="Missions arrêtées"
-        urgentTitle="Non cloturées"
-        urgentCount={0}
-        buttonTitle="Missions arrêtées"
-        iconButton={<BriefCase className="fill-white" width={24} height={24} />}
-        link="/mission/etats?etat=finished"
-      />
-    </div>
+        <DashBoardCards
+          count={missionsToValidate.length}
+          title="Missions à valider"
+          urgentTitle="Urgentes"
+          urgentCount={0}
+          buttonTitle="Missions à valider"
+          iconButton={
+            <BriefCaseAdd className="fill-white" width={24} height={24} />
+          }
+          link="/mission/etats?etat=in_process"
+        />
+        <DashBoardCards
+          count={newUsers.length}
+          title="Total inscrits"
+          urgentTitle="Semaine"
+          urgentCount={newUsersLastWeek.length || 0}
+          buttonTitle="Nouveaux inscrits"
+          iconButton={
+            <PeopleUsersAdd className="fill-white" width={24} height={24} />
+          }
+          link="/nouveau-inscrits?role=xpert"
+        />
+        <DashBoardCards
+          count={missions.length}
+          title="Suivi des missions"
+          urgentTitle="Urgentes"
+          urgentCount={0}
+          buttonTitle="Suivi des missions"
+          iconButton={<Phone className="fill-white" width={24} height={24} />}
+          link="/mission/suivi-des-missions"
+        />
+        <DashBoardCards
+          count={missionsClosed.length}
+          title="Missions arrêtées"
+          urgentTitle="Non cloturées"
+          urgentCount={0}
+          buttonTitle="Missions arrêtées"
+          iconButton={
+            <BriefCase className="fill-white" width={24} height={24} />
+          }
+          link="/mission/etats?etat=finished"
+        />
+      </div>
+      <div className="flex flex-col gap-4 py-8">
+        <OutlookButton type="calendar" />
+      </div>
+    </>
   );
 }
