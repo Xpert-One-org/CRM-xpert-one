@@ -85,7 +85,6 @@ export default function XpertRowContentBis({
 
   useEffect(() => {
     setXpert(openedXpert);
-    console.log('openedXpert', openedXpert);
   }, [openedXpert]);
 
   useEffect(() => {
@@ -221,7 +220,6 @@ export default function XpertRowContentBis({
     }
     const newXpert = xpert ? { ...xpert, [name]: value } : null;
 
-    console.log('newXpert', newXpert);
     setXpert(newXpert);
   };
 
@@ -273,257 +271,245 @@ export default function XpertRowContentBis({
     return null;
   }
   return (
-    console.log(urssafInfo),
-    (
-      <>
-        {cvInfo.created_at ||
-          (urssafInfo.created_at && (
-            <>
-              <div className="w-full p-1 font-light xl:max-w-[280px]">
-                <Label
-                  htmlFor="document_type"
-                  className="mb-1 flex items-center"
-                >
-                  Type de documents
-                </Label>
-                <Select
-                  onValueChange={onValueChange}
-                  name="document_type"
-                  disabled={false}
-                >
-                  <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
-                    <SelectValue
-                      className="bg-white"
-                      placeholder={
-                        <div className="flex flex-row items-center gap-2">
-                          <p className="font-medium text-black">
-                            {selectOptions[0]?.label}
-                          </p>
-                          <p className="font-medium text-[#BEBEC0] group-hover:text-black">
-                            {selectOptions[0]?.json_key}
-                          </p>
-                        </div>
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="group w-full">
-                    <SelectGroup>
-                      {selectOptions
-                        .filter((item) => item.value)
-                        .map((item) => (
-                          <SelectItem
-                            key={item.value || ''}
-                            value={item.value || ''}
-                            className="transition duration-150"
-                          >
-                            <div className="flex flex-row items-center gap-2">
-                              <p className="font-medium text-black">
-                                {item.label}
-                              </p>
-                              <p className="font-medium">{item.json_key}</p>
-                            </div>
-                          </SelectItem>
-                        ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          ))}
-        <div className="bg flex w-full items-center gap-x-4">
-          <FileInput
-            name=""
-            fileName={newFile?.name ?? ''}
-            label="Uploader un nouveau document"
-            placeholder=""
-            onChange={handleFileChange}
-          />
-          <CreatableSelect
-            options={typeOptions}
-            className="max-w-[300px]"
-            onChange={(e) => handleFileTypes(e.value as FileType)}
-            label="Type de document"
-          />
-          <Button
-            disabled={!newFile || !newFileType}
-            className="flex size-fit self-end disabled:bg-gray-300"
-            onClick={uploadFile}
-          >
-            Ajouter le fichier
-          </Button>
-          <Button
-            disabled={!reload}
-            className="flex size-fit self-end disabled:bg-gray-300"
-            onClick={handleReload}
-          >
-            Recharger la page
-          </Button>
-        </div>
-        {isLoading ? (
-          <Loader className="size-full" />
-        ) : (
+    <>
+      {cvInfo.created_at ||
+        (urssafInfo.created_at && (
           <>
-            {documentType === 'cv' && cvInfo.publicUrl ? (
-              <iframe src={cvInfo.publicUrl} className="h-[90vh] w-full py-2" />
-            ) : documentType === 'urssaf' && urssafInfo.publicUrl ? (
-              <iframe
-                src={urssafInfo.publicUrl}
-                className="h-[90vh] w-full py-2"
-              />
-            ) : documentType === 'kbis' && kbisInfo.publicUrl ? (
-              <iframe
-                src={kbisInfo.publicUrl}
-                className="h-[90vh] w-full py-2"
-              />
-            ) : documentType === 'civil_responsability' &&
-              responsabiliteCivileInfo.publicUrl ? (
-              <iframe
-                src={responsabiliteCivileInfo.publicUrl}
-                className="h-[90vh] w-full py-2"
-              />
-            ) : documentType === 'rib' && ribInfo.publicUrl ? (
-              <iframe
-                src={ribInfo.publicUrl}
-                className="h-[90vh] w-full py-2"
-              />
-            ) : documentType === 'habilitation' &&
-              habilitationInfo.publicUrl ? (
-              <iframe
-                src={habilitationInfo.publicUrl}
-                className="h-[90vh] w-full py-2"
-              />
-            ) : (
-              <p>Aucun document uploadé par l'xpert pour le moment</p>
-            )}
+            <div className="w-full p-1 font-light xl:max-w-[280px]">
+              <Label htmlFor="document_type" className="mb-1 flex items-center">
+                Type de documents
+              </Label>
+              <Select
+                onValueChange={onValueChange}
+                name="document_type"
+                disabled={false}
+              >
+                <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
+                  <SelectValue
+                    className="bg-white"
+                    placeholder={
+                      <div className="flex flex-row items-center gap-2">
+                        <p className="font-medium text-black">
+                          {selectOptions[0]?.label}
+                        </p>
+                        <p className="font-medium text-[#BEBEC0] group-hover:text-black">
+                          {selectOptions[0]?.json_key}
+                        </p>
+                      </div>
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className="group w-full">
+                  <SelectGroup>
+                    {selectOptions
+                      .filter((item) => item.value)
+                      .map((item) => (
+                        <SelectItem
+                          key={item.value || ''}
+                          value={item.value || ''}
+                          className="transition duration-150"
+                        >
+                          <div className="flex flex-row items-center gap-2">
+                            <p className="font-medium text-black">
+                              {item.label}
+                            </p>
+                            <p className="font-medium">{item.json_key}</p>
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           </>
-        )}
-        <div className="flex w-full flex-col gap-4 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
-          <p className="text-lg font-medium text-black">Recherche de mission</p>
-          <p>{xpert.firstname}</p>
-          <div className="grid w-full grid-cols-2 gap-4">
-            <MultiCreatableSelect
-              creatable
-              label="Quels secteurs d'activités ?"
-              defaultValue={xpert.profile_mission?.sector?.map((sector) => ({
-                label: getLabel({ value: sector, select: sectorSelect }) ?? '',
-                value: sector ?? '',
-              }))}
-              onChange={(selectedOption) =>
-                handleChangeMultiSelect(
-                  selectedOption.map((option) => option.value),
-                  'sector',
-                  'profile_mission'
-                )
-              }
-              optionsOther={xpert.profile_mission?.sector_other ?? ''}
-              options={
-                xpert.profile_mission?.sector_other
-                  ? [
-                      ...sectorSelect,
-                      {
-                        label: xpert.profile_mission.sector_other ?? '',
-                        value: xpert.profile_mission.sector_other ?? '',
-                      },
-                    ]
-                  : sectorSelect
-              }
+        ))}
+      <div className="bg flex w-full items-center gap-x-4">
+        <FileInput
+          name=""
+          fileName={newFile?.name ?? ''}
+          label="Uploader un nouveau document"
+          placeholder=""
+          onChange={handleFileChange}
+        />
+        <CreatableSelect
+          options={typeOptions}
+          className="max-w-[300px]"
+          onChange={(e) => handleFileTypes(e.value as FileType)}
+          label="Type de document"
+        />
+        <Button
+          disabled={!newFile || !newFileType}
+          className="flex size-fit self-end disabled:bg-gray-300"
+          onClick={uploadFile}
+        >
+          Ajouter le fichier
+        </Button>
+        <Button
+          disabled={!reload}
+          className="flex size-fit self-end disabled:bg-gray-300"
+          onClick={handleReload}
+        >
+          Recharger la page
+        </Button>
+      </div>
+      {isLoading ? (
+        <Loader className="size-full" />
+      ) : (
+        <>
+          {documentType === 'cv' && cvInfo.publicUrl ? (
+            <iframe src={cvInfo.publicUrl} className="h-[90vh] w-full py-2" />
+          ) : documentType === 'urssaf' && urssafInfo.publicUrl ? (
+            <iframe
+              src={urssafInfo.publicUrl}
+              className="h-[90vh] w-full py-2"
             />
-            <MultiCreatableSelect
-              creatable
-              label="Quels types de postes ?"
-              defaultValue={xpert.profile_mission?.job_titles?.map((job) => ({
-                label: getLabel({ value: job, select: jobTitleSelect }) ?? '',
-                value: job ?? '',
-              }))}
-              onChange={(selectedOption) =>
-                handleChangeMultiSelect(
-                  selectedOption.map((option) => option.value),
-                  'job_titles',
-                  'profile_mission'
-                )
-              }
-              optionsOther={xpert.profile_mission?.job_titles_other ?? ''}
-              options={
-                xpert.profile_mission?.job_titles_other
-                  ? [
-                      ...jobTitleSelect,
-                      {
-                        label: xpert.profile_mission.job_titles_other ?? '',
-                        value: xpert.profile_mission.job_titles_other ?? '',
-                      },
-                    ]
-                  : jobTitleSelect
-              }
+          ) : documentType === 'kbis' && kbisInfo.publicUrl ? (
+            <iframe src={kbisInfo.publicUrl} className="h-[90vh] w-full py-2" />
+          ) : documentType === 'civil_responsability' &&
+            responsabiliteCivileInfo.publicUrl ? (
+            <iframe
+              src={responsabiliteCivileInfo.publicUrl}
+              className="h-[90vh] w-full py-2"
             />
-          </div>
-          <div className="grid w-full grid-cols-2 gap-4">
-            <MultiCreatableSelect
-              creatable
-              label="Dans quelles spécialités ?"
-              defaultValue={xpert.profile_mission?.specialties?.map((spe) => ({
-                label: getLabel({ value: spe, select: specialitySelect }) ?? '',
-                value: spe ?? '',
-              }))}
-              onChange={(selectedOption) =>
-                handleChangeMultiSelect(
-                  selectedOption.map((option) => option.value),
-                  'specialties',
-                  'profile_mission'
-                )
-              }
-              optionsOther={xpert.profile_mission?.specialties_others ?? ''}
-              options={
-                xpert.profile_mission?.specialties_others
-                  ? [
-                      ...specialitySelect,
-                      {
-                        label: xpert.profile_mission.specialties_others ?? '',
-                        value: xpert.profile_mission.specialties_others ?? '',
-                      },
-                    ]
-                  : specialitySelect
-              }
+          ) : documentType === 'rib' && ribInfo.publicUrl ? (
+            <iframe src={ribInfo.publicUrl} className="h-[90vh] w-full py-2" />
+          ) : documentType === 'habilitation' && habilitationInfo.publicUrl ? (
+            <iframe
+              src={habilitationInfo.publicUrl}
+              className="h-[90vh] w-full py-2"
             />
-            <MultiCreatableSelect
-              creatable
-              label="Dans quelles expertises ?"
-              defaultValue={xpert.profile_mission?.expertises?.map((exp) => ({
-                label: getLabel({ value: exp, select: expertiseSelect }) ?? '',
-                value: exp ?? '',
-              }))}
-              onChange={(selectedOption) =>
-                handleChangeMultiSelect(
-                  selectedOption.map((option) => option.value),
-                  'expertises',
-                  'profile_mission'
-                )
-              }
-              optionsOther={xpert.profile_mission?.expertises_others ?? ''}
-              options={
-                xpert.profile_mission?.expertises_others
-                  ? [
-                      ...expertiseSelect,
-                      {
-                        label: xpert.profile_mission.expertises_others ?? '',
-                        value: xpert.profile_mission.expertises_others ?? '',
-                      },
-                    ]
-                  : expertiseSelect
-              }
-            />
-          </div>
-          <div className="h-px w-full bg-[#BEBEC0]" />
-          <p className="text-lg font-medium text-black">Disponibilités</p>
-          <div className="grid w-full grid-cols-2 gap-4">
-            <Input
-              type="date"
-              label="Disponibilités"
-              value={xpert.profile_mission?.availability ?? ''}
-              name="availability"
-              onChange={(e) => handleChangeInput(e, 'profile_mission')}
-            />
+          ) : (
+            <p>Aucun document uploadé par l'xpert pour le moment</p>
+          )}
+        </>
+      )}
+      <div className="flex w-full flex-col gap-4 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
+        <p className="text-lg font-medium text-black">Recherche de mission</p>
+        <p>{xpert.firstname}</p>
+        <div className="grid w-full grid-cols-2 gap-4">
+          <MultiCreatableSelect
+            creatable
+            label="Quels secteurs d'activités ?"
+            defaultValue={xpert.profile_mission?.sector?.map((sector) => ({
+              label: getLabel({ value: sector, select: sectorSelect }) ?? '',
+              value: sector ?? '',
+            }))}
+            onChange={(selectedOption) =>
+              handleChangeMultiSelect(
+                selectedOption.map((option) => option.value),
+                'sector',
+                'profile_mission'
+              )
+            }
+            optionsOther={xpert.profile_mission?.sector_other ?? ''}
+            options={
+              xpert.profile_mission?.sector_other
+                ? [
+                    ...sectorSelect,
+                    {
+                      label: xpert.profile_mission.sector_other ?? '',
+                      value: xpert.profile_mission.sector_other ?? '',
+                    },
+                  ]
+                : sectorSelect
+            }
+          />
+          <MultiCreatableSelect
+            creatable
+            label="Quels types de postes ?"
+            defaultValue={xpert.profile_mission?.job_titles?.map((job) => ({
+              label: getLabel({ value: job, select: jobTitleSelect }) ?? '',
+              value: job ?? '',
+            }))}
+            onChange={(selectedOption) =>
+              handleChangeMultiSelect(
+                selectedOption.map((option) => option.value),
+                'job_titles',
+                'profile_mission'
+              )
+            }
+            optionsOther={xpert.profile_mission?.job_titles_other ?? ''}
+            options={
+              xpert.profile_mission?.job_titles_other
+                ? [
+                    ...jobTitleSelect,
+                    {
+                      label: xpert.profile_mission.job_titles_other ?? '',
+                      value: xpert.profile_mission.job_titles_other ?? '',
+                    },
+                  ]
+                : jobTitleSelect
+            }
+          />
+        </div>
+        <div className="grid w-full grid-cols-2 gap-4">
+          <MultiCreatableSelect
+            creatable
+            label="Dans quelles spécialités ?"
+            defaultValue={xpert.profile_mission?.specialties?.map((spe) => ({
+              label: getLabel({ value: spe, select: specialitySelect }) ?? '',
+              value: spe ?? '',
+            }))}
+            onChange={(selectedOption) =>
+              handleChangeMultiSelect(
+                selectedOption.map((option) => option.value),
+                'specialties',
+                'profile_mission'
+              )
+            }
+            optionsOther={xpert.profile_mission?.specialties_others ?? ''}
+            options={
+              xpert.profile_mission?.specialties_others
+                ? [
+                    ...specialitySelect,
+                    {
+                      label: xpert.profile_mission.specialties_others ?? '',
+                      value: xpert.profile_mission.specialties_others ?? '',
+                    },
+                  ]
+                : specialitySelect
+            }
+          />
+          <MultiCreatableSelect
+            creatable
+            label="Dans quelles expertises ?"
+            defaultValue={xpert.profile_mission?.expertises?.map((exp) => ({
+              label: getLabel({ value: exp, select: expertiseSelect }) ?? '',
+              value: exp ?? '',
+            }))}
+            onChange={(selectedOption) =>
+              handleChangeMultiSelect(
+                selectedOption.map((option) => option.value),
+                'expertises',
+                'profile_mission'
+              )
+            }
+            optionsOther={xpert.profile_mission?.expertises_others ?? ''}
+            options={
+              xpert.profile_mission?.expertises_others
+                ? [
+                    ...expertiseSelect,
+                    {
+                      label: xpert.profile_mission.expertises_others ?? '',
+                      value: xpert.profile_mission.expertises_others ?? '',
+                    },
+                  ]
+                : expertiseSelect
+            }
+          />
+        </div>
+        <div className="h-px w-full bg-[#BEBEC0]" />
+        <p className="text-lg font-medium text-black">Disponibilités</p>
+        <div className="grid w-full grid-cols-2 gap-4">
+          <Input
+            type="date"
+            label="Disponibilités"
+            value={xpert.profile_mission?.availability ?? ''}
+            name="availability"
+            onChange={(e) => handleChangeInput(e, 'profile_mission')}
+          />
 
-            {/* <MultiSelectComponent
+          {/* <MultiSelectComponent
             className="xl:max-w-full"
             disabled
             label="Quelles zones géographiques"
@@ -532,94 +518,89 @@ export default function XpertRowContentBis({
             name=""
             onValueChange={() => ({})}
           /> */}
+          <MultiCreatableSelect
+            label="Quelles zones géographiques?"
+            defaultValue={xpert.profile_mission?.area?.map((area) => ({
+              label: getLabel({ value: area, select: areaSelect }) ?? '',
+              value: area ?? '',
+            }))}
+            onChange={(selectedOption) =>
+              handleChangeMultiSelect(
+                selectedOption.map((option) => option.value),
+                'area',
+                'profile_mission'
+              )
+            }
+            options={areaSelect}
+          />
+          {xpert.profile_mission?.area?.includes('france') && (
             <MultiCreatableSelect
-              label="Quelles zones géographiques?"
-              defaultValue={xpert.profile_mission?.area?.map((area) => ({
-                label: getLabel({ value: area, select: areaSelect }) ?? '',
-                value: area ?? '',
-              }))}
+              label="Précisez la zone géographique française"
+              defaultValue={xpert.profile_mission?.france_detail?.map(
+                (item) => ({
+                  label: getLabel({ value: item, select: franceSelect }) ?? '',
+                  value: item ?? '',
+                })
+              )}
               onChange={(selectedOption) =>
                 handleChangeMultiSelect(
                   selectedOption.map((option) => option.value),
-                  'area',
+                  'france_detail',
                   'profile_mission'
                 )
               }
-              options={areaSelect}
+              options={franceSelect}
             />
-            {xpert.profile_mission?.area?.includes('france') && (
+          )}
+          {xpert.profile_mission?.france_detail?.includes('regions') &&
+            xpert.profile_mission.area?.includes('france') && (
               <MultiCreatableSelect
-                label="Précisez la zone géographique française"
-                defaultValue={xpert.profile_mission?.france_detail?.map(
-                  (item) => ({
-                    label:
-                      getLabel({ value: item, select: franceSelect }) ?? '',
-                    value: item ?? '',
-                  })
-                )}
+                label="Précisez la région française"
+                defaultValue={xpert.profile_mission?.regions?.map((region) => ({
+                  label: getLabel({ value: region, select: regions }) ?? '',
+                  value: region ?? '',
+                }))}
                 onChange={(selectedOption) =>
                   handleChangeMultiSelect(
                     selectedOption.map((option) => option.value),
-                    'france_detail',
+                    'regions',
                     'profile_mission'
                   )
                 }
-                options={franceSelect}
+                options={regions.map((region) => ({
+                  label: region.label!,
+                  value: region.value!,
+                }))}
               />
             )}
-            {xpert.profile_mission?.france_detail?.includes('regions') &&
-              xpert.profile_mission.area?.includes('france') && (
-                <MultiCreatableSelect
-                  label="Précisez la région française"
-                  defaultValue={xpert.profile_mission?.regions?.map(
-                    (region) => ({
-                      label: getLabel({ value: region, select: regions }) ?? '',
-                      value: region ?? '',
-                    })
-                  )}
-                  onChange={(selectedOption) =>
-                    handleChangeMultiSelect(
-                      selectedOption.map((option) => option.value),
-                      'regions',
-                      'profile_mission'
-                    )
-                  }
-                  options={regions.map((region) => ({
-                    label: region.label!,
-                    value: region.value!,
-                  }))}
-                />
-              )}
-          </div>
-          <div className="h-px w-full bg-[#BEBEC0]" />
-          <p className="text-lg font-medium text-black">
-            Prétentions salariales
-          </p>
-          <div className="grid w-full grid-cols-2 gap-4">
-            {/* <Input
+        </div>
+        <div className="h-px w-full bg-[#BEBEC0]" />
+        <p className="text-lg font-medium text-black">Prétentions salariales</p>
+        <div className="grid w-full grid-cols-2 gap-4">
+          {/* <Input
             label="TJM total frais souhaité (hors grand déplacement)"
             disabled
             value={xpert.profile_mission?.desired_tjm ?? empty}
           /> */}
-            <Input
-              label="TJM total frais souhaité (hors grand déplacement)"
-              value={xpert.profile_mission?.desired_tjm ?? empty}
-              name="desired_tjm"
-              onChange={(e) => handleChangeInput(e, 'profile_mission')}
-            />
-          </div>
-          <div className="grid w-full grid-cols-2 gap-4">
-            <Input
-              label="Rémunération BRUT mensuel souhaitée (hors grand déplacement)"
-              value={xpert.profile_mission?.desired_monthly_brut ?? empty}
-              name="desired_monthly_brut"
-              onChange={(e) => handleChangeInput(e, 'profile_mission')}
-            />
-          </div>
-          <div className="h-px w-full bg-[#BEBEC0]" />
-          <p className="text-lg font-medium text-black">Aménagement de poste</p>
-          <div className="grid w-full grid-cols-2 gap-4">
-            {/* <Input
+          <Input
+            label="TJM total frais souhaité (hors grand déplacement)"
+            value={xpert.profile_mission?.desired_tjm ?? empty}
+            name="desired_tjm"
+            onChange={(e) => handleChangeInput(e, 'profile_mission')}
+          />
+        </div>
+        <div className="grid w-full grid-cols-2 gap-4">
+          <Input
+            label="Rémunération BRUT mensuel souhaitée (hors grand déplacement)"
+            value={xpert.profile_mission?.desired_monthly_brut ?? empty}
+            name="desired_monthly_brut"
+            onChange={(e) => handleChangeInput(e, 'profile_mission')}
+          />
+        </div>
+        <div className="h-px w-full bg-[#BEBEC0]" />
+        <p className="text-lg font-medium text-black">Aménagement de poste</p>
+        <div className="grid w-full grid-cols-2 gap-4">
+          {/* <Input
             label="Avez-vous besoin d’un amménagement de poste"
             disabled
             value={
@@ -631,34 +612,33 @@ export default function XpertRowContentBis({
               empty
             }
           /> */}
-            <CreatableSelect
-              options={booleanSelect}
-              defaultValue={{
-                label: String(xpert.profile_mission?.workstation_needed) ?? '',
-                value: String(xpert.profile_mission?.workstation_needed) ?? '',
-              }}
-              onChange={(e) =>
-                handleChangeSelect(
-                  e.value,
-                  'workstation_needed',
-                  'profile_mission'
-                )
-              }
-              label={'A besoin d’un amménagement de poste ?'}
+          <CreatableSelect
+            options={booleanSelect}
+            defaultValue={{
+              label: String(xpert.profile_mission?.workstation_needed) ?? '',
+              value: String(xpert.profile_mission?.workstation_needed) ?? '',
+            }}
+            onChange={(e) =>
+              handleChangeSelect(
+                e.value,
+                'workstation_needed',
+                'profile_mission'
+              )
+            }
+            label={'A besoin d’un amménagement de poste ?'}
+          />
+        </div>
+        {xpert.profile_mission?.workstation_needed === 'true' && (
+          <div className="grid w-full grid-cols-1 gap-4">
+            <Input
+              label="Décrivez-nous votre besoin"
+              value={xpert.profile_mission?.workstation_description ?? empty}
+              name="workstation_description"
+              onChange={(e) => handleChangeInput(e, 'profile_mission')}
             />
           </div>
-          {xpert.profile_mission?.workstation_needed === 'true' && (
-            <div className="grid w-full grid-cols-1 gap-4">
-              <Input
-                label="Décrivez-nous votre besoin"
-                value={xpert.profile_mission?.workstation_description ?? empty}
-                name="workstation_description"
-                onChange={(e) => handleChangeInput(e, 'profile_mission')}
-              />
-            </div>
-          )}
-        </div>
-      </>
-    )
+        )}
+      </div>
+    </>
   );
 }

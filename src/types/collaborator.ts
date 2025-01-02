@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { DBCollaborator } from './typesDb';
+import type { DBCollaboratorRole } from './typesDb';
 
 export const collaboratorSchema = z.object({
   email: z.string().email(),
@@ -11,4 +11,13 @@ export const collaboratorSchema = z.object({
 });
 
 export type CreateCollaboratorDTO = z.infer<typeof collaboratorSchema>;
-export type Collaborator = Omit<DBCollaborator, 'password'>;
+export type Collaborator = {
+  id: string;
+  firstname: string;
+  lastname: string;
+  mobile: string;
+  email: string;
+  role: DBCollaboratorRole;
+  collaborator_is_absent: boolean | null;
+  collaborator_replacement_id: string | null;
+};

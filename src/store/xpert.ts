@@ -312,7 +312,6 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       : [];
 
     if (newDataProfileExpertise.length > 0) {
-      console.log({ newDataProfileExpertise });
       const { error } = await updateProfileExpertise({
         xpert_id: xpertNotSaved.id,
         newData: newDataProfileExpertise,

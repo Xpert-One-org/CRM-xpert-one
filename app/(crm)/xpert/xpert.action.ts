@@ -393,9 +393,6 @@ export const updateProfileExpertise = async ({
 
   const { experiences, educations, ...rest } = transformedData;
 
-  console.log({ experiences });
-  console.log({ educations });
-
   if (experiences && experiences.length === 0) {
     // if experiences == undefined, there is no experience to update
     // but if it's an empty array, we need to delete all experiences

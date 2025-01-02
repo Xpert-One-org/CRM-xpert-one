@@ -205,4 +205,6 @@ export type DBCollaborator = {
   mobile: string;
   email: string;
   role: DBCollaboratorRole;
+  collaborator_is_absent: boolean | null;
+  collaborator_replacement_id: string | null;
 };

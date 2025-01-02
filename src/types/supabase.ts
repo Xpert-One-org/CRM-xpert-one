@@ -713,6 +713,8 @@ export type Database = {
           birthdate: string | null;
           city: string | null;
           civility: string | null;
+          collaborator_is_absent: boolean | null;
+          collaborator_replacement_id: string | null;
           community_banning_explanations: string | null;
           company_name: string | null;
           company_role: string | null;
@@ -770,6 +772,8 @@ export type Database = {
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          collaborator_is_absent?: boolean | null;
+          collaborator_replacement_id?: string | null;
           community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
@@ -827,6 +831,8 @@ export type Database = {
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          collaborator_is_absent?: boolean | null;
+          collaborator_replacement_id?: string | null;
           community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
@@ -877,6 +883,13 @@ export type Database = {
           username?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'profile_collaborator_replacement_id_fkey';
+            columns: ['collaborator_replacement_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'profile_id_fkey';
             columns: ['id'];

@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import type { Collaborator } from '@/types/collaborator';
 import type { CreateCollaboratorDTO } from '@/types/collaborator';
+import type { DBCollaboratorRole } from '@/types/typesDb';
 import {
   createCollaborator,
   getCollaborators,
   updateCollaborator,
   deleteCollaborator,
+  updateCollaboratorStatus,
 } from '../../app/(crm)/admin/collaborateurs/collaborator.action';
 
 type AdminCollaboratorsStore = {
@@ -19,6 +21,13 @@ type AdminCollaboratorsStore = {
   updateCollaborator: (
     id: string,
     collaborator: Partial<Omit<Collaborator, 'id'>>
+  ) => Promise<{ error: { message: string; code: string } | null }>;
+  updateCollaboratorStatus: (
+    id: string,
+    updates: {
+      role?: DBCollaboratorRole;
+      collaborator_is_absent?: boolean;
+    }
   ) => Promise<{ error: { message: string; code: string } | null }>;
   deleteCollaborator: (
     id: string
@@ -71,6 +80,30 @@ export const useAdminCollaborators = create<AdminCollaboratorsStore>(
         return {
           error: {
             message: error?.message || 'Failed to update collaborator',
+            code: error?.code || 'unknown',
+          },
+        };
+      }
+
+      set({
+        collaborators: get().collaborators.map((c) =>
+          c.id === id ? collaborator : c
+        ),
+      });
+
+      return { error: null };
+    },
+
+    updateCollaboratorStatus: async (id, updates) => {
+      const { collaborator, error } = await updateCollaboratorStatus({
+        id,
+        ...updates,
+      });
+
+      if (error || !collaborator) {
+        return {
+          error: {
+            message: error?.message || 'Failed to update collaborator status',
             code: error?.code || 'unknown',
           },
         };
