@@ -11,6 +11,7 @@ import DownloadOff from '@/components/svg/DownloadOff';
 import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
+import { useIsIntern } from '@/hooks/useIsIntern';
 
 export default function FournisseurActivationMissionRow({
   missionData,
@@ -21,6 +22,8 @@ export default function FournisseurActivationMissionRow({
   fileStatuses: Record<string, { exists: boolean; createdAt?: string }>;
   onFileUpload: () => Promise<void>;
 }) {
+  const isIntern = useIsIntern();
+
   const missionXpertStatus = missionData.xpert_associated_status;
   const handleDownloadFile = async ({
     type,
@@ -87,7 +90,8 @@ export default function FournisseurActivationMissionRow({
           type={getFileTypeByStatus('devis', missionXpertStatus ?? '')}
           title="Fournisseur - Devis"
           missionData={missionData}
-          onUploadSuccess={onFileUpload}
+          onUploadSuccess={isIntern ? () => {} : onFileUpload}
+          disabled={isIntern}
           isFournisseurSide
         />
       </div>
@@ -162,7 +166,8 @@ export default function FournisseurActivationMissionRow({
         title="Fournisseur - Devis signé"
         buttonText="Loader devis signé"
         missionData={missionData}
-        onUploadSuccess={onFileUpload}
+        onUploadSuccess={isIntern ? () => {} : onFileUpload}
+        disabled={isIntern}
         isFournisseurSide
       />
       <Box
@@ -236,7 +241,8 @@ export default function FournisseurActivationMissionRow({
         title="Fournisseur - Contrat de mission / Commande"
         buttonText="Loader contrat signé"
         missionData={missionData}
-        onUploadSuccess={onFileUpload}
+        onUploadSuccess={isIntern ? () => {} : onFileUpload}
+        disabled={isIntern}
         isFournisseurSide
       />
       <Box

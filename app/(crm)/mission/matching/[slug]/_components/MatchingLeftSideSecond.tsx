@@ -10,12 +10,15 @@ import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 import { getLabel } from '@/utils/getLabel';
 import { empty } from '@/data/constant';
 import { Button } from '@/components/ui/button';
+import { useIsIntern } from '@/hooks/useIsIntern';
 
 export default function MatchingLeftSideSecond({
   missionNumber,
 }: {
   missionNumber: string;
 }) {
+  const isIntern = useIsIntern();
+
   const { additionalCriteria, setAdditionalCriteria, saveCriteria } =
     useMatchingCriteriaStore();
 
@@ -46,6 +49,7 @@ export default function MatchingLeftSideSecond({
   } = useSelect();
 
   const handleAddClick = (criteriaType: keyof typeof showAdditionalSelects) => {
+    if (isIntern) return;
     setShowAdditionalSelects((prev) => ({
       ...prev,
       [criteriaType]: !prev[criteriaType],
@@ -77,6 +81,7 @@ export default function MatchingLeftSideSecond({
   };
 
   const handleAdditionalSelection = (type: string, values: string[]) => {
+    if (isIntern) return;
     setAdditionalCriteria((prev) => {
       const newCriteria = {
         ...prev,
@@ -107,8 +112,12 @@ export default function MatchingLeftSideSecond({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('jobTitle')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('jobTitle')}
                 />
               ) : (
                 <X
@@ -166,8 +175,12 @@ export default function MatchingLeftSideSecond({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('postType')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('postType')}
                 />
               ) : (
                 <X
@@ -225,8 +238,12 @@ export default function MatchingLeftSideSecond({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('sector')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('sector')}
                 />
               ) : (
                 <X
@@ -283,8 +300,12 @@ export default function MatchingLeftSideSecond({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('specialties')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('specialties')}
                 />
               ) : (
                 <X
@@ -343,8 +364,12 @@ export default function MatchingLeftSideSecond({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('expertises')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('expertises')}
                 />
               ) : (
                 <X

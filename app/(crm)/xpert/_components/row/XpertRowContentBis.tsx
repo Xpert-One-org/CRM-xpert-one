@@ -1,6 +1,4 @@
 import Input from '@/components/inputs/Input';
-import MultiSelectComponent from '@/components/MultiSelectComponent';
-import TextArea from '@/components/inputs/TextArea';
 import { empty } from '@/data/constant';
 import {
   areaSelect,
@@ -11,10 +9,7 @@ import {
   sectorSelect,
   specialitySelect,
 } from '@/data/mocked_select';
-import { profileDataCompany } from '@/data/profile';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
-import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import React, { useEffect, useState } from 'react';
 import type { DocumentInfo } from '../XpertTable';

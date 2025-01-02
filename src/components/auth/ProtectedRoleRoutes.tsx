@@ -2,10 +2,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import UnauthorizedPage from './UnauthorizedPage';
 import Loader from '../Loader';
+import type { DBCollaboratorRole } from '@/types/typesDb';
 
 type ProtectedRoleRoutesProps = {
   children: React.ReactNode;
-  notAllowedRoles: string[];
+  notAllowedRoles: DBCollaboratorRole[];
 };
 
 export default function ProtectedRoleRoutes({

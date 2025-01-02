@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { downloadMissionFile } from '@functions/download-file-mission';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
+import { useIsIntern } from '@/hooks/useIsIntern';
 
 export default function XpertActivationMissionRow({
   missionData,
@@ -24,6 +25,8 @@ export default function XpertActivationMissionRow({
   fileStatuses: Record<string, { exists: boolean; createdAt?: string }>;
   onFileUpload: () => Promise<void>;
 }) {
+  const isIntern = useIsIntern();
+
   const missionXpertStatus = missionData.xpert_associated_status;
   const handleDownloadFile = async ({
     type,
@@ -92,7 +95,8 @@ export default function XpertActivationMissionRow({
           type={getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')}
           title="Récapitulatif de mission"
           missionData={missionData}
-          onUploadSuccess={onFileUpload}
+          onUploadSuccess={isIntern ? () => {} : onFileUpload}
+          disabled={isIntern}
         />
       </div>
       <Button
@@ -197,7 +201,8 @@ export default function XpertActivationMissionRow({
         title="Récapitulatif de mission signé"
         buttonText="Loader récap signé"
         missionData={missionData}
-        onUploadSuccess={onFileUpload}
+        onUploadSuccess={isIntern ? () => {} : onFileUpload}
+        disabled={isIntern}
       />
       <Box
         className={`col-span-1 flex-col text-white ${
@@ -284,7 +289,8 @@ export default function XpertActivationMissionRow({
             )}
             title={getDocumentLabel('contrat', missionXpertStatus ?? '')}
             missionData={missionData}
-            onUploadSuccess={onFileUpload}
+            onUploadSuccess={isIntern ? () => {} : onFileUpload}
+            disabled={isIntern}
           />
         ) : (
           <Button
@@ -333,7 +339,8 @@ export default function XpertActivationMissionRow({
           title="Devis de portage"
           buttonText="Loader devis portage"
           missionData={missionData}
-          onUploadSuccess={onFileUpload}
+          onUploadSuccess={isIntern ? () => {} : onFileUpload}
+          disabled={isIntern}
         />
       ) : (
         <Box className="size-full bg-[#b1b1b1]">{''}</Box>
@@ -435,7 +442,8 @@ export default function XpertActivationMissionRow({
             type={getFileTypeByStatus('commande', missionXpertStatus ?? '')}
             title="Commande de portage"
             missionData={missionData}
-            onUploadSuccess={onFileUpload}
+            onUploadSuccess={isIntern ? () => {} : onFileUpload}
+            disabled={isIntern}
           />
         ) : (
           <Button
@@ -494,7 +502,8 @@ export default function XpertActivationMissionRow({
               title="Contrat CDI"
               buttonText="Loader contrat CDI"
               missionData={missionData}
-              onUploadSuccess={onFileUpload}
+              onUploadSuccess={isIntern ? () => {} : onFileUpload}
+              disabled={isIntern}
             />
           ) : (
             <UploadFileDialog
@@ -505,7 +514,8 @@ export default function XpertActivationMissionRow({
               title="Commande signée"
               buttonText="Loader commande signée"
               missionData={missionData}
-              onUploadSuccess={onFileUpload}
+              onUploadSuccess={isIntern ? () => {} : onFileUpload}
+              disabled={isIntern}
             />
           )}
         </>

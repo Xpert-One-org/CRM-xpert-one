@@ -16,20 +16,6 @@ const mockData = {
       lastPosition: 'Chef de quart',
       reassignment: 'Olivier LATSUE',
     },
-    {
-      firstName: 'Aleksander',
-      lastName: 'Martin',
-      id: 'X ----',
-      lastPosition: 'Instrumentiste',
-      reassignment: 'Aleksander MARTIN',
-    },
-    {
-      firstName: 'Louis',
-      lastName: 'Martin',
-      id: 'X ----',
-      lastPosition: 'Ingénieur des procédés',
-      reassignment: 'Louis MARTIN',
-    },
   ],
   suppliers: [
     {
@@ -38,20 +24,6 @@ const mockData = {
       id: 'F ----',
       company: 'VEOLIA',
       reassignment: 'Marc DUPONT',
-    },
-    {
-      firstName: 'Aleksander',
-      lastName: 'Martin',
-      id: 'F ----',
-      company: 'SÉCHÉE',
-      reassignment: 'Aleksander MARTIN',
-    },
-    {
-      firstName: 'Louis',
-      lastName: 'Martin',
-      id: 'F ----',
-      company: 'EDF',
-      reassignment: 'Louis MARTIN',
     },
   ],
 };
@@ -101,7 +73,9 @@ export default function GestionCollaborateursPage() {
   }));
 
   return (
-    <ProtectedRoleRoutes notAllowedRoles={['project_manager']}>
+    <ProtectedRoleRoutes
+      notAllowedRoles={['project_manager', 'intern', 'hr', 'adv']}
+    >
       <div className="flex flex-col gap-6">
         <div className="rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
           <div className="mb-4 flex items-center">

@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { sendMatchedXpertsToSelectionBoard } from '../../../selection/selection.action';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
+import { useIsIntern } from '@/hooks/useIsIntern';
 
 export default function LaunchMatching({
   missionData,
@@ -27,6 +28,7 @@ export default function LaunchMatching({
     Record<string, number>
   >({});
   const router = useRouter();
+  const isIntern = useIsIntern();
 
   const { excludedCriteria, additionalCriteria, saveCriteria } =
     useMatchingCriteriaStore();
@@ -112,7 +114,11 @@ export default function LaunchMatching({
 
   return (
     <div className="flex size-full flex-col rounded border p-3">
-      <Button className="w-full text-white" onClick={handleLaunchMatching}>
+      <Button
+        className={`w-full text-white`}
+        onClick={handleLaunchMatching}
+        disabled={isIntern}
+      >
         LANCER LE MATCHING
       </Button>
 
@@ -134,9 +140,11 @@ export default function LaunchMatching({
 
       <div className="mt-3 grid grid-cols-2 gap-spaceSmall">
         <Button
-          className="w-full bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80"
+          className={`w-full bg-[#92C6B0] text-white ${
+            isIntern ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#92C6B0]/80'
+          }`}
           onClick={handleSendToSelection}
-          disabled={isSubmitting}
+          disabled={isIntern || isSubmitting}
         >
           {selectedXperts.size === 0 && matchingResults
             ? `Tous envoyer vers DRAG & DROP`

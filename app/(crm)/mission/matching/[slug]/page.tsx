@@ -8,6 +8,7 @@ import LaunchMatching from './_components/LaunchMatching';
 import type { DBMission } from '@/types/typesDb';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 import MatchingLeftSideSecond from './_components/MatchingLeftSideSecond';
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 
 export default function MissionMatchingPage(props: {
   params: Promise<{ slug: string }>;
@@ -29,22 +30,24 @@ export default function MissionMatchingPage(props: {
 
   return (
     <>
-      {missionData && (
-        <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
-          <MatchingMissionTable missionData={missionData} slug={'matching'} />
-          <div className="flex h-3/4 w-full gap-3">
-            <div className="flex w-1/2 flex-col overflow-y-auto">
-              <MatchingLeftSide missionData={missionData} />
+      <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>
+        {missionData && (
+          <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
+            <MatchingMissionTable missionData={missionData} slug={'matching'} />
+            <div className="flex h-3/4 w-full gap-3">
+              <div className="flex w-1/2 flex-col overflow-y-auto">
+                <MatchingLeftSide missionData={missionData} />
+              </div>
+              <div className="flex max-h-[70vh] w-1/2 overflow-y-auto">
+                <LaunchMatching missionData={missionData} />
+              </div>
             </div>
-            <div className="flex max-h-[70vh] w-1/2 overflow-y-auto">
-              <LaunchMatching missionData={missionData} />
-            </div>
+            <MatchingLeftSideSecond
+              missionNumber={missionData.mission_number ?? ''}
+            />
           </div>
-          <MatchingLeftSideSecond
-            missionNumber={missionData.mission_number ?? ''}
-          />
-        </div>
-      )}
+        )}
+      </ProtectedRoleRoutes>
     </>
   );
 }

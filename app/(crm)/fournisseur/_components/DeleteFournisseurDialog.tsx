@@ -10,6 +10,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 import FakeInput from '@/components/inputs/FakeInput';
 import { useFournisseurStore } from '@/store/fournisseur';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DeleteFournisseurDialog({
   fournisseurId,
@@ -21,6 +22,7 @@ export default function DeleteFournisseurDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const { deleteFournisseur } = useFournisseurStore();
+  const { user } = useAuth();
 
   const handleSendDeleteFournisseur = async () => {
     setIsLoading(true);
@@ -36,9 +38,14 @@ export default function DeleteFournisseurDialog({
 
   return (
     <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
-      <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
-        Supprimer le fournisseur
-      </Button>
+      {/* TODO: add later logic for delete reason supplier with notification */}
+      {/* for the moment, i disable the button for restrictions access role */}
+      {user?.role === 'admin' ||
+        (user?.role === 'project_manager' && (
+          <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
+            Supprimer le fournisseur
+          </Button>
+        ))}
 
       <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white bg-opacity-70 p-0 backdrop-blur-sm">
         <div className="relative h-[175px] w-full">
