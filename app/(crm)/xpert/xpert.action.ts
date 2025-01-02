@@ -160,7 +160,7 @@ export const getXpertsOptimized = async ({
     let query = supabase
       .from('profile')
       .select(
-        'firstname, lastname, id, country, generated_id, created_at, admin_opinion, cv_name, profile_mission(availability, job_titles), mission!mission_xpert_associated_id_fkey(xpert_associated_id)',
+        'firstname, lastname, id, country, generated_id, created_at, admin_opinion, cv_name, profile_mission(availability, job_titles), mission!mission_xpert_associated_id_fkey(xpert_associated_id), affected_referent_id',
         { count: 'exact' }
       )
       .eq('role', 'xpert');

@@ -708,6 +708,7 @@ export type Database = {
         Row: {
           address: string | null;
           admin_opinion: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id: string | null;
           area: string[] | null;
           avatar_url: string | null;
           birthdate: string | null;
@@ -767,6 +768,7 @@ export type Database = {
         Insert: {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id?: string | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -826,6 +828,7 @@ export type Database = {
         Update: {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id?: string | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -883,6 +886,13 @@ export type Database = {
           username?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'profile_affected_referent_id_fkey';
+            columns: ['affected_referent_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'profile_collaborator_replacement_id_fkey';
             columns: ['collaborator_replacement_id'];

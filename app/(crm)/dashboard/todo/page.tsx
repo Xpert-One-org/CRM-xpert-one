@@ -248,7 +248,7 @@ export default function TaskTable() {
   return (
     <div
       className={cn(
-        'flex size-full h-[calc(100vh_-_180px)] flex-col justify-between gap-4 overflow-hidden'
+        'flex size-full flex-col justify-between gap-4 overflow-hidden'
       )}
     >
       <div className="relative flex flex-col gap-4">
