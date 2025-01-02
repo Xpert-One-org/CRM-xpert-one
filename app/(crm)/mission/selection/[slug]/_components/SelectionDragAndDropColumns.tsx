@@ -6,7 +6,7 @@ import SelectionMatchedXpertCard from './SelectionMatchedXpertCard';
 import { Droppable } from '@hello-pangea/dnd';
 import type { ColumnStatus, DBMissionXpertsSelection } from '@/types/typesDb';
 import { columns } from '@/constants/columnStatus';
-import { useIsIntern } from '@/hooks/useIsIntern';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function SelectionDragAndDropColumns({
   xpertsSelection,

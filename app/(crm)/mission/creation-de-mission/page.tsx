@@ -355,7 +355,7 @@ export default function Page() {
   }, [isCompleted]);
 
   return (
-    <ProtectedRoleRoutes notAllowedRoles={['intern', 'hr']}>
+    <ProtectedRoleRoutes notAllowedRoles={['intern', 'hr', 'adv']}>
       <div className="flex flex-col gap-y-spaceSmall px-spaceContainer pt-spaceContainer md:px-0">
         <InformativePopup />
         <p className={cn('text-lg font-medium')}>Informations de mission</p>

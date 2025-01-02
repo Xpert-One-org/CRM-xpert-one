@@ -2,6 +2,7 @@ import { Box } from '@/components/ui/box';
 import type { PaymentType } from '@/types/mission';
 import { formatDate } from '@/utils/date';
 import React, { useState, useEffect } from 'react';
+import { useIsProjectManager, useIsHr, useIsAdv } from '@/hooks/useRoles';
 
 type SalaryPaymentBoxProps = {
   selectedMonthYear: {
@@ -11,7 +12,6 @@ type SalaryPaymentBoxProps = {
   xpertAssociatedStatus: string;
   onSalaryPaymentClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean;
-  isProjectManager: boolean;
 };
 
 export default function SalaryPaymentBox({
@@ -19,8 +19,10 @@ export default function SalaryPaymentBox({
   xpertAssociatedStatus,
   onSalaryPaymentClick,
   isSelected = false,
-  isProjectManager,
 }: SalaryPaymentBoxProps) {
+  const isProjectManager = useIsProjectManager();
+  const isHr = useIsHr();
+  const isAdv = useIsAdv();
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
@@ -32,7 +34,8 @@ export default function SalaryPaymentBox({
   }, [isSelected]);
 
   const handleClick = () => {
-    if (isProjectManager || xpertAssociatedStatus !== 'cdi') return;
+    if ((!isHr && isProjectManager) || xpertAssociatedStatus !== 'cdi' || isAdv)
+      return;
 
     setLocalIsSelected(!localIsSelected);
     if (!localIsSelected) {
@@ -71,8 +74,16 @@ export default function SalaryPaymentBox({
     <Box className={`size-full bg-[#b1b1b1] text-white`}>{''}</Box>
   ) : (
     <Box
-      className={`size-full ${!isProjectManager ? 'cursor-pointer' : ''} text-white ${getBackgroundColor()}`}
-      onClick={!isProjectManager ? handleClick : undefined}
+      className={`size-full ${
+        isAdv
+          ? 'cursor-not-allowed'
+          : isHr || !isProjectManager
+            ? 'cursor-pointer'
+            : 'cursor-not-allowed'
+      } text-white ${getBackgroundColor()}`}
+      onClick={
+        isAdv ? undefined : isHr || !isProjectManager ? handleClick : undefined
+      }
     >
       {!localIsSelected
         ? 'NON'

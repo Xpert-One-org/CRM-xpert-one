@@ -20,8 +20,12 @@ import {
 } from '@functions/dashboard';
 import { getCountTasksToTreatAndUrgent } from '@functions/tasks';
 import OutlookButton from '@/components/OutlookButton';
+import { getLoggedUser } from '@functions/auth/getLoggedUser';
+import FacturationLogo from '@/components/svg/Facturation';
 
 export default async function DashboardPage() {
+  const user = await getLoggedUser();
+
   const { data: newUsers } = await getLastSignupNewUsers();
   const { newUsersLastWeek } = await getLastSignUpNewUsersWeek();
 
@@ -43,39 +47,43 @@ export default async function DashboardPage() {
   return (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <DashBoardCards
-          count={missionsOpen.length}
-          title="Missions ouvertes"
-          urgentTitle="Urgentes"
-          urgentCount={0}
-          buttonTitle="Missions ouvertes"
-          iconButton={
-            <BriefCase className="fill-white" width={24} height={24} />
-          }
-          link="/mission/etats?etat=open"
-        />
-        <DashBoardCards
-          count={missionInProgress.length}
-          title="Missions placées"
-          urgentTitle="Urgentes"
-          urgentCount={0}
-          buttonTitle="Missions placées"
-          iconButton={
-            <BriefCase className="fill-white" width={24} height={24} />
-          }
-          link="/mission/etats?etat=in_progress"
-        />
+        {user?.role !== 'hr' && user?.role !== 'adv' && (
+          <>
+            <DashBoardCards
+              count={missionsOpen.length}
+              title="Missions ouvertes"
+              urgentTitle="Urgentes"
+              urgentCount={0}
+              buttonTitle="Missions ouvertes"
+              iconButton={
+                <BriefCase className="fill-white" width={24} height={24} />
+              }
+              link="/mission/etats?etat=open"
+            />
+            <DashBoardCards
+              count={missionInProgress.length}
+              title="Missions placées"
+              urgentTitle="Urgentes"
+              urgentCount={0}
+              buttonTitle="Missions placées"
+              iconButton={
+                <BriefCase className="fill-white" width={24} height={24} />
+              }
+              link="/mission/etats?etat=in_progress"
+            />
+          </>
+        )}
         {/* <DashBoardCards
-        count={newUsers.length}
-        title="Gestion de facturations"
-        urgentTitle="Retards"
-        urgentCount={0}
-        buttonTitle="Gestion de facturations"
-        iconButton={
-          <FacturationLogo className="fill-white" width={24} height={24} />
-        }
-        link="/facturation/etats-des-facturations"
-      /> */}
+          count={newUsers.length}
+          title="Gestion de facturations"
+          urgentTitle="Retards"
+          urgentCount={0}
+          buttonTitle="Gestion de facturations"
+          iconButton={
+            <FacturationLogo className="fill-white" width={24} height={24} />
+          }
+          link="/facturation/etats-des-facturations"
+        /> */}
         <DashBoardCards
           count={(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}
           title="TO DO à traiter"
@@ -94,28 +102,34 @@ export default async function DashboardPage() {
         iconButton={<ChatBubbles width={24} height={24} />}
         link="/messagerie"
       /> */}
-        <DashBoardCards
-          count={missionsToValidate.length}
-          title="Missions à valider"
-          urgentTitle="Urgentes"
-          urgentCount={0}
-          buttonTitle="Missions à valider"
-          iconButton={
-            <BriefCaseAdd className="fill-white" width={24} height={24} />
-          }
-          link="/mission/etats?etat=in_process"
-        />
-        <DashBoardCards
-          count={newUsers.length}
-          title="Total inscrits"
-          urgentTitle="Semaine"
-          urgentCount={newUsersLastWeek.length || 0}
-          buttonTitle="Nouveaux inscrits"
-          iconButton={
-            <PeopleUsersAdd className="fill-white" width={24} height={24} />
-          }
-          link="/nouveau-inscrits?role=xpert"
-        />
+        {user?.role !== 'hr' && user?.role !== 'adv' && (
+          <>
+            <DashBoardCards
+              count={missionsToValidate.length}
+              title="Missions à valider"
+              urgentTitle="Urgentes"
+              urgentCount={0}
+              buttonTitle="Missions à valider"
+              iconButton={
+                <BriefCaseAdd className="fill-white" width={24} height={24} />
+              }
+              link="/mission/etats?etat=in_process"
+            />
+          </>
+        )}
+        {user?.role !== 'hr' && user?.role !== 'adv' && (
+          <DashBoardCards
+            count={newUsers.length}
+            title="Total inscrits"
+            urgentTitle="Semaine"
+            urgentCount={newUsersLastWeek.length || 0}
+            buttonTitle="Nouveaux inscrits"
+            iconButton={
+              <PeopleUsersAdd className="fill-white" width={24} height={24} />
+            }
+            link="/nouveaux-inscrits?role=xpert"
+          />
+        )}
         <DashBoardCards
           count={missions.length}
           title="Suivi des missions"

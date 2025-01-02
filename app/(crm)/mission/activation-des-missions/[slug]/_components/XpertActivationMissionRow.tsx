@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { downloadMissionFile } from '@functions/download-file-mission';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
-import { useIsIntern } from '@/hooks/useIsIntern';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function XpertActivationMissionRow({
   missionData,

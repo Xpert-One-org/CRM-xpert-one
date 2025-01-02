@@ -1,6 +1,13 @@
+'use client';
+
 import React from 'react';
 import FournisseurTable from './_components/FournisseurTable';
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 
-export default async function FournisseurPage() {
-  return <FournisseurTable />;
+export default function FournisseurPage() {
+  return (
+    <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>
+      <FournisseurTable />
+    </ProtectedRoleRoutes>
+  );
 }

@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { sendMatchedXpertsToSelectionBoard } from '../../../selection/selection.action';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
-import { useIsIntern } from '@/hooks/useIsIntern';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function LaunchMatching({
   missionData,

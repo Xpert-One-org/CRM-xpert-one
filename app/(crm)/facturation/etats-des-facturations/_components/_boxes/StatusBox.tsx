@@ -4,6 +4,7 @@ import { checkFileStatusForDate } from '../../_utils/checkFileStatusForDate';
 import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import type { FileStatuses, PaymentType } from '@/types/mission';
 import { useState, useEffect } from 'react';
+import { useIsProjectManager, useIsAdv } from '@/hooks/useRoles';
 
 type StatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -14,7 +15,6 @@ type StatusBoxProps = {
   isSalaryPayment?: boolean;
   onSalaryPaymentClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean;
-  isProjectManager: boolean;
 };
 
 export default function StatusBox({
@@ -26,8 +26,10 @@ export default function StatusBox({
   isSalaryPayment = false,
   onSalaryPaymentClick,
   isSelected = false,
-  isProjectManager,
 }: StatusBoxProps) {
+  const isProjectManager = useIsProjectManager();
+  const isAdv = useIsAdv();
+
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
@@ -48,7 +50,8 @@ export default function StatusBox({
 
   if (isSalaryPayment) {
     const handleClick = () => {
-      if (isProjectManager) return;
+      if (isProjectManager || !isAdv) return;
+
       setLocalIsSelected(!localIsSelected);
       if (!localIsSelected) {
         setCurrentDate(new Date().toISOString());
@@ -61,10 +64,10 @@ export default function StatusBox({
 
     return (
       <Box
-        className={`size-full ${!isProjectManager ? 'cursor-pointer' : ''} text-white ${
-          localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-        }`}
-        onClick={!isProjectManager ? handleClick : undefined}
+        className={`size-full ${
+          isProjectManager || !isAdv ? 'cursor-not-allowed' : 'cursor-pointer'
+        } text-white ${localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'}`}
+        onClick={isProjectManager || !isAdv ? undefined : handleClick}
       >
         {!localIsSelected
           ? 'NON REÇU'

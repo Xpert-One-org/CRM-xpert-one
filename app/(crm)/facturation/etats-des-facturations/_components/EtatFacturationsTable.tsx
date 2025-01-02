@@ -15,7 +15,7 @@ import type {
 } from '@/types/mission';
 import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
-import { useAuth } from '@/hooks/useAuth';
+import { useIsProjectManager } from '@/hooks/useRoles';
 
 const yesNoOptions = [
   { label: 'OUI', value: 'yes', color: '#92C6B0' },
@@ -39,9 +39,7 @@ export default function EtatFacturationsTable({
 }) {
   const { fileStatusesByMission, checkAllMissionsFiles } =
     useFileStatusFacturationStore();
-  const { user } = useAuth();
-  const isProjectManager = user?.role === 'project_manager';
-
+  const isProjectManager = useIsProjectManager();
   const [sortedRows, setSortedRows] = useState<
     { mission: DBMission; monthYear: { month: number; year: number } }[]
   >([]);
@@ -405,13 +403,12 @@ export default function EtatFacturationsTable({
               missionData={mission}
               selectedMonthYear={monthYear}
               onSalaryPaymentChange={handleSalaryPaymentChange}
-              isProjectManager={isProjectManager}
             />
           ))}
         </div>
       </div>
 
-      {!isProjectManager && Object.keys(pendingPayments).length > 0 && (
+      {Object.keys(pendingPayments).length > 0 && (
         <div className="fixed bottom-10 right-10">
           <Button
             className="bg-primary px-spaceLarge py-spaceContainer text-white"
@@ -428,7 +425,6 @@ export default function EtatFacturationsTable({
           onUploadSuccess={() => {
             checkAllMissionsFiles(missions);
           }}
-          isProjectManager={isProjectManager}
         />
       </div>
     </div>

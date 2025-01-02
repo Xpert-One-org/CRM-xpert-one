@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
-import { useIsIntern } from '@/hooks/useIsIntern';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function MatchingLeftSide({
   missionData,

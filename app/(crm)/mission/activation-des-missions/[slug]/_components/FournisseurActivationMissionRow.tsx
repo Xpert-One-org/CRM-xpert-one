@@ -11,7 +11,7 @@ import DownloadOff from '@/components/svg/DownloadOff';
 import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
-import { useIsIntern } from '@/hooks/useIsIntern';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function FournisseurActivationMissionRow({
   missionData,

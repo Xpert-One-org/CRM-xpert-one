@@ -25,9 +25,9 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const handleRoleChange = (value: string) => {
     setSelectedRole(value);
     if (value === 'Fournisseur') {
-      router.push('/nouveau-inscrits?role=company');
+      router.push('/nouveaux-inscrits?role=company');
     } else {
-      router.push('/nouveau-inscrits?role=xpert');
+      router.push('/nouveaux-inscrits?role=xpert');
     }
   };
 

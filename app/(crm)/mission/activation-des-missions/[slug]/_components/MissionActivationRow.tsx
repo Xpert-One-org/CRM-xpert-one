@@ -10,7 +10,7 @@ import ComboboxMission from '@/components/combobox/ComboboxMission';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useMissionStore } from '@/store/mission';
-import { useIsIntern } from '@/hooks/useIsIntern';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function MissionActivationRow({
   mission,

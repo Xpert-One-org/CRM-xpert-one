@@ -10,7 +10,7 @@ import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 import { getLabel } from '@/utils/getLabel';
 import { empty } from '@/data/constant';
 import { Button } from '@/components/ui/button';
-import { useIsIntern } from '@/hooks/useIsIntern';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function MatchingLeftSideSecond({
   missionNumber,
