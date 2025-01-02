@@ -1,9 +1,15 @@
 'use server';
 
 import { limitFournisseur } from '@/data/constant';
-import type { DBFournisseur } from '@/types/typesDb';
+import type {
+  DBFournisseur,
+  DBProfile,
+  DBProfileMission,
+  DBProfileStatus,
+} from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
+import { transformArray } from '@/lib/utils';
 
 export const getSpecificFournisseur = async (
   fournisseurId: string
@@ -15,7 +21,7 @@ export const getSpecificFournisseur = async (
   if (isAdmin) {
     const { data, error } = await supabase
       .from('profile')
-      .select('*, mission!mission_created_by_fkey(*)')
+      .select('*, mission!mission_created_by_fkey(*), profile_status(*)')
       .eq('generated_id', fournisseurId)
       .eq('role', 'company')
       .order('created_at', { ascending: false })
@@ -49,7 +55,9 @@ export const getAllFournisseurs = async ({
   if (isAdmin) {
     const { data, count, error } = await supabase
       .from('profile')
-      .select('*, mission!mission_created_by_fkey(*)', { count: 'exact' })
+      .select('*, mission!mission_created_by_fkey(*), profile_status(*)', {
+        count: 'exact',
+      })
       .eq('role', 'company')
       .order('created_at', { ascending: false })
       .range(offset, offset + limitFournisseur - 1);
@@ -80,5 +88,110 @@ export const deleteFournisseur = async (fournisseurId: string) => {
         code: 'delete_error',
       },
     };
+  }
+};
+
+export const updateProfile = async ({
+  fournisseur_id,
+  newData,
+}: {
+  fournisseur_id: string;
+  newData: Partial<Record<keyof DBProfile, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+  const transformedData = transformArray(newData);
+
+  const { error } = await supabase
+    .from('profile')
+    .update(transformedData)
+    .eq('id', fournisseur_id);
+
+  if (error) {
+    console.error('Error updating profile:', error);
+    return { error: error.message };
+  } else {
+    return { error: null };
+  }
+};
+
+export const updateProfileStatus = async ({
+  fournisseur_id,
+  newData,
+}: {
+  fournisseur_id: string;
+  newData: Partial<Record<keyof DBProfileStatus, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+  const transformedData = transformArray(newData);
+
+  const { data, error } = await supabase
+    .from('profile_status')
+    .select('id')
+    .eq('profile_id', fournisseur_id);
+
+  if (data?.length === 0) {
+    const { error } = await supabase
+      .from('profile_status')
+      .insert({ ...transformedData, profile_id: fournisseur_id });
+
+    if (error) {
+      console.error('Error inserting profile status:', error);
+      return { error: error.message };
+    } else {
+      return { error: null };
+    }
+  }
+
+  const { error: errorUpdate } = await supabase
+    .from('profile_status')
+    .update(transformedData)
+    .eq('profile_id', fournisseur_id);
+
+  if (errorUpdate) {
+    console.error('Error updating profile status:', errorUpdate);
+    return { error: errorUpdate.message };
+  } else {
+    return { error: null };
+  }
+};
+
+export const updateProfileMission = async ({
+  fournisseur_id,
+  newData,
+}: {
+  fournisseur_id: string;
+  newData: Partial<Record<keyof DBProfileMission, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+  const transformedData = transformArray(newData);
+
+  const { data, error } = await supabase
+    .from('profile_mission')
+    .select('id')
+    .eq('profile_id', fournisseur_id);
+
+  if (data?.length === 0) {
+    const { error } = await supabase
+      .from('profile_mission')
+      .insert({ ...transformedData, profile_id: fournisseur_id });
+
+    if (error) {
+      console.error('Error inserting profile mission:', error);
+      return { error: error.message };
+    } else {
+      return { error: null };
+    }
+  }
+
+  const { error: errorUpdate } = await supabase
+    .from('profile_mission')
+    .update(transformedData)
+    .eq('profile_id', fournisseur_id);
+
+  if (errorUpdate) {
+    console.error('Error updating profile mission:', errorUpdate);
+    return { error: errorUpdate.message };
+  } else {
+    return { error: null };
   }
 };
