@@ -69,11 +69,13 @@ export default function FournisseurGestionCollaborateursRow({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Non assigné</SelectItem>
-            {collaborators.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.firstname} {c.lastname}
-              </SelectItem>
-            ))}
+            {collaborators
+              .filter((c) => c.role === 'admin' || c.role === 'project_manager')
+              .map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.firstname} {c.lastname}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </Box>
