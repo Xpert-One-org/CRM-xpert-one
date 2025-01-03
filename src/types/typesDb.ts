@@ -32,6 +32,7 @@ export type DBUser = DBProfile & {
 
 export type DBFournisseur = DBProfile & {
   mission: DBMission[];
+  profile_status: DBProfileStatus | null;
 };
 
 export type DBMatchedXpert = DBProfileMission & {
@@ -89,19 +90,16 @@ export type DBBaseMsg = Pick<
   DBMessage,
   'id' | 'content' | 'created_at' | 'send_by'
 > & {
-  profile:
-    | Pick<
-        DBProfile,
-        | 'role'
-        | 'company_name'
-        | 'generated_id'
-        | 'firstname'
-        | 'lastname'
-        | 'avatar_url'
-        | 'username'
-      >
-    | null
-    | undefined;
+  profile: Pick<
+    DBProfile,
+    | 'role'
+    | 'company_name'
+    | 'generated_id'
+    | 'firstname'
+    | 'lastname'
+    | 'avatar_url'
+    | 'username'
+  > | null;
 };
 
 export type DBForum = Database['public']['Tables']['chat']['Row'] & {
@@ -194,7 +192,21 @@ export type DBXpertOptimized = Pick<
   | 'cv_name'
   | 'created_at'
   | 'admin_opinion'
+  | 'affected_referent_id'
 > & {
   mission: Pick<DBMission, 'xpert_associated_id'>[];
   profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+};
+
+export type DBCollaboratorRole = Database['public']['Enums']['profile_roles'];
+
+export type DBCollaborator = {
+  id: string;
+  firstname: string;
+  lastname: string;
+  mobile: string;
+  email: string;
+  role: DBCollaboratorRole;
+  collaborator_is_absent: boolean | null;
+  collaborator_replacement_id: string | null;
 };

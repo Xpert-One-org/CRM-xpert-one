@@ -4,6 +4,7 @@ import { checkFileStatusForDate } from '../../_utils/checkFileStatusForDate';
 import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import type { FileStatuses, PaymentType } from '@/types/mission';
 import { useState, useEffect } from 'react';
+import { useIsProjectManager, useIsAdv } from '@/hooks/useRoles';
 
 type StatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -26,6 +27,9 @@ export default function StatusBox({
   onSalaryPaymentClick,
   isSelected = false,
 }: StatusBoxProps) {
+  const isProjectManager = useIsProjectManager();
+  const isAdv = useIsAdv();
+
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
@@ -46,6 +50,8 @@ export default function StatusBox({
 
   if (isSalaryPayment) {
     const handleClick = () => {
+      if (isProjectManager || !isAdv) return;
+
       setLocalIsSelected(!localIsSelected);
       if (!localIsSelected) {
         setCurrentDate(new Date().toISOString());
@@ -58,10 +64,10 @@ export default function StatusBox({
 
     return (
       <Box
-        className={`size-full cursor-pointer text-white ${
-          localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-        }`}
-        onClick={handleClick}
+        className={`size-full ${
+          isProjectManager || !isAdv ? 'cursor-not-allowed' : 'cursor-pointer'
+        } text-white ${localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'}`}
+        onClick={isProjectManager || !isAdv ? undefined : handleClick}
       >
         {!localIsSelected
           ? 'NON REÇU'

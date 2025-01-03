@@ -79,7 +79,14 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
   }, []);
 
   const userOptions = profiles
-    .filter((profile) => profile.role === 'admin')
+    .filter(
+      (profile) =>
+        profile.role === 'admin' ||
+        profile.role === 'project_manager' ||
+        profile.role === 'adv' ||
+        profile.role === 'hr' ||
+        profile.role === 'intern'
+    )
     .map((profile) => ({
       label: `${profile.firstname} ${profile.lastname}`,
       value: profile.id,

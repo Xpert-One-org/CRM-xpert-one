@@ -708,11 +708,14 @@ export type Database = {
         Row: {
           address: string | null;
           admin_opinion: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id: string | null;
           area: string[] | null;
           avatar_url: string | null;
           birthdate: string | null;
           city: string | null;
           civility: string | null;
+          collaborator_is_absent: boolean | null;
+          collaborator_replacement_id: string | null;
           community_banning_explanations: string | null;
           company_name: string | null;
           company_role: string | null;
@@ -746,7 +749,7 @@ export type Database = {
           profile_progression: number;
           referent_id: string | null;
           regions: string[] | null;
-          role: string;
+          role: Database['public']['Enums']['profile_roles'];
           sector: string | null;
           sector_energy: string | null;
           sector_infrastructure: string | null;
@@ -765,11 +768,14 @@ export type Database = {
         Insert: {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id?: string | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          collaborator_is_absent?: boolean | null;
+          collaborator_replacement_id?: string | null;
           community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
@@ -803,7 +809,7 @@ export type Database = {
           profile_progression?: number;
           referent_id?: string | null;
           regions?: string[] | null;
-          role?: string;
+          role?: Database['public']['Enums']['profile_roles'];
           sector?: string | null;
           sector_energy?: string | null;
           sector_infrastructure?: string | null;
@@ -822,11 +828,14 @@ export type Database = {
         Update: {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id?: string | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          collaborator_is_absent?: boolean | null;
+          collaborator_replacement_id?: string | null;
           community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
@@ -860,7 +869,7 @@ export type Database = {
           profile_progression?: number;
           referent_id?: string | null;
           regions?: string[] | null;
-          role?: string;
+          role?: Database['public']['Enums']['profile_roles'];
           sector?: string | null;
           sector_energy?: string | null;
           sector_infrastructure?: string | null;
@@ -877,6 +886,27 @@ export type Database = {
           username?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'profile_affected_referent_id_fkey';
+            columns: ['affected_referent_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_collaborator_replacement_id_fkey';
+            columns: ['collaborator_replacement_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'profile_referent_id_fkey';
             columns: ['referent_id'];
@@ -1634,6 +1664,14 @@ export type Database = {
         | 'in_process'
         | 'validated'
         | 'refused';
+      profile_roles:
+        | 'xpert'
+        | 'company'
+        | 'admin'
+        | 'project_manager'
+        | 'intern'
+        | 'hr'
+        | 'adv';
       reason_mission_deletion:
         | 'status_candidate_not_found'
         | 'won_competition'
@@ -1753,19 +1791,4 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
-    : never;
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database;
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

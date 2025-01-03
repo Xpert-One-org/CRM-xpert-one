@@ -38,7 +38,7 @@ import { useXpertStore } from '@/store/xpert';
 
 type XpertExperienceProps = {
   handleKeyChanges: (table: NestedTableKey | undefined, name: string) => void;
-}
+};
 
 export default function XpertExperience({
   handleKeyChanges,

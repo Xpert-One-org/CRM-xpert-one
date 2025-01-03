@@ -15,6 +15,7 @@ import type {
 } from '@/types/mission';
 import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
+import { useIsProjectManager } from '@/hooks/useRoles';
 
 const yesNoOptions = [
   { label: 'OUI', value: 'yes', color: '#92C6B0' },
@@ -38,7 +39,7 @@ export default function EtatFacturationsTable({
 }) {
   const { fileStatusesByMission, checkAllMissionsFiles } =
     useFileStatusFacturationStore();
-
+  const isProjectManager = useIsProjectManager();
   const [sortedRows, setSortedRows] = useState<
     { mission: DBMission; monthYear: { month: number; year: number } }[]
   >([]);
@@ -99,6 +100,8 @@ export default function EtatFacturationsTable({
     isNull: boolean,
     paymentType: PaymentType
   ) => {
+    if (isProjectManager) return;
+
     setPendingPayments((prev) => {
       const missionKey = `${mission.id}_${paymentType}`;
       const existingPayments = prev[missionKey] || [];
@@ -211,10 +214,7 @@ export default function EtatFacturationsTable({
           return status.exists;
         };
 
-        const checkPayment = (
-          payments: PaymentStatus[] | null,
-          type: string
-        ) => {
+        const checkPayment = (payments: PaymentStatus[] | null) => {
           if (!Array.isArray(payments)) return false;
           const key = `${monthYear.year}-${(monthYear.month + 1).toString().padStart(2, '0')}`;
           return payments.some((payment) => payment.period === key);
@@ -233,8 +233,7 @@ export default function EtatFacturationsTable({
             case 'salaryPayment':
               if (
                 checkPayment(
-                  mission.facturation_salary_payment as PaymentStatus[],
-                  'salary'
+                  mission.facturation_salary_payment as PaymentStatus[]
                 ) !== isYes
               )
                 return false;
@@ -256,8 +255,7 @@ export default function EtatFacturationsTable({
             case 'invoicePaid':
               if (
                 checkPayment(
-                  mission.facturation_invoice_paid as PaymentStatus[],
-                  'invoice'
+                  mission.facturation_invoice_paid as PaymentStatus[]
                 ) !== isYes
               )
                 return false;
@@ -268,8 +266,7 @@ export default function EtatFacturationsTable({
             case 'payment':
               if (
                 checkPayment(
-                  mission.facturation_fournisseur_payment as PaymentStatus[],
-                  'payment'
+                  mission.facturation_fournisseur_payment as PaymentStatus[]
                 ) !== isYes
               )
                 return false;

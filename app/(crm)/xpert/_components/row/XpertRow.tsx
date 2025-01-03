@@ -8,10 +8,8 @@ import type { DBXpertOptimized } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { createSupabaseFrontendClient } from '@/utils/supabase/client';
-import { Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { jobTitleSelect } from '@/data/mocked_select';

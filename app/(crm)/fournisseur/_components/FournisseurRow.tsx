@@ -6,6 +6,7 @@ import type { DBFournisseur } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getLabel } from '@/utils/getLabel';
 import { uppercaseFirstLetter } from '@/utils/string';
+import { cn } from '@/lib/utils';
 import React from 'react';
 
 export default function FournisseurRow({
@@ -51,13 +52,8 @@ export default function FournisseurRow({
       <Box className="col-span-1" isSelected={isOpen}>
         {fournisseurMissionsCount}
       </Box>
-      <Button className="col-span-1 h-full gap-1 text-white" onClick={onClick}>
+      <Button className="col-span-1 h-full text-white" onClick={onClick}>
         {isOpen ? 'Fermer la fiche' : 'Ouvrir la fiche'}
-        {/* {isOpen ? (
-          <X size={18} strokeWidth={4} />
-        ) : (
-          <Eye size={18} strokeWidth={1} />
-        )} */}
       </Button>
     </>
   );

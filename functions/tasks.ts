@@ -1,11 +1,9 @@
 'use server';
 
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
-import { Database } from '@/types/supabase';
 import type {
   InsertTask,
   TaskHistoryAction,
-  TaskStatus,
   TaskWithRelations,
   UpdateTask,
 } from '@/types/types';
@@ -26,7 +24,6 @@ export async function getTasks({
   filters,
 }: {
   offset: number;
-
   filters: {
     status?: string;
     createdBy?: string;
@@ -42,13 +39,27 @@ export async function getTasks({
 
   let query = supabase.from('tasks').select(taskQuery, { count: 'exact' });
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: userData } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('id', user?.id ?? '')
+    .single();
+
+  if (userData && userData.role !== 'admin') {
+    query = query.eq('assigned_to', userData.id);
+  }
+
   if (filters.status) {
     query = query.eq('status', filters.status);
   }
   if (filters.createdBy) {
     query = query.eq('created_by', filters.createdBy);
   }
-  if (filters.assignedTo) {
+  if (filters.assignedTo && user?.role === 'admin') {
     query = query.eq('assigned_to', filters.assignedTo);
   }
   if (filters.subjectType) {
@@ -76,23 +87,6 @@ export async function getTasks({
   };
 }
 
-export async function getAdminUsers() {
-  const supabase = await createSupabaseAppServerClient();
-
-  const { data, error } = await supabase
-    .from('profile')
-    .select('id, firstname, lastname, role')
-    .eq('role', 'admin');
-
-  if (error) {
-    console.error('Error fetching admin users:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-// Mettre à jour une tâche
 export async function updateTask(id: number, updates: UpdateTask) {
   const supabase = await createSupabaseAppServerClient();
   try {

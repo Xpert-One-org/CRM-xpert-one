@@ -6,12 +6,14 @@ import SelectionMatchedXpertCard from './SelectionMatchedXpertCard';
 import { Droppable } from '@hello-pangea/dnd';
 import type { ColumnStatus, DBMissionXpertsSelection } from '@/types/typesDb';
 import { columns } from '@/constants/columnStatus';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function SelectionDragAndDropColumns({
   xpertsSelection,
 }: {
   xpertsSelection: DBMissionXpertsSelection[];
 }) {
+  const isIntern = useIsIntern();
   const xpertsByColumn = columns.reduce(
     (acc, column) => {
       acc[column] = xpertsSelection.filter((x) => x.column_status === column);
@@ -47,7 +49,9 @@ export default function SelectionDragAndDropColumns({
           <Droppable
             key={zone}
             droppableId={zone}
-            isDropDisabled={isDropDisabled(zone, xpertsByColumn)}
+            isDropDisabled={
+              isDropDisabled(zone, xpertsByColumn) || isIntern ? false : true
+            }
           >
             {(provided, snapshot) => (
               <Box

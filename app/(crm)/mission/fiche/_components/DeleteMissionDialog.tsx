@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import type { ReasonMissionDeletion } from '@/types/typesDb';
 import { reasonDeleteMissionSelect } from '@/data/mocked_select';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function DeleteMissionDialog({
   missionId,
@@ -22,6 +23,7 @@ export default function DeleteMissionDialog({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
+  const isIntern = useIsIntern();
 
   const [reasonDelete, setReasonDelete] = useState<ReasonMissionDeletion>(
     'status_candidate_not_found'
@@ -46,9 +48,11 @@ export default function DeleteMissionDialog({
 
   return (
     <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
-      <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
-        Supprimer la mission
-      </Button>
+      {!isIntern && (
+        <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
+          Supprimer la mission
+        </Button>
+      )}
 
       <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white bg-opacity-70 p-0 backdrop-blur-sm">
         <div className="relative h-[175px] w-full">
