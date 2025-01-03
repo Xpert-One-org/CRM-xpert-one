@@ -1,7 +1,7 @@
 'use client';
 
 import { FilterButton } from '@/components/FilterButton';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useXpertStore } from '@/store/xpert';
 import XpertGestionCollaborateursRow from './XpertGestionCollaborateursRow';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -45,6 +45,10 @@ export default function XpertGestionCollaborateursTable({
       : totalXpertOptimized === 0
         ? false
         : true;
+
+  useEffect(() => {
+    fetchXpertOptimizedFiltered(true);
+  }, []);
 
   return (
     <div className="rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">

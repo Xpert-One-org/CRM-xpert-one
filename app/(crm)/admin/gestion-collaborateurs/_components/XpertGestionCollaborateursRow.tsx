@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
+import { useRouter } from 'next/navigation';
 
 type XpertGestionCollaborateursRowProps = {
   xpert: DBXpertOptimized;
@@ -29,6 +30,7 @@ export default function XpertGestionCollaborateursRow({
   pendingReferentId,
 }: XpertGestionCollaborateursRowProps) {
   const { collaborators } = useAdminCollaborators();
+  const router = useRouter();
 
   const lastPosition = xpert.profile_mission?.job_titles
     ? (getLabel({
@@ -54,18 +56,27 @@ export default function XpertGestionCollaborateursRow({
     return currentId;
   };
 
+  const handleRedirectXpert = (xpertId: string) => {
+    router.push(`/xpert?id=${xpertId}`);
+  };
+
   return (
     <div
       className={`grid ${isGroupSelection ? 'grid-cols-5' : 'grid-cols-6'} gap-3`}
     >
       <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
-        {xpert.firstname}
+        {collaborators.find((c) => c.id === xpert.affected_referent_id)
+          ?.firstname ?? ''}
       </Box>
       <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
-        {xpert.lastname}
+        {collaborators.find((c) => c.id === xpert.affected_referent_id)
+          ?.lastname ?? ''}
       </Box>
       {!isGroupSelection && (
-        <Box className="flex h-12 items-center bg-primary px-4 text-white">
+        <Box
+          className="flex h-12 cursor-pointer items-center bg-primary px-4 text-white"
+          onClick={() => handleRedirectXpert(xpert.generated_id)}
+        >
           {xpert.generated_id}
         </Box>
       )}
@@ -78,10 +89,10 @@ export default function XpertGestionCollaborateursRow({
           onValueChange={handleReferentChange}
         >
           <SelectTrigger className="h-full justify-center gap-2 border-0 bg-[#F5F5F5]">
-            <SelectValue placeholder="Non assigné" />
+            <SelectValue placeholder="Non réaffecté" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">Non assigné</SelectItem>
+            <SelectItem value="none">Non réaffecté</SelectItem>
             {collaborators
               .filter((c) => c.role === 'admin' || c.role === 'project_manager')
               .map((c) => (

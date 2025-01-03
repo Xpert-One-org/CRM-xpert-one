@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
+import { useRouter } from 'next/navigation';
 
 type FournisseurGestionCollaborateursRowProps = {
   fournisseur: DBFournisseur;
@@ -26,6 +27,7 @@ export default function FournisseurGestionCollaborateursRow({
   pendingReferentId,
 }: FournisseurGestionCollaborateursRowProps) {
   const { collaborators } = useAdminCollaborators();
+  const router = useRouter();
 
   const handleReferentChange = (value: string) => {
     if (value === 'none') {
@@ -41,18 +43,27 @@ export default function FournisseurGestionCollaborateursRow({
     return currentId;
   };
 
+  const handleRedirectFournisseur = (fournisseurId: string) => {
+    router.push(`/fournisseur?id=${fournisseurId}`);
+  };
+
   return (
     <div
       className={`grid ${isGroupSelection ? 'grid-cols-5' : 'grid-cols-6'} gap-3`}
     >
       <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
-        {fournisseur.firstname}
+        {collaborators.find((c) => c.id === fournisseur.affected_referent_id)
+          ?.firstname ?? ''}
       </Box>
       <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
-        {fournisseur.lastname}
+        {collaborators.find((c) => c.id === fournisseur.affected_referent_id)
+          ?.lastname ?? ''}
       </Box>
       {!isGroupSelection && (
-        <Box className="flex h-12 items-center bg-primary px-4 text-white">
+        <Box
+          className="flex h-12 cursor-pointer items-center bg-primary px-4 text-white"
+          onClick={() => handleRedirectFournisseur(fournisseur.generated_id)}
+        >
           {fournisseur.generated_id}
         </Box>
       )}
@@ -65,10 +76,10 @@ export default function FournisseurGestionCollaborateursRow({
           onValueChange={handleReferentChange}
         >
           <SelectTrigger className="h-full justify-center gap-2 border-0 bg-[#F5F5F5]">
-            <SelectValue placeholder="Non assigné" />
+            <SelectValue placeholder="Non réaffecté" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">Non assigné</SelectItem>
+            <SelectItem value="none">Non réaffecté</SelectItem>
             {collaborators
               .filter((c) => c.role === 'admin' || c.role === 'project_manager')
               .map((c) => (
