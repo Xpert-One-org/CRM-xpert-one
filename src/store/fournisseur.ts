@@ -14,6 +14,7 @@ import {
   updateProfileStatus,
 } from '../../app/(crm)/fournisseur/fournisseur.action';
 import { toast } from 'sonner';
+import { updateCollaboratorReferent } from '../../app/(crm)/admin/gestion-collaborateurs/gestion-collaborateurs.action';
 
 type FournisseurState = {
   loading: boolean;
@@ -40,6 +41,10 @@ type FournisseurState = {
     fournisseurGeneratedId: string
   ) => void;
   resetFournisseurs: () => void;
+  updateFournisseurReferent: (
+    fournisseurId: string,
+    affected_referent_id: string | null
+  ) => Promise<void>;
 };
 
 export const useFournisseurStore = create<FournisseurState>((set, get) => ({
@@ -212,5 +217,27 @@ export const useFournisseurStore = create<FournisseurState>((set, get) => ({
       keyDBProfileMissionChanged: [],
       keyDBProfileStatusChanged: [],
     });
+  },
+  updateFournisseurReferent: async (
+    fournisseurId: string,
+    affected_referent_id: string | null
+  ) => {
+    const { error } = await updateCollaboratorReferent(
+      fournisseurId,
+      affected_referent_id
+    );
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    set((state) => ({
+      fournisseurs: state.fournisseurs?.map((fournisseur) =>
+        fournisseur.id === fournisseurId
+          ? { ...fournisseur, affected_referent_id }
+          : fournisseur
+      ),
+    }));
   },
 }));

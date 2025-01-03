@@ -19,6 +19,7 @@ import {
 } from '../../app/(crm)/xpert/xpert.action';
 import { toast } from 'sonner';
 import type { FilterXpert } from '@/types/types';
+import { updateCollaboratorReferent } from '../../app/(crm)/admin/gestion-collaborateurs/gestion-collaborateurs.action';
 
 type XpertState = {
   loading: boolean;
@@ -54,6 +55,10 @@ type XpertState = {
   setKeyDBProfileExpertiseChanged: (keys: [keyof DBProfileExpertise][]) => void;
 
   handleSaveUpdatedXpert: () => void;
+  updateXpertReferent: (
+    xpertId: string,
+    affected_referent_id: string | null
+  ) => Promise<void>;
 };
 
 export const useXpertStore = create<XpertState>((set, get) => ({
@@ -107,20 +112,6 @@ export const useXpertStore = create<XpertState>((set, get) => ({
   totalXperts: null,
   offset: 0,
 
-  // const resetFilter = () => {
-  //   setActiveFilters({
-  //     jobTitles: '',
-  //     availability: '',
-  //     cv: '',
-  //     countries: [],
-  //     sortDate: '',
-  //     firstname: '',
-  //     generated_id: '',
-  //     lastname: '',
-  //   });
-  //   setXpertFilterKey(new Date().getTime());
-  //   fetchXpertOptimizedFiltered(true);
-  // };
   resetXperts: () => {
     set({
       activeFilters: {
@@ -160,6 +151,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
           profile_mission: xpert.profile_mission,
           lastname: xpert.lastname,
           mission: xpert.mission,
+          affected_referent_id: xpert.affected_referent_id,
         }
       : null;
     if (!xpert) {
@@ -326,7 +318,6 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       : [];
 
     if (newDataProfileExpertise.length > 0) {
-      console.log({ newDataProfileExpertise });
       const { error } = await updateProfileExpertise({
         xpert_id: xpertNotSaved.id,
         newData: newDataProfileExpertise,
@@ -381,5 +372,26 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     });
     set({ openedXpertNotSaved: null });
     toast.success('Modifications enregistrées');
+  },
+
+  updateXpertReferent: async (
+    xpertId: string,
+    affected_referent_id: string | null
+  ) => {
+    const { error } = await updateCollaboratorReferent(
+      xpertId,
+      affected_referent_id
+    );
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    set((state) => ({
+      xpertsOptimized: state.xpertsOptimized?.map((xpert) =>
+        xpert.id === xpertId ? { ...xpert, affected_referent_id } : xpert
+      ),
+    }));
   },
 }));

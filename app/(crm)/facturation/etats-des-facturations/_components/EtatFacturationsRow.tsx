@@ -200,7 +200,7 @@ export default function EtatFacturationsRow({
       <StatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
-        fileType=""
+        fileType="invoice_paid"
         isFournisseur
         xpertAssociatedStatus={missionStatus || ''}
         isSalaryPayment

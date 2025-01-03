@@ -1,5 +1,12 @@
+'use client';
+
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 import React from 'react';
 
 export default function MissionSuiviDesMissionsPage() {
-  return <div>Suivi des missions</div>;
+  return (
+    <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>
+      <div>Suivi des missions</div>
+    </ProtectedRoleRoutes>
+  );
 }

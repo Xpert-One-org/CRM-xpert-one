@@ -10,6 +10,7 @@ import ComboboxMission from '@/components/combobox/ComboboxMission';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useMissionStore } from '@/store/mission';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function MissionActivationRow({
   mission,
@@ -22,6 +23,7 @@ export default function MissionActivationRow({
     mission.xpert_associated_status
   );
   const [hasChanges, setHasChanges] = useState(false);
+  const isIntern = useIsIntern();
 
   const handleRedirectFournisseur = (fournisseurId: string) => {
     router.push(`/fournisseur?id=${fournisseurId}`);
@@ -64,7 +66,7 @@ export default function MissionActivationRow({
       <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
       <Box
         className="col-span-1 bg-[#65ADAF] text-white"
-        isSelectable
+        isSelectable={!isIntern}
         options={options}
         onValueChange={handleStatusChange}
       >

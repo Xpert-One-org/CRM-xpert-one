@@ -4,6 +4,7 @@ import { checkFileStatusForDate } from '../../_utils/checkFileStatusForDate';
 import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import type { FileStatuses, PaymentType } from '@/types/mission';
 import { useState, useEffect } from 'react';
+import { useIsProjectManager, useIsHr, useIsAdv } from '@/hooks/useRoles';
 
 type XpertStatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -27,6 +28,10 @@ export default function XpertStatusBox({
   onInvoicePaidClick,
   isSelected = false,
 }: XpertStatusBoxProps) {
+  const isProjectManager = useIsProjectManager();
+  const isHr = useIsHr();
+  const isAdv = useIsAdv();
+
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
@@ -46,6 +51,8 @@ export default function XpertStatusBox({
   );
 
   const handleClick = () => {
+    if ((!isHr && isProjectManager) || isAdv) return;
+
     setLocalIsSelected(!localIsSelected);
     if (!localIsSelected) {
       setCurrentDate(new Date().toISOString());
@@ -60,22 +67,32 @@ export default function XpertStatusBox({
     if (xpertAssociatedStatus === 'cdi') {
       return <Box className="size-full bg-[#b1b1b1]">{''}</Box>;
     }
-    if (onInvoicePaidClick) {
+    if (onInvoicePaidClick && fileType !== 'salary_sheet') {
       return (
-        <>
-          <Box
-            className={`size-full cursor-pointer text-white ${
-              localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-            }`}
-            onClick={handleClick}
-          >
-            {!localIsSelected
-              ? 'NON'
-              : localIsSelected && currentDate
-                ? formatDate(currentDate)
-                : 'NON'}
-          </Box>
-        </>
+        <Box
+          className={`size-full ${
+            isAdv
+              ? 'cursor-not-allowed'
+              : fileType === 'salary_sheet'
+                ? 'cursor-default'
+                : isHr || !isProjectManager
+                  ? 'cursor-pointer'
+                  : 'cursor-not-allowed'
+          } text-white ${localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'}`}
+          onClick={
+            isAdv || fileType === 'salary_sheet'
+              ? undefined
+              : isHr || !isProjectManager
+                ? handleClick
+                : undefined
+          }
+        >
+          {!localIsSelected
+            ? 'NON'
+            : localIsSelected && currentDate
+              ? formatDate(currentDate)
+              : 'NON'}
+        </Box>
       );
     } else {
       return <Box className="size-full bg-[#D64242] text-white">{'NON'}</Box>;
@@ -91,9 +108,22 @@ export default function XpertStatusBox({
 
   return (
     <Box
-      className={`size-full text-white ${
-        fileStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-      }`}
+      className={`size-full ${
+        isAdv
+          ? 'cursor-not-allowed'
+          : fileType === 'salary_sheet'
+            ? 'cursor-default'
+            : isHr || !isProjectManager
+              ? 'cursor-pointer'
+              : 'cursor-not-allowed'
+      } text-white ${fileStatus.exists ? 'bg-[#92C6B0]' : 'bg-[#D64242]'}`}
+      onClick={
+        isAdv || fileType === 'salary_sheet'
+          ? undefined
+          : isHr || !isProjectManager
+            ? handleClick
+            : undefined
+      }
     >
       {fileStatus.exists
         ? formatDate(fileStatus.createdAt!)

@@ -1,0 +1,116 @@
+import React from 'react';
+
+type Props = {} & React.SVGProps<SVGSVGElement>;
+
+export default function OutlookMailLogo({
+  width = 22,
+  height = 22,
+  className,
+}: Props) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 22 22"
+      fill="none"
+      className={className}
+    >
+      <path
+        d="M1 8.00768C1 7.22612 1.40558 6.50054 2.07132 6.09112L9.82132 1.32487C10.5442 0.88028 11.4558 0.88028 12.1787 1.32487L19.9287 6.09112C20.5944 6.50054 21 7.22612 21 8.00768V15.75C21 17.5449 19.5449 19 17.75 19H4.25C2.45508 19 1 17.5449 1 15.75V8.00768Z"
+        fill="#014EA4"
+      />
+      <path
+        d="M4 7.75C4 6.7835 4.7835 6 5.75 6H16.25C17.2165 6 18 6.7835 18 7.75V12.25C18 13.2165 17.2165 14 16.25 14H5.75C4.7835 14 4 13.2165 4 12.25V7.75Z"
+        fill="url(#paint0_linear_1_508)"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M1 8C1 8.85957 1.54226 9.59249 2.30337 9.87533L10.1059 13.0796C10.375 13.2142 10.6786 13.29 11 13.29C11.2639 13.29 11.5158 13.2389 11.7465 13.1461H11.7735L13.3287 13.2567C14.8337 13.3638 16 14.6159 16 16.1247C16 17.7127 14.7127 19 13.1247 19H4.25C2.45507 19 1 17.545 1 15.75V9.34009V8Z"
+        fill="#1493DF"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M1 8C1 8.85957 1.54226 9.59249 2.30337 9.87533L10.1059 13.0796C10.375 13.2142 10.6786 13.29 11 13.29C11.2639 13.29 11.5158 13.2389 11.7465 13.1461H11.7735L13.3287 13.2567C14.8337 13.3638 16 14.6159 16 16.1247C16 17.7127 14.7127 19 13.1247 19H4.25C2.45507 19 1 17.545 1 15.75V9.34009V8Z"
+        fill="url(#paint1_radial_1_508)"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M1 8C1 8.85957 1.54226 9.59249 2.30337 9.87533L10.1059 13.0796C10.375 13.2142 10.6786 13.29 11 13.29C11.2639 13.29 11.5158 13.2389 11.7465 13.1461H11.7735L13.3287 13.2567C14.8337 13.3638 16 14.6159 16 16.1247C16 17.7127 14.7127 19 13.1247 19H4.25C2.45507 19 1 17.545 1 15.75V9.34009V8Z"
+        fill="url(#paint2_linear_1_508)"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M1 8C1 8.85957 1.54226 9.59249 2.30337 9.87533L10.1059 13.0796C10.375 13.2142 10.6786 13.29 11 13.29C11.2639 13.29 11.5158 13.2389 11.7465 13.1461H11.7735L13.3287 13.2567C14.8337 13.3638 16 14.6159 16 16.1247C16 17.7127 14.7127 19 13.1247 19H4.25C2.45507 19 1 17.545 1 15.75V9.34009V8Z"
+        fill="url(#paint3_linear_1_508)"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M19.6966 9.87533C20.4577 9.59249 21 8.85957 21 8V9.34009V15.75C21 17.545 19.5449 19 17.75 19H8.09534C6.93811 19 6 18.0619 6 16.9047C6 16.0549 6.51327 15.2893 7.29936 14.9664L19.6966 9.87533Z"
+        fill="url(#paint4_linear_1_508)"
+      />
+      <defs>
+        <linearGradient
+          id="paint0_linear_1_508"
+          x1="8.66667"
+          y1="6"
+          x2="10.9126"
+          y2="14.0245"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0.320647" stopColor="white" />
+          <stop offset="1" stopColor="#C2DEF2" />
+        </linearGradient>
+        <radialGradient
+          id="paint1_radial_1_508"
+          cx="0"
+          cy="0"
+          r="1"
+          gradientUnits="userSpaceOnUse"
+          gradientTransform="translate(8 17.5) rotate(90) scale(3.5)"
+        >
+          <stop stopColor="#014EA4" />
+          <stop offset="1" stopColor="#014EA4" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient
+          id="paint2_linear_1_508"
+          x1="9.5"
+          y1="15.5"
+          x2="8.5"
+          y2="13.5"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#014EA4" />
+          <stop offset="1" stopColor="#014EA4" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient
+          id="paint3_linear_1_508"
+          x1="4"
+          y1="15.5"
+          x2="9.5"
+          y2="15.5"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#1493DF" />
+          <stop offset="1" stopColor="#1493DF" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient
+          id="paint4_linear_1_508"
+          x1="5.84735"
+          y1="15.6148"
+          x2="21.0001"
+          y2="15.6148"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#50E6FF" />
+          <stop offset="0.653509" stopColor="#43D4F8" />
+          <stop offset="1" stopColor="#28AFEA" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}

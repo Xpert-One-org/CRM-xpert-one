@@ -60,7 +60,7 @@ export const menuCrm = [
       },
       {
         title: 'Nouveaux inscrits',
-        url: '/nouveau-inscrits?role=xpert',
+        url: '/nouveaux-inscrits?role=xpert',
       },
     ],
   },
@@ -83,7 +83,7 @@ export const menuCrm = [
       },
       {
         title: 'Nouveaux inscrits',
-        url: '/nouveau-inscrits?role=company',
+        url: '/nouveaux-inscrits?role=company',
       },
     ],
   },
@@ -161,18 +161,6 @@ export const menuCrm = [
   },
   {
     id: 7,
-    title: 'Messagerie externe',
-    icon: (
-      <Mail
-        width={32}
-        height={32}
-        className="stroke-white stroke-1 transition group-hover:stroke-accent"
-      />
-    ),
-    url: '/messagerie-externe',
-  },
-  {
-    id: 8,
     title: 'Communauté',
     icon: (
       <PeopleCircle
@@ -198,7 +186,7 @@ export const menuCrm = [
     ],
   },
   {
-    id: 9,
+    id: 8,
     title: 'Admin',
     icon: (
       <Admin
@@ -220,7 +208,7 @@ export const menuCrm = [
     ],
   },
   {
-    id: 10,
+    id: 9,
     title: 'Statistiques',
     icon: (
       <ChartColumn
@@ -230,10 +218,10 @@ export const menuCrm = [
         className="fill-transparent stroke-white transition group-hover:stroke-accent"
       />
     ),
-    url: '/stats',
+    url: '/statistiques',
   },
   {
-    id: 11,
+    id: 10,
     title: 'Paramètres',
     icon: (
       <Cog

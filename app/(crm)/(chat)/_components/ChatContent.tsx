@@ -16,13 +16,12 @@ import SkeletonChat from './skeletons/SkeletonChat';
 import Loader from '@/components/Loader';
 import { MsgCard } from './MsgCard';
 import InputSend from './InputSend';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ChatContent({
-  user_id,
   className,
   type,
 }: Readonly<{
-  user_id: string;
   type: ChatType;
   chat?: DBChat;
   className?: string;
@@ -36,6 +35,8 @@ export default function ChatContent({
     getChatWithRightType,
     setCurrentMessages,
   } = useChat();
+
+  const { user } = useAuth();
 
   const chatSelected = getChatSelectedWithRightType(type);
   const chats = getChatWithRightType(type);
@@ -78,10 +79,10 @@ export default function ChatContent({
 
         const currentUserPresence = Object.values(state)
           .flat()
-          .find((presence) => presence.user_id === user_id);
+          .find((presence) => presence.user_id === user?.id);
         if (currentUserPresence && chatSelected) {
           chatSelected.messages.forEach((m) => {
-            if (!m.read_by.includes(user_id)) {
+            if (!m.read_by.includes(user?.id ?? '')) {
               handleReadNewMessage({
                 chat_id: chatSelected.id,
                 read_by: m.read_by,
@@ -93,7 +94,7 @@ export default function ChatContent({
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
-            user_id: user_id,
+            user_id: user?.id ?? '',
             online_at: new Date().toISOString(),
           });
         }
@@ -102,7 +103,7 @@ export default function ChatContent({
     return () => {
       channel.unsubscribe();
     };
-  }, [chatSelected, supabase, user_id]);
+  }, [chatSelected, supabase, user?.id]);
 
   const messages = getMessagesRightType(type);
 
@@ -151,7 +152,7 @@ export default function ChatContent({
             {isMoreDataLoading && <Loader />}
             {messages.map((m) => (
               <MsgCard
-                user_id={user_id}
+                user_id={user?.id ?? ''}
                 type={type}
                 key={m.id}
                 message={m}
@@ -161,7 +162,11 @@ export default function ChatContent({
           </div>
         </div>
       )}
-      <InputSend user_id={user_id} profile={minimal_profile} type={type} />
+      <InputSend
+        user_id={user?.id ?? ''}
+        profile={minimal_profile}
+        type={type}
+      />
     </div>
   );
 }

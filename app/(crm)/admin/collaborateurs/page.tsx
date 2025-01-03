@@ -1,12 +1,26 @@
-import { cn } from '@/lib/utils';
-import React from 'react';
+'use client';
 
-export default function AdminPage() {
+import React, { useEffect } from 'react';
+import CollaboratorsTable from './_components/CollaboratorsTable';
+import { useAdminCollaborators } from '@/store/adminCollaborators';
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
+
+export default function CollaboratorsPage() {
+  const { loading, fetchCollaborators } = useAdminCollaborators();
+
+  useEffect(() => {
+    fetchCollaborators();
+  }, [fetchCollaborators]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="flex flex-col gap-y-spaceSmall pt-spaceContainer">
-      <p className={cn('text-lg font-normal')}>Profil</p>
-
-      <p className={cn('text-lg font-normal')}>Autres informations</p>
-    </div>
+    <ProtectedRoleRoutes
+      notAllowedRoles={['project_manager', 'intern', 'hr', 'adv']}
+    >
+      <CollaboratorsTable />
+    </ProtectedRoleRoutes>
   );
 }

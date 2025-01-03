@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { getFileTypeByStatusFacturation } from './_utils/getFileTypeByStatusFacturation';
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 
 export default function GestionDesFacturationsPage(props: {
   params: Promise<{ slug: string }>;
@@ -161,87 +162,91 @@ export default function GestionDesFacturationsPage(props: {
   }, [missionData, checkAllFiles]);
 
   return (
-    <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
-      <HeaderCalendar
-        startDate={
-          missionData?.start_date ? new Date(missionData.start_date) : undefined
-        }
-        endDate={
-          missionData?.end_date ? new Date(missionData.end_date) : undefined
-        }
-        onDateChange={handleDateChange}
-        fileStatuses={fileStatuses}
-        missionData={missionData}
-      />
-      <div className="flex w-1/2">
-        <MissionGestionFacturationTable
+    <ProtectedRoleRoutes notAllowedRoles={['intern']}>
+      <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
+        <HeaderCalendar
+          startDate={
+            missionData?.start_date
+              ? new Date(missionData.start_date)
+              : undefined
+          }
+          endDate={
+            missionData?.end_date ? new Date(missionData.end_date) : undefined
+          }
+          onDateChange={handleDateChange}
+          fileStatuses={fileStatuses}
           missionData={missionData}
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
         />
-      </div>
+        <div className="flex w-1/2">
+          <MissionGestionFacturationTable
+            missionData={missionData}
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+          />
+        </div>
 
-      {missionData && !isBeforeMissionStart && !isAfterMissionEnd ? (
-        <>
-          <div className="flex w-full flex-col gap-3">
-            <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
-              <h3 className="text-center text-md font-medium text-[#222222]">
-                XPERT
-                {missionData.xpert_associated_status === 'cdi'
-                  ? ` - ${convertStatusXpertValue(
-                      missionData.xpert_associated_status
-                    )}`
-                  : ' - FREELANCE / PORTÉ'}
-                {missionData.xpert_associated_status === 'cdi' ? (
-                  <span> - ( XPERT ONE )</span>
-                ) : null}
-              </h3>
-              <XpertGestionFacturationTable
-                status={missionData.xpert_associated_status}
-                missionData={missionData}
-                selectedYear={selectedYear}
-                selectedMonth={selectedMonth}
-                onPendingChange={handlePendingChange}
-              />
+        {missionData && !isBeforeMissionStart && !isAfterMissionEnd ? (
+          <>
+            <div className="flex w-full flex-col gap-3">
+              <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
+                <h3 className="text-center text-md font-medium text-[#222222]">
+                  XPERT
+                  {missionData.xpert_associated_status === 'cdi'
+                    ? ` - ${convertStatusXpertValue(
+                        missionData.xpert_associated_status
+                      )}`
+                    : ' - FREELANCE / PORTÉ'}
+                  {missionData.xpert_associated_status === 'cdi' ? (
+                    <span> - ( XPERT ONE )</span>
+                  ) : null}
+                </h3>
+                <XpertGestionFacturationTable
+                  status={missionData.xpert_associated_status}
+                  missionData={missionData}
+                  selectedYear={selectedYear}
+                  selectedMonth={selectedMonth}
+                  onPendingChange={handlePendingChange}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex w-full flex-col gap-3">
-            <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
-              <h3 className="text-center text-md font-medium text-[#222222]">
-                FOURNISSEUR
-              </h3>
-              <FournisseurGestionFacturationTable
-                missionData={missionData}
-                selectedYear={selectedYear}
-                selectedMonth={selectedMonth}
-              />
+            <div className="flex w-full flex-col gap-3">
+              <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
+                <h3 className="text-center text-md font-medium text-[#222222]">
+                  FOURNISSEUR
+                </h3>
+                <FournisseurGestionFacturationTable
+                  missionData={missionData}
+                  selectedYear={selectedYear}
+                  selectedMonth={selectedMonth}
+                />
+              </div>
             </div>
-          </div>
-        </>
-      ) : (
-        <p>
-          Vous ne pouvez pas modifier les gérer les documents de facturation
-          avant la date de début de la mission
-        </p>
-      )}
-      <div className="flex justify-between">
-        <Button
-          className="bg-primary px-spaceLarge py-spaceContainer text-white"
-          onClick={() => router.push('/facturation/etats-des-facturations')}
-        >
-          Vers état de facturation
-        </Button>
-        {(Object.keys(pendingChanges.validations).length > 0 ||
-          Object.keys(pendingChanges.deletions).length > 0) && (
+          </>
+        ) : (
+          <p>
+            Vous ne pouvez pas modifier les gérer les documents de facturation
+            avant la date de début de la mission
+          </p>
+        )}
+        <div className="flex justify-between">
           <Button
             className="bg-primary px-spaceLarge py-spaceContainer text-white"
-            onClick={handleSaveChanges}
+            onClick={() => router.push('/facturation/etats-des-facturations')}
           >
-            Enregistrer
+            Vers état de facturation
           </Button>
-        )}
+          {(Object.keys(pendingChanges.validations).length > 0 ||
+            Object.keys(pendingChanges.deletions).length > 0) && (
+            <Button
+              className="bg-primary px-spaceLarge py-spaceContainer text-white"
+              onClick={handleSaveChanges}
+            >
+              Enregistrer
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
+    </ProtectedRoleRoutes>
   );
 }

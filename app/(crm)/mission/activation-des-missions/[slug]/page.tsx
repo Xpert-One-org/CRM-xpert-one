@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { getFileTypeByStatus } from './_utils/getFileTypeByStatus';
 import { checkFileExists } from '@functions/check-file-mission';
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 
 export default function MissionActivationPage(props: {
   params: Promise<{ slug: string }>;
@@ -99,66 +100,68 @@ export default function MissionActivationPage(props: {
   }, [checkAllFilesStatus]);
 
   return (
-    <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
-      <MissionActivationTable missionData={missionData} />
+    <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>
+      <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
+        <MissionActivationTable missionData={missionData} />
 
-      {missionData?.xpert_associated_status && (
-        <>
-          <div className="flex w-full flex-col gap-3">
-            <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
-              <h3 className="text-center text-md font-medium text-[#222222]">
-                XPERT
-                {missionData.xpert_associated_status
-                  ? ` - ${convertStatusXpertValue(missionData.xpert_associated_status)}`
-                  : null}
-                {missionData.xpert_associated_status === 'cdi' ? (
-                  <span> - ( XPERT ONE )</span>
-                ) : null}
-              </h3>
-              <XpertActivationMissionTable
-                missionData={missionData}
-                fileStatuses={fileStatuses}
-                onFileUpload={checkAllFilesStatus}
-              />
+        {missionData?.xpert_associated_status && (
+          <>
+            <div className="flex w-full flex-col gap-3">
+              <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
+                <h3 className="text-center text-md font-medium text-[#222222]">
+                  XPERT
+                  {missionData.xpert_associated_status
+                    ? ` - ${convertStatusXpertValue(missionData.xpert_associated_status)}`
+                    : null}
+                  {missionData.xpert_associated_status === 'cdi' ? (
+                    <span> - ( XPERT ONE )</span>
+                  ) : null}
+                </h3>
+                <XpertActivationMissionTable
+                  missionData={missionData}
+                  fileStatuses={fileStatuses}
+                  onFileUpload={checkAllFilesStatus}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex w-full flex-col gap-3">
-            <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
-              <h3 className="text-center text-md font-medium text-[#222222]">
-                FOURNISSEUR
-              </h3>
-              <FournisseurActivationMissionTable
-                missionData={missionData}
-                fileStatuses={fileStatuses}
-                onFileUpload={checkAllFilesStatus}
-              />
+            <div className="flex w-full flex-col gap-3">
+              <div className="flex w-full flex-col justify-center gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
+                <h3 className="text-center text-md font-medium text-[#222222]">
+                  FOURNISSEUR
+                </h3>
+                <FournisseurActivationMissionTable
+                  missionData={missionData}
+                  fileStatuses={fileStatuses}
+                  onFileUpload={checkAllFilesStatus}
+                />
+              </div>
             </div>
+          </>
+        )}
+
+        {!missionData?.xpert_associated_status && (
+          <div className="mt-4 text-center text-gray-500">
+            Veuillez sélectionner et enregistrer un statut pour l'expert avant
+            de continuer
           </div>
-        </>
-      )}
+        )}
 
-      {!missionData?.xpert_associated_status && (
-        <div className="mt-4 text-center text-gray-500">
-          Veuillez sélectionner et enregistrer un statut pour l'expert avant de
-          continuer
-        </div>
-      )}
-
-      {allFilesUploaded && (
-        <div className="pt-4">
-          <Button
-            className="px-spaceLarge py-spaceContainer text-white"
-            onClick={() =>
-              router.push(
-                `/facturation/gestion-des-facturations/${params.slug}`
-              )
-            }
-          >
-            Vers gestion de facturation
-          </Button>
-        </div>
-      )}
-    </div>
+        {allFilesUploaded && (
+          <div className="pt-4">
+            <Button
+              className="px-spaceLarge py-spaceContainer text-white"
+              onClick={() =>
+                router.push(
+                  `/facturation/gestion-des-facturations/${params.slug}`
+                )
+              }
+            >
+              Vers gestion de facturation
+            </Button>
+          </div>
+        )}
+      </div>
+    </ProtectedRoleRoutes>
   );
 }
