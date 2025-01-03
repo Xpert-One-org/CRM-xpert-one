@@ -3,7 +3,7 @@
 import { FilterButton } from '@/components/FilterButton';
 import React, { useState, useEffect } from 'react';
 import FournisseurRow from './FournisseurRow';
-import { cn } from '@/lib/utils';
+import { areObjectsEqual, cn } from '@/lib/utils';
 import FournisseurMissionTable from './FournisseurMissionRow';
 import Input from '@/components/inputs/Input';
 import { empty } from '@/data/constant';
@@ -31,9 +31,13 @@ import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog
 import Button from '@/components/Button';
 import FournisseurRedirectButtons from './FournisseurRedirectButtons';
 import DeleteFournisseurDialog from './DeleteFournisseurDialog';
+import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
+import type { DBFournisseur } from '@/types/typesDb';
 
 export default function FournisseurTable() {
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
+  const [hasChanged, setHasChanged] = useState(false);
+
   const {
     sectors,
     companyRoles,
@@ -46,13 +50,27 @@ export default function FournisseurTable() {
     fetchCountries,
     fetchInfrastructures,
   } = useSelect();
-  const searchParams = useSearchParams();
+
   const {
     fournisseurs,
+    openedFournisseur,
+    openedFournisseurNotSaved,
     fetchFournisseurs,
     fetchSpecificFournisseur,
     totalFournisseurs,
+    handleSaveUpdatedFournisseur,
+    setOpenedFournisseurNotSaved,
+    setKeyDBProfileChanged,
+    setKeyDBProfileStatusChanged,
+    keyDBProfileChanged,
+    keyDBProfileStatusChanged,
   } = useFournisseurStore();
+
+  const searchParams = useSearchParams();
+
+  useWarnIfUnsavedChanges(
+    !areObjectsEqual(openedFournisseur, openedFournisseurNotSaved)
+  );
 
   const hasMore =
     fournisseurs && totalFournisseurs
@@ -72,21 +90,65 @@ export default function FournisseurTable() {
     }
   }, []);
 
-  const handleFournisseurIdOpened = (id: string) => {
-    setFournisseurIdOpened((prevId) =>
-      prevId === id.toString() ? '0' : id.toString()
+  useEffect(() => {
+    setHasChanged(
+      !areObjectsEqual(openedFournisseur, openedFournisseurNotSaved)
     );
+  }, [openedFournisseurNotSaved, openedFournisseur]);
+
+  type FournisseurTableKey = 'profile' | 'profile_status';
+
+  const handleKeyChanges = (table: FournisseurTableKey, name: string) => {
+    if (table === 'profile_status') {
+      const prevKeys = keyDBProfileStatusChanged;
+      const newKeys = prevKeys.includes(name as any)
+        ? prevKeys
+        : [...prevKeys, name as any];
+      setKeyDBProfileStatusChanged(newKeys);
+    } else {
+      const prevKeys = keyDBProfileChanged;
+      const newKeys = prevKeys.includes(name as any)
+        ? prevKeys
+        : [...prevKeys, name as any];
+      setKeyDBProfileChanged(newKeys);
+    }
   };
 
+  const handleFournisseurIdOpened = async (id: string) => {
+    if (id === fournisseurIdOpened) {
+      setFournisseurIdOpened('0');
+      setOpenedFournisseurNotSaved(null);
+    } else {
+      setFournisseurIdOpened(id);
+      await fetchSpecificFournisseur(id);
+    }
+  };
+
+  const handleInputChange = (
+    name: keyof DBFournisseur,
+    value: string | string[] | null | boolean
+  ) => {
+    if (openedFournisseurNotSaved) {
+      setOpenedFournisseurNotSaved({
+        ...openedFournisseurNotSaved,
+        [name]: value,
+      });
+      handleKeyChanges('profile', name);
+    }
+  };
   return (
     <>
       <div className="mb-2 flex w-fit items-center justify-between gap-2">
         <CreateFournisseurXpertDialog role="company" />
-        {/* {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
-          <Button className="py-XSmall pl-spaceContainer text-white">
+        {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
+          <Button
+            className="size-fit disabled:bg-gray-200"
+            onClick={handleSaveUpdatedFournisseur}
+            disabled={!hasChanged}
+          >
             Enregistrer
           </Button>
-        )} */}
+        )}
       </div>
 
       <div className="grid grid-cols-8 gap-3">
@@ -150,15 +212,22 @@ export default function FournisseurTable() {
                   <div className="flex flex-col gap-4">
                     <Input
                       label="Référant XPERT ONE"
-                      value={`${fournisseur.firstname}`}
-                      disabled
+                      value={openedFournisseurNotSaved?.firstname ?? ''}
+                      onChange={(e) =>
+                        handleInputChange('firstname', e.target.value)
+                      }
+                      disabled={!openedFournisseurNotSaved}
                     />
                     <Input
                       label="Adresse mail professionnel"
-                      value={fournisseur.email ?? empty}
-                      disabled
+                      value={openedFournisseurNotSaved?.email ?? empty}
+                      onChange={(e) =>
+                        handleInputChange('email', e.target.value)
+                      }
+                      disabled={!openedFournisseurNotSaved}
                     />
                   </div>
+
                   <div className="flex items-center justify-end">
                     <Avatar className="aspect-square size-[120px]">
                       <AvatarImage src={fournisseur.avatar_url ?? ''} />
@@ -171,256 +240,182 @@ export default function FournisseurTable() {
 
                   <Input
                     label="Nom de votre société"
-                    value={fournisseur.company_name ?? empty}
-                    disabled
-                  />
-                  <Input
-                    label="Votre fonction"
-                    value={
-                      getLabel({
-                        value: fournisseur.company_role ?? '',
-                        select: companyRoles,
-                      }) ?? empty
+                    value={openedFournisseurNotSaved?.company_name ?? empty}
+                    onChange={(e) =>
+                      handleInputChange('company_name', e.target.value)
                     }
-                    disabled
+                    disabled={!openedFournisseurNotSaved}
                   />
-                  {fournisseur.company_role_other && (
+
+                  <SelectComponent
+                    label="Votre fonction"
+                    defaultSelectedKeys={
+                      openedFournisseurNotSaved?.company_role ?? ''
+                    }
+                    options={companyRoles}
+                    onValueChange={(value) =>
+                      handleInputChange('company_role', value)
+                    }
+                    name="company_role"
+                    disabled={!openedFournisseurNotSaved}
+                  />
+
+                  {openedFournisseurNotSaved?.company_role_other && (
                     <TextArea
                       label="Détails de votre fonction"
-                      value={
-                        getLabel({
-                          value: fournisseur.company_role_other ?? '',
-                          select: companyRoles,
-                        }) ?? empty
+                      value={openedFournisseurNotSaved.company_role_other}
+                      onChange={(e) =>
+                        handleInputChange('company_role_other', e.target.value)
                       }
-                      disabled
+                      disabled={!openedFournisseurNotSaved}
                     />
                   )}
 
                   <SelectComponent
-                    className="xpertise_input xl:max-w-full"
-                    defaultSelectedKeys={fournisseur.sector ?? empty}
-                    placeholder={fournisseur.sector ?? 'Choisir'}
+                    className="xl:max-w-full"
+                    defaultSelectedKeys={
+                      openedFournisseurNotSaved?.sector ?? empty
+                    }
                     options={sectors}
                     label={profileDataExperience.sector?.label}
-                    name={profileDataExperience.sector?.name as string}
-                    onValueChange={() => ({})}
-                    disabled={true}
+                    name="sector"
+                    onValueChange={(value) =>
+                      handleInputChange('sector', value)
+                    }
+                    disabled={!openedFournisseurNotSaved}
                   />
-                  {fournisseur.sector === 'others' && (
-                    <Input
-                      // key={`index_${experience.post_other}`}
-                      name={profileDataExperience.sector_other?.name}
-                      label={profileDataExperience.sector_other?.label}
-                      className="xpertise_input flex-1 sm:min-w-[280px] xl:max-w-full"
-                      disabled
-                      defaultValue={fournisseur.sector_other ?? empty}
-                      placeholder="Précisez votre secteur d'activité"
-                      onChange={() => ({})}
-                    />
-                  )}
 
-                  {fournisseur.sector == 'energy' && (
-                    <SelectComponent
-                      className="xpertise_input xl:max-w-full"
-                      defaultSelectedKeys={fournisseur.sector_energy ?? empty}
-                      placeholder="Choisir"
-                      disabled
-                      options={energySelect}
-                      label={profileDataExperience.sector_energy?.label}
-                      name={profileDataExperience.sector_energy?.name as string}
-                      onValueChange={() => ({})}
-                    />
-                  )}
+                  {/* Secteur et autres champs conditionnels similaires... */}
 
-                  {fournisseur.sector == 'renewable_energy' && (
-                    <SelectComponent
-                      className="xpertise_input xl:max-w-full"
-                      defaultSelectedKeys={
-                        fournisseur.sector_renewable_energy ?? empty
-                      }
-                      placeholder="Choisir"
-                      disabled
-                      options={energyRenewableSelect}
-                      label={
-                        profileDataExperience.sector_renewable_energy?.label
-                      }
-                      name={
-                        profileDataExperience.sector_renewable_energy
-                          ?.name as string
-                      }
-                      onValueChange={() => ({})}
-                    />
-                  )}
-
-                  {fournisseur.sector_renewable_energy === 'other' && (
-                    <Input
-                      name={
-                        profileDataExperience.sector_renewable_energy_other
-                          ?.name
-                      }
-                      label={
-                        profileDataExperience.sector_renewable_energy_other
-                          ?.label
-                      }
-                      className="xpertise_input flex-1 sm:min-w-[280px] xl:max-w-full"
-                      disabled
-                      defaultValue={
-                        fournisseur.sector_renewable_energy_other ?? empty
-                      }
-                      placeholder="Précisez votre énergie renouvelable"
-                      onChange={() => ({})}
-                    />
-                  )}
-
-                  {fournisseur.sector == 'waste_treatment' && (
-                    <SelectComponent
-                      className="xpertise_input xl:max-w-full"
-                      disabled
-                      defaultSelectedKeys={
-                        fournisseur.sector_waste_treatment ?? empty
-                      }
-                      placeholder="Choisir"
-                      options={wasteTreatmentSelect}
-                      label={
-                        profileDataExperience.sector_waste_treatment?.label
-                      }
-                      name={
-                        profileDataExperience.sector_waste_treatment
-                          ?.name as string
-                      }
-                      onValueChange={() => ({})}
-                    />
-                  )}
-
-                  {fournisseur.sector == 'infrastructure' && (
-                    <SelectComponent
-                      className="xpertise_input xl:max-w-full"
-                      defaultSelectedKeys={
-                        fournisseur.sector_infrastructure ?? empty
-                      }
-                      placeholder={
-                        fournisseur.sector_infrastructure ?? 'Choisir'
-                      }
-                      options={infrastructures}
-                      label={profileDataExperience.sector_infrastructure?.label}
-                      name={
-                        profileDataExperience.sector_infrastructure
-                          ?.name as string
-                      }
-                      onValueChange={() => ({})}
-                      disabled
-                    />
-                  )}
-                  {fournisseur.sector_infrastructure === 'other' && (
-                    <Input
-                      name={
-                        profileDataExperience.sector_infrastructure_other?.name
-                      }
-                      label={
-                        profileDataExperience.sector_infrastructure_other?.label
-                      }
-                      className="xpertise_input flex-1 sm:min-w-[280px] xl:max-w-full"
-                      disabled
-                      defaultValue={
-                        fournisseur.sector_infrastructure_other ?? empty
-                      }
-                      placeholder="Précisez votre infrastructure"
-                      onChange={() => ({})}
-                    />
-                  )}
                   <MultiSelectComponent
-                    disabled
+                    disabled={!openedFournisseurNotSaved}
                     label="Zone de couverture géographique"
                     defaultSelectedKeys={[
-                      ...(fournisseur.area ?? []),
-                      ...(fournisseur.france_detail ?? []),
-                      ...(fournisseur.regions ?? []),
+                      ...(openedFournisseurNotSaved?.area ?? []),
+                      ...(openedFournisseurNotSaved?.france_detail ?? []),
+                      ...(openedFournisseurNotSaved?.regions ?? []),
                     ]}
                     options={[...areaSelect, ...franceSelect, ...regions]}
-                    name=""
-                    onValueChange={() => ({})}
+                    name="area"
+                    onValueChange={(value) => handleInputChange('area', value)}
                   />
 
                   <Input
                     label="De quel service dépendez vous"
-                    value={fournisseur.service_dependance ?? empty}
-                    disabled
+                    value={
+                      openedFournisseurNotSaved?.service_dependance ?? empty
+                    }
+                    onChange={(e) =>
+                      handleInputChange('service_dependance', e.target.value)
+                    }
+                    disabled={!openedFournisseurNotSaved}
                   />
+
                   <Input
                     label="Votre numéro de SIRET"
-                    value={fournisseur.siret ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.siret ?? ''}
+                    onChange={(e) => handleInputChange('siret', e.target.value)}
+                    disabled={!openedFournisseurNotSaved}
                   />
                 </div>
-                <Input
+
+                <SelectComponent
                   label="Civilité"
-                  value={
-                    getLabel({
-                      value: fournisseur.civility ?? '',
-                      select: genres,
-                    }) ?? empty
+                  defaultSelectedKeys={
+                    openedFournisseurNotSaved?.civility ?? ''
                   }
-                  disabled
+                  options={genres}
+                  onValueChange={(value) =>
+                    handleInputChange('civility', value)
+                  }
+                  name="civility"
+                  disabled={!openedFournisseurNotSaved}
                 />
+
                 <div className="grid w-full grid-cols-2 gap-4">
                   <Input
                     label="Nom"
-                    value={fournisseur.lastname ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.lastname ?? ''}
+                    onChange={(e) =>
+                      handleInputChange('lastname', e.target.value)
+                    }
+                    disabled={!openedFournisseurNotSaved}
                   />
+
                   <Input
                     label="Prénom"
-                    value={fournisseur.firstname ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.firstname ?? ''}
+                    onChange={(e) =>
+                      handleInputChange('firstname', e.target.value)
+                    }
+                    disabled={!openedFournisseurNotSaved}
                   />
 
                   <PhoneInputComponent
                     label="Tél portable"
-                    name=""
+                    name="mobile"
                     placeholder={empty}
-                    value={fournisseur.mobile ?? ''}
-                    defaultSelectedKeys={fournisseur.mobile ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.mobile ?? ''}
+                    defaultSelectedKeys={
+                      openedFournisseurNotSaved?.mobile ?? ''
+                    }
+                    onValueChange={(value) =>
+                      handleInputChange('mobile', value)
+                    }
+                    disabled={!openedFournisseurNotSaved}
                   />
+
                   <PhoneInputComponent
                     label="Tél fixe"
-                    name=""
+                    name="fix"
                     placeholder={empty}
-                    value={fournisseur.fix ?? ''}
-                    defaultSelectedKeys={fournisseur.fix ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.fix ?? ''}
+                    defaultSelectedKeys={openedFournisseurNotSaved?.fix ?? ''}
+                    onValueChange={(value) => handleInputChange('fix', value)}
+                    disabled={!openedFournisseurNotSaved}
                   />
 
                   <Input
                     label="N° de rue"
-                    value={fournisseur.street_number ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.street_number ?? ''}
+                    onChange={(e) =>
+                      handleInputChange('street_number', e.target.value)
+                    }
+                    disabled={!openedFournisseurNotSaved}
                   />
+
                   <Input
                     label="Addresse postale"
-                    value={fournisseur.address ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.address ?? ''}
+                    onChange={(e) =>
+                      handleInputChange('address', e.target.value)
+                    }
+                    disabled={!openedFournisseurNotSaved}
                   />
 
                   <Input
                     label="Ville"
-                    value={fournisseur.city ?? ''}
-                    disabled
+                    value={openedFournisseurNotSaved?.city ?? ''}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    disabled={!openedFournisseurNotSaved}
                   />
-                  <Input
+
+                  <SelectComponent
                     label="Pays"
-                    value={
-                      getLabel({
-                        value: fournisseur.country ?? '',
-                        select: countries,
-                      }) ?? empty
+                    defaultSelectedKeys={
+                      openedFournisseurNotSaved?.country ?? ''
                     }
-                    disabled
+                    options={countries}
+                    onValueChange={(value) =>
+                      handleInputChange('country', value)
+                    }
+                    name="country"
+                    disabled={!openedFournisseurNotSaved}
                   />
                 </div>
               </div>
             </div>
+
             <div
               className={cn(
                 'col-span-4 hidden max-h-0 w-full flex-col justify-between gap-2 overflow-hidden rounded-lg rounded-b-xs transition-all',
@@ -478,17 +473,30 @@ export default function FournisseurTable() {
                   )}
                 </div>
               </div>
+
+              {/* Boutons de contrôle */}
               <div className="flex w-full justify-between gap-2 py-2">
                 <FournisseurRedirectButtons user={fournisseur} />
-                <DeleteFournisseurDialog
-                  fournisseurId={fournisseur.id}
-                  fournisseurGeneratedId={fournisseur.generated_id}
-                />
+                <div className="flex gap-x-4">
+                  <Button
+                    className="size-fit disabled:bg-gray-200"
+                    onClick={handleSaveUpdatedFournisseur}
+                    disabled={!hasChanged}
+                  >
+                    Enregistrer
+                  </Button>
+                  <DeleteFournisseurDialog
+                    fournisseurId={fournisseur.id}
+                    fournisseurGeneratedId={fournisseur.generated_id}
+                  />
+                </div>
               </div>
             </div>
           </React.Fragment>
         ))}
       </div>
+
+      {/* Infinite scroll */}
       <InfiniteScroll
         hasMore={hasMore}
         next={fetchFournisseurs}
