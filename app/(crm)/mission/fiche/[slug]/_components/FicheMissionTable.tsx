@@ -6,26 +6,14 @@ import RightSideFicheMission from './RightSideFicheMission';
 import ComboboxMission from '@/components/combobox/ComboboxMission';
 import Link from 'next/link';
 import { empty } from '@/data/constant';
+import { useEditMissionStore } from '../../editMissionStore';
+import { Input } from '@/components/ui/input';
 
-export default function FicheMissionTable({
-  missionDetails,
-}: {
-  missionDetails: DBMission;
-}) {
-  const {
-    created_at,
-    state,
-    address,
-    referent_name,
-    referent_mobile,
-    supplier,
-    postal_code,
-    xpert,
-    city,
-  } = missionDetails;
+export default function FicheMissionTable() {
+  const { openedMissionNotSaved: mission, handleUpdateField } =
+    useEditMissionStore();
 
-  const createdAt = formatDate(created_at);
-  const stateValue = convertStateValue(state);
+  if (!mission) return null;
 
   return (
     <div className="flex w-full flex-row gap-3">
@@ -44,11 +32,15 @@ export default function FicheMissionTable({
             <h3 className="text-sm font-bold text-black">
               INFORMATIONS MISSION
             </h3>
-            <p>Créée le : {createdAt}</p>
-            <p>État : {stateValue}</p>
-            <p>Lieu : {address}</p>
+            <p>Créée le : {formatDate(mission.created_at)}</p>
+            <p>État : {convertStateValue(mission.state)}</p>
+            <Input
+              value={mission.address ?? ''}
+              onChange={(e) => handleUpdateField('address', e.target.value)}
+              label="Lieu"
+            />
             <p>
-              {city} {postal_code}
+              {mission.city} {mission.postal_code}
             </p>
           </div>
           <div>
@@ -58,35 +50,35 @@ export default function FicheMissionTable({
             <p>
               N° d'identification :{' '}
               <Link
-                href={`/fournisseur?id=${supplier?.generated_id}`}
+                href={`/fournisseur?id=${mission.supplier?.generated_id}`}
                 className="whitespace-nowrap font-bold text-primary"
               >
-                {supplier?.generated_id}
+                {mission.supplier?.generated_id}
               </Link>
             </p>
-            <p>Société : {supplier?.company_name ?? empty}</p>
-            <p>Contact : {referent_name ?? empty}</p>
+            <p>Société : {mission.supplier?.company_name ?? empty}</p>
+            <p>Contact : {mission.referent_name ?? empty}</p>
           </div>
           <div>
             <h3 className="text-sm font-bold text-black">
               RÉFÉRENTS FOURNISSEUR
             </h3>
-            <p>Nom : {referent_name ?? empty}</p>
-            <p>Mail : {supplier?.email ?? empty}</p>
-            <p>Téléphone : {referent_mobile}</p>
+            <p>Nom : {mission.referent_name ?? empty}</p>
+            <p>Mail : {mission.supplier?.email ?? empty}</p>
+            <p>Téléphone : {mission.referent_mobile}</p>
           </div>
           <div>
             <h3 className="text-sm font-bold text-black">INFORMATIONS XPERT</h3>
             <p>
               N° d’identification : {''}
               <Link
-                href={`/xpert?id=${xpert?.generated_id}`}
+                href={`/xpert?id=${mission.xpert?.generated_id}`}
                 className="whitespace-nowrap font-bold text-primary"
               >
-                {xpert?.generated_id}
+                {mission.xpert?.generated_id}
               </Link>
             </p>
-            <p>Contact : {referent_name}</p>
+            <p>Contact : {mission.referent_name}</p>
             <p>Auto Évaluation : {empty}</p>
             <p>Évaluation moyenne : {empty}</p>
           </div>
@@ -94,11 +86,11 @@ export default function FicheMissionTable({
             <h3 className="text-sm font-bold text-black">
               RÉFÉRENTS XPERT ONE
             </h3>
-            <p>{referent_name ?? empty}</p>
+            <p>{mission.referent_name ?? empty}</p>
           </div>
         </div>
       </div>
-      <RightSideFicheMission missionDetails={missionDetails} />
+      <RightSideFicheMission />
     </div>
   );
 }
