@@ -35,17 +35,16 @@ export default function RightSideFicheMission() {
       <MissionReferent />
       <MissionEvaluation />
 
-      <Button
-        onClick={handleSaveUpdatedMission}
-        className="self-end px-12 py-3 text-white"
-        disabled={!hasChanges || loading}
-        variant={!hasChanges ? 'outline' : 'default'}
-      >
-        Sauvegarder les modifications
-      </Button>
-
       <div className="flex w-full flex-row justify-between gap-4">
         <div className="flex gap-3">
+          <Button
+            onClick={handleSaveUpdatedMission}
+            className="self-end px-12 py-3 text-white"
+            disabled={!hasChanges || loading}
+            variant={!hasChanges ? 'outline' : 'default'}
+          >
+            Sauvegarder les modifications
+          </Button>
           <Link
             href={`/mission/matching/${mission.mission_number?.replace(' ', '-')}`}
           >

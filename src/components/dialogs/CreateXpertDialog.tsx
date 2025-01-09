@@ -161,9 +161,40 @@ export default function CreateFournisseurXpertDialog({
     }
   };
 
+  const hasChanges = () => {
+    return (
+      userData.email !== '' ||
+      userData.password !== '' ||
+      userData.firstname !== '' ||
+      userData.lastname !== '' ||
+      userData.mobile !== '' ||
+      Object.values(profileData).some((value) => value !== '')
+    );
+  };
+
+  const handleConfirmedClose = () => {
+    reset();
+    setPopupOpen(false);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      if (hasChanges()) {
+        return;
+      }
+      reset();
+    }
+    setPopupOpen(open);
+  };
+
   return (
     <>
-      <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
+      <Credenza
+        open={popupOpen}
+        onOpenChange={handleOpenChange}
+        shouldConfirmClose={hasChanges()}
+        onConfirmedClose={handleConfirmedClose}
+      >
         <Button
           variant={'primary'}
           className="px-spaceContainer py-spaceXSmall text-white"
