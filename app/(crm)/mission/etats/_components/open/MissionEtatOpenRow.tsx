@@ -149,7 +149,7 @@ export default function MissionEtatOpenRow({
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-2">{mission.referent_name ?? empty}</Box>
+      <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
         {timeBeforeDeadlineApplication}
@@ -158,6 +158,7 @@ export default function MissionEtatOpenRow({
         {getLabel({ value: mission.job_title ?? empty, select: jobTitles }) ??
           empty}
       </Box>
+      <Box className="col-span-1">{mission.city ?? empty}</Box>
       <Box className="col-span-1">
         {isLoadingMatching ? <Skeleton className="size-full" /> : matchingCount}
       </Box>

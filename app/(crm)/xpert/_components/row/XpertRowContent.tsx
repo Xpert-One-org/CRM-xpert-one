@@ -64,14 +64,6 @@ export default function XpertRowContent({
     setOpenedXpert,
     openedXpertNotSaved: xpert,
     setOpenedXpertNotSaved: setXpert,
-    keyDBProfileChanged,
-    keyDBProfileStatusChanged,
-    setKeyDBProfileChanged,
-    setKeyDBProfileStatusChanged,
-    setKeyDBProfileExpertiseChanged,
-    keyDBProfileExpertiseChanged,
-    keyDBProfileMissionChanged,
-    setKeyDBProfileMissionChanged,
   } = useXpertStore();
 
   const handleGetSpecificXpert = async () => {
