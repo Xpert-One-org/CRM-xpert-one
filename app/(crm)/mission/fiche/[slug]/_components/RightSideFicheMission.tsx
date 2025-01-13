@@ -15,6 +15,7 @@ export default function RightSideFicheMission() {
   const {
     openedMissionNotSaved: mission,
     handleSaveUpdatedMission,
+
     hasChanges,
     loading,
   } = useEditMissionStore();

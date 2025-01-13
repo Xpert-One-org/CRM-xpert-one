@@ -10,6 +10,20 @@ import { useEditMissionStore } from '../../editMissionStore';
 import { Input } from '@/components/ui/input';
 import { useSelect } from '@/store/select';
 import { getLabel } from '@/utils/getLabel';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+type MissionState =
+  | 'open_all_to_validate'
+  | 'open'
+  | 'open_all'
+  | 'in_progress'
+  | 'finished';
 
 export default function FicheMissionTable() {
   const { openedMissionNotSaved: mission, handleUpdateField } =
@@ -27,18 +41,52 @@ export default function FicheMissionTable() {
             : 'Chargement...'}
         </h2>
       </div>
+
       <div className="flex w-full flex-row gap-3">
         <div className="flex w-1/4 flex-col gap-2">
           <div className="flex flex-row justify-between gap-2">
             <ComboboxMission />
           </div>
+          <div className="flex flex-col gap-1 py-2">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium">État de la mission</p>
+              <Select
+                value={mission.state}
+                onValueChange={(value: MissionState) => {
+                  if (mission.state !== value) {
+                    handleUpdateField('state', value);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue>{convertStateValue(mission.state)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {(
+                    [
+                      'open_all_to_validate',
+                      'open',
+                      'open_all',
+                      'in_progress',
+                      'finished',
+                    ] as const
+                  ).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {convertStateValue(value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-4 rounded-lg bg-lightgray px-spaceMediumContainer py-[10px] text-black shadow-container">
             <div>
               <h3 className="text-sm font-bold text-black">
                 INFORMATIONS MISSION
               </h3>
               <p>Créée le : {formatDate(mission.created_at)}</p>
-              <p>État : {convertStateValue(mission.state)}</p>
+              {/* <p>État : {convertStateValue(mission.state)}</p> */}
               <p>
                 Lieu : {mission.city} {mission.postal_code}-{mission.country}
               </p>

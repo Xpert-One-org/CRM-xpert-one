@@ -41,6 +41,25 @@ export const updateMission = async ({
 }) => {
   const supabase = await createSupabaseAppServerClient();
 
+  // Validation du state si présent dans newData
+  if (
+    newData.state &&
+    ![
+      'to_validate',
+      'open_all_to_validate',
+      'open',
+      'open_all',
+      'in_progress',
+      'deleted',
+      'finished',
+      'in_process',
+      'validated',
+      'refused',
+    ].includes(newData.state)
+  ) {
+    return { error: 'État de mission invalide' };
+  }
+
   const { error } = await supabase
     .from('mission')
     .update(newData)

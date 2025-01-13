@@ -35,7 +35,13 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
       hasChanges: keys.length > 0,
     }),
 
-  setOpenedMission: (mission) => set({ openedMission: mission }),
+  setOpenedMission: (mission) =>
+    set({
+      openedMission: mission,
+      openedMissionNotSaved: mission,
+      keyDBMissionChanged: [],
+      hasChanges: false,
+    }),
 
   setOpenedMissionNotSaved: (mission) =>
     set({
@@ -45,22 +51,22 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
 
   handleUpdateField: (field, value) => {
     const missionNotSaved = get().openedMissionNotSaved;
-    if (!missionNotSaved) return;
+    const originalMission = get().openedMission;
+
+    if (!missionNotSaved || !originalMission) return;
+
+    const hasChanged = originalMission[field] !== value;
 
     set({
       openedMissionNotSaved: {
         ...missionNotSaved,
         [field]: value,
       },
+      keyDBMissionChanged: hasChanged
+        ? [...get().keyDBMissionChanged.filter((k) => k !== field), field]
+        : get().keyDBMissionChanged.filter((k) => k !== field),
+      hasChanges: hasChanged || get().keyDBMissionChanged.length > 0,
     });
-
-    const currentChangedFields = get().keyDBMissionChanged;
-    if (!currentChangedFields.includes(field)) {
-      set({
-        keyDBMissionChanged: [...currentChangedFields, field],
-        hasChanges: true,
-      });
-    }
   },
 
   handleSaveUpdatedMission: async () => {

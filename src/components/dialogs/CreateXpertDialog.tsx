@@ -30,8 +30,8 @@ export type UserData = {
 export type ProfileDataPicked = Pick<
   DBProfile,
   | 'civility'
-  | 'birthdate'
   | 'fix'
+  | 'company_name'
   | 'street_number'
   | 'address'
   | 'city'
@@ -61,7 +61,6 @@ export default function CreateFournisseurXpertDialog({
 
   const [profileData, setProfileData] = useState<ProfileDataPicked>({
     civility: '',
-    birthdate: '',
     fix: '',
     street_number: '',
     address: '',
@@ -70,6 +69,7 @@ export default function CreateFournisseurXpertDialog({
     country: '',
     linkedin: '',
     how_did_you_hear_about_us: '',
+    company_name: '',
   });
 
   const requiredUserFields = [
@@ -112,7 +112,7 @@ export default function CreateFournisseurXpertDialog({
     });
     setProfileData({
       civility: '',
-      birthdate: '',
+      company_name: '',
       fix: '',
       street_number: '',
       address: '',
@@ -168,6 +168,7 @@ export default function CreateFournisseurXpertDialog({
       userData.firstname !== '' ||
       userData.lastname !== '' ||
       userData.mobile !== '' ||
+      profileData.company_name !== '' ||
       Object.values(profileData).some((value) => value !== '')
     );
   };
@@ -285,10 +286,13 @@ export default function CreateFournisseurXpertDialog({
 
                 <div className="col-span-2">
                   <Input
-                    type="date"
-                    label="Date de naissance"
-                    value={profileData.birthdate ?? ''}
-                    onChange={(e) => onChangeProfil({ e, field: 'birthdate' })}
+                    type="text"
+                    label="Nom de la société"
+                    placeholder="Nom de votre société"
+                    value={profileData.company_name ?? ''}
+                    onChange={(e) =>
+                      onChangeProfil({ e, field: 'company_name' })
+                    }
                   />
                 </div>
               </div>

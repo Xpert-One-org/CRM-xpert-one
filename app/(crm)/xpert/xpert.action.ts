@@ -299,7 +299,7 @@ export const createUser = async ({
 
   const {
     address,
-    birthdate,
+    company_name,
     city,
     civility,
     country,
@@ -314,7 +314,7 @@ export const createUser = async ({
     .from('profile')
     .update({
       address,
-      birthdate,
+      company_name,
       city,
       civility,
       country,
