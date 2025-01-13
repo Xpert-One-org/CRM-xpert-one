@@ -1,38 +1,33 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import { useEffect } from 'react';
+import { useEditMissionStore } from '../editMissionStore';
 import { getMissionDetails } from '../mission.action';
-import type { DBMission } from '@/types/typesDb';
 import FicheMissionTable from './_components/FicheMissionTable';
+import { use } from 'react';
 
-export default function MissionFichePage(props: {
+export default function FicheMissionPage({
+  params,
+}: {
   params: Promise<{ slug: string }>;
 }) {
-  const params = use(props.params);
-  const { slug: missionId } = params;
-  const missionNumber = missionId.replace('-', ' ');
-  const [missionDetails, setMissionDetails] = useState<DBMission | null>(null);
+  const resolvedParams = use(params);
+  const { setOpenedMission, setOpenedMissionNotSaved } = useEditMissionStore();
 
   useEffect(() => {
-    const fetchMissionDetails = async () => {
-      try {
-        const details = await getMissionDetails(missionNumber);
-        setMissionDetails(details);
-      } catch (error) {
-        console.error('Failed to fetch mission details:', error);
-      }
+    const fetchMission = async () => {
+      const mission = await getMissionDetails(resolvedParams.slug);
+      setOpenedMission(mission);
+      setOpenedMissionNotSaved(mission);
     };
 
-    fetchMissionDetails();
-  }, [missionNumber]);
+    fetchMission();
 
-  return (
-    <div>
-      {missionDetails ? (
-        <FicheMissionTable missionDetails={missionDetails} />
-      ) : (
-        <p>Chargement...</p>
-      )}
-    </div>
-  );
+    return () => {
+      setOpenedMission(null);
+      setOpenedMissionNotSaved(null);
+    };
+  }, [resolvedParams.slug]);
+
+  return <FicheMissionTable />;
 }

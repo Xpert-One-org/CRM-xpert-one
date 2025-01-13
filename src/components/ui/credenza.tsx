@@ -24,6 +24,16 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@components/ui/drawer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type BaseProps = {
   children: React.ReactNode;
@@ -32,6 +42,8 @@ type BaseProps = {
 type RootCredenzaProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  shouldConfirmClose?: boolean;
+  onConfirmedClose?: () => void;
 } & BaseProps;
 
 type CredenzaProps = {
@@ -42,11 +54,72 @@ type CredenzaProps = {
 
 const desktop = '(min-width: 768px)';
 
-const Credenza = ({ children, ...props }: RootCredenzaProps) => {
+const Credenza = ({
+  children,
+  shouldConfirmClose,
+  onConfirmedClose,
+  open,
+  onOpenChange,
+  ...props
+}: RootCredenzaProps) => {
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const isDesktop = useMediaQuery(desktop);
-  const Credenza = isDesktop ? Dialog : Drawer;
+  const CredenzaComponent = isDesktop ? Dialog : Drawer;
 
-  return <Credenza {...props}>{children}</Credenza>;
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && shouldConfirmClose) {
+      setShowConfirmDialog(true);
+      return;
+    }
+    onOpenChange?.(newOpen);
+  };
+
+  const handleConfirmClose = () => {
+    setShowConfirmDialog(false);
+    onConfirmedClose?.();
+    onOpenChange?.(false);
+  };
+
+  const handleCancelClose = () => {
+    setShowConfirmDialog(false);
+  };
+
+  return (
+    <>
+      <CredenzaComponent open={open} onOpenChange={handleOpenChange} {...props}>
+        {children}
+      </CredenzaComponent>
+
+      {showConfirmDialog && (
+        <AlertDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+        >
+          <AlertDialogContent className="bg-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Êtes-vous sûr de vouloir fermer ?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Les modifications non enregistrées seront perdues.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleCancelClose}>
+                Annuler
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmClose}
+                className="text-white"
+              >
+                Confirmer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
+  );
 };
 
 const CredenzaTrigger = ({ className, children, ...props }: CredenzaProps) => {
@@ -85,6 +158,8 @@ const CredenzaContent = ({
     <CredenzaContent
       className={className}
       classNameX={cn('bg-black rounded-full p-1 text-white', classNameX)}
+      onPointerDownOutside={(e) => e.preventDefault()}
+      onOpenAutoFocus={(e) => e.preventDefault()}
       {...props}
     >
       <CredenzaTitle className="pointer-events-auto absolute" />

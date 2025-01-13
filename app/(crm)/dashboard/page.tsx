@@ -26,8 +26,8 @@ import FacturationLogo from '@/components/svg/Facturation';
 export default async function DashboardPage() {
   const user = await getLoggedUser();
 
-  const { data: newUsers } = await getLastSignupNewUsers();
-  const { newUsersLastWeek } = await getLastSignUpNewUsersWeek();
+  const { data: newUsers } = await getLastSignupNewUsers('xpert');
+  const { newUsersLastWeek } = await getLastSignUpNewUsersWeek('xpert');
 
   const { data: missionsOpen } = await getCountMissionsState('open');
   const { data: missionInProgress } =
@@ -120,7 +120,7 @@ export default async function DashboardPage() {
         {user?.role !== 'hr' && user?.role !== 'adv' && (
           <DashBoardCards
             count={newUsers.length}
-            title="Total inscrits"
+            title="Total xperts inscrits"
             urgentTitle="Semaine"
             urgentCount={newUsersLastWeek.length || 0}
             buttonTitle="Nouveaux inscrits"

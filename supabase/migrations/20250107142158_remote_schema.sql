@@ -189,6 +189,20 @@ CREATE TYPE "public"."msg_files" AS (
 ALTER TYPE "public"."msg_files" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."profile_roles" AS ENUM (
+    'xpert',
+    'company',
+    'admin',
+    'project_manager',
+    'intern',
+    'hr',
+    'adv'
+);
+
+
+ALTER TYPE "public"."profile_roles" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."reason_mission_deletion" AS ENUM (
     'status_candidate_not_found',
     'won_competition',
@@ -692,50 +706,50 @@ ALTER FUNCTION "public"."get_profile_other_languages"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
     AS $$DECLARE
-    v_role TEXT;
-    v_is_student BOOLEAN;
+    v_role text;
+    v_generated_id TEXT;
 BEGIN
-    -- Déterminer le rôle
-    v_role := COALESCE(NEW.raw_user_meta_data->>'role', 'NULL');
+    -- Log pour debug
+    RAISE NOTICE 'Raw user meta data: %', NEW.raw_user_meta_data;
     
-    -- Déterminer si c'est un étudiant
-    v_is_student := (NEW.raw_user_meta_data->>'is_student')::boolean;
+    v_role := COALESCE(NEW.raw_user_meta_data->>'role', 'xpert');
+    
+    v_generated_id := CASE 
+        WHEN v_role = 'xpert' THEN public.generate_unique_id()::text
+        ELSE public.generate_unique_id_f()::text
+    END;
 
-    -- Insérer dans public.profile avec toutes les métadonnées pertinentes
+    -- Log pour debug
+    RAISE NOTICE 'Attempting to insert with role: %, generated_id: %', v_role, v_generated_id;
+
     INSERT INTO public.profile (
-        id, firstname, lastname, email, mobile, role, 
-        company_role, company_name, referent_id, 
-        generated_id, username
+        id,
+        email,
+        role,
+        firstname,
+        lastname,
+        mobile,
+        company_role,
+        company_name,
+        referent_id,
+        generated_id
     )
     VALUES (
         NEW.id,
+        NEW.email,
+        (v_role)::public.profile_roles,
         NEW.raw_user_meta_data->>'firstname',
         NEW.raw_user_meta_data->>'lastname',
-        NEW.email,
-        NEW.raw_user_meta_data->>'default_phone',
-        CASE 
-            WHEN v_is_student THEN 'xpert'
-            ELSE v_role
-        END,
-        CASE 
-            WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_role'
-            ELSE NULL
-        END,
-        CASE 
-            WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_name'
-            ELSE NULL
-        END,
-        NEW.raw_user_meta_data->>'referent_generated_id',
-        CASE
-            WHEN new.raw_user_meta_data->>'role' = 'xpert' THEN public.generate_unique_id()::text
-            ELSE public.generate_unique_id_f()::text
-        END,  
-        NEW.raw_user_meta_data->>'username'
+        NEW.raw_user_meta_data->>'mobile',
+        CASE WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_role' ELSE NULL END,
+        CASE WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_name' ELSE NULL END,
+        NEW.raw_user_meta_data->>'referent_id',
+        v_generated_id
     );
 
     RETURN NEW;
+
 END;$$;
 
 
@@ -1238,7 +1252,10 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "image_url" "text",
     "reason_deletion" "public"."reason_mission_deletion",
     "deleted_at" timestamp with time zone,
-    "xpert_associated_status" "text"
+    "xpert_associated_status" "text",
+    "facturation_fournisseur_payment" "jsonb"[],
+    "facturation_salary_payment" "jsonb"[],
+    "facturation_invoice_paid" "jsonb"[]
 );
 
 
@@ -1368,7 +1385,7 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "how_did_you_hear_about_us" "text",
     "how_did_you_hear_about_us_other" "text",
     "id" "uuid" NOT NULL,
-    "role" "text" DEFAULT 'NULL'::"text" NOT NULL,
+    "role" "public"."profile_roles" DEFAULT 'xpert'::"public"."profile_roles" NOT NULL,
     "company_role" "text",
     "company_name" "text",
     "referent_id" "text",
@@ -1405,7 +1422,10 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "cv_name" "text",
     "community_banning_explanations" "text",
     "is_banned_from_community" boolean DEFAULT false NOT NULL,
-    "admin_opinion" "public"."admin_opinion"
+    "admin_opinion" "public"."admin_opinion",
+    "affected_referent_id" "uuid",
+    "collaborator_is_absent" boolean DEFAULT false,
+    "collaborator_replacement_id" "uuid"
 );
 
 
@@ -2164,6 +2184,16 @@ ALTER TABLE ONLY "public"."notification"
 
 
 
+ALTER TABLE ONLY "public"."profile"
+    ADD CONSTRAINT "profile_affected_referent_id_fkey" FOREIGN KEY ("affected_referent_id") REFERENCES "public"."profile"("id");
+
+
+
+ALTER TABLE ONLY "public"."profile"
+    ADD CONSTRAINT "profile_collaborator_replacement_id_fkey" FOREIGN KEY ("collaborator_replacement_id") REFERENCES "public"."profile"("id");
+
+
+
 ALTER TABLE ONLY "public"."profile_education"
     ADD CONSTRAINT "profile_education_profile_id_fkey" FOREIGN KEY ("profile_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
@@ -2254,23 +2284,21 @@ ALTER TABLE ONLY "public"."user_alerts"
 
 
 
-CREATE POLICY "Admins can insert matches" ON "public"."selection_matching" FOR INSERT WITH CHECK (( SELECT ("profile"."role" = 'admin'::"text")
+CREATE POLICY "Admins can insert matches" ON "public"."selection_matching" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"())));
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
-CREATE POLICY "Admins can update matches" ON "public"."selection_matching" FOR UPDATE USING (( SELECT ("profile"."role" = 'admin'::"text")
+CREATE POLICY "Admins can update matches" ON "public"."selection_matching" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"()))) WITH CHECK (( SELECT ("profile"."role" = 'admin'::"text")
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Admins can view all matches" ON "public"."selection_matching" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"())));
-
-
-
-CREATE POLICY "Admins can view all matches" ON "public"."selection_matching" FOR SELECT USING (( SELECT ("profile"."role" = 'admin'::"text")
-   FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"())));
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
@@ -2307,6 +2335,36 @@ CREATE POLICY "Enable delete for users based on user_id" ON "public"."profile_mi
 
 
 CREATE POLICY "Enable delete for users based on user_id" ON "public"."profile_status" FOR DELETE USING ((( SELECT "auth"."uid"() AS "uid") = "profile_id"));
+
+
+
+CREATE POLICY "Enable delete for users based on user_id or admin" ON "public"."profile_experience" USING ((("auth"."uid"() = "profile_id") OR (EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_experience" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_expertise" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_mission" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_status" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
@@ -2562,11 +2620,39 @@ CREATE POLICY "Enable update for users based on email" ON "public"."profile_stat
 
 
 
-CREATE POLICY "Enable update for users based on email or admin" ON "public"."profile" FOR UPDATE USING (((( SELECT "auth"."uid"() AS "uid") = "id") OR (( SELECT "profile_1"."role"
+CREATE POLICY "Enable update for users based on email or admin" ON "public"."profile" FOR UPDATE TO "authenticated" USING ((("auth"."uid"() = "id") OR (EXISTS ( SELECT 1
    FROM "public"."profile" "profile_1"
-  WHERE ("profile_1"."id" = ( SELECT "auth"."uid"() AS "uid"))) = 'admin'::"text"))) WITH CHECK (((( SELECT "auth"."uid"() AS "uid") = "id") OR (( SELECT "profile_1"."role"
-   FROM "public"."profile" "profile_1"
-  WHERE ("profile_1"."id" = ( SELECT "auth"."uid"() AS "uid"))) = 'admin'::"text")));
+  WHERE (("profile_1"."id" = "auth"."uid"()) AND ("profile_1"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_education or admin can updat" ON "public"."profile_education" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_education"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_experience or admin can upda" ON "public"."profile_experience" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_experience"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_expertise or admin can updat" ON "public"."profile_expertise" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_expertise"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_mission or admin can update" ON "public"."profile_mission" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_mission"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_status or admin can update a" ON "public"."profile_status" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_status"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
 
 
 
@@ -2612,7 +2698,7 @@ CREATE POLICY "message_crud" ON "public"."message" TO "authenticated" USING (tru
 
 CREATE POLICY "message_delete_admin" ON "public"."message" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"text")))));
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
