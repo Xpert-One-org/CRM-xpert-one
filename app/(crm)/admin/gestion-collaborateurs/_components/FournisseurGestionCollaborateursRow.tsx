@@ -46,7 +46,6 @@ export default function FournisseurGestionCollaborateursRow({
 
   useEffect(() => {
     const DEFAULT_VALUE = 'none';
-
     if (!hasReferentReassign && currentReferentValue !== DEFAULT_VALUE) {
       setCurrentReferentValue(DEFAULT_VALUE);
     }

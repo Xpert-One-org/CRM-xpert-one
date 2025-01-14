@@ -18,7 +18,10 @@ export default function GestionCollaborateursPage() {
     setHasReferentReassign,
     updateXpertGroupReferent,
   } = useXpertStore();
-  const { updateFournisseurReferent } = useFournisseurStore();
+  const {
+    updateFournisseurReferent,
+    setHasReferentReassign: setHasReferentReassignFournisseur,
+  } = useFournisseurStore();
 
   const [xpertGroupPendingChanges, setXpertGroupPendingChanges] = useState<
     { post: string; affected_referent: DBReferentType | null }[]
@@ -65,6 +68,8 @@ export default function GestionCollaborateursPage() {
           )
         )
       );
+
+      setHasReferentReassignFournisseur(false);
 
       const errors = [
         ...xpertResults,
