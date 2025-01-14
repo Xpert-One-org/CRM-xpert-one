@@ -2,7 +2,7 @@
 
 import { Box } from '@/components/ui/box';
 import type { DBFournisseur } from '@/types/typesDb';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
 import { useRouter } from 'next/navigation';
+import { useFournisseurStore } from '@/store/fournisseur';
 
 type FournisseurGestionCollaborateursRowProps = {
   fournisseur: DBFournisseur;
@@ -24,24 +25,32 @@ export default function FournisseurGestionCollaborateursRow({
   fournisseur,
   isGroupSelection,
   onReferentChange,
-  pendingReferentId,
 }: FournisseurGestionCollaborateursRowProps) {
   const { collaborators } = useAdminCollaborators();
   const router = useRouter();
+  const { hasReferentReassign, setHasReferentReassign } = useFournisseurStore();
+  const [currentReferentValue, setCurrentReferentValue] = useState('none');
 
   const handleReferentChange = (value: string) => {
     if (value === 'none') {
       onReferentChange(fournisseur.id, 'none');
+      setCurrentReferentValue('none');
     } else {
       onReferentChange(fournisseur.id, value);
+      setCurrentReferentValue(value);
+    }
+    if (!hasReferentReassign) {
+      setHasReferentReassign(true);
     }
   };
 
-  const getCurrentReferentValue = () => {
-    const currentId = pendingReferentId ?? fournisseur.affected_referent_id;
-    if (!currentId) return 'none';
-    return currentId;
-  };
+  useEffect(() => {
+    const DEFAULT_VALUE = 'none';
+
+    if (!hasReferentReassign && currentReferentValue !== DEFAULT_VALUE) {
+      setCurrentReferentValue(DEFAULT_VALUE);
+    }
+  }, [hasReferentReassign, currentReferentValue]);
 
   const handleRedirectFournisseur = (fournisseurId: string) => {
     router.push(`/fournisseur?id=${fournisseurId}`);
@@ -72,7 +81,7 @@ export default function FournisseurGestionCollaborateursRow({
       </Box>
       <Box className="col-span-2 p-0">
         <Select
-          value={getCurrentReferentValue()}
+          value={currentReferentValue}
           onValueChange={handleReferentChange}
         >
           <SelectTrigger className="h-full justify-center gap-2 border-0 bg-[#F5F5F5]">

@@ -9,7 +9,6 @@ export async function updateCollaboratorReferent(
 ) {
   try {
     const supabase = await createSupabaseAppServerClient('admin');
-
     const { data, error } = await supabase
       .from('profile')
       .update({ affected_referent_id })

@@ -733,6 +733,11 @@ export const jobTitleSelect = [
     image: '/static/jobs/Directeur de site: Site manager.jpeg',
   },
   {
+    label: 'Directeur de site',
+    value: 'directeur_de_site',
+    image: '/static/jobs/Directeur de site: Site manager.jpeg',
+  },
+  {
     label: 'Ingénieur analyses fonctionnelles',
     value: 'ingenieur_analyses_fonctionnelles',
     image: '/static/jobs/Ingénieur analyses fonctionnelles.jpeg',

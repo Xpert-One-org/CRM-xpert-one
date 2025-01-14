@@ -272,57 +272,54 @@ export default function XpertRowContentBis({
   }
   return (
     <>
-      {cvInfo.created_at ||
-        (urssafInfo.created_at && (
-          <>
-            <div className="w-full p-1 font-light xl:max-w-[280px]">
-              <Label htmlFor="document_type" className="mb-1 flex items-center">
-                Type de documents
-              </Label>
-              <Select
-                onValueChange={onValueChange}
-                name="document_type"
-                disabled={false}
-              >
-                <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
-                  <SelectValue
-                    className="bg-white"
-                    placeholder={
-                      <div className="flex flex-row items-center gap-2">
-                        <p className="font-medium text-black">
-                          {selectOptions[0]?.label}
-                        </p>
-                        <p className="font-medium text-[#BEBEC0] group-hover:text-black">
-                          {selectOptions[0]?.json_key}
-                        </p>
-                      </div>
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent className="group w-full">
-                  <SelectGroup>
-                    {selectOptions
-                      .filter((item) => item.value)
-                      .map((item) => (
-                        <SelectItem
-                          key={item.value || ''}
-                          value={item.value || ''}
-                          className="transition duration-150"
-                        >
-                          <div className="flex flex-row items-center gap-2">
-                            <p className="font-medium text-black">
-                              {item.label}
-                            </p>
-                            <p className="font-medium">{item.json_key}</p>
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        ))}
+      {(cvInfo.created_at ?? urssafInfo.created_at) && (
+        <>
+          <div className="w-full p-1 font-light xl:max-w-[280px]">
+            <Label htmlFor="document_type" className="mb-1 flex items-center">
+              Type de documents
+            </Label>
+            <Select
+              onValueChange={onValueChange}
+              name="document_type"
+              disabled={false}
+            >
+              <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
+                <SelectValue
+                  className="bg-white"
+                  placeholder={
+                    <div className="flex flex-row items-center gap-2">
+                      <p className="font-medium text-black">
+                        {selectOptions[0]?.label}
+                      </p>
+                      <p className="font-medium text-[#BEBEC0] group-hover:text-black">
+                        {selectOptions[0]?.json_key}
+                      </p>
+                    </div>
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent className="group w-full">
+                <SelectGroup>
+                  {selectOptions
+                    .filter((item) => item.value)
+                    .map((item) => (
+                      <SelectItem
+                        key={item.value || ''}
+                        value={item.value || ''}
+                        className="transition duration-150"
+                      >
+                        <div className="flex flex-row items-center gap-2">
+                          <p className="font-medium text-black">{item.label}</p>
+                          <p className="font-medium">{item.json_key}</p>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
       <div className="bg flex w-full items-center gap-x-4">
         <FileInput
           name=""

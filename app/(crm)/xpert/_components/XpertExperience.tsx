@@ -31,11 +31,6 @@ import MultiCreatableSelect from '@/components/MultiCreatableSelect';
 import { Plus } from 'lucide-react';
 import { useXpertStore } from '@/store/xpert';
 
-// type XpertExperienceProps = {
-//   xpert: DBXpert;
-//   setXpert: React.Dispatch<React.SetStateAction<DBXpert | null>>;
-// };
-
 type XpertExperienceProps = {
   handleKeyChanges: (table: NestedTableKey | undefined, name: string) => void;
 };
