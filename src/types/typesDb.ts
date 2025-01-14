@@ -196,6 +196,15 @@ export type DBXpertOptimized = Pick<
 > & {
   mission: Pick<DBMission, 'xpert_associated_id'>[];
   profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+  profile_experience: Pick<DBProfileExperience, 'post' | 'post_other'> | null;
+};
+
+export type DBReferentType =
+  Database['public']['CompositeTypes']['referent_type'];
+
+export type DBXpertLastPost = {
+  post: string | null;
+  referents: DBReferentType[] | null;
 };
 
 export type DBCollaboratorRole = Database['public']['Enums']['profile_roles'];

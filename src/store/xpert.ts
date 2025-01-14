@@ -3,7 +3,9 @@ import type {
   DBProfileExpertise,
   DBProfileMission,
   DBProfileStatus,
+  DBReferentType,
   DBXpert,
+  DBXpertLastPost,
   DBXpertOptimized,
 } from '@/types/typesDb';
 import { create } from 'zustand';
@@ -11,6 +13,8 @@ import {
   deleteXpert,
   getAllXperts,
   getSpecificXpert,
+  getXpertIdByJobName,
+  getXpertLastJobs,
   getXpertsOptimized,
   updateProfile,
   updateProfileExpertise,
@@ -31,6 +35,7 @@ type XpertState = {
   xpertsOptimized: DBXpertOptimized[] | null;
   totalXperts: number | null;
   totalXpertOptimized: number | null;
+  totalXpertLastJobs: number | null;
   offset: number;
   openedXpert: DBXpert | null;
   openedXpertNotSaved: DBXpert | null;
@@ -43,6 +48,12 @@ type XpertState = {
   fetchXpertOptimizedFiltered: (
     replacing?: boolean
   ) => Promise<{ xperts: DBXpertOptimized[] }>;
+  xpertLastJobs: DBXpertLastPost[] | null;
+  fecthXpertLastJob: () => Promise<{ posts: DBXpertLastPost[] }>;
+  updateXpertGroupReferent: (
+    jobName: string | undefined,
+    affected_referent: DBReferentType | null
+  ) => Promise<void>;
   fetchSpecificXpert: (xpertId: string) => void;
   deleteXpert: (xpertId: string, xpertGeneratedId: string) => void;
   keyDBProfileChanged: [keyof DBProfile][] | [];
@@ -55,6 +66,9 @@ type XpertState = {
   setKeyDBProfileExpertiseChanged: (keys: [keyof DBProfileExpertise][]) => void;
 
   handleSaveUpdatedXpert: () => void;
+  hasReferentReassign: boolean;
+  setHasReferentReassign: (value: boolean) => void;
+
   updateXpertReferent: (
     xpertId: string,
     affected_referent_id: string | null
@@ -107,7 +121,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
   setOpenedXpertNotSaved: (xpert: DBXpert | null) => {
     set({ openedXpertNotSaved: xpert });
   },
-
+  totalXpertLastJobs: null,
   totalXpertOptimized: null,
   totalXperts: null,
   offset: 0,
@@ -136,6 +150,23 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     set({ openedXpert });
   },
 
+  xpertLastJobs: null,
+
+  fecthXpertLastJob: async () => {
+    set({ loading: true });
+    const offset = get().xpertLastJobs?.length || 0;
+
+    const { data: posts, count } = await getXpertLastJobs({ offset });
+    const last_jobs = get().xpertLastJobs || [];
+
+    set({
+      loading: false,
+      totalXpertLastJobs: count,
+      xpertLastJobs: [...last_jobs, ...posts],
+    });
+    return { posts };
+  },
+
   fetchSpecificXpert: async (xpertId: string) => {
     set({ loading: true });
     const xpert = await getSpecificXpert(xpertId);
@@ -144,6 +175,12 @@ export const useXpertStore = create<XpertState>((set, get) => ({
           country: xpert.country,
           firstname: xpert.firstname,
           admin_opinion: xpert.admin_opinion,
+          profile_experience: xpert.profile_expertise?.experiences[0]?.post
+            ? {
+                post: xpert.profile_expertise.experiences[0].post,
+                post_other: xpert.profile_expertise.experiences[0].post_other,
+              }
+            : null,
           generated_id: xpert.generated_id,
           id: xpert.id,
           created_at: xpert.created_at,
@@ -372,6 +409,53 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     });
     set({ openedXpertNotSaved: null });
     toast.success('Modifications enregistrées');
+  },
+
+  hasReferentReassign: false,
+
+  setHasReferentReassign: (value) => {
+    set({ hasReferentReassign: value });
+  },
+
+  updateXpertGroupReferent: async (
+    jobName: string | undefined,
+    affected_referent: DBReferentType | null
+  ) => {
+    if (!jobName) return;
+    const { data } = await getXpertIdByJobName(jobName);
+    if (!data) return;
+    await Promise.all(
+      data.map(async (xpert) => {
+        if (!xpert.profile_id) return;
+        return updateCollaboratorReferent(
+          xpert.profile_id,
+          affected_referent ? affected_referent.id : null
+        );
+      })
+    );
+
+    set((state) => ({
+      xpertsOptimized: state.xpertsOptimized?.map((xpert) =>
+        data.find((d) => d.profile_id === xpert.id)
+          ? { ...xpert, affected_referent_id: affected_referent?.id ?? null }
+          : xpert
+      ),
+      xpertLastJobs: state.xpertLastJobs?.map((job) =>
+        job.post === jobName
+          ? {
+              ...job,
+              referents: [
+                {
+                  id: affected_referent?.id ?? null,
+                  firstname: affected_referent?.firstname ?? null,
+                  lastname: affected_referent?.lastname ?? null,
+                },
+              ],
+            }
+          : job
+      ),
+    }));
+    console.log(get().xpertLastJobs);
   },
 
   updateXpertReferent: async (
