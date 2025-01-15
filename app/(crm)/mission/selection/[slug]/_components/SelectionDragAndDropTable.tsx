@@ -5,18 +5,18 @@ import { FilterButton } from '@/components/FilterButton';
 import React, { useEffect, useState } from 'react';
 import SelectionDragAndDropColumns from './SelectionDragAndDropColumns';
 import type { ColumnStatus, DBMissionXpertsSelection } from '@/types/typesDb';
-import {
-  getXpertsSelection,
-  updateSelectionMission,
-} from '../../selection.action';
+import { getXpertsSelection } from '../../selection.action';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useMissionStore } from '@/store/mission';
 
 export default function SelectionDragAndDropTable({
   missionId,
 }: {
   missionId: number;
 }) {
+  const { updateSelectionMission } = useMissionStore();
+
   const [xpertsSelection, setXpertsSelection] = useState<
     DBMissionXpertsSelection[]
   >([]);
@@ -26,22 +26,6 @@ export default function SelectionDragAndDropTable({
       newStatus: ColumnStatus;
     }[]
   >([]);
-
-  useEffect(() => {
-    const fetchMatchedXperts = async () => {
-      if (missionId) {
-        const data = await getXpertsSelection(missionId);
-        if (data) {
-          const sortedData = [...data].sort(
-            (a, b) => b.matching_score - a.matching_score
-          );
-          setXpertsSelection(sortedData as DBMissionXpertsSelection[]);
-        }
-      }
-    };
-
-    fetchMatchedXperts();
-  }, [missionId]);
 
   const handleDragEnd = (result: any) => {
     const { source, destination, draggableId } = result;
@@ -87,7 +71,13 @@ export default function SelectionDragAndDropTable({
     try {
       await Promise.all(
         pendingUpdates.map((update) =>
-          updateSelectionMission(update.selectionId, update.newStatus)
+          updateSelectionMission(
+            update.selectionId,
+            update.newStatus,
+            missionId,
+            xpertsSelection.find((xpert) => xpert.id === update.selectionId)
+              ?.xpert_id ?? ''
+          )
         )
       );
 
@@ -97,6 +87,22 @@ export default function SelectionDragAndDropTable({
       toast.error("Erreur lors de l'enregistrement des modifications");
     }
   };
+
+  useEffect(() => {
+    const fetchMatchedXperts = async () => {
+      if (missionId) {
+        const data = await getXpertsSelection(missionId);
+        if (data) {
+          const sortedData = [...data].sort(
+            (a, b) => b.matching_score - a.matching_score
+          );
+          setXpertsSelection(sortedData as DBMissionXpertsSelection[]);
+        }
+      }
+    };
+
+    fetchMatchedXperts();
+  }, [missionId]);
 
   return (
     <>

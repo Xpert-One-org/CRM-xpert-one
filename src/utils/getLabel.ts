@@ -13,5 +13,6 @@ export const getLabel = ({
   }
 
   const selected = select.find((item) => item.value === value);
+
   return selected ? selected.label : value;
 };

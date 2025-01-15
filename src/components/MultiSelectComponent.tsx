@@ -26,6 +26,7 @@ type Props = {
   showIndividualX?: boolean;
   side?: 'top' | 'bottom';
   disabled?: boolean;
+  hasPreIcon?: boolean;
 } & ComponentProps<'div'>;
 
 export default function MultiSelectComponent({
@@ -34,6 +35,7 @@ export default function MultiSelectComponent({
   classNameLabel,
   showIndividualX = true,
   side,
+  hasPreIcon,
   explain,
   required,
   name,
@@ -66,26 +68,21 @@ export default function MultiSelectComponent({
       {label && (
         <Label htmlFor={id} className={cn('flex items-center', classNameLabel)}>
           {label}
-          {required && <span className="text-accent">*</span>}
-          {explain ? (
-            <Info className="ml-2 w-fit">{explain}</Info>
-          ) : (
-            <div className="h-6" />
-          )}
         </Label>
       )}
 
       <MultipleSelector
         side={side}
+        hasPreIcon={hasPreIcon}
         hidePlaceholderWhenSelected
         onChange={handleOnChange}
         creatable={creatable}
         maxSelected={maxSelected}
         showIndividualX={showIndividualX}
         className={cn(
-          'bg-white py-1 pr-4 transition',
+          'border-gray-200 bg-white py-1 pr-4 transition',
           { 'border-important': hasError },
-          { 'hover:border-primary': !hasError }
+          { 'hover:border-primary': !hasError && !disabled }
         )}
         badgeClassName=""
         value={defaultsOptions}

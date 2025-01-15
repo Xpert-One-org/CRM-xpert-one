@@ -14,13 +14,19 @@ export const checkAuthRole = async () => {
   const { data: userData, error: userError } = await supabase
     .from('profile')
     .select('*')
-    .eq('id', user.id);
-
+    .eq('id', user.id)
+    .single();
   if (userError) {
     throw userError;
   }
 
-  if (userData[0].role !== 'admin') {
+  if (
+    userData.role !== 'admin' &&
+    userData.role !== 'project_manager' &&
+    userData.role !== 'intern' &&
+    userData.role !== 'hr' &&
+    userData.role !== 'adv'
+  ) {
     throw new Error('User not authorized to access this resource');
   }
 

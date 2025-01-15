@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
+import { useIsIntern } from '@/hooks/useRoles';
 
 export default function MatchingLeftSide({
   missionData,
@@ -64,6 +65,8 @@ export default function MatchingLeftSide({
     fetchDiplomas,
   } = useSelect();
 
+  const isIntern = useIsIntern();
+
   useEffect(() => {
     fetchJobTitles();
     fetchPosts();
@@ -94,6 +97,7 @@ export default function MatchingLeftSide({
   ];
 
   const handleAddClick = (criteriaType: keyof typeof showAdditionalSelects) => {
+    if (isIntern) return;
     setShowAdditionalSelects((prev) => ({
       ...prev,
       [criteriaType]: !prev[criteriaType],
@@ -105,10 +109,11 @@ export default function MatchingLeftSide({
   };
 
   const isExcludedCriteriaSelected = (type: string, value: string) => {
-    return excludedCriteria[type] && excludedCriteria[type].includes(value);
+    return excludedCriteria[type]?.includes(value);
   };
 
   const handleExcludedCriteriaClick = (type: string, value: string) => {
+    if (isIntern) return;
     setExcludedCriteria((prev) => {
       const newSelected = { ...prev };
       if (!newSelected[type]) {
@@ -203,8 +208,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('jobTitle')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('jobTitle')}
                 />
               ) : (
                 <X
@@ -219,8 +228,20 @@ export default function MatchingLeftSide({
           </div>
           <div className="flex flex-wrap gap-[10px]">
             <Box
-              className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('job_title', missionData.job_title ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
+              className={`relative ${
+                isIntern
+                  ? 'cursor-not-allowed'
+                  : 'cursor-pointer hover:cursor-pointer'
+              } px-6 py-3 ${
+                isExcludedCriteriaSelected(
+                  'job_title',
+                  missionData.job_title ?? empty
+                )
+                  ? 'bg-[#D64242] text-white'
+                  : ''
+              }`}
               onClick={() =>
+                !isIntern &&
                 handleExcludedCriteriaClick(
                   'job_title',
                   missionData.job_title ?? empty
@@ -240,24 +261,23 @@ export default function MatchingLeftSide({
                 </div>
               )}
             </Box>
-            {additionalCriteria.job_title &&
-              additionalCriteria.job_title.map((option) => (
-                <Box
-                  key={option}
-                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
-                  onClick={() => {
-                    handleRemoveAdditionalCriteria('job_title', option);
-                  }}
-                >
-                  {getLabel({
-                    value: option,
-                    select: jobTitles,
-                  }) ?? empty}
-                  <div className="absolute right-1 top-1" onClick={() => {}}>
-                    <X className="size-4" />
-                  </div>
-                </Box>
-              ))}
+            {additionalCriteria?.job_title?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('job_title', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: jobTitles,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
           </div>
         </div>
         {showAdditionalSelects.jobTitle && (
@@ -284,8 +304,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('postType')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('postType')}
                 />
               ) : (
                 <X
@@ -302,8 +326,14 @@ export default function MatchingLeftSide({
             {missionData.post_type?.map((post) => (
               <Box
                 key={post}
-                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('post_type', post) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleExcludedCriteriaClick('post_type', post)}
+                className={`relative ${
+                  isIntern
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:cursor-pointer'
+                } px-6 py-3 ${isExcludedCriteriaSelected('post_type', post) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() =>
+                  !isIntern && handleExcludedCriteriaClick('post_type', post)
+                }
               >
                 {getLabel({ value: post, select: posts })?.toUpperCase() ??
                   empty}
@@ -314,24 +344,23 @@ export default function MatchingLeftSide({
                 )}
               </Box>
             ))}
-            {additionalCriteria.post_type &&
-              additionalCriteria.post_type.map((option) => (
-                <Box
-                  key={option}
-                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
-                  onClick={() => {
-                    handleRemoveAdditionalCriteria('post_type', option);
-                  }}
-                >
-                  {getLabel({
-                    value: option,
-                    select: posts,
-                  })?.toUpperCase() ?? empty}
-                  <div className="absolute right-1 top-1" onClick={() => {}}>
-                    <X className="size-4" />
-                  </div>
-                </Box>
-              ))}
+            {additionalCriteria?.post_type?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('post_type', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: posts,
+                })?.toUpperCase() ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
           </div>
         </div>
         {showAdditionalSelects.postType && (
@@ -358,8 +387,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('sector')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('sector')}
                 />
               ) : (
                 <X
@@ -374,8 +407,13 @@ export default function MatchingLeftSide({
           </div>
           <div className="flex flex-wrap gap-[10px]">
             <Box
-              className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('sector', missionData.sector ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
+              className={`relative ${
+                isIntern
+                  ? 'cursor-not-allowed'
+                  : 'cursor-pointer hover:cursor-pointer'
+              } px-6 py-3 ${isExcludedCriteriaSelected('sector', missionData.sector ?? empty) ? 'bg-[#D64242] text-white' : ''}`}
               onClick={() =>
+                !isIntern &&
                 handleExcludedCriteriaClick(
                   'sector',
                   missionData.sector ?? empty
@@ -395,24 +433,23 @@ export default function MatchingLeftSide({
                 </div>
               )}
             </Box>
-            {additionalCriteria.sector &&
-              additionalCriteria.sector.map((option) => (
-                <Box
-                  key={option}
-                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
-                  onClick={() => {
-                    handleRemoveAdditionalCriteria('sector', option);
-                  }}
-                >
-                  {getLabel({
-                    value: option,
-                    select: sectors,
-                  }) ?? empty}
-                  <div className="absolute right-1 top-1" onClick={() => {}}>
-                    <X className="size-4" />
-                  </div>
-                </Box>
-              ))}
+            {additionalCriteria?.sector?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('sector', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: sectors,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
           </div>
         </div>
         {showAdditionalSelects.sector && (
@@ -439,8 +476,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('specialties')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('specialties')}
                 />
               ) : (
                 <X
@@ -457,8 +498,13 @@ export default function MatchingLeftSide({
             {missionData.specialties?.map((specialty) => (
               <Box
                 key={specialty}
-                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('specialties', specialty) ? 'bg-[#D64242] text-white' : ''}`}
+                className={`relative ${
+                  isIntern
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:cursor-pointer'
+                } px-6 py-3 ${isExcludedCriteriaSelected('specialties', specialty) ? 'bg-[#D64242] text-white' : ''}`}
                 onClick={() =>
+                  !isIntern &&
                   handleExcludedCriteriaClick('specialties', specialty)
                 }
               >
@@ -471,24 +517,23 @@ export default function MatchingLeftSide({
                 )}
               </Box>
             ))}
-            {additionalCriteria.specialties &&
-              additionalCriteria.specialties.map((option) => (
-                <Box
-                  key={option}
-                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
-                  onClick={() => {
-                    handleRemoveAdditionalCriteria('specialties', option);
-                  }}
-                >
-                  {getLabel({
-                    value: option,
-                    select: specialitiesSelect,
-                  }) ?? empty}
-                  <div className="absolute right-1 top-1" onClick={() => {}}>
-                    <X className="size-4" />
-                  </div>
-                </Box>
-              ))}
+            {additionalCriteria?.specialties?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('specialties', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: specialitiesSelect,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
           </div>
         </div>
         {showAdditionalSelects.specialties && (
@@ -514,7 +559,12 @@ export default function MatchingLeftSide({
             </Box>
           </div>
           <div>
-            <Box className="p-3" isSelectable options={seniorityOptions}>
+            <Box
+              className="p-3"
+              isSelectable
+              options={seniorityOptions}
+              disabled={!isIntern}
+            >
               {'1'}
             </Box>
           </div>
@@ -527,8 +577,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('expertises')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('expertises')}
                 />
               ) : (
                 <X
@@ -545,8 +599,13 @@ export default function MatchingLeftSide({
             {missionData.expertises?.map((expertise) => (
               <Box
                 key={expertise}
-                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('expertises', expertise) ? 'bg-[#D64242] text-white' : ''}`}
+                className={`relative ${
+                  isIntern
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:cursor-pointer'
+                } px-6 py-3 ${isExcludedCriteriaSelected('expertises', expertise) ? 'bg-[#D64242] text-white' : ''}`}
                 onClick={() =>
+                  !isIntern &&
                   handleExcludedCriteriaClick('expertises', expertise)
                 }
               >
@@ -558,24 +617,23 @@ export default function MatchingLeftSide({
                 )}
               </Box>
             ))}
-            {additionalCriteria.expertises &&
-              additionalCriteria.expertises.map((option) => (
-                <Box
-                  key={option}
-                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
-                  onClick={() => {
-                    handleRemoveAdditionalCriteria('expertises', option);
-                  }}
-                >
-                  {getLabel({
-                    value: option,
-                    select: expertises,
-                  }) ?? empty}
-                  <div className="absolute right-1 top-1" onClick={() => {}}>
-                    <X className="size-4" />
-                  </div>
-                </Box>
-              ))}
+            {additionalCriteria?.expertises?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('expertises', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: expertises,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
           </div>
         </div>
         {showAdditionalSelects.expertises && (
@@ -607,7 +665,7 @@ export default function MatchingLeftSide({
                   ? 'bg-[#FBBE40] text-white'
                   : ''
               }`}
-              isSelectable
+              isSelectable={!isIntern}
               options={actionOptions}
               onValueChange={handleAvailabilityChange}
             >
@@ -622,7 +680,11 @@ export default function MatchingLeftSide({
             </Box>
           </div>
           <div>
-            <Box className="p-3" isSelectable options={actionOptions}>
+            <Box
+              className="p-3"
+              isSelectable={!isIntern}
+              options={actionOptions}
+            >
               {'NON'}
             </Box>
           </div>
@@ -638,7 +700,7 @@ export default function MatchingLeftSide({
                   ? 'bg-[#FBBE40] text-white'
                   : ''
               }`}
-              isSelectable
+              isSelectable={!isIntern}
               options={actionOptions}
               onValueChange={handleManagementChange}
             >
@@ -658,8 +720,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('location')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('location')}
                 />
               ) : (
                 <X
@@ -684,8 +750,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('languages')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('languages')}
                 />
               ) : (
                 <X
@@ -702,7 +772,11 @@ export default function MatchingLeftSide({
             {missionData.languages?.map((language) => (
               <Box
                 key={language}
-                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('languages', language) ? 'bg-[#D64242] text-white' : ''}`}
+                className={`relative ${
+                  isIntern
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:cursor-pointer'
+                } px-6 py-3 ${isExcludedCriteriaSelected('languages', language) ? 'bg-[#D64242] text-white' : ''}`}
                 onClick={() =>
                   handleExcludedCriteriaClick('languages', language)
                 }
@@ -715,24 +789,23 @@ export default function MatchingLeftSide({
                 )}
               </Box>
             ))}
-            {additionalCriteria.languages &&
-              additionalCriteria.languages.map((option) => (
-                <Box
-                  key={option}
-                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
-                  onClick={() => {
-                    handleRemoveAdditionalCriteria('languages', option);
-                  }}
-                >
-                  {getLabel({
-                    value: option,
-                    select: languages,
-                  }) ?? empty}
-                  <div className="absolute right-1 top-1" onClick={() => {}}>
-                    <X className="size-4" />
-                  </div>
-                </Box>
-              ))}
+            {additionalCriteria?.languages?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('languages', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: languages,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
           </div>
         </div>
         {showAdditionalSelects.languages && (
@@ -759,8 +832,12 @@ export default function MatchingLeftSide({
                 <AddIcon
                   width={20}
                   height={20}
-                  className="rounded bg-primary p-1 hover:cursor-pointer"
-                  onClick={() => handleAddClick('diplomas')}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('diplomas')}
                 />
               ) : (
                 <X
@@ -777,8 +854,14 @@ export default function MatchingLeftSide({
             {missionData.diplomas?.map((diploma) => (
               <Box
                 key={diploma}
-                className={`relative cursor-pointer px-6 py-3 ${isExcludedCriteriaSelected('diplomas', diploma) ? 'bg-[#D64242] text-white' : ''}`}
-                onClick={() => handleExcludedCriteriaClick('diplomas', diploma)}
+                className={`relative ${
+                  isIntern
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:cursor-pointer'
+                } px-6 py-3 ${isExcludedCriteriaSelected('diplomas', diploma) ? 'bg-[#D64242] text-white' : ''}`}
+                onClick={() =>
+                  !isIntern && handleExcludedCriteriaClick('diplomas', diploma)
+                }
               >
                 {getLabel({ value: diploma, select: diplomas }) ?? empty}
                 {isExcludedCriteriaSelected('diplomas', diploma) && (
@@ -788,24 +871,23 @@ export default function MatchingLeftSide({
                 )}
               </Box>
             ))}
-            {additionalCriteria.diplomas &&
-              additionalCriteria.diplomas.map((option) => (
-                <Box
-                  key={option}
-                  className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
-                  onClick={() => {
-                    handleRemoveAdditionalCriteria('diplomas', option);
-                  }}
-                >
-                  {getLabel({
-                    value: option,
-                    select: diplomas,
-                  }) ?? empty}
-                  <div className="absolute right-1 top-1" onClick={() => {}}>
-                    <X className="size-4" />
-                  </div>
-                </Box>
-              ))}
+            {additionalCriteria?.diplomas?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('diplomas', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: diplomas,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
           </div>
         </div>
         {showAdditionalSelects.diplomas && (
@@ -841,7 +923,7 @@ export default function MatchingLeftSide({
             </Box>
           </div>
           <div>
-            <Box className="p-3" isSelectable>
+            <Box className="p-3" isSelectable={!isIntern}>
               {'non évalué'}
             </Box>
           </div>
@@ -859,7 +941,7 @@ export default function MatchingLeftSide({
                   ? 'bg-[#FBBE40] text-white'
                   : ''
               }`}
-              isSelectable
+              isSelectable={!isIntern}
               options={actionOptions}
               onValueChange={handleHandicapChange}
             >

@@ -85,9 +85,9 @@ input[type='date'] {
   stroke: var(--accent) !important;
 }
 
-input[type='date']::-webkit-calendar-picker-indicator {
+/* input[type='date']::-webkit-calendar-picker-indicator {
   filter: invert(1) !important;
-}
+} */
 
 input[type='search']::-webkit-search-cancel-button {
   display: none !important;

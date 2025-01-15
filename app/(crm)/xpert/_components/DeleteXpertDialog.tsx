@@ -8,10 +8,10 @@ import {
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import React, { useState } from 'react';
-import { toast } from 'sonner';
-import TextArea from '@/components/inputs/TextArea';
+
 import FakeInput from '@/components/inputs/FakeInput';
 import { useXpertStore } from '@/store/xpert';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DeleteXpertDialog({
   xpertId,
@@ -23,6 +23,7 @@ export default function DeleteXpertDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const { deleteXpert } = useXpertStore();
+  const { user } = useAuth();
 
   const handleSendDeleteXpert = async () => {
     setIsLoading(true);
@@ -38,9 +39,14 @@ export default function DeleteXpertDialog({
 
   return (
     <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
-      <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
-        Supprimer l’XPERT
-      </Button>
+      {/* TODO: add later logic for delete reason xpert with notification */}
+      {/* for the moment, i disable the button for restrictions access role */}
+      {user?.role === 'admin' ||
+        (user?.role === 'project_manager' && (
+          <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
+            Supprimer l’XPERT
+          </Button>
+        ))}
 
       <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white bg-opacity-70 p-0 backdrop-blur-sm">
         <div className="relative h-[175px] w-full">

@@ -65,10 +65,7 @@ export default function SelectComponent({
   return (
     <div className={cn('w-full font-light xl:max-w-[280px]', className)}>
       {label && (
-        <Label
-          htmlFor={id}
-          className={cn('mb-2 flex items-center', classNameLabel)}
-        >
+        <Label htmlFor={id} className={cn('flex items-center', classNameLabel)}>
           {label}
           {required && <span className="ml-1 text-accent">*</span>}
         </Label>

@@ -1,7 +1,7 @@
 'use client';
 
 import { Command as CommandPrimitive, useCommandState } from 'cmdk';
-import { X } from 'lucide-react';
+import { Ban, X } from 'lucide-react';
 import * as React from 'react';
 import { forwardRef, useEffect } from 'react';
 
@@ -30,6 +30,7 @@ type GroupOption = {
 
 type MultipleSelectorProps = {
   value?: Option[];
+  hasPreIcon?: boolean;
   defaultOptions?: Option[];
   showIndividualX?: boolean;
   /** manually controlled options */
@@ -135,7 +136,9 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
 function isOptionsExist(groupOption: GroupOption, targetOption: Option[]) {
   for (const [, value] of Object.entries(groupOption)) {
     if (
-      value.some((option) => targetOption.find((p) => p.value === option.value))
+      value.some((option) =>
+        targetOption.find((p) => p.value === option?.value)
+      )
     ) {
       return true;
     }
@@ -179,6 +182,7 @@ const MultipleSelector = React.forwardRef<
       value,
       onChange,
       placeholder,
+      hasPreIcon,
       showIndividualX = true,
       defaultOptions: arrayDefaultOptions = [],
       options: arrayOptions,
@@ -227,7 +231,7 @@ const MultipleSelector = React.forwardRef<
 
     const handleUnselect = React.useCallback(
       (option: Option) => {
-        const newOptions = selected.filter((s) => s.value !== option.value);
+        const newOptions = selected.filter((s) => s.value !== option?.value);
         setSelected(newOptions);
         onChange?.(newOptions);
       },
@@ -310,7 +314,7 @@ const MultipleSelector = React.forwardRef<
       const Item = (
         <CommandItem
           value={inputValue}
-          className="cursor-pointer"
+          className={cn('cursor-pointer')}
           onMouseDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -413,25 +417,25 @@ const MultipleSelector = React.forwardRef<
             inputRef.current?.focus();
           }}
         >
-          <div className="relative flex flex-wrap gap-1 pr-2">
+          <div className="relative flex w-full flex-wrap items-center gap-1 pr-2">
             {selected.map((option, index) => {
               return (
                 <Badge
-                  key={option.value}
+                  key={option?.value}
                   className={cn(
                     'data-[disabled]:bg-muted-foreground data-[disabled]:hover:bg-muted-foreground font-light data-[disabled]:text-muted',
                     'data-[fixed]:bg-muted-foreground data-[fixed]:hover:bg-muted-foreground data-[fixed]:text-muted',
                     badgeClassName
                   )}
-                  data-fixed={option.fixed}
+                  data-fixed={option?.fixed}
                   data-disabled={disabled || undefined}
                 >
-                  {option.label}
+                  {option?.label}
                   {showIndividualX && (
                     <button
                       className={cn(
                         'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                        (disabled || option.fixed) && 'hidden'
+                        (disabled || option?.fixed) && 'hidden'
                       )}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -451,6 +455,13 @@ const MultipleSelector = React.forwardRef<
               );
             })}
             {/* Avoid having the "Search" Icon */}
+            {hasPreIcon && disabled && (
+              <Ban
+                color="black"
+                className="mx-3 bg-transparent outline-none"
+                type="button"
+              />
+            )}
             <CommandPrimitive.Input
               {...inputProps}
               ref={inputRef}
@@ -486,22 +497,29 @@ const MultipleSelector = React.forwardRef<
                 inputProps?.className
               )}
             />
+
             <button
               type="button"
               onClick={() => {
-                setSelected(selected.filter((s) => s.fixed));
-                onChange?.(selected.filter((s) => s.fixed));
+                setSelected(selected.filter((s) => s?.fixed));
+                onChange?.(selected.filter((s) => s?.fixed));
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
               }}
               className={cn(
-                'absolute right-0 h-6 w-6 p-0',
+                'absolute right-0 ml-1 h-6 w-6 rounded-full p-0 outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+
                 (hideClearAllButton ||
                   disabled ||
                   selected.length < 1 ||
-                  selected.filter((s) => s.fixed).length === selected.length) &&
+                  selected.filter((s) => s?.fixed).length ===
+                    selected.length) &&
                   'hidden'
               )}
             >
-              <X />
+              <X className="size-3 hover:text-foreground" />
             </button>
           </div>
         </div>
@@ -541,9 +559,9 @@ const MultipleSelector = React.forwardRef<
                         {dropdowns.map((option, index) => {
                           return (
                             <CommandItem
-                              key={`${option.value}-${option.label}-${index}`}
-                              value={option.label}
-                              disabled={option.disable}
+                              key={`${option?.value}-${option?.label}-${index}`}
+                              value={option?.label}
+                              disabled={option?.disable}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -560,11 +578,11 @@ const MultipleSelector = React.forwardRef<
                               }}
                               className={cn(
                                 'cursor-pointer',
-                                option.disable &&
+                                option?.disable &&
                                   'text-muted-foreground cursor-default'
                               )}
                             >
-                              {option.label}
+                              {option?.label}
                             </CommandItem>
                           );
                         })}

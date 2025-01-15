@@ -11,48 +11,226 @@ import {
   energyRenewableSelect,
   energySelect,
   howManyPeopleLedSelect,
+  infrastructureSelect,
+  posts,
   postTypesSelect,
+  sectorSelect,
+  specialitySelect,
   wasteTreatmentSelect,
 } from '@/data/mocked_select';
 import { profileDataExperience } from '@/data/profile';
 import { cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
-import type { DBXpert } from '@/types/typesDb';
+import type { DBProfileExperience, DBXpert } from '@/types/typesDb';
 import React, { useState } from 'react';
+import type { NestedTableKey } from './row/XpertRowContent';
+import CreatableSelect from '@/components/CreatableSelect';
+import { getLabel } from '@/utils/getLabel';
+import { number } from 'zod';
+import MultiCreatableSelect from '@/components/MultiCreatableSelect';
+import { Plus } from 'lucide-react';
+import { useXpertStore } from '@/store/xpert';
 
-export default function XpertExperience({ xpert }: { xpert: DBXpert }) {
-  const { experiences } = xpert.profile_expertise ?? {};
+// type XpertExperienceProps = {
+//   xpert: DBXpert;
+//   setXpert: React.Dispatch<React.SetStateAction<DBXpert | null>>;
+// };
+
+type XpertExperienceProps = {
+  handleKeyChanges: (table: NestedTableKey | undefined, name: string) => void;
+};
+
+export default function XpertExperience({
+  handleKeyChanges,
+}: XpertExperienceProps) {
+  const { openedXpertNotSaved: xpert, setOpenedXpertNotSaved: setXpert } =
+    useXpertStore();
+  const { experiences } = xpert?.profile_expertise ?? {};
   const [experienceSelected, setExperienceSelected] = useState(0);
-  const { posts, sectors, infrastructures } = useSelect();
+
+  const handleChangeInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const name = e.target.name;
+    const value = e.target.value;
+
+    if (xpert && xpert.profile_expertise) {
+      const newExperiences = [...xpert.profile_expertise.experiences];
+      newExperiences[index] = { ...newExperiences[index], [name]: value };
+      const newXpert = {
+        ...xpert,
+        profile_expertise: {
+          ...xpert.profile_expertise,
+          experiences: newExperiences,
+        },
+      };
+      handleKeyChanges('profile_expertise', 'experiences');
+
+      setXpert(newXpert);
+    }
+  };
+
+  const handleChangeSelect = (
+    value: string | number,
+    name: string,
+    index: number
+  ) => {
+    if (xpert && xpert.profile_expertise) {
+      const newExperiences = [...xpert.profile_expertise.experiences];
+      newExperiences[index] = { ...newExperiences[index], [name]: value };
+      const newXpert = {
+        ...xpert,
+        profile_expertise: {
+          ...xpert.profile_expertise,
+          experiences: newExperiences,
+        },
+      };
+      handleKeyChanges('profile_expertise', 'experiences');
+
+      setXpert(newXpert);
+    }
+  };
+
+  const handleChangeMultiSelect = (
+    value: string[] | string,
+    name: string,
+    index: number
+  ) => {
+    if (xpert && xpert.profile_expertise) {
+      const newExperiences = [...xpert.profile_expertise.experiences];
+      newExperiences[index] = { ...newExperiences[index], [name]: value };
+      const newXpert = {
+        ...xpert,
+        profile_expertise: {
+          ...xpert.profile_expertise,
+          experiences: newExperiences,
+        },
+      };
+      handleKeyChanges('profile_expertise', 'experiences');
+
+      setXpert(newXpert);
+    }
+  };
+
+  const addExperience = () => {
+    const emptyExperience = {
+      post: '',
+      company: '',
+      duree: '',
+      is_last:
+        xpert?.profile_expertise?.experiences.length === 0 ? 'true' : 'false',
+      has_led_team: '',
+      post_other: '',
+      sector_infrastructure_other: '',
+      sector_renewable_energy_other: '',
+      profile_id: xpert?.id ?? '',
+      id: undefined as any,
+      how_many_people_led: '',
+      sector: '',
+      sector_other: '',
+      sector_energy: '',
+      sector_renewable_energy: '',
+      sector_waste_treatment: '',
+      sector_infrastructure: '',
+      post_type: [],
+      comments: '',
+    };
+    const newExperiences = [...(xpert?.profile_expertise?.experiences ?? [])];
+    newExperiences.push(emptyExperience);
+    if (!xpert || !xpert.profile_expertise) return;
+    const newXpert = {
+      ...xpert,
+      profile_expertise: {
+        ...xpert.profile_expertise,
+        experiences: newExperiences,
+      },
+    };
+    handleKeyChanges('profile_expertise', 'experiences');
+
+    setXpert(newXpert);
+    setExperienceSelected(newExperiences.length - 1);
+  };
+
+  const removeExperience = (index: number) => {
+    if (xpert && xpert.profile_expertise) {
+      const newExperiences = xpert.profile_expertise.experiences.filter(
+        (_, i) => i !== index
+      );
+      const newXpert = {
+        ...xpert,
+        profile_expertise: {
+          ...xpert.profile_expertise,
+          experiences: newExperiences,
+        },
+      };
+      handleKeyChanges('profile_expertise', 'experiences');
+
+      setXpert(newXpert);
+      newExperiences && setExperienceSelected(index - 1);
+    }
+  };
+
+  const handleChangeLastExperience = (index: number) => {
+    if (xpert && xpert.profile_expertise) {
+      const newExperiences = xpert.profile_expertise.experiences.map((e) => ({
+        ...e,
+        is_last: 'false',
+      }));
+      newExperiences[index] = { ...newExperiences[index], is_last: 'true' };
+
+      const newExperienceSorted = newExperiences.sort((a, b) => {
+        if (a.is_last === 'true') return -1;
+        if (b.is_last === 'true') return 1;
+        return 0;
+      });
+      const newXpert = {
+        ...xpert,
+        profile_expertise: {
+          ...xpert.profile_expertise,
+          experiences: newExperienceSorted,
+        },
+      };
+      handleKeyChanges('profile_expertise', 'experiences');
+
+      setXpert(newXpert);
+    }
+  };
 
   return (
     <div>
       <div className="flex flex-wrap items-center gap-x-spaceXSmall gap-y-spaceXXSmall">
-        {experiences?.map((e, index) => {
-          const selected = experienceSelected === index;
-          const text =
-            index == 0 ? 'Dernière expérience' : `Expérience ${index + 1}`;
-          return (
-            <Button
-              onClick={() => setExperienceSelected(index)}
-              key={e.id}
-              className={cn(
-                'rounded-b-none px-spaceMedium text-md text-white shadow-none lg:w-fit',
-                { 'bg-inactive': !selected }
-              )}
-            >
-              {text}
-            </Button>
-          );
-        })}
-        {/* {experiences && experiences.length < 5 && (
+        {experiences
+          ?.sort((a, b) => {
+            if (a.is_last === 'true') return -1;
+            if (b.is_last === 'true') return 1;
+            return 0;
+          })
+          ?.map((e, index) => {
+            const selected = experienceSelected === index;
+            const text =
+              index == 0 ? 'Dernière expérience' : `Expérience ${index + 1}`;
+            return (
+              <Button
+                onClick={() => setExperienceSelected(index)}
+                key={e.id}
+                className={cn(
+                  'rounded-b-none px-spaceMedium text-md text-white shadow-none lg:w-fit',
+                  { 'bg-inactive': !selected }
+                )}
+              >
+                {text}
+              </Button>
+            );
+          })}
+        {experiences && experiences.length < 5 && (
           <Button
-            onClick={() => ({})}
-            className="px-spaceMedium text-md text-white lg:w-fit rounded-b-none"
-            >
+            onClick={addExperience}
+            className="rounded-b-none px-spaceMedium text-md text-white lg:w-fit"
+          >
             <Plus />
           </Button>
-        )} */}
+        )}
       </div>
       <div className="rounded-r-s bg-white p-spaceSmall shadow-container">
         {experiences?.map((experience, index) => {
@@ -65,218 +243,244 @@ export default function XpertExperience({ xpert }: { xpert: DBXpert }) {
               })}
             >
               <div className="grid w-full grid-cols-1 flex-wrap items-center gap-spaceSmall 2xl:grid-cols-2">
-                <SelectComponent
-                  className="xpertise_input xl:max-w-full"
-                  options={posts}
-                  placeholder={experience.post ?? 'Choisir'}
-                  defaultSelectedKeys={experience.post ?? empty}
-                  label={profileDataExperience.post?.label}
-                  name={profileDataExperience.post?.name as string}
-                  onValueChange={() => ({})}
-                  disabled
+                <CreatableSelect
+                  creatable
+                  label="Poste"
+                  defaultValue={{
+                    label:
+                      getLabel({
+                        value: experience.post ?? '',
+                        select: posts,
+                      }) ?? '',
+                    value: experience.post ?? '',
+                  }}
+                  onChange={(e) => handleChangeSelect(e.value, 'post', index)}
+                  optionsOther={experience.post_other}
+                  options={
+                    experience.post_other
+                      ? [
+                          ...posts,
+                          {
+                            label: experience.post_other,
+                            value: experience.post_other,
+                          },
+                        ]
+                      : posts
+                  }
                 />
-
-                {experience.post === 'other' && (
-                  <Input
-                    name={profileDataExperience.post_other?.name}
-                    label={profileDataExperience.post_other?.label}
-                    className="xpertise_input sm:min-w-[280px] xl:max-w-full"
-                    disabled
-                    defaultValue={experience.post_other ?? empty}
-                    placeholder="Précisez votre poste"
-                    onChange={() => ({})}
-                  />
-                )}
 
                 <Input
-                  name={profileDataExperience.company?.name}
-                  label={profileDataExperience.company?.label}
-                  className="xpertise_input"
-                  disabled
-                  defaultValue={experience.company ?? empty}
-                  placeholder="Nom de l'entreprise"
-                  onChange={() => ({})}
-                />
-                <SelectComponent
-                  className="xpertise_input xl:max-w-full"
-                  defaultSelectedKeys={experience.duree ?? empty}
-                  options={dureeSelect}
-                  disabled
-                  label={profileDataExperience.duree?.label}
-                  placeholder="Choisir"
-                  name={profileDataExperience.duree?.name as string}
-                  onValueChange={() => ({})}
+                  label="Entreprise"
+                  value={experience.company ?? empty}
+                  name="company"
+                  onChange={(e) => handleChangeInput(e, index)}
                 />
 
-                <SelectComponent
-                  className="xpertise_input xl:max-w-full"
-                  defaultSelectedKeys={String(experience.has_led_team)}
-                  placeholder="Choisir"
-                  disabled
-                  label={profileDataExperience.has_led_team?.label}
-                  name={profileDataExperience.has_led_team?.name as string}
-                  onValueChange={() => ({})}
+                <CreatableSelect
+                  label={'Durée exercée'}
+                  options={dureeSelect}
+                  defaultValue={{
+                    label:
+                      getLabel({
+                        value: experience.duree ?? '',
+                        select: dureeSelect,
+                      }) ?? '',
+                    value: experience.duree ?? '',
+                  }}
+                  onChange={(e) => handleChangeSelect(e.value, 'duree', index)}
+                />
+
+                <CreatableSelect
                   options={booleanSelect}
+                  defaultValue={{
+                    label: String(experience.has_led_team) ?? '',
+                    value: String(experience.has_led_team) ?? '',
+                  }}
+                  onChange={(e) =>
+                    handleChangeSelect(e.value, 'has_led_team', index)
+                  }
+                  label={'A déjà dirigé une équipe ?'}
                 />
 
                 {experience.has_led_team == 'true' && (
-                  <SelectComponent
-                    className="xpertise_input xl:max-w-full"
-                    defaultSelectedKeys={
-                      experience.how_many_people_led ?? empty
-                    }
-                    disabled
+                  <CreatableSelect
+                    defaultValue={{
+                      label:
+                        getLabel({
+                          value: experience.how_many_people_led ?? '',
+                          select: howManyPeopleLedSelect,
+                        }) ?? '',
+                      value: experience.how_many_people_led ?? '',
+                    }}
                     options={howManyPeopleLedSelect}
-                    label={profileDataExperience.how_many_people_led?.label}
-                    name={
-                      profileDataExperience.how_many_people_led?.name as string
+                    label={'Combien de personnes a-t-il dirigé ?'}
+                    name={'how_many_people_led'}
+                    onChange={(e) =>
+                      handleChangeSelect(e.value, 'how_many_people_led', index)
                     }
-                    onValueChange={() => ({})}
                   />
                 )}
 
-                <SelectComponent
-                  className="xpertise_input xl:max-w-full"
-                  defaultSelectedKeys={experience.sector ?? empty}
-                  placeholder={experience.sector ?? 'Choisir'}
-                  options={sectors}
-                  label={profileDataExperience.sector?.label}
-                  name={profileDataExperience.sector?.name as string}
-                  onValueChange={() => ({})}
-                  disabled={true}
+                <CreatableSelect
+                  name="sector"
+                  creatable
+                  label="Secteur d'activité"
+                  defaultValue={{
+                    label:
+                      getLabel({
+                        value: experience.sector ?? '',
+                        select: sectorSelect,
+                      }) ?? '',
+                    value: experience.sector ?? '',
+                  }}
+                  onChange={(e) => handleChangeSelect(e.value, 'sector', index)}
+                  optionsOther={experience.sector_other}
+                  options={
+                    experience.sector_other
+                      ? [
+                          ...sectorSelect,
+                          {
+                            label: experience.sector_other,
+                            value: experience.sector_other,
+                          },
+                        ]
+                      : sectorSelect
+                  }
                 />
-                {experience.sector === 'others' && (
-                  <Input
-                    // key={`index_${experience.post_other}`}
-                    name={profileDataExperience.sector_other?.name}
-                    label={profileDataExperience.sector_other?.label}
-                    className="xpertise_input flex-1 sm:min-w-[280px] xl:max-w-full"
-                    disabled
-                    defaultValue={experience.sector_other ?? empty}
-                    placeholder="Précisez votre secteur d'activité"
-                    onChange={() => ({})}
-                  />
-                )}
 
                 {experience.sector == 'energy' && (
-                  <SelectComponent
-                    className="xpertise_input xl:max-w-full"
-                    defaultSelectedKeys={experience.sector_energy ?? empty}
-                    placeholder="Choisir"
-                    disabled
+                  <CreatableSelect
+                    defaultValue={{
+                      label:
+                        getLabel({
+                          value: experience.sector_energy ?? '',
+                          select: energySelect,
+                        }) ?? '',
+                      value: experience.sector_energy ?? '',
+                    }}
                     options={energySelect}
-                    label={profileDataExperience.sector_energy?.label}
-                    name={profileDataExperience.sector_energy?.name as string}
-                    onValueChange={() => ({})}
+                    label={"Type d'énergie"}
+                    onChange={(e) =>
+                      handleChangeSelect(e.value, 'sector_energy', index)
+                    }
                   />
                 )}
 
                 {experience.sector == 'renewable_energy' && (
-                  <SelectComponent
-                    className="xpertise_input xl:max-w-full"
-                    defaultSelectedKeys={
-                      experience.sector_renewable_energy ?? empty
+                  <CreatableSelect
+                    creatable
+                    name="sector_renewable_energy"
+                    label="Type d'énergie"
+                    defaultValue={{
+                      label:
+                        getLabel({
+                          value: experience.sector_renewable_energy ?? '',
+                          select: energyRenewableSelect,
+                        }) ?? '',
+                      value: experience.sector_renewable_energy ?? '',
+                    }}
+                    onChange={(e) =>
+                      handleChangeSelect(
+                        e.value,
+                        'sector_renewable_energy',
+                        index
+                      )
                     }
-                    placeholder="Choisir"
-                    disabled
-                    options={energyRenewableSelect}
-                    label={profileDataExperience.sector_renewable_energy?.label}
-                    name={
-                      profileDataExperience.sector_renewable_energy
-                        ?.name as string
+                    optionsOther={experience.sector_renewable_energy_other}
+                    options={
+                      experience.sector_renewable_energy_other
+                        ? [
+                            ...energyRenewableSelect,
+                            {
+                              label: experience.sector_renewable_energy_other,
+                              value: experience.sector_renewable_energy_other,
+                            },
+                          ]
+                        : energyRenewableSelect
                     }
-                    onValueChange={() => ({})}
-                  />
-                )}
-
-                {experience.sector_renewable_energy === 'other' && (
-                  <Input
-                    name={
-                      profileDataExperience.sector_renewable_energy_other?.name
-                    }
-                    label={
-                      profileDataExperience.sector_renewable_energy_other?.label
-                    }
-                    className="xpertise_input flex-1 sm:min-w-[280px] xl:max-w-full"
-                    disabled
-                    defaultValue={
-                      experience.sector_renewable_energy_other ?? empty
-                    }
-                    placeholder="Précisez votre énergie renouvelable"
-                    onChange={() => ({})}
                   />
                 )}
 
                 {experience.sector == 'waste_treatment' && (
-                  <SelectComponent
-                    className="xpertise_input xl:max-w-full"
-                    disabled
-                    defaultSelectedKeys={
-                      experience.sector_waste_treatment ?? empty
-                    }
-                    placeholder="Choisir"
+                  <CreatableSelect
+                    defaultValue={{
+                      label:
+                        getLabel({
+                          value: experience.sector_waste_treatment ?? '',
+                          select: wasteTreatmentSelect,
+                        }) ?? '',
+                      value: experience.sector_waste_treatment ?? '',
+                    }}
                     options={wasteTreatmentSelect}
-                    label={profileDataExperience.sector_waste_treatment?.label}
-                    name={
-                      profileDataExperience.sector_waste_treatment
-                        ?.name as string
+                    label={"Type d'énergie"}
+                    onChange={(e) =>
+                      handleChangeSelect(
+                        e.value,
+                        'sector_waste_treatment',
+                        index
+                      )
                     }
-                    onValueChange={() => ({})}
                   />
                 )}
 
                 {experience.sector == 'infrastructure' && (
-                  <SelectComponent
-                    className="xpertise_input xl:max-w-full"
-                    defaultSelectedKeys={
-                      experience.sector_infrastructure ?? empty
+                  <CreatableSelect
+                    creatable
+                    name="sector_infrastructure"
+                    label="Type d'énergie"
+                    defaultValue={{
+                      label:
+                        getLabel({
+                          value: experience.sector_infrastructure ?? '',
+                          select: infrastructureSelect,
+                        }) ?? '',
+                      value: experience.sector_infrastructure ?? '',
+                    }}
+                    onChange={(e) =>
+                      handleChangeSelect(
+                        e.value,
+                        'sector_infrastructure',
+                        index
+                      )
                     }
-                    placeholder={experience.sector_infrastructure ?? 'Choisir'}
-                    options={infrastructures}
-                    label={profileDataExperience.sector_infrastructure?.label}
-                    name={
-                      profileDataExperience.sector_infrastructure
-                        ?.name as string
+                    optionsOther={experience.sector_infrastructure_other}
+                    options={
+                      experience.sector_infrastructure_other
+                        ? [
+                            ...infrastructureSelect,
+                            {
+                              label: experience.sector_infrastructure_other,
+                              value: experience.sector_infrastructure_other,
+                            },
+                          ]
+                        : infrastructureSelect
                     }
-                    onValueChange={() => ({})}
-                    disabled
-                  />
-                )}
-                {experience.sector_infrastructure === 'other' && (
-                  <Input
-                    name={
-                      profileDataExperience.sector_infrastructure_other?.name
-                    }
-                    label={
-                      profileDataExperience.sector_infrastructure_other?.label
-                    }
-                    className="xpertise_input flex-1 sm:min-w-[280px] xl:max-w-full"
-                    disabled
-                    defaultValue={
-                      experience.sector_infrastructure_other ?? empty
-                    }
-                    placeholder="Précisez votre infrastructure"
-                    onChange={() => ({})}
                   />
                 )}
 
-                <MultiSelectComponent
+                <MultiCreatableSelect
+                  name={'post_type'}
+                  label={'Type de poste'}
+                  defaultValue={experience.post_type?.map((post_type) => ({
+                    label:
+                      getLabel({ value: post_type, select: postTypesSelect }) ??
+                      '',
+                    value: post_type ?? '',
+                  }))}
+                  onChange={(selectedOption) =>
+                    handleChangeMultiSelect(
+                      selectedOption.map((option) => option.value),
+                      'post_type',
+                      index
+                    )
+                  }
                   options={postTypesSelect}
-                  className="xpertise_input xl:max-w-full"
-                  defaultSelectedKeys={experience.post_type ?? []}
-                  placeholder="Choisir"
-                  label={profileDataExperience.post_type?.label}
-                  name={profileDataExperience.post_type?.name as string}
-                  disabled
-                  onValueChange={() => ({})}
                 />
                 <Input
-                  defaultValue={experience.comments ?? empty}
-                  label={profileDataExperience.comments?.label}
-                  disabled
-                  name={profileDataExperience.comments?.name}
-                  placeholder="Commentaires"
-                  className="flex-1 xl:max-w-full"
+                  label="Commentaires"
+                  value={experience.comments ?? empty}
+                  name="comments"
+                  onChange={(e) => handleChangeInput(e, index)}
                 />
               </div>
               <Label
@@ -289,19 +493,20 @@ export default function XpertExperience({ xpert }: { xpert: DBXpert }) {
                   id="last_exp"
                   key={`${experience.id}_is_last_exp`}
                   className="scale-90 bg-white"
-                  disabled={true}
-                  checked={index === 0}
+                  onClick={() => handleChangeLastExperience(index)}
+                  checked={experience.is_last === 'true'}
                 />
               </Label>
               <div className="flex items-center justify-end gap-x-spaceSmall">
-                {/* {isNotFirstExperience && (
-                  <Button
-                    className="text-important mt-spaceSmall self-end bg-transparent px-0 lg:w-fit"
-                    onClick={() => ({})}
-                  >
-                    Supprimer l'expérience
-                  </Button>
-                )} */}
+                {/* {index !== 0 && ( */}
+                <Button
+                  variant={'ghost'}
+                  className="mt-spaceSmall self-end bg-transparent px-0 text-important hover:bg-transparent lg:w-fit"
+                  onClick={() => removeExperience(index)}
+                >
+                  Supprimer l'expérience
+                </Button>
+                {/* )} */}
                 {isNotLastExperience && (
                   <Button
                     className="mt-spaceSmall self-end px-spaceSmall text-white lg:w-fit"

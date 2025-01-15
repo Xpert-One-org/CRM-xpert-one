@@ -1,6 +1,7 @@
 'use client';
 import { DESKTOP } from '@/data/constant';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import useChat from '@/store/chat/chat';
 import { useRealtimeChat } from '@/store/chat/realtime';
@@ -10,12 +11,10 @@ import { handleReadNewMessage } from '@functions/chat';
 import React from 'react';
 
 type TabContentProps = {
-  user_id: string;
   type: ChatType;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export default function TabContent({
-  user_id,
   className,
   type,
 }: Readonly<TabContentProps>) {
@@ -27,7 +26,9 @@ export default function TabContent({
     getChatWithRightType,
   } = useChat();
 
-  useRealtimeChat({ type, user_id });
+  const { user } = useAuth();
+
+  useRealtimeChat({ type, user_id: user?.id ?? '' });
   const isDektop = useMediaQuery(DESKTOP);
   const chats = getChatWithRightType(type);
   const chatSelected = getChatSelectedWithRightType(type);
@@ -48,8 +49,10 @@ export default function TabContent({
       )}
       {chats.map((chat, index) => {
         const isReadByMe =
-          chat.messages[chat.messages.length - 1]?.read_by.includes(user_id) ||
-          chat.messages[chat.messages.length - 1]?.send_by === user_id ||
+          chat.messages[chat.messages.length - 1]?.read_by.includes(
+            user?.id ?? ''
+          ) ||
+          chat.messages[chat.messages.length - 1]?.send_by === user?.id ||
           !chat.messages.length;
         return (
           <TabChat

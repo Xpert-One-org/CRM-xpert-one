@@ -113,7 +113,7 @@ const CountrySelect = ({
           variant={'outline'}
           defaultValue={'FR'}
           className={cn(
-            'flex h-[42px] gap-1 rounded-e-none rounded-s-lg px-3 text-black'
+            'flex h-[42px] gap-1 rounded-e-none rounded-s-lg bg-white px-3 text-black'
           )}
           disabled={disabled}
         >

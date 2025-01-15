@@ -11,13 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RotateCcw } from 'lucide-react';
 import CreateTaskDialog from './CreateTaskDialog';
-import {
-  updateTask,
-  completeTask,
-  getAdminUsers,
-} from '../../../../functions/tasks';
+import { updateTask, completeTask } from '../../../../functions/tasks';
 import type {
   FilterTasks,
   TaskSubjectType,
@@ -30,9 +25,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import { useTasksStore } from '@/store/task';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
+import DeleteTaskDialog from './DeleteTaskDialog';
+import DialogTaskHistory from './HistoryTaskDialog';
+import { useAdminCollaborators } from '@/store/adminCollaborators';
 
 type TaskStatus = 'urgent' | 'pending' | 'done';
-type SubjectType = 'xpert' | 'supplier' | 'mission' | 'other';
 
 const statusOptions = [
   { label: 'Urgent', value: 'urgent', color: '#D75D5D' },
@@ -89,12 +86,13 @@ export default function TaskTable() {
   const {
     loadTasks,
     loading,
-    resetTasks,
     tasks,
     activeFilters,
     setActiveFilters,
     totalTasks,
   } = useTasksStore();
+
+  const { collaborators, fetchCollaborators } = useAdminCollaborators();
 
   const [newStatusNotSaved, setNewStatusNotSaved] = useState<
     NewStatusNotSaved[]
@@ -109,24 +107,27 @@ export default function TaskTable() {
     { label: string; value: string }[]
   >([]);
 
+  const [filterKey, setFilterKey] = useState(0);
+
   const hasSomethingNotSaved =
     newStatusNotSaved.length > 0 || newAssignedToNotSaved.length > 0;
 
   useWarnIfUnsavedChanges(hasSomethingNotSaved);
 
   useEffect(() => {
-    const fetchAdminUsers = async () => {
-      const admins = await getAdminUsers();
-      setAdminOptions(
-        admins.map((admin) => ({
-          label: `${admin.firstname} ${admin.lastname}`,
-          value: admin.id,
-        }))
-      );
-    };
+    if (collaborators.length === 0) {
+      fetchCollaborators();
+    }
 
-    fetchAdminUsers();
-  }, []);
+    setAdminOptions(
+      collaborators
+        .filter((collaborator) => collaborator.role === 'admin')
+        .map((collaborator) => ({
+          label: `${collaborator.firstname} ${collaborator.lastname}`,
+          value: collaborator.id,
+        }))
+    );
+  }, [collaborators, fetchCollaborators]);
 
   const handleUpdateStatus = async () => {
     if (!newStatusNotSaved.length) {
@@ -239,176 +240,151 @@ export default function TaskTable() {
     setIsSaving(false);
   };
 
+  const resetTasks = () => {
+    loadTasks(true);
+    setFilterKey((prev) => prev + 1);
+  };
+
   return (
     <div
       className={cn(
-        'flex size-full h-[calc(100vh_-_180px)] flex-col justify-between gap-4 overflow-hidden'
+        'flex size-full flex-col justify-between gap-4 overflow-hidden'
       )}
     >
       <div className="relative flex flex-col gap-4">
         <div className="flex w-full justify-between">
           <CreateTaskDialog onTaskCreate={() => loadTasks(true)} />
-          <Button
-            disabled={!hasSomethingNotSaved || isSaving}
-            className="text-white"
-            onClick={handleSave}
-          >
-            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
-          </Button>
         </div>
 
-        <div className="grid gap-3">
-          {/* Header Row */}
-          <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px] gap-3">
-            <Box className="flex h-full items-center bg-[#FDF6E9] font-[600]">
-              Créé le
-            </Box>
-            <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
-              <FilterButton
-                options={adminOptions}
-                selectedOption={
-                  activeFilters.createdBy
-                    ? {
-                        label: activeFilters.createdBy,
-                        value: activeFilters.createdBy,
-                      }
-                    : { label: '', value: '' }
-                }
-                onValueChange={(value) =>
-                  handleFilterChange('createdBy', value)
-                }
-                placeholder="Par"
-              />
-            </Box>
-            <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
-              <FilterButton
-                options={adminOptions}
-                selectedOption={
-                  activeFilters.assignedTo
-                    ? {
-                        label: activeFilters.assignedTo,
-                        value: activeFilters.assignedTo,
-                      }
-                    : { label: '', value: '' }
-                }
-                onValueChange={(value) =>
-                  handleFilterChange('assignedTo', value)
-                }
-                placeholder="À / Transférer à"
-                className="flex flex-wrap"
-              />
-            </Box>
-            <Box className="flex h-full items-center bg-[#FDF6E9] px-4 font-[600]">
-              Référence
-            </Box>
-            <Box className="flex h-full items-center justify-center bg-[#FDF6E9] px-4 font-[600]">
-              Détails
-            </Box>
-            <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
-              <FilterButton
-                options={statusOptions}
-                coloredOptions
-                selectedOption={{
-                  value: activeFilters.status ?? '',
-                  label:
-                    statusOptions.find(
-                      (opt) => opt.value === activeFilters.status
-                    )?.label ?? '',
-                }}
-                onValueChange={(value) => handleFilterChange('status', value)}
-                placeholder="État"
-              />
-            </Box>
-            <div />
-            <div className="col-span-7">
-              {!loading ? (
-                <div className="flex w-fit items-center gap-x-4">
-                  <p className="whitespace-nowrap">{totalTasks} résultats</p>
-                  {/* RESET */}
-                  {(activeFilters.createdBy ||
-                    activeFilters.assignedTo ||
-                    activeFilters.status ||
-                    activeFilters.subjectType) && (
-                    <button
-                      className="font-[600] text-primary"
-                      onClick={resetTasks}
-                    >
-                      Réinitialiser
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <Skeleton className="h-6 w-40" />
-              )}
-            </div>
-          </div>
-          <div className="h-[calc(100vh_-_350px)] overflow-auto pb-10">
-            <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px] gap-3">
-              {!loading && tasks?.length === 0 ? (
-                <div className="col-span-7 py-8 text-center text-gray-500">
-                  Aucune tâche trouvée
-                </div>
-              ) : (
-                tasks?.map((task) => {
-                  return (
-                    <React.Fragment key={task.id}>
-                      <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                        {formatDate(task.created_at)}
-                      </Box>
-                      <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                        {task.created_by_profile.firstname}
-                      </Box>
-                      <SelectAssignedTo
-                        newAssignedToNotSaved={newAssignedToNotSaved}
-                        setNewAssignedToNotSaved={setNewAssignedToNotSaved}
-                        task={task}
-                        adminOptions={adminOptions}
-                      />
-                      <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                        {getSubjectReference(task)}
-                      </Box>
-                      <Box className="line-clamp-3 flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                        {task.details}
-                      </Box>
-                      <SelectStatus
-                        task={task}
-                        newStatusNotSaved={newStatusNotSaved}
-                        setNewStatusNotSaved={setNewStatusNotSaved}
-                      />
-
-                      <Box className="flex h-[70px] items-center justify-center bg-[#4A8B96]">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          // onClick={loadTasks}
-                          className="size-full text-white hover:bg-[#4A8B96]/90"
-                        >
-                          <RotateCcw className="size-4" />
-                        </Button>
-                      </Box>
-                    </React.Fragment>
-                  );
-                })
-              )}
-            </div>
-            <InfiniteScroll
-              hasMore={hasMore}
-              next={loadTasks}
-              isLoading={false}
-            >
-              {hasMore && (
-                <div className="mt-4 flex w-full items-center justify-center">
-                  <Loader />
-                </div>
-              )}
-              {!hasMore && loading && (
-                <div className="mt-4 flex w-full items-center justify-center">
-                  <Loader />
-                </div>
-              )}
-            </InfiniteScroll>
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
+          <Box className="flex h-full items-center bg-[#FDF6E9] font-[600]">
+            Créé le
+          </Box>
+          <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
+            <FilterButton
+              key={`admin-${filterKey}`}
+              options={adminOptions}
+              onValueChange={(value) => handleFilterChange('createdBy', value)}
+              placeholder="Par"
+            />
+          </Box>
+          <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
+            <FilterButton
+              key={`assigned-${filterKey}`}
+              options={adminOptions}
+              onValueChange={(value) => handleFilterChange('assignedTo', value)}
+              placeholder="À / Transférer à"
+              className="flex flex-wrap"
+            />
+          </Box>
+          <Box className="flex h-full items-center bg-[#FDF6E9] px-4 font-[600]">
+            Référence
+          </Box>
+          <Box className="flex h-full items-center justify-center bg-[#FDF6E9] px-4 font-[600]">
+            Détails
+          </Box>
+          <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
+            <FilterButton
+              key={`status-${filterKey}`}
+              options={statusOptions}
+              coloredOptions
+              onValueChange={(value) => handleFilterChange('status', value)}
+              placeholder="État"
+            />
+          </Box>
+          <div />
+          <div className="col-span-7">
+            {!loading ? (
+              <div className="flex w-fit items-center gap-x-4">
+                <p className="whitespace-nowrap">{totalTasks} résultats</p>
+                {/* RESET */}
+                {(activeFilters.createdBy ||
+                  activeFilters.assignedTo ||
+                  activeFilters.status ||
+                  activeFilters.subjectType) && (
+                  <button
+                    className="font-[600] text-primary"
+                    onClick={resetTasks}
+                  >
+                    Réinitialiser
+                  </button>
+                )}
+              </div>
+            ) : (
+              <Skeleton className="h-6 w-40" />
+            )}
           </div>
         </div>
+        <div className="h-full overflow-auto pb-10">
+          <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
+            {!loading && tasks?.length === 0 ? (
+              <div className="col-span-7 py-8 text-center text-gray-500">
+                Aucune tâche trouvée
+              </div>
+            ) : (
+              tasks?.map((task) => {
+                return (
+                  <React.Fragment key={task.id}>
+                    <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                      {formatDate(task.created_at)}
+                    </Box>
+                    <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                      {task.created_by_profile.firstname}
+                    </Box>
+                    <SelectAssignedTo
+                      newAssignedToNotSaved={newAssignedToNotSaved}
+                      setNewAssignedToNotSaved={setNewAssignedToNotSaved}
+                      task={task}
+                      adminOptions={adminOptions}
+                    />
+                    <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                      {getSubjectReference(task)}
+                    </Box>
+                    <Box className="line-clamp-3 flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                      {task.details}
+                    </Box>
+                    <SelectStatus
+                      task={task}
+                      newStatusNotSaved={newStatusNotSaved}
+                      setNewStatusNotSaved={setNewStatusNotSaved}
+                    />
+
+                    <Box className="flex h-[70px] items-center justify-center bg-[#4A8B96]">
+                      <DialogTaskHistory taskId={task.id} />
+                    </Box>
+                    <Box className="flex h-[70px] items-center justify-center bg-[#D75D5D]">
+                      <DeleteTaskDialog
+                        taskId={task.id}
+                        onDelete={() => loadTasks(true)}
+                      />
+                    </Box>
+                  </React.Fragment>
+                );
+              })
+            )}
+          </div>
+          <InfiniteScroll hasMore={hasMore} next={loadTasks} isLoading={false}>
+            {hasMore && (
+              <div className="mt-4 flex w-full items-center justify-center">
+                <Loader />
+              </div>
+            )}
+            {!hasMore && loading && (
+              <div className="mt-4 flex w-full items-center justify-center">
+                <Loader />
+              </div>
+            )}
+          </InfiniteScroll>
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button
+          disabled={!hasSomethingNotSaved || isSaving}
+          className="bg-primary px-spaceLarge py-spaceContainer text-white"
+          onClick={handleSave}
+        >
+          {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+        </Button>
       </div>
     </div>
   );

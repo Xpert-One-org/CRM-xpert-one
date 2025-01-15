@@ -11,7 +11,7 @@ export const useRealtimeChat = ({
   user_id,
 }: {
   type: ChatType;
-  user_id: string;
+  user_id: string | null;
 }) => {
   const supabase = createSupabaseFrontendClient();
   const {

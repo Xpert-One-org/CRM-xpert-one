@@ -417,6 +417,9 @@ export type Database = {
           end_date: string | null;
           expertises: string[] | null;
           expertises_other: string | null;
+          facturation_fournisseur_payment: Json[] | null;
+          facturation_invoice_paid: Json[] | null;
+          facturation_salary_payment: Json[] | null;
           id: number;
           image_url: string | null;
           job_title: string | null;
@@ -452,6 +455,7 @@ export type Database = {
           street_number: number | null;
           tjm: string | null;
           xpert_associated_id: string | null;
+          xpert_associated_status: string | null;
         };
         Insert: {
           address?: string | null;
@@ -469,6 +473,9 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
+          facturation_fournisseur_payment?: Json[] | null;
+          facturation_invoice_paid?: Json[] | null;
+          facturation_salary_payment?: Json[] | null;
           id?: never;
           image_url?: string | null;
           job_title?: string | null;
@@ -504,6 +511,7 @@ export type Database = {
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
+          xpert_associated_status?: string | null;
         };
         Update: {
           address?: string | null;
@@ -521,6 +529,9 @@ export type Database = {
           end_date?: string | null;
           expertises?: string[] | null;
           expertises_other?: string | null;
+          facturation_fournisseur_payment?: Json[] | null;
+          facturation_invoice_paid?: Json[] | null;
+          facturation_salary_payment?: Json[] | null;
           id?: never;
           image_url?: string | null;
           job_title?: string | null;
@@ -556,6 +567,7 @@ export type Database = {
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
+          xpert_associated_status?: string | null;
         };
         Relationships: [
           {
@@ -696,11 +708,14 @@ export type Database = {
         Row: {
           address: string | null;
           admin_opinion: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id: string | null;
           area: string[] | null;
           avatar_url: string | null;
           birthdate: string | null;
           city: string | null;
           civility: string | null;
+          collaborator_is_absent: boolean | null;
+          collaborator_replacement_id: string | null;
           community_banning_explanations: string | null;
           company_name: string | null;
           company_role: string | null;
@@ -734,7 +749,7 @@ export type Database = {
           profile_progression: number;
           referent_id: string | null;
           regions: string[] | null;
-          role: string;
+          role: Database['public']['Enums']['profile_roles'];
           sector: string | null;
           sector_energy: string | null;
           sector_infrastructure: string | null;
@@ -753,11 +768,14 @@ export type Database = {
         Insert: {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id?: string | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          collaborator_is_absent?: boolean | null;
+          collaborator_replacement_id?: string | null;
           community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
@@ -791,7 +809,7 @@ export type Database = {
           profile_progression?: number;
           referent_id?: string | null;
           regions?: string[] | null;
-          role?: string;
+          role?: Database['public']['Enums']['profile_roles'];
           sector?: string | null;
           sector_energy?: string | null;
           sector_infrastructure?: string | null;
@@ -810,11 +828,14 @@ export type Database = {
         Update: {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
+          affected_referent_id?: string | null;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
           city?: string | null;
           civility?: string | null;
+          collaborator_is_absent?: boolean | null;
+          collaborator_replacement_id?: string | null;
           community_banning_explanations?: string | null;
           company_name?: string | null;
           company_role?: string | null;
@@ -848,7 +869,7 @@ export type Database = {
           profile_progression?: number;
           referent_id?: string | null;
           regions?: string[] | null;
-          role?: string;
+          role?: Database['public']['Enums']['profile_roles'];
           sector?: string | null;
           sector_energy?: string | null;
           sector_infrastructure?: string | null;
@@ -865,6 +886,27 @@ export type Database = {
           username?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'profile_affected_referent_id_fkey';
+            columns: ['affected_referent_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_collaborator_replacement_id_fkey';
+            columns: ['collaborator_replacement_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'profile_referent_id_fkey';
             columns: ['referent_id'];
@@ -1316,6 +1358,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      task_history: {
+        Row: {
+          action: Database['public']['Enums']['task_history_action'];
+          changed_at: string;
+          changed_by: string;
+          id: number;
+          new_values: Json | null;
+          old_values: Json | null;
+          task_id: number;
+        };
+        Insert: {
+          action: Database['public']['Enums']['task_history_action'];
+          changed_at?: string;
+          changed_by: string;
+          id?: number;
+          new_values?: Json | null;
+          old_values?: Json | null;
+          task_id: number;
+        };
+        Update: {
+          action?: Database['public']['Enums']['task_history_action'];
+          changed_at?: string;
+          changed_by?: string;
+          id?: number;
+          new_values?: Json | null;
+          old_values?: Json | null;
+          task_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'task_history_changed_by_fkey';
+            columns: ['changed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'task_history_task_id_fkey';
+            columns: ['task_id'];
+            isOneToOne: false;
+            referencedRelation: 'tasks';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       tasks: {
         Row: {
           assigned_to: string;
@@ -1577,6 +1664,14 @@ export type Database = {
         | 'in_process'
         | 'validated'
         | 'refused';
+      profile_roles:
+        | 'xpert'
+        | 'company'
+        | 'admin'
+        | 'project_manager'
+        | 'intern'
+        | 'hr'
+        | 'adv';
       reason_mission_deletion:
         | 'status_candidate_not_found'
         | 'won_competition'
@@ -1592,6 +1687,7 @@ export type Database = {
         | 'proposes'
         | 'refuses'
         | 'valides';
+      task_history_action: 'created' | 'updated' | 'completed' | 'deleted';
       task_status: 'urgent' | 'pending' | 'done';
       task_subject_type: 'xpert' | 'supplier' | 'mission' | 'other';
     };
@@ -1695,19 +1791,4 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
-    : never;
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database;
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

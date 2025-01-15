@@ -5,8 +5,9 @@ import type { DBMissionXpertsSelection } from '@/types/typesDb';
 import { uppercaseFirstLetter } from '@/utils/string';
 import { Draggable } from '@hello-pangea/dnd';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useMissionStore } from '@/store/mission';
 
 export default function SelectionMatchedXpertCard({
   xpertsSelection,
@@ -15,12 +16,36 @@ export default function SelectionMatchedXpertCard({
   xpertsSelection: DBMissionXpertsSelection;
   index: number;
 }) {
+  const { missions } = useMissionStore();
+  const params = useParams<{ slug: string }>();
+  const { slug } = params;
+  const missionNumber = slug.replace('-', ' ');
+
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const currentMission = missions.find(
+    (mission) => mission.mission_number === missionNumber
+  );
+
+  const showActivationButton =
+    currentMission?.xpert_associated_id === xpertsSelection.xpert_id;
 
   const handleRedirect = () => {
     router.push(`/xpert?id=${xpertsSelection.xpert.generated_id}`);
   };
+
+  const handleActivation = () => {
+    router.push(
+      `/mission/activation-des-missions/${missionNumber.replace(' ', '-')}`
+    );
+  };
+
+  useEffect(() => {
+    if (xpertsSelection.column_status === 'valides') {
+      setIsExpanded(true);
+    }
+  }, [xpertsSelection.column_status]);
 
   return (
     <Draggable draggableId={xpertsSelection.xpert_id} index={index}>
@@ -62,13 +87,21 @@ export default function SelectionMatchedXpertCard({
               </div>
             </div>
             {isExpanded && (
-              <div className="my-2">
+              <div className="my-2 flex flex-col gap-2">
                 <Button
                   className="w-full rounded-[12px] border-2 border-gray-200 p-2 text-white"
                   onClick={handleRedirect}
                 >
                   {xpertsSelection.xpert.generated_id}
                 </Button>
+                {showActivationButton && (
+                  <Button
+                    className="w-full rounded-[12px] bg-[#92C6B0] p-2 text-white hover:bg-[#92C6B0]/80"
+                    onClick={handleActivation}
+                  >
+                    Activation de mission
+                  </Button>
+                )}
               </div>
             )}
           </div>

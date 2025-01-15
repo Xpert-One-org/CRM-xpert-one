@@ -1,5 +1,13 @@
-import React from 'react';
+'use client';
 
-export default function MissionActivationPage() {
-  return <div>Activation des missions</div>;
+import React from 'react';
+import ComboboxMission from '@/components/combobox/ComboboxMission';
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
+
+export default function ActivationDesMissionsPage() {
+  return (
+    <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>
+      <ComboboxMission slug="activation-des-missions" />
+    </ProtectedRoleRoutes>
+  );
 }
