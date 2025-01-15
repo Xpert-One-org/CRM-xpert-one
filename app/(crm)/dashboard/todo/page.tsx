@@ -302,7 +302,7 @@ export default function TaskTable() {
             />
           </Box>
           <div />
-          <div className="col-span-9 flex justify-between">
+          <div className="col-span-9">
             {!loading ? (
               <div className="flex w-fit items-center gap-x-4">
                 <p className="whitespace-nowrap">{totalTasks} résultats</p>
@@ -322,17 +322,10 @@ export default function TaskTable() {
             ) : (
               <Skeleton className="h-6 w-40" />
             )}
-            <Button
-              disabled={!hasSomethingNotSaved || isSaving}
-              className="bg-primary px-spaceLarge py-spaceContainer text-white"
-              onClick={handleSave}
-            >
-              {isSaving ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
           </div>
         </div>
 
-        <div className="h-full overflow-auto pb-10">
+        <div className="h-full max-h-[calc(100vh_-_450px)] overflow-auto pb-10">
           <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
             {!loading && tasks?.length === 0 ? (
               <div className="col-span-7 py-8 text-center text-gray-500">
@@ -395,6 +388,15 @@ export default function TaskTable() {
               </div>
             )}
           </InfiniteScroll>
+        </div>
+        <div className="flex justify-end">
+          <Button
+            disabled={!hasSomethingNotSaved || isSaving}
+            className="bg-primary px-spaceLarge py-spaceContainer text-white"
+            onClick={handleSave}
+          >
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+          </Button>
         </div>
       </div>
     </div>
