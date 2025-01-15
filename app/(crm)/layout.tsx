@@ -5,11 +5,6 @@ import React from 'react';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import MenuBurger from '@components/MenuBurger';
 import NotificationBell from '@components/NotificationBell';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import ActualPageTitle from './actual-page-title';
 
 export default async function Layout({

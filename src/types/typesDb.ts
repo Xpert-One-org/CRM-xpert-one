@@ -55,14 +55,17 @@ export type DBXpert = DBProfile & {
 };
 
 // NOTIFICATION
-export type DBNotification = Pick<
-  Database['public']['Tables']['notification']['Row'],
-  'id'
-> & {
-  chat: Database['public']['Tables']['chat']['Row'] & {
-    message: Database['public']['Tables']['message']['Row'][];
-  };
-};
+// export type DBNotification = Pick<
+//   Database['public']['Tables']['notification']['Row'],
+//   'id'
+// > & {
+//   chat: Database['public']['Tables']['chat']['Row'] & {
+//     message: Database['public']['Tables']['message']['Row'][];
+//   };
+// };
+
+export type DBNotification =
+  Database['public']['Tables']['notification']['Row'];
 
 // CHAT
 export type DBChat = Database['public']['Tables']['chat']['Row'] & {

@@ -653,32 +653,38 @@ export type Database = {
       };
       notification: {
         Row: {
-          chat_id: number | null;
           created_at: string;
           id: number;
-          read_by: string[] | null;
-          type: string | null;
+          link: string | null;
+          message: string;
+          status: Database['public']['Enums']['notification_status'];
+          subject: string | null;
+          user_id: string;
         };
         Insert: {
-          chat_id?: number | null;
           created_at?: string;
           id?: number;
-          read_by?: string[] | null;
-          type?: string | null;
+          link?: string | null;
+          message: string;
+          status?: Database['public']['Enums']['notification_status'];
+          subject?: string | null;
+          user_id: string;
         };
         Update: {
-          chat_id?: number | null;
           created_at?: string;
           id?: number;
-          read_by?: string[] | null;
-          type?: string | null;
+          link?: string | null;
+          message?: string;
+          status?: Database['public']['Enums']['notification_status'];
+          subject?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'notification_chat_id_fkey';
-            columns: ['chat_id'];
+            foreignKeyName: 'notifications_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: 'chat';
+            referencedRelation: 'profile';
             referencedColumns: ['id'];
           },
         ];
@@ -1401,7 +1407,7 @@ export type Database = {
           assigned_to: string;
           completed_at: string | null;
           created_at: string;
-          created_by: string;
+          created_by: string | null;
           details: string | null;
           id: number;
           last_updated_at: string | null;
@@ -1416,7 +1422,7 @@ export type Database = {
           assigned_to: string;
           completed_at?: string | null;
           created_at?: string;
-          created_by: string;
+          created_by?: string | null;
           details?: string | null;
           id?: number;
           last_updated_at?: string | null;
@@ -1431,7 +1437,7 @@ export type Database = {
           assigned_to?: string;
           completed_at?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           details?: string | null;
           id?: number;
           last_updated_at?: string | null;
@@ -1554,21 +1560,7 @@ export type Database = {
       };
     };
     Views: {
-      unique_last_jobs: {
-        Row: {
-          post: string | null;
-        };
-        Relationships: [];
-      };
-      unique_posts_with_referents: {
-        Row: {
-          post: string | null;
-          referents:
-            | Database['public']['CompositeTypes']['referent_type'][]
-            | null;
-        };
-        Relationships: [];
-      };
+      [_ in never]: never;
     };
     Functions: {
       calculate_matching_score: {
@@ -1577,6 +1569,16 @@ export type Database = {
           p_xpert_id: string;
         };
         Returns: number;
+      };
+      create_notification: {
+        Args: {
+          user_id: string;
+          link: string;
+          message: string;
+          subject: string;
+          status: Database['public']['Enums']['notification_status'];
+        };
+        Returns: undefined;
       };
       generate_mission_unique_id: {
         Args: Record<PropertyKey, never>;
@@ -1671,6 +1673,7 @@ export type Database = {
         | 'in_process'
         | 'validated'
         | 'refused';
+      notification_status: 'urgent' | 'info' | 'standard';
       profile_roles:
         | 'xpert'
         | 'company'

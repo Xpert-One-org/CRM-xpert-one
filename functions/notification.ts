@@ -2,7 +2,7 @@
 
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
-export const getChatNotification = async ({
+export const getNotifications = async ({
   from = 0,
   to = 10,
 }: {
@@ -17,18 +17,22 @@ export const getChatNotification = async ({
 
   const { data: notifications, error } = await supabase
     .from('notification')
-    .select('id, chat!inner(*, message!inner(*, profile(*)))')
-    .neq('chat.type', 'forum')
-    .or(`xpert_recipient_id.eq.${user.id},created_by.eq.${user.id}`, {
-      referencedTable: 'chat',
-    })
-    .filter('chat.message.read_by', 'cs', `{${user.id}}`)
+    .select('*')
+    .eq('user_id', user.id)
     .range(from, to)
     .order('created_at', { ascending: false });
 
   if (error) {
-    return { data: null, error };
+    throw new Error(error.message);
   }
 
   return { data: notifications, error };
+};
+
+export const deleteNotification = async (id: number) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { error } = await supabase.from('notification').delete().eq('id', id);
+  if (error) {
+    throw new Error(error.message);
+  }
 };
