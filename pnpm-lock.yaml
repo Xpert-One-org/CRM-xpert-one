@@ -24,9 +24,6 @@ importers:
       '@hello-pangea/dnd':
         specifier: ^17.0.0
         version: 17.0.0(react-dom@19.0.0-rc-69d4b800-20241021(react@19.0.0-rc-69d4b800-20241021))(react@19.0.0-rc-69d4b800-20241021)(types-react@19.0.0-rc.1)
-      '@pdftron/webviewer':
-        specifier: ^11.2.0
-        version: 11.2.0
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.4
         version: 1.1.4(react-dom@19.0.0-rc-69d4b800-20241021(react@19.0.0-rc-69d4b800-20241021))(react@19.0.0-rc-69d4b800-20241021)(types-react-dom@19.0.0-rc.1)(types-react@19.0.0-rc.1)
@@ -575,9 +572,6 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
-
-  '@pdftron/webviewer@11.2.0':
-    resolution: {integrity: sha512-ZAbnNCig70tPZHD8ZArpt/1+vNLdmCMfoDAfr3yLNO6POAGjh01rtAen+bmzadBxYELBAaPKvOkaYhkDYquH4w==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -4045,8 +4039,6 @@ snapshots:
       fastq: 1.17.1
 
   '@nolyfill/is-core-module@1.0.39': {}
-
-  '@pdftron/webviewer@11.2.0': {}
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
