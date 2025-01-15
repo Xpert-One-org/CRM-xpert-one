@@ -735,6 +735,7 @@ export type Database = {
           fix: string | null;
           france_detail: string[] | null;
           generated_id: string;
+          get_welcome_call: boolean | null;
           has_seen_available_missions: boolean | null;
           has_seen_blog: boolean | null;
           has_seen_community: boolean | null;
@@ -795,6 +796,7 @@ export type Database = {
           fix?: string | null;
           france_detail?: string[] | null;
           generated_id: string;
+          get_welcome_call?: boolean | null;
           has_seen_available_missions?: boolean | null;
           has_seen_blog?: boolean | null;
           has_seen_community?: boolean | null;
@@ -855,6 +857,7 @@ export type Database = {
           fix?: string | null;
           france_detail?: string[] | null;
           generated_id?: string;
+          get_welcome_call?: boolean | null;
           has_seen_available_missions?: boolean | null;
           has_seen_blog?: boolean | null;
           has_seen_community?: boolean | null;

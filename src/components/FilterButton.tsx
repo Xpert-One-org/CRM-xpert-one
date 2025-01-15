@@ -98,7 +98,7 @@ export const FilterButton = ({
                 className
               )}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-wrap">
                 {placeholder}
                 <div className="size-3">
                   <FilterSvg />
