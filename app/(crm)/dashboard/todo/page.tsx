@@ -329,7 +329,7 @@ export default function TaskTable() {
                       {formatDate(task.created_at)}
                     </Box>
                     <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                      {task.created_by_profile.firstname}
+                      {task.created_by_profile?.firstname ?? ''}
                     </Box>
                     <SelectAssignedTo
                       newAssignedToNotSaved={newAssignedToNotSaved}

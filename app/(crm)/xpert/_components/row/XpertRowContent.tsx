@@ -1,15 +1,9 @@
 import Input from '@/components/inputs/Input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSelect } from '@/store/select';
-import type {
-  DBProfile,
-  DBProfileExpertise,
-  DBProfileStatus,
-  DBXpert,
-  DBXpertOptimized,
-} from '@/types/typesDb';
+import type { DBXpertOptimized } from '@/types/typesDb';
 import { getLabel } from '@/utils/getLabel';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   degreeSelect,
   expertiseSelect,

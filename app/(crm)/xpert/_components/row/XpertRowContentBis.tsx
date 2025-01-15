@@ -234,29 +234,48 @@ export default function XpertRowContentBis({
 
   const uploadFile = async () => {
     const supabase = createSupabaseFrontendClient();
-    if (!newFile || !newFileType) {
+    if (!newFile || !newFileType || !xpert) {
       return;
     }
-    const file = newFile;
-    const fileType = newFileType;
-    const fileName = `${xpert?.generated_id}/${fileType}/${fileType}_${new Date().getTime()}`;
-    const { data } = await supabase.storage
-      .from('profile_files')
-      .upload(fileName, file);
 
-    const { data: publicUrl } = supabase.storage
-      .from('profile_files-bucket')
-      .getPublicUrl(data?.fullPath ?? '');
+    try {
+      // Upload the file
+      const file = newFile;
+      const fileType = newFileType;
+      const fileName = `${xpert.generated_id}/${fileType}/${fileType}_${new Date().getTime()}_${file.name}`;
 
-    // add to selectOptions
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('profile_files')
+        .upload(fileName, file);
 
-    setNewFile(null);
-    setNewFileType(null);
-    setReload(true);
+      if (uploadError) throw uploadError;
 
-    toast.success(
-      'Fichier uploadé avec succès (recharger la page pour voir les changements)'
-    );
+      const { data: publicUrl } = supabase.storage
+        .from('profile_files-bucket')
+        .getPublicUrl(uploadData?.fullPath ?? '');
+
+      // Update the appropriate column in the profile table based on file type
+      if (fileType === 'cv') {
+        const { error: updateError } = await supabase
+          .from('profile')
+          .update({ cv_name: file.name })
+          .eq('id', xpert.id);
+
+        if (updateError) throw updateError;
+      }
+
+      // Reset states
+      setNewFile(null);
+      setNewFileType(null);
+      setReload(true);
+
+      toast.success(
+        'Fichier uploadé avec succès (recharger la page pour voir les changements)'
+      );
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error("Une erreur est survenue lors de l'upload du fichier");
+    }
   };
 
   const handleFileTypes = (value: FileType) => {

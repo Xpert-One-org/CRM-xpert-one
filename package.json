@@ -21,13 +21,15 @@
     },
     "lint:strict": "next lint '*/**/*.{js,jsx,ts,tsx}'",
     "prettier": "prettier --write */**/*.{js,jsx,json,ts,tsx,scss,css,md}",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "node scripts/copy-webviewer.js"
   },
   "dependencies": {
     "@commitlint/cz-commitlint": "^19.5.0",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "@hello-pangea/dnd": "^17.0.0",
+    "@pdftron/webviewer": "^11.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -77,6 +79,7 @@
     "eslint-config-next": "15.0.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
+    "fs-extra": "^11.2.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
     "postcss": "8.4.33",

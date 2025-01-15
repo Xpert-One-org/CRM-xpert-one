@@ -213,11 +213,11 @@ export type TaskWithRelations = Task & {
   created_by_profile: Pick<
     DBProfile,
     'id' | 'firstname' | 'lastname' | 'generated_id'
-  >;
+  > | null;
   assigned_to_profile: Pick<
     DBProfile,
     'id' | 'firstname' | 'lastname' | 'generated_id'
-  >;
+  > | null;
   xpert?: Pick<
     DBProfile,
     'id' | 'firstname' | 'lastname' | 'generated_id'
