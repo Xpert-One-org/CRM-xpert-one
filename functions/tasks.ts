@@ -6,9 +6,12 @@ import type {
   TaskHistoryAction,
   TaskWithRelations,
   UpdateTask,
+  User,
 } from '@/types/types';
 import type { Task } from '@/types/types';
 import { limitTask } from '@/data/constant';
+import { useIsAdmin } from '@/hooks/useRoles';
+import { DBCollaboratorRole } from '@/types/typesDb';
 
 const taskQuery = `
   *,
@@ -43,6 +46,10 @@ export async function getTasks({
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) {
+    throw new Error('User not found');
+  }
+
   const { data: userData } = await supabase
     .from('profile')
     .select('*')
@@ -59,7 +66,8 @@ export async function getTasks({
   if (filters.createdBy) {
     query = query.eq('created_by', filters.createdBy);
   }
-  if (filters.assignedTo && user?.role === 'admin') {
+
+  if (filters.assignedTo) {
     query = query.eq('assigned_to', filters.assignedTo);
   }
   if (filters.subjectType) {
@@ -70,6 +78,9 @@ export async function getTasks({
     .range(offset, offset + limitTask - 1)
     .order('status', {
       ascending: true,
+    })
+    .order('created_at', {
+      ascending: false,
     });
 
   if (error) {
