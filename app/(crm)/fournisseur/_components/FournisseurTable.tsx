@@ -260,10 +260,11 @@ export default function FournisseurTable() {
                     disabled={!openedFournisseurNotSaved}
                   />
 
-                  {openedFournisseurNotSaved?.company_role_other && (
-                    <TextArea
-                      label="Détails de votre fonction"
-                      value={openedFournisseurNotSaved.company_role_other}
+                  {openedFournisseurNotSaved?.company_role === 'other' && (
+                    <Input
+                      required
+                      label="Préciser votre fonction"
+                      value={openedFournisseurNotSaved.company_role_other ?? ''}
                       onChange={(e) =>
                         handleInputChange('company_role_other', e.target.value)
                       }
@@ -285,7 +286,20 @@ export default function FournisseurTable() {
                     disabled={!openedFournisseurNotSaved}
                   />
 
-                  {/* Secteur et autres champs conditionnels similaires... */}
+                  {openedFournisseurNotSaved?.sector === 'others' && (
+                    <Input
+                      required
+                      label="Préciser vos autres secteurs d'activités"
+                      name="sector_other"
+                      placeholder="Préciser vos autres secteurs d'activités"
+                      className="mission_input min-w-[200px] flex-1 xl:max-w-full"
+                      value={openedFournisseurNotSaved.sector_other ?? ''}
+                      onChange={(e) =>
+                        handleInputChange('sector_other', e.target.value)
+                      }
+                      disabled={!openedFournisseurNotSaved}
+                    />
+                  )}
 
                   <MultiSelectComponent
                     disabled={!openedFournisseurNotSaved}

@@ -1,13 +1,21 @@
 // components/mission/sections/MissionDetails.tsx
+import { useEffect } from 'react';
 import Input from '@/components/inputs/Input';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import TextArea from '@/components/inputs/TextArea';
+import SelectComponent from '@/components/SelectComponent';
 import { empty } from '@/data/constant';
-import { profilSearchedSelect, postTypesSelect } from '@/data/mocked_select';
-import { getLabel } from '@/utils/getLabel';
+import {
+  profilSearchedSelect,
+  postTypesSelect,
+  booleanSelect,
+  energyRenewableSelect,
+  energySelect,
+  wasteTreatmentSelect,
+} from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
-import { useEffect } from 'react';
 import { useEditMissionStore } from '../../../editMissionStore';
+import { ComboboxSelect } from '../../../../../mission/creation-de-mission/_components/ComboboxSelect';
 
 export function MissionDetails() {
   const { openedMissionNotSaved: mission, handleUpdateField } =
@@ -20,23 +28,33 @@ export function MissionDetails() {
     diplomas: diplomasSelect,
     languages: languagesSelect,
     expertises: expertisesSelect,
+    infrastructures: infrastructuresSelect,
+    loadingJobTitles,
+    loadingSectors,
+    loadingSpecialties,
+    loadingDiplomas,
+    loadingLanguages,
+    loadingExpertises,
+    loadingInfrastructures,
     fetchJobTitles,
     fetchSectors,
     fetchSpecialties,
     fetchExpertises,
     fetchDiplomas,
     fetchLanguages,
+    fetchInfrastructures,
   } = useSelect();
 
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([
         fetchJobTitles(),
-        fetchSpecialties(),
-        fetchDiplomas(),
-        fetchExpertises(),
-        fetchLanguages(),
         fetchSectors(),
+        fetchSpecialties(),
+        fetchExpertises(),
+        fetchDiplomas(),
+        fetchLanguages(),
+        fetchInfrastructures(),
       ]);
     };
 
@@ -54,160 +72,257 @@ export function MissionDetails() {
       </h3>
 
       {/* Première ligne */}
-      <div className="gap flex w-full flex-row gap-4">
-        <Input
-          className="w-full max-w-[200px]"
+      <div className="flex w-full flex-wrap gap-4">
+        <SelectComponent
+          className="w-[200px]"
           label="Profil recherché"
-          value={
-            getLabel({
-              value: mission.profile_searched ?? '',
-              select: profilSearchedSelect,
-            }) ?? empty
-          }
-          onChange={(e) =>
-            handleUpdateField('profile_searched', e.target.value)
+          options={profilSearchedSelect}
+          defaultSelectedKeys={mission.profile_searched ?? ''}
+          name="profile_searched"
+          onValueChange={(value) =>
+            handleUpdateField('profile_searched', value)
           }
         />
-        <Input
-          className="w-full max-w-[280px]"
+
+        <ComboboxSelect
+          className="w-[280px]"
           label="Intitulé de mission"
-          value={
-            jobTitles.length
-              ? (getLabel({
-                  value: mission.job_title ?? '',
-                  select: jobTitles,
-                }) ?? empty)
-              : loadingText
-          }
-          onChange={(e) => handleUpdateField('job_title', e.target.value)}
+          options={jobTitles}
+          defaultSelectedKeys={mission.job_title}
+          name="job_title"
+          onValueChange={(value) => handleUpdateField('job_title', value)}
         />
+
+        {mission.job_title === 'other' && (
+          <Input
+            label="Préciser l'intitulé"
+            name="job_title_other"
+            value={mission.job_title_other ?? ''}
+            onChange={(e) =>
+              handleUpdateField('job_title_other', e.target.value)
+            }
+            placeholder="Préciser votre intitulé de mission"
+            className="w-[280px]"
+          />
+        )}
+
         <MultiSelectComponent
           className="w-[280px]"
           label="Type de poste"
-          name="post_type"
-          defaultSelectedKeys={mission.post_type}
-          onValueChange={(value) => handleUpdateField('post_type', value)}
           options={postTypesSelect}
+          defaultSelectedKeys={mission.post_type}
+          name="post_type"
+          onValueChange={(value) => handleUpdateField('post_type', value)}
         />
       </div>
 
       {/* Deuxième ligne */}
-      <div className="gap flex w-full flex-row flex-wrap gap-4">
-        <Input
-          className="w-1/3"
+      <div className="flex w-full flex-wrap gap-4">
+        <ComboboxSelect
+          className="w-[280px]"
           label="Secteur d'activité"
-          value={
-            sectors.length
-              ? (getLabel({ value: mission.sector ?? '', select: sectors }) ??
-                empty)
-              : loadingText
-          }
-          onChange={(e) => handleUpdateField('sector', e.target.value)}
+          options={sectors}
+          defaultSelectedKeys={mission.sector}
+          name="sector"
+          onValueChange={(value) => handleUpdateField('sector', value)}
         />
 
+        {mission.sector === 'energy' && (
+          <SelectComponent
+            className="w-[280px]"
+            label="Type d'énergie"
+            options={energySelect}
+            defaultSelectedKeys={mission.sector_energy ?? ''}
+            name="sector_energy"
+            onValueChange={(value) => handleUpdateField('sector_energy', value)}
+          />
+        )}
+
+        {mission.sector === 'renewable_energy' && (
+          <SelectComponent
+            className="w-[280px]"
+            label="Type d'énergie renouvelable"
+            options={energyRenewableSelect}
+            defaultSelectedKeys={mission.sector_renewable_energy ?? ''}
+            name="sector_renewable_energy"
+            onValueChange={(value) =>
+              handleUpdateField('sector_renewable_energy', value)
+            }
+          />
+        )}
+
+        {mission.sector_renewable_energy === 'other' && (
+          <Input
+            label="Préciser l'énergie renouvelable"
+            name="sector_renewable_energy_other"
+            value={mission.sector_renewable_energy_other ?? ''}
+            onChange={(e) =>
+              handleUpdateField('sector_renewable_energy_other', e.target.value)
+            }
+            placeholder="Préciser votre énergie renouvelable"
+            className="w-[280px]"
+          />
+        )}
+
+        {mission.sector === 'waste_treatment' && (
+          <SelectComponent
+            className="w-[280px]"
+            label="Type de traitement des déchets"
+            options={wasteTreatmentSelect}
+            defaultSelectedKeys={mission.sector_waste_treatment ?? ''}
+            name="sector_waste_treatment"
+            onValueChange={(value) =>
+              handleUpdateField('sector_waste_treatment', value)
+            }
+          />
+        )}
+
+        {mission.sector === 'infrastructure' && (
+          <SelectComponent
+            className="w-[280px]"
+            label="Type d'infrastructure"
+            options={infrastructuresSelect}
+            defaultSelectedKeys={mission.sector_infrastructure ?? ''}
+            name="sector_infrastructure"
+            onValueChange={(value) =>
+              handleUpdateField('sector_infrastructure', value)
+            }
+            disabled={loadingInfrastructures}
+          />
+        )}
+
+        {mission.sector_infrastructure === 'other' && (
+          <Input
+            label="Préciser l'infrastructure"
+            name="sector_infrastructure_other"
+            value={mission.sector_infrastructure_other ?? ''}
+            onChange={(e) =>
+              handleUpdateField('sector_infrastructure_other', e.target.value)
+            }
+            placeholder="Préciser votre infrastructure"
+            className="w-[280px]"
+          />
+        )}
+      </div>
+
+      {/* Troisième ligne */}
+      <div className="flex w-full flex-wrap gap-4">
         <MultiSelectComponent
           className="w-[280px]"
           label="Spécialité"
-          name="specialties"
-          placeholder={loadingText}
+          options={specialities}
           defaultSelectedKeys={mission.specialties}
+          name="specialties"
           onValueChange={(value) => handleUpdateField('specialties', value)}
-          options={specialities ?? []}
+          disabled={loadingSpecialties}
+          placeholder={loadingSpecialties ? loadingText : 'Spécialités'}
         />
 
-        {mission.specialties_other && (
-          <TextArea
-            className="w-1/3"
-            label="Détails de la spécialité"
-            value={mission.specialties_other}
+        {mission.specialties?.includes('others') && (
+          <Input
+            label="Préciser la spécialité"
+            name="specialties_other"
+            value={mission.specialties_other ?? ''}
             onChange={(e) =>
               handleUpdateField('specialties_other', e.target.value)
             }
+            placeholder="Préciser la spécialité"
+            className="w-[280px]"
           />
         )}
 
         <MultiSelectComponent
           className="w-[280px]"
           label="Expertise"
-          name="expertises"
-          placeholder={loadingText}
+          options={expertisesSelect}
           defaultSelectedKeys={mission.expertises}
+          name="expertises"
           onValueChange={(value) => handleUpdateField('expertises', value)}
-          options={expertisesSelect ?? []}
+          disabled={loadingExpertises}
+          placeholder={loadingExpertises ? loadingText : 'Expertise'}
         />
 
-        {mission.expertises_other && (
-          <TextArea
-            className="w-1/3"
-            label="Détails de l'expertise"
-            value={mission.expertises_other}
+        {mission.expertises?.includes('others') && (
+          <Input
+            label="Préciser l'expertise"
+            name="expertises_other"
+            value={mission.expertises_other ?? ''}
             onChange={(e) =>
               handleUpdateField('expertises_other', e.target.value)
             }
+            placeholder="Préciser l'expertise"
+            className="w-[280px]"
           />
         )}
       </div>
 
-      {/* Troisième ligne */}
-      <div className="gap flex w-full flex-row gap-4">
+      {/* Quatrième ligne */}
+      <div className="flex w-full flex-wrap gap-4">
         <MultiSelectComponent
           className="w-[280px]"
           label="Diplôme / Niveau d'étude"
-          name="diplomas"
-          placeholder={loadingText}
+          options={diplomasSelect}
           defaultSelectedKeys={mission.diplomas}
+          name="diplomas"
           onValueChange={(value) => handleUpdateField('diplomas', value)}
-          options={diplomasSelect ?? []}
+          disabled={loadingDiplomas}
+          placeholder={loadingDiplomas ? loadingText : 'Diplômes'}
         />
 
-        {mission.diplomas_other && (
-          <TextArea
-            className="w-1/3"
-            label="Détails du diplôme"
-            value={mission.diplomas_other}
+        {mission.diplomas?.includes('other') && (
+          <Input
+            label="Préciser le diplôme"
+            name="diplomas_other"
+            value={mission.diplomas_other ?? ''}
             onChange={(e) =>
               handleUpdateField('diplomas_other', e.target.value)
             }
+            placeholder="Préciser le diplôme"
+            className="w-[280px]"
           />
         )}
 
         <MultiSelectComponent
           className="w-[280px]"
           label="Langues"
-          name="languages"
-          placeholder={loadingText}
+          options={languagesSelect}
           defaultSelectedKeys={mission.languages}
+          name="languages"
           onValueChange={(value) => handleUpdateField('languages', value)}
-          options={languagesSelect ?? []}
+          disabled={loadingLanguages}
+          placeholder={loadingLanguages ? loadingText : 'Langues parlées'}
         />
 
-        {mission.languages_other && (
-          <TextArea
-            className="w-1/3"
-            label="Détails des langues"
-            value={mission.languages_other}
+        {mission.languages?.includes('other') && (
+          <Input
+            label="Préciser la langue"
+            name="languages_other"
+            value={mission.languages_other ?? ''}
             onChange={(e) =>
               handleUpdateField('languages_other', e.target.value)
             }
+            placeholder="Préciser la langue"
+            className="w-[280px]"
           />
         )}
 
         <Input
-          className="w-1/3"
+          className="w-[280px]"
           label="TJM cible MAX"
+          name="tjm"
           value={mission.tjm ?? ''}
           onChange={(e) => handleUpdateField('tjm', e.target.value)}
+          placeholder="TJM Max"
         />
-      </div>
 
-      {/* Quatrième ligne */}
-      <div className="gap flex w-full flex-row gap-4">
-        <Input
-          className="w-1/3"
+        <SelectComponent
+          className="w-[280px]"
           label="Poste ouvert aux situations de handicap"
-          value={mission.open_to_disabled ?? 'Non renseigné'}
-          onChange={(e) =>
-            handleUpdateField('open_to_disabled', e.target.value)
+          options={booleanSelect}
+          defaultSelectedKeys={mission.open_to_disabled ?? ''}
+          name="open_to_disabled"
+          onValueChange={(value) =>
+            handleUpdateField('open_to_disabled', value)
           }
         />
       </div>
