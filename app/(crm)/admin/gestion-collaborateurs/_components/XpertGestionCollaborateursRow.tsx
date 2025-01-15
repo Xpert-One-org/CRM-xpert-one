@@ -2,10 +2,14 @@
 
 import { Box } from '@/components/ui/box';
 import { empty } from '@/data/constant';
-import { jobTitleSelect } from '@/data/mocked_select';
-import type { DBXpertOptimized } from '@/types/typesDb';
+import { posts } from '@/data/mocked_select';
+import type {
+  DBReferentType,
+  DBXpertLastPost,
+  DBXpertOptimized,
+} from '@/types/typesDb';
 import { getLabel } from '@/utils/getLabel';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -15,77 +19,139 @@ import {
 } from '@/components/ui/select';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
 import { useRouter } from 'next/navigation';
+import { useXpertStore } from '@/store/xpert';
+import { cn } from '@/lib/utils';
 
 type XpertGestionCollaborateursRowProps = {
-  xpert: DBXpertOptimized;
+  xpert?: DBXpertOptimized;
+  job?: DBXpertLastPost;
   isGroupSelection: boolean;
-  onReferentChange: (id: string, referentId: string | null) => void;
-  pendingReferentId?: string | null;
+  onReferentChange: ({
+    referent,
+    xpertId,
+    jobName,
+    referentInfo,
+  }: {
+    referent: DBReferentType | null;
+    xpertId?: string;
+    jobName?: string;
+    referentInfo?: { firstname: string; lastname: string };
+  }) => void;
 };
 
 export default function XpertGestionCollaborateursRow({
   xpert,
   isGroupSelection,
   onReferentChange,
-  pendingReferentId,
+  job,
 }: XpertGestionCollaborateursRowProps) {
   const { collaborators } = useAdminCollaborators();
   const router = useRouter();
 
-  const lastPosition = xpert.profile_mission?.job_titles
+  const { hasReferentReassign, setHasReferentReassign } = useXpertStore();
+  const [currentReferentValue, setCurrentReferentValue] = useState('none');
+
+  const lastPosition = xpert?.profile_experience?.post
     ? (getLabel({
-        value:
-          xpert.profile_mission.job_titles[
-            xpert.profile_mission.job_titles.length - 1
-          ],
-        select: jobTitleSelect,
+        value: xpert.profile_experience.post.includes('other')
+          ? (xpert.profile_experience.post_other ?? '')
+          : xpert.profile_experience.post,
+        select: posts,
       }) ?? empty)
     : empty;
 
   const handleReferentChange = (value: string) => {
     if (value === 'none') {
-      onReferentChange(xpert.id, null);
+      if (!isGroupSelection && xpert) {
+        onReferentChange({ xpertId: xpert.id, referent: null });
+      } else if (job) {
+        onReferentChange({ referent: null, jobName: job.post ?? undefined });
+      }
+      setCurrentReferentValue('none');
     } else {
-      onReferentChange(xpert.id, value);
+      const selectedCollaborator = collaborators.find((c) => c.id === value);
+      if (selectedCollaborator) {
+        const referent = {
+          id: selectedCollaborator.id,
+          firstname: selectedCollaborator.firstname,
+          lastname: selectedCollaborator.lastname,
+        };
+
+        if (!isGroupSelection && xpert) {
+          onReferentChange({
+            xpertId: xpert.id,
+            referent: referent,
+          });
+        } else if (job) {
+          onReferentChange({
+            referent: referent,
+            jobName: job.post ?? undefined,
+          });
+        }
+        setCurrentReferentValue(value);
+        if (!hasReferentReassign) {
+          setHasReferentReassign(true);
+        }
+      }
     }
   };
 
-  const getCurrentReferentValue = () => {
-    const currentId = pendingReferentId ?? xpert.affected_referent_id;
-    if (!currentId) return 'none';
-    return currentId;
-  };
+  useEffect(() => {
+    const DEFAULT_VALUE = 'none';
 
-  const handleRedirectXpert = (xpertId: string) => {
+    if (!hasReferentReassign && currentReferentValue !== DEFAULT_VALUE) {
+      setCurrentReferentValue(DEFAULT_VALUE);
+    }
+  }, [hasReferentReassign, currentReferentValue]);
+
+  const handleRedirectXpert = (xpertId?: string) => {
+    if (!xpertId) return;
     router.push(`/xpert?id=${xpertId}`);
   };
 
   return (
     <div
-      className={`grid ${isGroupSelection ? 'grid-cols-5' : 'grid-cols-6'} gap-3`}
+      className={`grid ${isGroupSelection ? 'grid-cols-6' : 'grid-cols-6'} gap-3`}
     >
-      <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
-        {collaborators.find((c) => c.id === xpert.affected_referent_id)
-          ?.firstname ?? ''}
-      </Box>
-      <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
-        {collaborators.find((c) => c.id === xpert.affected_referent_id)
-          ?.lastname ?? ''}
-      </Box>
+      {isGroupSelection && (
+        <Box className="col-span-2 flex h-12 items-center bg-[#F5F5F5] px-4">
+          {job?.referents
+            ?.map((r) => `${r.firstname} ${r.lastname}`)
+            .join(', ')}
+        </Box>
+      )}
+      {!isGroupSelection && (
+        <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
+          {collaborators.find((c) => c.id === xpert?.affected_referent_id)
+            ?.firstname ?? ''}
+        </Box>
+      )}
+      {!isGroupSelection && (
+        <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
+          {collaborators.find((c) => c.id === xpert?.affected_referent_id)
+            ?.lastname ?? ''}
+        </Box>
+      )}
       {!isGroupSelection && (
         <Box
           className="flex h-12 cursor-pointer items-center bg-primary px-4 text-white"
-          onClick={() => handleRedirectXpert(xpert.generated_id)}
+          onClick={() => handleRedirectXpert(xpert?.generated_id)}
         >
-          {xpert.generated_id}
+          {xpert?.generated_id}
         </Box>
       )}
-      <Box className="flex h-12 items-center bg-[#F5F5F5] px-4">
-        {lastPosition}
+      <Box
+        className={cn('flex h-12 items-center bg-[#F5F5F5] px-4', {
+          'col-span-2': isGroupSelection,
+        })}
+      >
+        {isGroupSelection
+          ? getLabel({ select: posts, value: job?.post ?? '' })
+          : lastPosition}
       </Box>
-      <Box className="col-span-2 p-0">
+      <Box className={cn('col-span-2 p-0', { '': isGroupSelection })}>
         <Select
-          value={getCurrentReferentValue()}
+          value={currentReferentValue}
           onValueChange={handleReferentChange}
         >
           <SelectTrigger className="h-full justify-center gap-2 border-0 bg-[#F5F5F5]">

@@ -272,57 +272,54 @@ export default function XpertRowContentBis({
   }
   return (
     <>
-      {cvInfo.created_at ||
-        (urssafInfo.created_at && (
-          <>
-            <div className="w-full p-1 font-light xl:max-w-[280px]">
-              <Label htmlFor="document_type" className="mb-1 flex items-center">
-                Type de documents
-              </Label>
-              <Select
-                onValueChange={onValueChange}
-                name="document_type"
-                disabled={false}
-              >
-                <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
-                  <SelectValue
-                    className="bg-white"
-                    placeholder={
-                      <div className="flex flex-row items-center gap-2">
-                        <p className="font-medium text-black">
-                          {selectOptions[0]?.label}
-                        </p>
-                        <p className="font-medium text-[#BEBEC0] group-hover:text-black">
-                          {selectOptions[0]?.json_key}
-                        </p>
-                      </div>
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent className="group w-full">
-                  <SelectGroup>
-                    {selectOptions
-                      .filter((item) => item.value)
-                      .map((item) => (
-                        <SelectItem
-                          key={item.value || ''}
-                          value={item.value || ''}
-                          className="transition duration-150"
-                        >
-                          <div className="flex flex-row items-center gap-2">
-                            <p className="font-medium text-black">
-                              {item.label}
-                            </p>
-                            <p className="font-medium">{item.json_key}</p>
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        ))}
+      {(cvInfo.created_at ?? urssafInfo.created_at) && (
+        <>
+          <div className="w-full p-1 font-light xl:max-w-[280px]">
+            <Label htmlFor="document_type" className="mb-1 flex items-center">
+              Type de documents
+            </Label>
+            <Select
+              onValueChange={onValueChange}
+              name="document_type"
+              disabled={false}
+            >
+              <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
+                <SelectValue
+                  className="bg-white"
+                  placeholder={
+                    <div className="flex flex-row items-center gap-2">
+                      <p className="font-medium text-black">
+                        {selectOptions[0]?.label}
+                      </p>
+                      <p className="font-medium text-[#BEBEC0] group-hover:text-black">
+                        {selectOptions[0]?.json_key}
+                      </p>
+                    </div>
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent className="group w-full">
+                <SelectGroup>
+                  {selectOptions
+                    .filter((item) => item.value)
+                    .map((item) => (
+                      <SelectItem
+                        key={item.value || ''}
+                        value={item.value || ''}
+                        className="transition duration-150"
+                      >
+                        <div className="flex flex-row items-center gap-2">
+                          <p className="font-medium text-black">{item.label}</p>
+                          <p className="font-medium">{item.json_key}</p>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
       <div className="bg flex w-full items-center gap-x-4">
         <FileInput
           name=""
@@ -402,24 +399,24 @@ export default function XpertRowContentBis({
               )
             }
             optionsOther={xpert.profile_mission?.sector_other ?? ''}
-            options={
-              xpert.profile_mission?.sector_other
-                ? [
-                    ...sectorSelect,
-                    {
-                      label: xpert.profile_mission.sector_other ?? '',
-                      value: xpert.profile_mission.sector_other ?? '',
-                    },
-                  ]
-                : sectorSelect
-            }
+            options={sectorSelect}
           />
+          {xpert.profile_mission?.sector?.includes('others') && (
+            <Input
+              required
+              label="Préciser vos autres secteurs d'activités"
+              name="sector_other"
+              placeholder="Préciser vos autres secteurs d'activités"
+              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
+              onChange={(e) => handleChangeInput(e, 'profile_mission')}
+              value={xpert.profile_mission?.sector_other ?? ''}
+            />
+          )}
           <MultiCreatableSelect
-            creatable
-            label="Quels types de postes ?"
-            defaultValue={xpert.profile_mission?.job_titles?.map((job) => ({
-              label: getLabel({ value: job, select: jobTitleSelect }) ?? '',
-              value: job ?? '',
+            label="Types de postes"
+            defaultValue={xpert.profile_mission?.job_titles?.map((title) => ({
+              label: getLabel({ value: title, select: jobTitleSelect }) ?? '',
+              value: title ?? '',
             }))}
             onChange={(selectedOption) =>
               handleChangeMultiSelect(
@@ -428,19 +425,19 @@ export default function XpertRowContentBis({
                 'profile_mission'
               )
             }
-            optionsOther={xpert.profile_mission?.job_titles_other ?? ''}
-            options={
-              xpert.profile_mission?.job_titles_other
-                ? [
-                    ...jobTitleSelect,
-                    {
-                      label: xpert.profile_mission.job_titles_other ?? '',
-                      value: xpert.profile_mission.job_titles_other ?? '',
-                    },
-                  ]
-                : jobTitleSelect
-            }
+            options={jobTitleSelect}
           />
+          {xpert.profile_mission?.job_titles?.includes('others') && (
+            <Input
+              required
+              label="Préciser le type de poste"
+              name="job_titles_other"
+              placeholder="Préciser le type de poste"
+              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
+              onChange={(e) => handleChangeInput(e, 'profile_mission')}
+              value={xpert.profile_mission?.job_titles_other ?? ''}
+            />
+          )}
         </div>
         <div className="grid w-full grid-cols-2 gap-4">
           <MultiCreatableSelect
@@ -470,6 +467,17 @@ export default function XpertRowContentBis({
                 : specialitySelect
             }
           />
+          {xpert.profile_mission?.specialties?.includes('others') && (
+            <Input
+              required
+              label="Préciser la spécialité"
+              name="specialties_others"
+              placeholder="Préciser la spécialité"
+              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
+              onChange={(e) => handleChangeInput(e, 'profile_mission')}
+              value={xpert.profile_mission?.specialties_others ?? ''}
+            />
+          )}
           <MultiCreatableSelect
             creatable
             label="Dans quelles expertises ?"
@@ -497,6 +505,17 @@ export default function XpertRowContentBis({
                 : expertiseSelect
             }
           />
+          {xpert.profile_mission?.expertises?.includes('others') && (
+            <Input
+              required
+              label="Préciser l'expertise"
+              name="expertises_others"
+              placeholder="Préciser l'expertise"
+              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
+              onChange={(e) => handleChangeInput(e, 'profile_mission')}
+              value={xpert.profile_mission?.expertises_others ?? ''}
+            />
+          )}
         </div>
         <div className="h-px w-full bg-[#BEBEC0]" />
         <p className="text-lg font-medium text-black">Disponibilités</p>

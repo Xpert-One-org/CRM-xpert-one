@@ -7,48 +7,71 @@ import XpertGestionCollaborateursRow from './XpertGestionCollaborateursRow';
 import { Checkbox } from '@/components/ui/checkbox';
 import InfiniteScroll from '@/components/ui/infinite-scroll';
 import Loader from '@/components/Loader';
+import type { DBReferentType } from '@/types/typesDb';
 
 type XpertGestionCollaborateursTableProps = {
   pendingChanges: { id: string; affected_referent_id: string | null }[];
   setPendingChanges: React.Dispatch<
     React.SetStateAction<{ id: string; affected_referent_id: string | null }[]>
   >;
+  setGroupPendingChanges: React.Dispatch<
+    React.SetStateAction<
+      { post: string; affected_referent: DBReferentType | null }[]
+    >
+  >;
 };
 
 export default function XpertGestionCollaborateursTable({
-  pendingChanges,
   setPendingChanges,
+  setGroupPendingChanges,
 }: XpertGestionCollaborateursTableProps) {
   const {
     xpertsOptimized,
     totalXpertOptimized,
+    totalXpertLastJobs,
     loading,
     fetchXpertOptimizedFiltered,
+    fecthXpertLastJob,
+    xpertLastJobs,
   } = useXpertStore();
   const [isGroupSelection, setIsGroupSelection] = useState(false);
 
-  const handleReferentChange = (id: string, referentId: string | null) => {
-    setPendingChanges((prev) => {
-      const filtered = prev.filter((change) => change.id !== id);
-      return [...filtered, { id, affected_referent_id: referentId }];
-    });
+  const handleReferentChange = ({
+    referent,
+    xpertId,
+    jobName,
+  }: {
+    referent: DBReferentType | null;
+    xpertId?: string;
+    jobName?: string;
+  }) => {
+    if (xpertId) {
+      setPendingChanges((prev) => {
+        const filtered = prev.filter((change) => change.id !== xpertId);
+        return [
+          ...filtered,
+          { id: xpertId, affected_referent_id: referent?.id ?? null },
+        ];
+      });
+    } else if (jobName) {
+      setGroupPendingChanges((prev) => {
+        const filtered = prev.filter((change) => change.post !== jobName);
+        return [...filtered, { post: jobName, affected_referent: referent }];
+      });
+    }
   };
 
-  const getPendingReferent = (xpertId: string) => {
-    return pendingChanges.find((change) => change.id === xpertId)
-      ?.affected_referent_id;
-  };
-
-  const hasMore =
-    xpertsOptimized && totalXpertOptimized
+  const hasMore = !isGroupSelection
+    ? xpertsOptimized && totalXpertOptimized
       ? xpertsOptimized.length < totalXpertOptimized
       : totalXpertOptimized === 0
         ? false
+        : true
+    : xpertLastJobs && totalXpertLastJobs
+      ? xpertLastJobs.length < totalXpertLastJobs
+      : totalXpertLastJobs === 0
+        ? false
         : true;
-
-  useEffect(() => {
-    fetchXpertOptimizedFiltered(true);
-  }, []);
 
   return (
     <div className="rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
@@ -69,18 +92,31 @@ export default function XpertGestionCollaborateursTable({
       </div>
 
       <div
-        className={`grid ${isGroupSelection ? 'grid-cols-5' : 'grid-cols-6'} gap-3`}
+        // className={`grid ${isGroupSelection ? 'grid-cols-3 col-span-2' : 'grid-cols-6'} gap-3`}
+        className={`grid grid-cols-6 gap-3`}
       >
-        <FilterButton
-          options={[]}
-          onValueChange={() => {}}
-          placeholder="Prénom du référent"
-        />
-        <FilterButton
-          options={[]}
-          onValueChange={() => {}}
-          placeholder="Nom du référent"
-        />
+        {isGroupSelection && (
+          <FilterButton
+            className="col-span-2"
+            options={[]}
+            onValueChange={() => {}}
+            placeholder="Prénom(s) & Nom(s) du/des référent(s)"
+          />
+        )}
+        {!isGroupSelection && (
+          <FilterButton
+            options={[]}
+            onValueChange={() => {}}
+            placeholder="Prénom du référent"
+          />
+        )}
+        {!isGroupSelection && (
+          <FilterButton
+            options={[]}
+            onValueChange={() => {}}
+            placeholder="Nom du référent"
+          />
+        )}
         {!isGroupSelection && (
           <FilterButton
             options={[]}
@@ -92,29 +128,41 @@ export default function XpertGestionCollaborateursTable({
           options={[]}
           onValueChange={() => {}}
           placeholder="Dernier poste"
+          className={isGroupSelection ? 'col-span-2' : ''}
         />
         <FilterButton
           options={[]}
           onValueChange={() => {}}
           placeholder="Réaffectation"
-          className={isGroupSelection ? 'col-span-2' : 'col-span-2'}
+          // className={isGroupSelection ? 'col-span-1' : 'col-span-2'}
+          className={'col-span-2'}
         />
       </div>
-
-      {xpertsOptimized?.map((xpert) => (
-        <div className="my-3" key={xpert.id}>
-          <XpertGestionCollaborateursRow
-            xpert={xpert}
-            isGroupSelection={isGroupSelection}
-            onReferentChange={handleReferentChange}
-            pendingReferentId={getPendingReferent(xpert.id)}
-          />
-        </div>
-      ))}
+      {isGroupSelection
+        ? xpertLastJobs?.map((job, index) => (
+            <div className="my-3" key={index}>
+              <XpertGestionCollaborateursRow
+                job={job}
+                isGroupSelection={isGroupSelection}
+                onReferentChange={handleReferentChange}
+              />
+            </div>
+          ))
+        : xpertsOptimized?.map((xpert) => (
+            <div className="my-3" key={xpert.id}>
+              <XpertGestionCollaborateursRow
+                xpert={xpert}
+                isGroupSelection={isGroupSelection}
+                onReferentChange={handleReferentChange}
+              />
+            </div>
+          ))}
 
       <InfiniteScroll
         hasMore={hasMore}
-        next={fetchXpertOptimizedFiltered}
+        next={
+          isGroupSelection ? fecthXpertLastJob : fetchXpertOptimizedFiltered
+        }
         isLoading={false}
       >
         {hasMore && (
@@ -127,13 +175,14 @@ export default function XpertGestionCollaborateursTable({
             <Loader />
           </div>
         )}
-        {xpertsOptimized?.length === 0 && (
-          <div className="mt-4 flex w-full items-center justify-center">
-            <p className="text-gray-secondary text-center text-sm">
-              Aucun résultat
-            </p>
-          </div>
-        )}
+        {(isGroupSelection && xpertLastJobs?.length === 0) ||
+          (!isGroupSelection && xpertsOptimized?.length === 0 && (
+            <div className="mt-4 flex w-full items-center justify-center">
+              <p className="text-gray-secondary text-center text-sm">
+                Aucun résultat
+              </p>
+            </div>
+          ))}
       </InfiniteScroll>
     </div>
   );
