@@ -8,6 +8,7 @@ import Loader from '@/components/Loader';
 import ComboBoxXpert from '@/components/combobox/ComboBoxXpert';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 
 export type NewUserCalledNotSaved = {
   user_id: string;
@@ -68,7 +69,8 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
     setIsSaving(false);
   };
 
-  const hasSomethingNotSaved = newUserCalledNotSaved?.length;
+  const hasSomethingNotSaved = newUserCalledNotSaved?.length > 0;
+  useWarnIfUnsavedChanges(hasSomethingNotSaved);
 
   useEffect(() => {
     if (selectedRole === 'Fournisseur') {
