@@ -735,6 +735,7 @@ export type Database = {
           fix: string | null;
           france_detail: string[] | null;
           generated_id: string;
+          get_welcome_call: boolean | null;
           has_seen_available_missions: boolean | null;
           has_seen_blog: boolean | null;
           has_seen_community: boolean | null;
@@ -746,6 +747,7 @@ export type Database = {
           how_did_you_hear_about_us: string | null;
           how_did_you_hear_about_us_other: string | null;
           id: string;
+          is_authorized_referent: boolean;
           is_banned_from_community: boolean;
           lastname: string | null;
           linkedin: string | null;
@@ -795,6 +797,7 @@ export type Database = {
           fix?: string | null;
           france_detail?: string[] | null;
           generated_id: string;
+          get_welcome_call?: boolean | null;
           has_seen_available_missions?: boolean | null;
           has_seen_blog?: boolean | null;
           has_seen_community?: boolean | null;
@@ -806,6 +809,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id: string;
+          is_authorized_referent?: boolean;
           is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
@@ -855,6 +859,7 @@ export type Database = {
           fix?: string | null;
           france_detail?: string[] | null;
           generated_id?: string;
+          get_welcome_call?: boolean | null;
           has_seen_available_missions?: boolean | null;
           has_seen_blog?: boolean | null;
           has_seen_community?: boolean | null;
@@ -866,6 +871,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id?: string;
+          is_authorized_referent?: boolean;
           is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
@@ -1560,7 +1566,22 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      unique_posts: {
+        Row: {
+          post: string | null;
+        };
+        Relationships: [];
+      };
+      unique_posts_with_referents: {
+        Row: {
+          post: string | null;
+          post_count: number | null;
+          referents:
+            | Database['public']['CompositeTypes']['referent_type'][]
+            | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       calculate_matching_score: {
@@ -1578,6 +1599,10 @@ export type Database = {
           subject: string;
           status: Database['public']['Enums']['notification_status'];
         };
+        Returns: undefined;
+      };
+      do_nothing: {
+        Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
       generate_mission_unique_id: {
