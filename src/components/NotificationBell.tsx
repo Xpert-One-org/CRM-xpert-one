@@ -11,6 +11,8 @@ import Bell from './svg/Bell';
 import useUser from '@/store/useUser';
 import { Button } from './ui/button';
 import { AlertTriangle, Check, Info } from 'lucide-react';
+import InfiniteScroll from './ui/infinite-scroll';
+import Loader from './Loader';
 
 function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,7 +22,9 @@ function NotificationBell() {
   const {
     fetchNotifications,
     notifications,
+    totalNotifications,
     setNotifications,
+    loading,
     removeNotification,
   } = useNotifications();
   const supabase = createSupabaseFrontendClient();
@@ -116,6 +120,13 @@ function NotificationBell() {
     setDeletingIds((prev) => prev.filter((id) => id !== notificationId));
   };
 
+  const hasMore =
+    notifications && totalNotifications
+      ? notifications.length < totalNotifications
+      : totalNotifications === 0
+        ? false
+        : true;
+
   return (
     <div className="relative">
       <Button
@@ -139,14 +150,14 @@ function NotificationBell() {
             className="fixed inset-0 z-10 bg-black/50"
             onClick={togglePopup}
           ></div>
-          <div className="absolute -right-10 top-12 z-50 max-h-[80vh] w-80 overflow-y-auto rounded-md md:w-[50vw] md:max-w-[600px]">
+          <div className="absolute -right-10 top-12 z-50 w-80 rounded-md md:w-[50vw] md:max-w-[600px]">
             <div className="absolute inset-0 z-[-1]">
               <BubbleNotif className="size-full" />
             </div>
             <div className="px-4 pb-4 pt-8">
-              <h3 className="mb-2 text-sm font-semibold">Notifications</h3>
+              <h3 className="mb-2 pb-2 text-sm font-semibold">Notifications</h3>
               {notifications && notifications.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="max-h-[500px] space-y-2 overflow-y-auto pb-4">
                   {notifications.map((notification) => (
                     <li
                       key={notification.id}
@@ -161,7 +172,7 @@ function NotificationBell() {
                             <StatusIcon status={notification.status} />
                             <div>
                               <h4 className="text-sm font-medium">
-                                {notification.subject}
+                                {notification.id} {notification.subject}
                               </h4>
                               <p className="text-xs text-gray-500">
                                 {notification.message}
@@ -187,6 +198,29 @@ function NotificationBell() {
                       </div>
                     </li>
                   ))}
+                  <InfiniteScroll
+                    hasMore={hasMore}
+                    next={fetchNotifications}
+                    isLoading={false}
+                  >
+                    {hasMore && (
+                      <div className="mt-4 flex w-full items-center justify-center">
+                        <Loader />
+                      </div>
+                    )}
+                    {!hasMore && loading && (
+                      <div className="mt-4 flex w-full items-center justify-center">
+                        <Loader />
+                      </div>
+                    )}
+                    {!loading && notifications?.length === 0 && (
+                      <div className="mt-4 flex w-full items-center justify-center">
+                        <p className="text-gray-secondary text-center text-sm">
+                          Aucun résultat
+                        </p>
+                      </div>
+                    )}
+                  </InfiniteScroll>
                 </ul>
               ) : (
                 <p className="text-xs text-gray-500">

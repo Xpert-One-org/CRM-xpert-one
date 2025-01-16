@@ -15,9 +15,13 @@ export const getNotifications = async ({
     return { error: 'User not found' };
   }
 
-  const { data: notifications, error } = await supabase
+  const {
+    data: notifications,
+    error,
+    count,
+  } = await supabase
     .from('notification')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', user.id)
     .range(from, to)
     .order('created_at', { ascending: false });
@@ -26,7 +30,7 @@ export const getNotifications = async ({
     throw new Error(error.message);
   }
 
-  return { data: notifications, error };
+  return { data: notifications, error, count };
 };
 
 export const deleteNotification = async (id: number) => {
