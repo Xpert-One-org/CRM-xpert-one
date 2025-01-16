@@ -91,10 +91,7 @@ export default function XpertGestionCollaborateursTable({
         <div className="w-[250px]" />
       </div>
 
-      <div
-        // className={`grid ${isGroupSelection ? 'grid-cols-3 col-span-2' : 'grid-cols-6'} gap-3`}
-        className={`grid grid-cols-6 gap-3`}
-      >
+      <div className={`grid grid-cols-6 gap-3`}>
         {isGroupSelection && (
           <FilterButton
             className="col-span-2"
@@ -134,7 +131,6 @@ export default function XpertGestionCollaborateursTable({
           options={[]}
           onValueChange={() => {}}
           placeholder="Réaffectation"
-          // className={isGroupSelection ? 'col-span-1' : 'col-span-2'}
           className={'col-span-2'}
         />
       </div>

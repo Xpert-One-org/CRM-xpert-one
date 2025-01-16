@@ -172,7 +172,7 @@ function NotificationBell() {
                             <StatusIcon status={notification.status} />
                             <div>
                               <h4 className="text-sm font-medium">
-                                {notification.id} {notification.subject}
+                                {notification.subject}
                               </h4>
                               <p className="text-xs text-gray-500">
                                 {notification.message}

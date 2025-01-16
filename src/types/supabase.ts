@@ -747,6 +747,7 @@ export type Database = {
           how_did_you_hear_about_us: string | null;
           how_did_you_hear_about_us_other: string | null;
           id: string;
+          is_authorized_referent: boolean;
           is_banned_from_community: boolean;
           lastname: string | null;
           linkedin: string | null;
@@ -808,6 +809,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id: string;
+          is_authorized_referent?: boolean;
           is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
@@ -869,6 +871,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id?: string;
+          is_authorized_referent?: boolean;
           is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
@@ -1563,7 +1566,7 @@ export type Database = {
       };
     };
     Views: {
-      unique_last_jobs: {
+      unique_posts: {
         Row: {
           post: string | null;
         };
@@ -1572,6 +1575,7 @@ export type Database = {
       unique_posts_with_referents: {
         Row: {
           post: string | null;
+          post_count: number | null;
           referents:
             | Database['public']['CompositeTypes']['referent_type'][]
             | null;
@@ -1595,6 +1599,10 @@ export type Database = {
           subject: string;
           status: Database['public']['Enums']['notification_status'];
         };
+        Returns: undefined;
+      };
+      do_nothing: {
+        Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
       generate_mission_unique_id: {

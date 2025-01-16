@@ -53,9 +53,7 @@ export default function XpertGestionCollaborateursRow({
 
   const lastPosition = xpert?.profile_experience?.post
     ? (getLabel({
-        value: xpert.profile_experience.post.includes('other')
-          ? (xpert.profile_experience.post_other ?? '')
-          : xpert.profile_experience.post,
+        value: xpert.profile_experience.post,
         select: posts,
       }) ?? empty)
     : empty;
@@ -145,9 +143,14 @@ export default function XpertGestionCollaborateursRow({
           'col-span-2': isGroupSelection,
         })}
       >
-        {isGroupSelection
-          ? getLabel({ select: posts, value: job?.post ?? '' })
-          : lastPosition}
+        {isGroupSelection ? (
+          <p>
+            {getLabel({ select: posts, value: job?.post ?? '' })}{' '}
+            <span className="bold text-xs italic text-gray-400">{`(${job?.post_count})`}</span>
+          </p>
+        ) : (
+          lastPosition
+        )}
       </Box>
       <Box className={cn('col-span-2 p-0', { '': isGroupSelection })}>
         <Select

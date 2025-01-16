@@ -208,6 +208,7 @@ export type DBReferentType =
 export type DBXpertLastPost = {
   post: string | null;
   referents: DBReferentType[] | null;
+  post_count: number | null;
 };
 
 export type DBCollaboratorRole = Database['public']['Enums']['profile_roles'];

@@ -1,4 +1,3 @@
-create type "public"."referent_type" as ("id" uuid, "firstname" text, "lastname" text);
 
 create or replace view "public"."unique_last_jobs" as  SELECT DISTINCT
         CASE
