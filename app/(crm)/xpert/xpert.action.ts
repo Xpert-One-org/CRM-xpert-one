@@ -285,30 +285,25 @@ export const getXpertLastJobs = async ({
   if (!user) {
     throw new Error("Vous n'êtes pas connecté");
   }
+
+  const {
+    data: uniqueJobs,
+    error,
+    count,
+  } = await supabase
+    .from('unique_posts_with_referents')
+    .select('*', { count: 'exact' })
+    .range(offset, offset + limitXpertLastJobs - 1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return {
-    data: [],
-    count: null,
+    data: uniqueJobs,
+    count: count || 0,
     error: null,
   };
-
-  // const {
-  //   data: uniqueJobs,
-  //   error,
-  //   count,
-  // } = await supabase
-  //   .from('unique_posts_with_referents')
-  //   .select('*', { count: 'exact' })
-  //   .range(offset, offset + limitXpertLastJobs - 1);
-
-  // if (error) {
-  //   throw new Error(error.message);
-  // }
-
-  // return {
-  //   data: uniqueJobs,
-  //   count: count || 0,
-  //   error: null,
-  // };
 };
 
 export const getXpertIdByJobName = async (

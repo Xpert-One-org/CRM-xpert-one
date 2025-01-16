@@ -1563,7 +1563,21 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      unique_last_jobs: {
+        Row: {
+          post: string | null;
+        };
+        Relationships: [];
+      };
+      unique_posts_with_referents: {
+        Row: {
+          post: string | null;
+          referents:
+            | Database['public']['CompositeTypes']['referent_type'][]
+            | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       calculate_matching_score: {

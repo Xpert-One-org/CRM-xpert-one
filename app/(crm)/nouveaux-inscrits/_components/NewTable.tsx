@@ -9,6 +9,7 @@ import ComboBoxXpert from '@/components/combobox/ComboBoxXpert';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
+import { useAdminCollaborators } from '@/store/adminCollaborators';
 
 export type NewUserCalledNotSaved = {
   user_id: string;
@@ -20,6 +21,7 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [filteredUsers, setFilteredUsers] = useState<DBProfile[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const { collaborators, fetchCollaborators } = useAdminCollaborators();
   const [newUserCalledNotSaved, setNewUserCalledNotSaved] = useState<
     NewUserCalledNotSaved[]
   >([]);
@@ -45,7 +47,6 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
 
   const handleSave = async () => {
     setIsSaving(true);
-
     const promises = newUserCalledNotSaved.map(async (data) => {
       const { error } = await updateUserWelcomeCall({
         user_id: data.user_id,
@@ -85,6 +86,10 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
       getLastMonthNewUsers(role);
     }
   }, [role]);
+
+  useEffect(() => {
+    if (!collaborators || collaborators.length < 1) fetchCollaborators();
+  }, [collaborators, fetchCollaborators]);
 
   return (
     <>

@@ -10,6 +10,7 @@ import useChat from '@/store/chat/chat';
 import useUser from '@/store/useUser';
 import { cn } from '@/lib/utils';
 import type { NewUserCalledNotSaved } from './NewTable';
+import { useAdminCollaborators } from '@/store/adminCollaborators';
 
 type Props = {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export default function NewRow({
   const router = useRouter();
   const { setSearchUserSelected } = useUser();
   const { setCreateTaskDialogOpen, setInitialTaskData } = useTasksStore();
+  const { collaborators } = useAdminCollaborators();
   const { setPopupOpen } = useChat();
   const [isUserCalled, setIsUserCalled] = useState<boolean>(
     user.get_welcome_call ?? false
@@ -76,6 +78,15 @@ export default function NewRow({
     }
   };
 
+  const referent = (() => {
+    const referentData = collaborators.find(
+      (c) => c.id === user.affected_referent_id
+    );
+    return referentData
+      ? `${referentData.firstname} ${referentData.lastname}`
+      : '';
+  })();
+
   return (
     <>
       <div className="grid w-full grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_50px_50px] gap-4">
@@ -110,7 +121,7 @@ export default function NewRow({
           <EyeIcon className="ml-1" />
         </Box>
         <Box isSelected={isOpen}>
-          <p>{user.referent_id ?? 'Non renseigné'}</p>
+          <p>{referent}</p>
         </Box>
         <Box className="flex items-center justify-center bg-[#4A8B96]">
           <Button
