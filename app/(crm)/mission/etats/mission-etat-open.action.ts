@@ -17,6 +17,7 @@ export async function getCountMatchedXperts(
     languages,
     diplomas,
     start_date,
+    city,
     open_to_disabled,
   } = missionData;
 

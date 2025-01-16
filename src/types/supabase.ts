@@ -651,6 +651,56 @@ export type Database = {
           },
         ];
       };
+      mission_checkpoints: {
+        Row: {
+          created_at: string;
+          id: number;
+          mission_id: number;
+          point_fin_j_moins_30: boolean;
+          point_j_moins_10_f: boolean;
+          point_j_moins_10_x: boolean;
+          point_j_plus_10_f: boolean;
+          point_j_plus_10_referent: boolean;
+          point_j_plus_10_x: boolean;
+          point_rh_fin_j_plus_10_f: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          mission_id: number;
+          point_fin_j_moins_30?: boolean;
+          point_j_moins_10_f?: boolean;
+          point_j_moins_10_x?: boolean;
+          point_j_plus_10_f?: boolean;
+          point_j_plus_10_referent?: boolean;
+          point_j_plus_10_x?: boolean;
+          point_rh_fin_j_plus_10_f?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          mission_id?: number;
+          point_fin_j_moins_30?: boolean;
+          point_j_moins_10_f?: boolean;
+          point_j_moins_10_x?: boolean;
+          point_j_plus_10_f?: boolean;
+          point_j_plus_10_referent?: boolean;
+          point_j_plus_10_x?: boolean;
+          point_rh_fin_j_plus_10_f?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mission_checkpoints_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: true;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notification: {
         Row: {
           chat_id: number | null;
