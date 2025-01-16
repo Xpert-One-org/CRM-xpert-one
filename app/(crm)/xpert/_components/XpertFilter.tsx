@@ -3,9 +3,7 @@ import React, { useState, useEffect } from 'react';
 import type { DBXpertOptimized } from '@/types/typesDb';
 import CountryFilterButton from '@/components/CountryFilterButton';
 import { useXpertStore } from '@/store/xpert';
-import Combobox from '@/components/combobox/Combobox';
-import FilterSvg from '@/components/svg/FIlterSvg';
-import { useDebounce } from 'use-debounce';
+import { SearchComponentFilter } from '@/components/SearchComponentFilter';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
 import {
   adminOpinionOptions,
@@ -68,9 +66,6 @@ export default function XpertFilter({
     setActiveFilters(newActiveFilter);
   };
 
-  // const handleAdminOpinionChange = (value: string) => {
-  //   setSelectedAdminOpinion(value);
-  // };
   const handleCountryChange = (countries: string[]) => {
     const newActiveFilter = { ...activeFilters, countries };
     setActiveFilters(newActiveFilter);
@@ -79,7 +74,7 @@ export default function XpertFilter({
       return;
     }
   };
-  //
+
   useEffect(() => {
     if (isFilterNotEmpty) {
       fetchXpertOptimizedFiltered(true);
@@ -101,6 +96,16 @@ export default function XpertFilter({
           placeholder="Nom"
           filterKey="lastname"
           placeholderSearch="Rechercher un nom"
+          value={activeFilters.lastname}
+          onValueChange={(value) => {
+            const newActiveFilter = { ...activeFilters, lastname: value };
+            setActiveFilters(newActiveFilter);
+          }}
+          onClear={() => {
+            const newActiveFilter = { ...activeFilters, lastname: '' };
+            setActiveFilters(newActiveFilter);
+            fetchXpertOptimizedFiltered(true);
+          }}
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
@@ -108,6 +113,16 @@ export default function XpertFilter({
           placeholder="Prénom"
           filterKey="firstname"
           placeholderSearch="Rechercher un prénom"
+          value={activeFilters.firstname}
+          onValueChange={(value) => {
+            const newActiveFilter = { ...activeFilters, firstname: value };
+            setActiveFilters(newActiveFilter);
+          }}
+          onClear={() => {
+            const newActiveFilter = { ...activeFilters, firstname: '' };
+            setActiveFilters(newActiveFilter);
+            fetchXpertOptimizedFiltered(true);
+          }}
         />
       </div>
       <div className="col-span-2 flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
@@ -115,33 +130,40 @@ export default function XpertFilter({
           placeholder="Poste"
           filterKey="jobTitles"
           placeholderSearch="Rechercher un poste"
+          value={activeFilters.jobTitles}
+          onValueChange={(value) => {
+            const newActiveFilter = { ...activeFilters, jobTitles: value };
+            setActiveFilters(newActiveFilter);
+          }}
+          onClear={() => {
+            const newActiveFilter = { ...activeFilters, jobTitles: '' };
+            setActiveFilters(newActiveFilter);
+            fetchXpertOptimizedFiltered(true);
+          }}
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <CountryFilterButton
           data={xperts}
-          // onFilter={(data) =>
-          //   onSortedDataChange(data, 'countries', activeFilters.countries)
-          // }
-
-          // onFilter={(data) =>
-          //   onSortedDataChange(data, 'countries', activeFilters.countries)
-          // }
           selectedCountries={activeFilters.countries}
           onCountryChange={handleCountryChange}
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
-        {/* <ComboBoxXpert
-          searchType="generated_id"
-          selectedXpertId={selectedXpertId}
-          onXpertSelect={setSelectedXpertId}
-          onClear={handleClear}
-        /> */}
         <SearchComponentFilter
           placeholder="N° identification"
           filterKey="generated_id"
           placeholderSearch="Rechercher un X"
+          value={activeFilters.generated_id}
+          onValueChange={(value) => {
+            const newActiveFilter = { ...activeFilters, generated_id: value };
+            setActiveFilters(newActiveFilter);
+          }}
+          onClear={() => {
+            const newActiveFilter = { ...activeFilters, generated_id: '' };
+            setActiveFilters(newActiveFilter);
+            fetchXpertOptimizedFiltered(true);
+          }}
         />
       </div>
       <FilterButton
@@ -170,57 +192,3 @@ export default function XpertFilter({
     </>
   );
 }
-
-const SearchComponentFilter = ({
-  placeholderSearch = 'Rechercher un xpert',
-  placeholder,
-  filterKey,
-}: {
-  placeholder: string;
-  filterKey: keyof FilterXpert;
-  placeholderSearch?: string;
-}) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [value] = useDebounce(searchTerm, 300);
-  const { fetchXpertOptimizedFiltered, activeFilters, setActiveFilters } =
-    useXpertStore();
-
-  const handleClear = () => {
-    useXpertStore.setState({ loading: true });
-    setSearchTerm('');
-    const newActiveFilter = { ...activeFilters, [filterKey]: '' };
-    setActiveFilters(newActiveFilter);
-    fetchXpertOptimizedFiltered(true);
-  };
-
-  const handleSearch = (value: string) => {
-    if (value === '') {
-      handleClear();
-      return;
-    }
-    setSearchTerm(value);
-  };
-
-  const handleSetValue = (value: string) => {
-    const newActiveFilter = { ...activeFilters, [filterKey]: value };
-    setActiveFilters(newActiveFilter);
-  };
-
-  useEffect(() => {
-    handleSetValue(value);
-  }, [value]);
-
-  return (
-    <Combobox
-      data={[]}
-      value={searchTerm}
-      handleSetValue={handleSearch}
-      handleValueChange={handleSearch}
-      placeholder={placeholder}
-      placeholderSearch={placeholderSearch}
-      className="border-none"
-      icon={<FilterSvg className="size-4" />}
-      onClear={handleClear}
-    />
-  );
-};

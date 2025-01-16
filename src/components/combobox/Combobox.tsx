@@ -30,6 +30,7 @@ type Props = {
   name?: string;
   hasError?: boolean;
   icon?: React.ReactNode;
+  showValue?: boolean;
   onClear?: () => void;
   showPlaceholderWithValue?: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>;
@@ -50,6 +51,7 @@ export default function Combobox({
   hasError,
   icon,
   onClear,
+  showValue = true,
   showPlaceholderWithValue = true,
   ...props
 }: Props) {
@@ -79,7 +81,7 @@ export default function Combobox({
           >
             <div className="flex items-center gap-1">
               {showPlaceholderWithValue ? placeholder : ''}
-              {value && (
+              {value && showValue && (
                 <div>
                   <Badge className="flex items-center justify-center gap-1">
                     {value}

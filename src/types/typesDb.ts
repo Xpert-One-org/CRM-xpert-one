@@ -119,6 +119,12 @@ export type DBArticle = Database['public']['Tables']['article']['Row'];
 // SETTINGS
 export type DBUserAlerts = Database['public']['Tables']['user_alerts']['Row'];
 
+export type DBMissionCheckpoint =
+  Database['public']['Tables']['mission_checkpoints']['Row'];
+
+export type DBMissionCheckpoints =
+  Database['public']['Tables']['mission_checkpoints']['Row'][];
+
 // MISSIONS
 export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   company_name?: string | null;
@@ -126,6 +132,7 @@ export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   xpert?: DBProfile | null;
   generated_id?: string | null;
   mission_application?: Database['public']['Tables']['mission_application']['Row'][];
+  checkpoints?: DBMissionCheckpoints;
 };
 
 // CUSTOM TYPES

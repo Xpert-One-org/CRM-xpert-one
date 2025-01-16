@@ -1,11 +1,18 @@
 'use client';
 import Combobox from '@/components/combobox/Combobox';
+import { cn } from '@/lib/utils';
 import { useMissionStore } from '@/store/mission';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
-export default function ComboboxMission({ slug }: { slug?: string }) {
+export default function ComboboxMission({
+  slug,
+  className,
+}: {
+  slug?: string;
+  className?: string;
+}) {
   const [value, setValue] = useState('');
   const [text] = useDebounce(value, 500);
   const [data, setData] = useState<string[]>([]);
@@ -84,7 +91,10 @@ export default function ComboboxMission({ slug }: { slug?: string }) {
           ? 'Rechercher'
           : currentMissionNumber
       }
-      className="h-full bg-primary py-spaceContainer text-white hover:bg-secondary"
+      className={cn(
+        'h-full bg-primary py-spaceContainer text-white hover:bg-secondary',
+        className
+      )}
     />
   );
 }
