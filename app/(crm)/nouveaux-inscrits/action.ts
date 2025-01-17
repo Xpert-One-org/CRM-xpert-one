@@ -67,7 +67,5 @@ export const updateUserWelcomeCall = async ({
     throw error;
   }
 
-  console.log('data', data);
-
   return { data, error };
 };

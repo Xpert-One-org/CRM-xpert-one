@@ -7,9 +7,10 @@ import { MissionFinancials } from './sections/MissionFinancials';
 import { MissionDetails } from './sections/MissionDetails';
 import { MissionLocation } from './sections/MissionLocation';
 import { MissionDescription } from './sections/MissionDescription';
-import { MissionReferent } from './sections/MissionReferent';
+import { MissionReferentSupplier } from './sections/MissionReferentSupplier';
 import { MissionEvaluation } from './sections/MissionEvaluation';
 import { useEditMissionStore } from '../../editMissionStore';
+import { MissionReferentXpertOne } from './sections/MissionReferentXpertOne';
 
 export default function RightSideFicheMission() {
   const {
@@ -33,7 +34,13 @@ export default function RightSideFicheMission() {
       <MissionDetails />
       <MissionLocation />
       <MissionDescription />
-      <MissionReferent />
+
+      {/* Référent FOURNISSEUR != Référent XPERT ONE (admin) */}
+      <MissionReferentSupplier />
+
+      {/* Référent XPERT ONE (admin) */}
+      <MissionReferentXpertOne />
+
       <MissionEvaluation />
 
       <div className="flex w-full flex-row justify-between gap-4">

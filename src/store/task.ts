@@ -10,6 +10,7 @@ type TaskState = {
   activeFilters: FilterTasks;
   createTaskDialogOpen: boolean;
   initialTaskData: {
+    referentId?: string;
     subjectType?: 'xpert' | 'supplier';
     subjectId?: string;
   };
@@ -20,6 +21,7 @@ type TaskState = {
   setActiveFilters: (filters: FilterTasks) => void;
   setCreateTaskDialogOpen: (open: boolean) => void;
   setInitialTaskData: (data: {
+    referentId?: string;
     subjectType?: 'xpert' | 'supplier';
     subjectId?: string;
   }) => void;

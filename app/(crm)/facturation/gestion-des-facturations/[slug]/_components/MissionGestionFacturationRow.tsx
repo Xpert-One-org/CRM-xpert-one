@@ -24,7 +24,11 @@ export default function MissionGestionFacturationRow({
     <>
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
       <ComboboxMission slug="gestion-des-facturations" />
-      <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
+      <Box className="col-span-1">
+        {' '}
+        {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
+      </Box>
+
       <Box className="col-span-1">
         {uppercaseFirstLetter(
           new Date(mission.start_date ?? new Date()).toLocaleString('fr-FR', {

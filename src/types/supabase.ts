@@ -404,6 +404,7 @@ export type Database = {
         Row: {
           address: string | null;
           advantages_company: string | null;
+          affected_referent_id: string | null;
           city: string | null;
           contract_file_name: string | null;
           country: string | null;
@@ -412,6 +413,7 @@ export type Database = {
           deadline_application: string | null;
           deleted_at: string | null;
           description: string | null;
+          detail_deletion: string | null;
           diplomas: string[] | null;
           diplomas_other: string | null;
           end_date: string | null;
@@ -460,6 +462,7 @@ export type Database = {
         Insert: {
           address?: string | null;
           advantages_company?: string | null;
+          affected_referent_id?: string | null;
           city?: string | null;
           contract_file_name?: string | null;
           country?: string | null;
@@ -468,6 +471,7 @@ export type Database = {
           deadline_application?: string | null;
           deleted_at?: string | null;
           description?: string | null;
+          detail_deletion?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
           end_date?: string | null;
@@ -516,6 +520,7 @@ export type Database = {
         Update: {
           address?: string | null;
           advantages_company?: string | null;
+          affected_referent_id?: string | null;
           city?: string | null;
           contract_file_name?: string | null;
           country?: string | null;
@@ -524,6 +529,7 @@ export type Database = {
           deadline_application?: string | null;
           deleted_at?: string | null;
           description?: string | null;
+          detail_deletion?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
           end_date?: string | null;
@@ -570,6 +576,13 @@ export type Database = {
           xpert_associated_status?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'mission_affected_referent_id_fkey';
+            columns: ['affected_referent_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'mission_created_by_fkey';
             columns: ['created_by'];
@@ -703,31 +716,37 @@ export type Database = {
       };
       notification: {
         Row: {
+          category: string | null;
           created_at: string;
           id: number;
+          is_global: boolean | null;
           link: string | null;
           message: string;
           status: Database['public']['Enums']['notification_status'];
           subject: string | null;
-          user_id: string;
+          user_id: string | null;
         };
         Insert: {
+          category?: string | null;
           created_at?: string;
           id?: number;
+          is_global?: boolean | null;
           link?: string | null;
           message: string;
           status?: Database['public']['Enums']['notification_status'];
           subject?: string | null;
-          user_id: string;
+          user_id?: string | null;
         };
         Update: {
+          category?: string | null;
           created_at?: string;
           id?: number;
+          is_global?: boolean | null;
           link?: string | null;
           message?: string;
           status?: Database['public']['Enums']['notification_status'];
           subject?: string | null;
-          user_id?: string;
+          user_id?: string | null;
         };
         Relationships: [
           {
@@ -1647,7 +1666,9 @@ export type Database = {
           link: string;
           message: string;
           subject: string;
-          status: Database['public']['Enums']['notification_status'];
+          status?: Database['public']['Enums']['notification_status'];
+          is_global?: boolean;
+          category?: string;
         };
         Returns: undefined;
       };

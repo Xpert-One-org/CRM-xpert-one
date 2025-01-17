@@ -129,6 +129,10 @@ export type DBMissionCheckpoints =
 export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   company_name?: string | null;
   supplier?: DBProfile | null;
+  referent?: Pick<
+    DBProfile,
+    'id' | 'mobile' | 'fix' | 'firstname' | 'lastname' | 'email'
+  > | null;
   xpert?: DBProfile | null;
   generated_id?: string | null;
   mission_application?: Database['public']['Tables']['mission_application']['Row'][];
@@ -137,6 +141,9 @@ export type DBMission = Database['public']['Tables']['mission']['Row'] & {
 
 // CUSTOM TYPES
 export type ChatType = Database['public']['Enums']['chat_type'];
+
+export type ReasonMissionDeletion =
+  Database['public']['Enums']['reason_mission_deletion'];
 
 export type MsgFiles = Database['public']['CompositeTypes']['msg_files'];
 
@@ -182,9 +189,6 @@ export type DBUserChat = Pick<
 >;
 
 export type ColumnStatus = Database['public']['Enums']['selection_column_type'];
-
-export type ReasonMissionDeletion =
-  Database['public']['Enums']['reason_mission_deletion'];
 
 export type DBMissionXpertsSelection =
   Database['public']['Tables']['selection_matching']['Row'] & {

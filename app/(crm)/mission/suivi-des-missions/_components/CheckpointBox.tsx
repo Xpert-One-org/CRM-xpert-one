@@ -47,6 +47,7 @@ export function CheckpointBox({
     );
 
     if (error) {
+      console.error(error);
       toast.error('Erreur lors de la mise à jour du point');
     } else if (data) {
       onToggle(checkpointField, data[checkpointField]);

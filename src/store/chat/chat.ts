@@ -196,6 +196,7 @@ const useChat = create<ChatState>((set, get) => ({
       receiver_id,
     });
     if (error) {
+      console.error(error);
       set({ errorMsg: error, isLoading: false });
       return;
     }

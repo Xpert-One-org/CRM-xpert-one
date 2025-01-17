@@ -105,14 +105,17 @@ export default function FicheMissionTable() {
                 </Link>
               </p>
               <p>Société : {mission.supplier?.company_name ?? empty}</p>
-              <p>Contact : {mission.referent_name ?? empty}</p>
+              <p>
+                Contact :{' '}
+                {`${mission.supplier?.firstname ?? ''} ${mission.supplier?.lastname ?? ''}`}
+              </p>
             </div>
             <div>
               <h3 className="text-sm font-bold text-black">
                 RÉFÉRENTS FOURNISSEUR
               </h3>
-              <p>Nom : {mission.referent_name ?? empty}</p>
-              <p>Mail : {mission.supplier?.email ?? empty}</p>
+              <p>Nom : {`${mission.referent_name ?? ''}`}</p>
+              <p>Mail : {mission.referent_mail}</p>
               <p>Téléphone : {mission.referent_mobile}</p>
             </div>
             <div>
@@ -128,7 +131,10 @@ export default function FicheMissionTable() {
                   {mission.xpert?.generated_id}
                 </Link>
               </p>
-              <p>Contact : {mission.referent_name}</p>
+              <p>
+                Contact :{' '}
+                {`${mission.xpert?.firstname ?? ''} ${mission.xpert?.lastname ?? ''}`}
+              </p>
               <p>Auto Évaluation : {empty}</p>
               <p>Évaluation moyenne : {empty}</p>
             </div>
@@ -136,7 +142,10 @@ export default function FicheMissionTable() {
               <h3 className="text-sm font-bold text-black">
                 RÉFÉRENTS XPERT ONE
               </h3>
-              <p>{mission.referent_name ?? empty}</p>
+              <p>
+                {' '}
+                {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
+              </p>
             </div>
           </div>
         </div>

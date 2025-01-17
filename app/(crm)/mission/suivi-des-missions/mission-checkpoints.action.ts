@@ -35,6 +35,7 @@ export async function toggleMissionCheckpoint(
     .single();
 
   if (fetchError) {
+    console.error(fetchError);
     return { data: null, error: fetchError.message };
   }
 

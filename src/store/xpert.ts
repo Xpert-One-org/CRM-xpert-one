@@ -455,7 +455,6 @@ export const useXpertStore = create<XpertState>((set, get) => ({
           : job
       ),
     }));
-    console.log(get().xpertLastJobs);
   },
 
   updateXpertReferent: async (

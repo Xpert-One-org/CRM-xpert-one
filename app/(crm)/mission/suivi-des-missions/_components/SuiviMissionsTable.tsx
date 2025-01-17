@@ -156,7 +156,6 @@ export default function SuiviMissionsTable() {
         />
         <ComboboxSuivi
           onMissionSelect={(missionNumber) => {
-            console.log('Selected mission number:', missionNumber);
             setSelectedMissionNumber(missionNumber);
           }}
           onClear={() => {

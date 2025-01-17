@@ -63,7 +63,7 @@ export default function MissionActivationRow({
     <>
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
       <ComboboxMission slug="activation-des-missions" />
-      <Box className="col-span-1">{mission.referent_name ?? empty}</Box>
+      <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box
         className="col-span-1 bg-[#65ADAF] text-white"
         isSelectable={!isIntern}

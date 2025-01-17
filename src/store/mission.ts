@@ -4,6 +4,7 @@ import type {
   DBMission,
   DBMissionCheckpoint,
   DBMissionState,
+  ReasonMissionDeletion,
 } from '@/types/typesDb';
 import {
   getAllMissions,
@@ -34,7 +35,12 @@ type MissionState = {
   resetPagination: () => void;
   fetchMissionsState: (selectedState: DBMissionState | null) => Promise<void>;
   searchMissions: (missionId: string) => Promise<void>;
-  updateMission: (missionId: string, state: DBMissionState) => Promise<void>;
+  updateMission: (
+    missionId: string,
+    state: DBMissionState,
+    reason_deletion?: ReasonMissionDeletion,
+    detail_deletion?: string
+  ) => Promise<void>;
   updateSelectionMission: (
     selectionId: number,
     columnStatus: ColumnStatus,
@@ -66,6 +72,7 @@ type MissionState = {
 
 export const useMissionStore = create<MissionState>((set, get) => ({
   missions: [],
+  inProgressMissions: [],
   missionsNumbers: [],
   totalMissions: 0,
   isLoading: false,
@@ -129,6 +136,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       set({ isLoading: true });
       try {
         const fetchedMissions = await getMissionState(selectedState);
+
         set({ missions: fetchedMissions });
       } catch (error) {
         console.error('Error fetching missions state:', error);
@@ -138,14 +146,43 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       }
     }
   },
-  updateMission: async (missionId: string, state: DBMission['state']) => {
-    await updateMissionState(missionId, state);
+  updateMission: async (
+    missionId: string,
+    state: DBMissionState,
+    reason_deletion?: ReasonMissionDeletion,
+    detail_deletion?: string
+  ) => {
+    try {
+      await updateMissionState(
+        missionId,
+        state,
+        reason_deletion,
+        detail_deletion
+      );
 
-    set({
-      missions: get().missions.map((mission: DBMission) =>
-        mission.id.toString() === missionId ? { ...mission, state } : mission
-      ),
-    });
+      set({
+        missions: get().missions.map((mission: DBMission) =>
+          mission.id.toString() === missionId
+            ? {
+                ...mission,
+                state,
+                reason_deletion:
+                  state === 'refused' && reason_deletion
+                    ? reason_deletion
+                    : null,
+                detail_deletion:
+                  state === 'refused' && detail_deletion
+                    ? detail_deletion
+                    : null,
+              }
+            : mission
+        ),
+      });
+    } catch (error) {
+      console.error('Error updating mission state:', error);
+      toast.error('Erreur lors de la mise à jour de la mission');
+      throw error;
+    }
   },
   updateSelectionMission: async (
     selectionId: number,

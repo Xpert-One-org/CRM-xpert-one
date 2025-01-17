@@ -17,7 +17,6 @@ import Link from 'next/link';
 import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 
 export default function MissionEtatPage() {
-  const { fetchPosts, fetchJobTitles } = useSelect();
   const { fetchMissionsState, isLoading, setIsLoading } = useMissionStore();
   const [selectedState, setSelectedState] = useState<DBMissionState | null>(
     null
@@ -39,11 +38,6 @@ export default function MissionEtatPage() {
     newSearchParams.set('etat', state);
     router.push(`/mission/etats?${newSearchParams.toString()}`);
   };
-
-  useEffect(() => {
-    fetchPosts();
-    fetchJobTitles();
-  }, [fetchPosts, fetchJobTitles]);
 
   return (
     <>
@@ -105,6 +99,7 @@ const MissionContent = ({
   if (isLoading) {
     return <Loader className="flex w-full justify-center" />;
   }
+
   switch (selectedState) {
     case 'in_process':
       return <MissionEtatInProcessTable />;

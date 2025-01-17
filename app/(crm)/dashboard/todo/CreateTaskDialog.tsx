@@ -42,11 +42,12 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
   const [missions, setMissions] = useState<SimpleMission[]>([]);
 
   const [formData, setFormData] = useState({
-    assignedTo: '',
+    assignedTo: initialTaskData.referentId || '',
     subjectType: initialTaskData.subjectType || '',
     subjectId: initialTaskData.subjectId || '',
     details: '',
   });
+
   const [isUrgent, setIsUrgent] = useState(false);
 
   useEffect(() => {
