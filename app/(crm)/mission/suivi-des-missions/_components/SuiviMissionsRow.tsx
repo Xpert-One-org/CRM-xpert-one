@@ -307,7 +307,10 @@ export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
         checkpointField="point_fin_j_moins_30"
         onToggle={handleCheckpointToggle}
       />
-      <Box className="col-span-1">{mission.referent_name}</Box>
+      <Box className="col-span-1">
+        {' '}
+        {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
+      </Box>
     </div>
   );
 }
