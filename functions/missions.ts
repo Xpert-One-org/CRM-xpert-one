@@ -157,6 +157,22 @@ export const searchMission = async (missionId: string) => {
   return { data };
 };
 
+export const getLastMissionNumber = async () => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('mission')
+    .select('mission_number')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { data: data.mission_number };
+};
 export const updateMissionState = async (
   missionId: string,
   state: DBMissionState,

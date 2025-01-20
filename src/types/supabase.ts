@@ -449,6 +449,7 @@ export type Database = {
           sector_renewable_energy: string | null;
           sector_renewable_energy_other: string | null;
           sector_waste_treatment: string | null;
+          show_on_website: boolean | null;
           signed_quote_file_name: string | null;
           specialties: string[] | null;
           specialties_other: string | null;
@@ -507,6 +508,7 @@ export type Database = {
           sector_renewable_energy?: string | null;
           sector_renewable_energy_other?: string | null;
           sector_waste_treatment?: string | null;
+          show_on_website?: boolean | null;
           signed_quote_file_name?: string | null;
           specialties?: string[] | null;
           specialties_other?: string | null;
@@ -565,6 +567,7 @@ export type Database = {
           sector_renewable_energy?: string | null;
           sector_renewable_energy_other?: string | null;
           sector_waste_treatment?: string | null;
+          show_on_website?: boolean | null;
           signed_quote_file_name?: string | null;
           specialties?: string[] | null;
           specialties_other?: string | null;
@@ -676,6 +679,7 @@ export type Database = {
           point_j_plus_10_referent: boolean;
           point_j_plus_10_x: boolean;
           point_rh_fin_j_plus_10_f: boolean;
+          point_trimestre_x: boolean;
           updated_at: string;
         };
         Insert: {
@@ -689,6 +693,7 @@ export type Database = {
           point_j_plus_10_referent?: boolean;
           point_j_plus_10_x?: boolean;
           point_rh_fin_j_plus_10_f?: boolean;
+          point_trimestre_x?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -702,6 +707,7 @@ export type Database = {
           point_j_plus_10_referent?: boolean;
           point_j_plus_10_x?: boolean;
           point_rh_fin_j_plus_10_f?: boolean;
+          point_trimestre_x?: boolean;
           updated_at?: string;
         };
         Relationships: [
@@ -1659,6 +1665,22 @@ export type Database = {
           p_xpert_id: string;
         };
         Returns: number;
+      };
+      check_mission_checkpoints: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      create_new_task: {
+        Args: {
+          assigned_to: string;
+          subject_type: Database['public']['Enums']['task_subject_type'];
+          details: string;
+          xpert_id?: string;
+          supplier_id?: string;
+          mission_id?: number;
+          status?: Database['public']['Enums']['task_status'];
+        };
+        Returns: undefined;
       };
       create_notification: {
         Args: {
