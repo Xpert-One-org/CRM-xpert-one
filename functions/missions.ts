@@ -9,23 +9,36 @@ import { checkAuthRole } from '@functions/auth/checkRole';
 
 export const getAllMissions = async (
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  options?: {
+    sortBy?: {
+      column: string;
+      ascending: boolean;
+      nullsLast?: boolean;
+    };
+    states?: DBMissionState[];
+  }
 ): Promise<{ missions: DBMission[]; total: number }> => {
   const supabase = await createSupabaseAppServerClient();
 
-  // Calculer l'offset basé sur la page
   const offset = (page - 1) * limit;
+  console.log('Fetching with offset:', offset, 'limit:', limit);
 
-  // Récupérer le nombre total de missions
-  const { count: total } = await supabase
-    .from('mission')
-    .select('*', { count: 'exact', head: true });
+  let query = supabase.from('mission').select('*', {
+    count: 'exact',
+    head: true,
+  });
 
-  // Récupérer les missions pour la page actuelle
-  const { data, error } = await supabase
-    .from('mission')
-    .select(
-      `
+  // Appliquer le filtre d'état si spécifié
+  if (options?.states) {
+    query = query.in('state', options.states);
+  }
+
+  const { count: total } = await query;
+
+  // Construire la requête principale
+  let mainQuery = supabase.from('mission').select(
+    `
       *,
       referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
       xpert:profile!mission_xpert_associated_id_fkey(
@@ -37,22 +50,40 @@ export const getAllMissions = async (
       supplier:profile!mission_created_by_fkey(*),
       checkpoints:mission_checkpoints(*)
     `
-    )
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  );
+
+  // Appliquer le filtre d'état si spécifié
+  if (options?.states) {
+    mainQuery = mainQuery.in('state', options.states);
+  }
+
+  // Appliquer le tri si spécifié
+  if (options?.sortBy) {
+    mainQuery = mainQuery.order(options.sortBy.column, {
+      ascending: options.sortBy.ascending,
+      nullsFirst: !options.sortBy.nullsLast,
+    });
+  }
+
+  // Appliquer la pagination
+  mainQuery = mainQuery.range(offset, offset + limit - 1);
+
+  const { data, error } = await mainQuery;
 
   if (error) {
+    console.error('Query error:', error);
     throw new Error(error.message);
   }
 
-  // Transforme les checkpoints en tableau
+  console.log('Fetched missions:', data?.length);
+
   const missionsWithCheckpoints = data?.map((mission) => ({
     ...mission,
     checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
   }));
 
   return {
-    missions: missionsWithCheckpoints,
+    missions: missionsWithCheckpoints || [],
     total: total || 0,
   };
 };
