@@ -41,3 +41,31 @@ export const getNewUsersLastMonth = async (role: string) => {
 
   return { newUsersLastMonth: [] };
 };
+
+export const updateUserWelcomeCall = async ({
+  user_id,
+  value,
+}: {
+  user_id: string;
+  value: boolean;
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { user } = (await supabase.auth.getUser()).data;
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const { data, error } = await supabase
+    .from('profile')
+    .update({ get_welcome_call: !value })
+    .eq('id', user_id);
+
+  if (error) {
+    console.log('error', error);
+    throw error;
+  }
+
+  return { data, error };
+};

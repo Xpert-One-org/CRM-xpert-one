@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { useMissionStore } from '@/store/mission';
 import { toast } from 'sonner';
 import MissionEtatInProcessRow from './MissionEtatInProcessRow';
-import type { DBMissionState } from '@/types/typesDb';
+import type { DBMissionState, ReasonMissionDeletion } from '@/types/typesDb';
+import { getLabel } from '@/utils/getLabel';
+import { reasonDeleteMissionSelect } from '@/data/mocked_select';
 
 export function MissionEtatInProcessTable() {
   const { missions, updateMission } = useMissionStore();
@@ -14,13 +16,21 @@ export function MissionEtatInProcessTable() {
   >({});
 
   const [validatedMissions, setValidatedMissions] = useState<
-    Record<string, string | null>
+    Record<
+      string,
+      { state: string | null; reason?: ReasonMissionDeletion; details?: string }
+    >
   >({});
 
-  const handleValidationChange = (missionId: string, state: string | null) => {
+  const handleValidationChange = (
+    missionId: string,
+    state: string | null,
+    reason?: ReasonMissionDeletion,
+    details?: string
+  ) => {
     setValidatedMissions((prev) => ({
       ...prev,
-      [missionId]: state,
+      [missionId]: { state, reason, details },
     }));
   };
 
@@ -53,7 +63,8 @@ export function MissionEtatInProcessTable() {
       }
     }
 
-    for (const [missionId, state] of Object.entries(validatedMissions)) {
+    for (const [missionId, validation] of Object.entries(validatedMissions)) {
+      const { state, reason, details } = validation;
       if (state) {
         const currentMissions = useMissionStore.getState().missions;
         const mission = currentMissions.find(
@@ -74,7 +85,7 @@ export function MissionEtatInProcessTable() {
           case 'refused':
             updateState = 'refused';
             toast.success(
-              `Vous avez refusé la mission ${mission?.mission_number}`
+              `Vous avez refusé la mission ${mission?.mission_number}${reason ? ` : ${getLabel({ value: reason, select: reasonDeleteMissionSelect })}` : ''}`
             );
             break;
           default:
@@ -84,7 +95,7 @@ export function MissionEtatInProcessTable() {
             );
         }
 
-        await updateMission(missionId, updateState);
+        await updateMission(missionId, updateState, reason, details);
       }
     }
 
@@ -120,7 +131,8 @@ export function MissionEtatInProcessTable() {
           .filter(
             (mission) =>
               mission.state === 'in_process' ||
-              mission.state === 'open_all_to_validate'
+              mission.state === 'open_all_to_validate' ||
+              mission.state === 'to_validate'
           )
           .map((mission) => (
             <MissionEtatInProcessRow

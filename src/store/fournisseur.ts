@@ -41,6 +41,8 @@ type FournisseurState = {
     fournisseurGeneratedId: string
   ) => void;
   resetFournisseurs: () => void;
+  hasReferentReassign: boolean;
+  setHasReferentReassign: (value: boolean) => void;
   updateFournisseurReferent: (
     fournisseurId: string,
     affected_referent_id: string | null
@@ -217,6 +219,11 @@ export const useFournisseurStore = create<FournisseurState>((set, get) => ({
       keyDBProfileMissionChanged: [],
       keyDBProfileStatusChanged: [],
     });
+  },
+  hasReferentReassign: false,
+
+  setHasReferentReassign: (value) => {
+    set({ hasReferentReassign: value });
   },
   updateFournisseurReferent: async (
     fournisseurId: string,

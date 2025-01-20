@@ -52,7 +52,7 @@ export default function FournisseurGestionCollaborateursTable({
             onCheckedChange={(checked) => setIsGroupSelection(!!checked)}
           />
           <label className="text-sm font-medium">
-            Passer en sélection groupé : "Nom de l'entreprise"
+            Passer en sélection groupée : "Nom de l'entreprise"
           </label>
         </div>
         <div className="flex-1 text-center">

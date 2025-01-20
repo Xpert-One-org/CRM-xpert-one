@@ -44,7 +44,7 @@ export default function MissionEtatDeletedRow({
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-1">{mission.referent_name}</Box>
+      <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1">
         {mission.deleted_at ? formatDateHour(mission.deleted_at) : ''}
       </Box>
@@ -54,8 +54,8 @@ export default function MissionEtatDeletedRow({
           select: reasonDeleteMissionSelect,
         })}
       </Box>
-      <Box className="col-span-2 gap-2 text-white" primary>
-        {/* Ceci est un commentaire <EyeIcon /> */}
+      <Box className="col-span-2 gap-2">
+        {mission.detail_deletion}
         <></>
       </Box>
     </>

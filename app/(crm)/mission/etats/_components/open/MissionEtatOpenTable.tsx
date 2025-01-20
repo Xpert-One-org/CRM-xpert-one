@@ -16,7 +16,7 @@ export default function MissionEtatOpenTable() {
       <FilterButton placeholder="N° de fournisseur" filter={false} />
       <FilterButton placeholder="N° de mission" filter={false} />
       <FilterButton
-        className="col-span-2"
+        className="col-span-1"
         placeholder="Référent Xpert One"
         filter={false}
       />
@@ -27,6 +27,7 @@ export default function MissionEtatOpenTable() {
         placeholder="Remise des candidatures"
       />
       <FilterButton className="col-span-2" placeholder="Poste" filter={false} />
+      <FilterButton placeholder="Lieu" filter={false} />
       <FilterButton placeholder="Matching" filter={false} />
       <FilterButton placeholder="Discussion" filter={false} />
       <FilterButton placeholder="Proposés" filter={false} />

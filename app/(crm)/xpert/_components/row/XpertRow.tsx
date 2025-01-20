@@ -47,25 +47,32 @@ export default function XpertRow({
     toast.success('Modifications enregistrées');
   };
 
-  const postTypes = xpert.profile_mission
-    ? xpert.profile_mission.job_titles?.map((job, i, arr) => {
-        const badge = (
-          <div key={`${xpert.generated_id}-${i}`}>
-            <Badge
-              className="m-1 max-w-[95%] font-normal"
-              key={`${xpert.generated_id}-${i}`}
-            >
-              {getLabel({ value: job, select: jobTitleSelect }) ?? empty}
-            </Badge>
-            {i < arr.length - 1 && <span className="text-gray-400">|</span>}
-          </div>
-        );
-        return badge;
-      })
-    : empty;
+  const getBadgeOfJobTitle = (jobTitle: string[]) => {
+    return jobTitle.map((job, i, arr) => {
+      const badge = (
+        <div key={`${xpert.generated_id}-${i}`}>
+          <Badge
+            className="m-1 max-w-[95%] font-normal"
+            key={`${xpert.generated_id}-${i}`}
+          >
+            {getLabel({ value: job, select: jobTitleSelect }) ?? empty}
+          </Badge>
+          {i < arr.length - 1 && <span className="text-gray-400">|</span>}
+        </div>
+      );
+      return badge;
+    });
+  };
+
+  const postTypes = getBadgeOfJobTitle(xpert.profile_mission?.job_titles ?? []);
+  const experiencePost = xpert.profile_experience
+    ? getBadgeOfJobTitle([xpert.profile_experience?.post ?? ''])
+    : [];
 
   const availableDate = xpert.profile_mission
-    ? formatDate(xpert.profile_mission.availability ?? '')
+    ? xpert.profile_mission.availability
+      ? formatDate(xpert.profile_mission.availability ?? '')
+      : empty
     : empty;
 
   const availabilityStatus = (() => {
@@ -128,10 +135,15 @@ export default function XpertRow({
       <Box className="col-span-2 flex flex-col p-2" isSelected={isOpen}>
         <div
           className={cn('flex size-full flex-row flex-wrap items-center', {
-            'border bg-white': postTypes?.length,
+            'border bg-white':
+              postTypes?.length || xpert.profile_experience?.post,
           })}
         >
-          {postTypes}
+          {postTypes.length
+            ? postTypes
+            : experiencePost.length
+              ? experiencePost
+              : empty}
         </div>
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>

@@ -35,6 +35,14 @@ import { Box } from '@/components/ui/box';
 import ComboboxFournisseur from '@/components/combobox/ComboboxFournisseur';
 import { ComboboxSelect } from './_components/ComboboxSelect';
 import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
+import { useAdminCollaborators } from '@/store/adminCollaborators';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function Page() {
   const [mission, setMission] = useState<DBMission>(emptyMission);
@@ -114,7 +122,7 @@ export default function Page() {
   ];
 
   const [validationState, setValidationState] = useState<string>('in_process');
-
+  const { fetchCollaborators, collaborators } = useAdminCollaborators();
   const handleValidationChange = (value: string) => {
     setValidationState(value);
     const newIsValidated = value === 'open';
@@ -220,8 +228,10 @@ export default function Page() {
       profileData: creationMissionData,
     });
 
-    let missionState = 'to_validate';
-    if (openAllToValidate && !isValidated) {
+    let missionState;
+    if (validationState === 'refused') {
+      missionState = 'refused';
+    } else if (openAllToValidate && !isValidated) {
       missionState = 'open_all_to_validate';
     } else if (isValidated && !openAllToValidate) {
       missionState = 'open';
@@ -229,11 +239,14 @@ export default function Page() {
       missionState = 'open_all';
     } else if (validationState === 'in_process') {
       missionState = 'in_process';
+    } else {
+      missionState = 'refused';
     }
 
     const missionData = {
       ...usedDataJson,
       state: missionState,
+      affected_referent_id: mission.affected_referent_id,
     };
 
     if (elementMissings.length) {
@@ -327,6 +340,10 @@ export default function Page() {
       toast.success('Votre mission va être étudiée par notre équipe');
     }
   };
+
+  useEffect(() => {
+    fetchCollaborators();
+  }, [fetchCollaborators]);
 
   // useEffect(() => {
   //   const missionWithoutNotRequired = deleteUnusedFields(mission);
@@ -824,48 +841,40 @@ export default function Page() {
           <span className="flex items-center gap-x-1 whitespace-nowrap font-bold">
             <Info side="right">
               <p>
-                Indiquez ici les informations de la personne qui sera en charge
-                de l’accueil de votre Xpert
+                {/* Si c'est pas selectionne c'est auto */}
+                Sélectionnez le référent de mission qui sera en charge de
+                l'accueil de votre Xpert. <br /> Si vous ne sélectionnez
+                personne, un référent sera automatiquement attribué.
               </p>
             </Info>
           </span>{' '}
         </p>
 
         <div className="grid grid-cols-4 gap-4">
-          <Input
-            name={creationMissionData.referent_name?.name}
-            label={creationMissionData.referent_name?.label}
-            placeholder="Nom"
-            defaultValue={''}
-            onChange={handleChange}
-            classNameLabel="h-[24px]"
-          />
-          <PhoneInputComponent
-            defaultSelectedKeys={'FR'}
-            placeholder="Tel"
-            label={creationMissionData.referent_mobile?.label}
-            className="text-black"
-            name={creationMissionData.referent_mobile?.name ?? ''}
-            onValueChange={handleValueChange}
-          />
-          <PhoneInputComponent
-            defaultSelectedKeys={'FR'}
-            placeholder="Tel"
-            label={creationMissionData.referent_fix?.label}
-            className="text-black"
-            name={creationMissionData.referent_fix?.name ?? ''}
-            onValueChange={handleValueChange}
-          />
-          <Input
-            name={creationMissionData.referent_mail?.name ?? ''}
-            type="email"
-            label={creationMissionData.referent_mail?.label}
-            defaultValue={''}
-            placeholder="Adresse mail"
-            onChange={handleChange}
-            classNameLabel="h-[24px]"
-          />
+          <Select
+            value={mission.affected_referent_id ?? 'none'}
+            onValueChange={(value) =>
+              handleChangeSelect(value, 'affected_referent_id')
+            }
+          >
+            <SelectTrigger className="h-full justify-center gap-2 border-0 bg-[#F5F5F5]">
+              <SelectValue placeholder="Référent de mission" />
+            </SelectTrigger>{' '}
+            <SelectContent>
+              <SelectItem value="none">Aucun</SelectItem>
+              {collaborators
+                .filter(
+                  (c) => c.role === 'admin' || c.role === 'project_manager'
+                )
+                .map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.firstname} {c.lastname}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
         </div>
+        <Separator className="my-spaceSmall" />
 
         <div className="grid grid-cols-4 gap-4">
           <ComboboxFournisseur

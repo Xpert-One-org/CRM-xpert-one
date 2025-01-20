@@ -28,6 +28,7 @@ import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import DeleteTaskDialog from './DeleteTaskDialog';
 import DialogTaskHistory from './HistoryTaskDialog';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
+import { useIsAdmin } from '@/hooks/useRoles';
 
 type TaskStatus = 'urgent' | 'pending' | 'done';
 
@@ -60,15 +61,11 @@ const formatDate = (dateString: string) => {
 const getSubjectReference = (task: TaskWithRelations) => {
   switch (task.subject_type) {
     case 'xpert':
-      return task.xpert?.id ? `${task.xpert.generated_id} - ${task.id}` : '-';
+      return task.xpert?.id ? `${task.xpert.generated_id}` : '-';
     case 'supplier':
-      return task.supplier?.id
-        ? ` ${task.supplier.generated_id} - ${task.id}`
-        : '-';
+      return task.supplier?.id ? ` ${task.supplier.generated_id}` : '-';
     case 'mission':
-      return task.mission?.id
-        ? `${task.mission.mission_number} - ${task.id}`
-        : '-';
+      return task.mission?.id ? `${task.mission.mission_number}` : '-';
     default:
       return 'Autre';
   }
@@ -241,9 +238,12 @@ export default function TaskTable() {
   };
 
   const resetTasks = () => {
+    setActiveFilters({});
     loadTasks(true);
     setFilterKey((prev) => prev + 1);
   };
+
+  const isAdmin = useIsAdmin();
 
   return (
     <div
@@ -256,7 +256,10 @@ export default function TaskTable() {
           <CreateTaskDialog onTaskCreate={() => loadTasks(true)} />
         </div>
 
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
+          <Box className="flex h-full items-center bg-[#FDF6E9] font-[600]">
+            Identifiant / Numéro
+          </Box>
           <Box className="flex h-full items-center bg-[#FDF6E9] font-[600]">
             Créé le
           </Box>
@@ -269,13 +272,19 @@ export default function TaskTable() {
             />
           </Box>
           <Box className="flex h-full items-center bg-[#FDF6E9] font-medium">
-            <FilterButton
-              key={`assigned-${filterKey}`}
-              options={adminOptions}
-              onValueChange={(value) => handleFilterChange('assignedTo', value)}
-              placeholder="À / Transférer à"
-              className="flex flex-wrap"
-            />
+            {isAdmin ? (
+              <FilterButton
+                key={`assigned-${filterKey}`}
+                options={adminOptions}
+                onValueChange={(value) =>
+                  handleFilterChange('assignedTo', value)
+                }
+                placeholder="À / Transféré à"
+                className="flex flex-wrap"
+              />
+            ) : (
+              'À / Transféré à'
+            )}
           </Box>
           <Box className="flex h-full items-center bg-[#FDF6E9] px-4 font-[600]">
             Référence
@@ -293,7 +302,7 @@ export default function TaskTable() {
             />
           </Box>
           <div />
-          <div className="col-span-7">
+          <div className="col-span-9">
             {!loading ? (
               <div className="flex w-fit items-center gap-x-4">
                 <p className="whitespace-nowrap">{totalTasks} résultats</p>
@@ -315,8 +324,9 @@ export default function TaskTable() {
             )}
           </div>
         </div>
-        <div className="h-full overflow-auto pb-10">
-          <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
+
+        <div className="h-full max-h-[calc(100vh_-_450px)] overflow-auto pb-10">
+          <div className="top-0 z-10 grid grid-cols-[1fr_1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
             {!loading && tasks?.length === 0 ? (
               <div className="col-span-7 py-8 text-center text-gray-500">
                 Aucune tâche trouvée
@@ -326,10 +336,13 @@ export default function TaskTable() {
                 return (
                   <React.Fragment key={task.id}>
                     <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
+                      {task.id}
+                    </Box>
+                    <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
                       {formatDate(task.created_at)}
                     </Box>
                     <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                      {task.created_by_profile.firstname}
+                      {task.created_by_profile?.firstname ?? ''}
                     </Box>
                     <SelectAssignedTo
                       newAssignedToNotSaved={newAssignedToNotSaved}
@@ -376,15 +389,15 @@ export default function TaskTable() {
             )}
           </InfiniteScroll>
         </div>
-      </div>
-      <div className="flex justify-end">
-        <Button
-          disabled={!hasSomethingNotSaved || isSaving}
-          className="bg-primary px-spaceLarge py-spaceContainer text-white"
-          onClick={handleSave}
-        >
-          {isSaving ? 'Enregistrement...' : 'Enregistrer'}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            disabled={!hasSomethingNotSaved || isSaving}
+            className="bg-primary px-spaceLarge py-spaceContainer text-white"
+            onClick={handleSave}
+          >
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+          </Button>
+        </div>
       </div>
     </div>
   );

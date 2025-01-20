@@ -733,6 +733,11 @@ export const jobTitleSelect = [
     image: '/static/jobs/Directeur de site: Site manager.jpeg',
   },
   {
+    label: 'Directeur de site',
+    value: 'directeur_de_site',
+    image: '/static/jobs/Directeur de site: Site manager.jpeg',
+  },
+  {
     label: 'Ingénieur analyses fonctionnelles',
     value: 'ingenieur_analyses_fonctionnelles',
     image: '/static/jobs/Ingénieur analyses fonctionnelles.jpeg',
@@ -1223,4 +1228,17 @@ export const languageSelect = [
     label: 'Autre',
     value: 'other',
   },
+];
+
+export const missionStates = [
+  { label: 'À valider', value: 'to_validate' },
+  { label: 'Tout ouvert à valider', value: 'open_all_to_validate' },
+  { label: 'Ouvert', value: 'open' },
+  { label: 'Tout ouvert', value: 'open_all' },
+  { label: 'En cours', value: 'in_progress' },
+  { label: 'Supprimé', value: 'deleted' },
+  { label: 'Terminé', value: 'finished' },
+  { label: 'En traitement', value: 'in_process' },
+  { label: 'Validé', value: 'validated' },
+  { label: 'Refusé', value: 'refused' },
 ];

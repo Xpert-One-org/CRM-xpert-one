@@ -70,6 +70,7 @@ export default function EtatFacturationsRow({
 
   const handleRedirectTaskReferent = () => {
     setInitialTaskData({
+      referentId: missionData.referent?.id,
       subjectType: 'supplier',
       subjectId: missionData.created_by,
     });
@@ -147,7 +148,7 @@ export default function EtatFacturationsRow({
         primary
         onClick={handleRedirectTaskReferent}
       >
-        {missionData.referent_name}
+        {`${missionData.referent?.firstname ?? ''} ${missionData.referent?.lastname ?? ''}`}
       </Box>
       {/* Feuille de présence validée */}
       <StatusBox

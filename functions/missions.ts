@@ -7,49 +7,84 @@ import type {
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
-export const getAllMissions = async (): Promise<DBMission[]> => {
+export const getAllMissions = async (
+  page: number = 1,
+  limit: number = 10
+): Promise<{ missions: DBMission[]; total: number }> => {
   const supabase = await createSupabaseAppServerClient();
-  const { data, error } = await supabase.from('mission').select(
-    `
+
+  // Calculer l'offset basé sur la page
+  const offset = (page - 1) * limit;
+
+  // Récupérer le nombre total de missions
+  const { count: total } = await supabase
+    .from('mission')
+    .select('*', { count: 'exact', head: true });
+
+  // Récupérer les missions pour la page actuelle
+  const { data, error } = await supabase
+    .from('mission')
+    .select(
+      `
       *,
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
       xpert:profile!mission_xpert_associated_id_fkey(
         *,
         profile_status (
           status
         )
       ),
-      supplier:profile!mission_created_by_fkey(*)
-      `
-  );
+      supplier:profile!mission_created_by_fkey(*),
+      checkpoints:mission_checkpoints(*)
+    `
+    )
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
   if (error) {
     throw new Error(error.message);
   }
 
-  return data;
+  // Transforme les checkpoints en tableau
+  const missionsWithCheckpoints = data?.map((mission) => ({
+    ...mission,
+    checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+  }));
+
+  return {
+    missions: missionsWithCheckpoints,
+    total: total || 0,
+  };
 };
 
 export const getMissionState = async (
   state: DBMissionState
 ): Promise<DBMission[]> => {
   const supabase = await createSupabaseAppServerClient();
-
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
-    let query = supabase.from('mission').select(
-      `
-      *,
-      xpert:profile!mission_xpert_associated_id_fkey(
-        *
-      ), 
-      supplier:profile!mission_created_by_fkey(*)
-      `
-    );
+    let query = supabase.from('mission').select(`
+        *,
+              referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+
+        xpert:profile!mission_xpert_associated_id_fkey(
+          *
+        ), 
+        supplier:profile!mission_created_by_fkey(*),
+        checkpoints:mission_checkpoints(*)
+      `);
 
     if (state === 'open') {
       query = query.in('state', ['open', 'open_all']);
     } else if (state === 'in_process') {
-      query = query.in('state', ['in_process', 'open_all_to_validate']);
+      query = query.in('state', [
+        'in_process',
+        'open_all_to_validate',
+        'to_validate',
+      ]);
+    } else if (state === 'deleted') {
+      query = query.in('state', ['refused', 'deleted']);
     } else {
       query = query.eq('state', state);
     }
@@ -60,7 +95,13 @@ export const getMissionState = async (
       throw new Error(error.message);
     }
 
-    return data;
+    // Transforme les checkpoints en tableau
+    const missionsWithCheckpoints = data?.map((mission) => ({
+      ...mission,
+      checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+    }));
+
+    return missionsWithCheckpoints;
   }
   return [];
 };
@@ -69,6 +110,9 @@ export const searchMission = async (missionId: string) => {
   const supabase = await createSupabaseAppServerClient();
 
   let query = supabase.from('mission').select('mission_number');
+
+  // Filtrer par état open ou open_all
+  query = query.in('state', ['open', 'open_all']);
 
   if (missionId) {
     query = query.ilike('mission_number', `%${missionId}%`);
@@ -84,13 +128,15 @@ export const searchMission = async (missionId: string) => {
 
 export const updateMissionState = async (
   missionId: string,
-  state: DBMissionState
+  state: DBMissionState,
+  reason_deletion?: ReasonMissionDeletion,
+  detail_deletion?: string
 ) => {
   const supabase = await createSupabaseAppServerClient();
 
   const { data, error } = await supabase
     .from('mission')
-    .update({ state })
+    .update({ state, reason_deletion, detail_deletion })
     .eq('id', missionId)
     .select('*');
 
