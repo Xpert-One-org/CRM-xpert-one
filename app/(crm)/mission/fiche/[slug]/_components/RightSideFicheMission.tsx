@@ -11,6 +11,7 @@ import { MissionReferentSupplier } from './sections/MissionReferentSupplier';
 import { MissionEvaluation } from './sections/MissionEvaluation';
 import { useEditMissionStore } from '../../editMissionStore';
 import { MissionReferentXpertOne } from './sections/MissionReferentXpertOne';
+import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 
 export default function RightSideFicheMission() {
   const {
@@ -20,6 +21,8 @@ export default function RightSideFicheMission() {
     hasChanges,
     loading,
   } = useEditMissionStore();
+
+  useWarnIfUnsavedChanges(hasChanges);
 
   if (!mission) return null;
 
@@ -51,7 +54,7 @@ export default function RightSideFicheMission() {
             disabled={!hasChanges || loading}
             variant={!hasChanges ? 'outline' : 'default'}
           >
-            Sauvegarder les modifications
+            Enregistrer
           </Button>
           <Link
             href={`/mission/matching/${mission.mission_number?.replace(' ', '-')}`}
