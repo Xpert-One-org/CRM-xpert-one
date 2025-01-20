@@ -27,6 +27,7 @@ import CreateFournisseurXpertDialog from '@/components/dialogs/CreateXpertDialog
 import RedirectButtons from './row/RedirectButtons';
 import Button from '@/components/Button';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
+import { XpertNotes } from './XpertNotes';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -385,6 +386,8 @@ export default function XpertTable() {
                     handleKeyChanges={handleKeyChanges}
                   />
                 )}
+                {/* Notes section */}
+                <XpertNotes xpertId={xpert.id} />
                 {/* task and redirection button here */}
                 <div className="flex w-full justify-between gap-2 py-2">
                   <RedirectButtons user={xpert} />

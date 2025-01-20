@@ -11,6 +11,7 @@ import { MissionReferentSupplier } from './sections/MissionReferentSupplier';
 import { MissionEvaluation } from './sections/MissionEvaluation';
 import { useEditMissionStore } from '../../editMissionStore';
 import { MissionReferentXpertOne } from './sections/MissionReferentXpertOne';
+import { MissionNotes } from './MissionNotes';
 
 export default function RightSideFicheMission() {
   const {
@@ -42,7 +43,7 @@ export default function RightSideFicheMission() {
       <MissionReferentXpertOne />
 
       <MissionEvaluation />
-
+      <MissionNotes missionId={mission.id} />
       <div className="flex w-full flex-row justify-between gap-4">
         <div className="flex gap-3">
           <Button

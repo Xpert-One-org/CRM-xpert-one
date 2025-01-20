@@ -234,3 +234,42 @@ export type DBCollaborator = {
   collaborator_is_absent: boolean | null;
   collaborator_replacement_id: string | null;
 };
+
+export type DBXpertNote = {
+  id: number;
+  content: string;
+  created_at: string;
+  created_by: string;
+  xpert_id: string;
+  updated_at: string | null;
+  author?: {
+    firstname: string | null;
+    lastname: string | null;
+  } | null;
+};
+
+export type DBFournisseurNote = {
+  id: number;
+  content: string;
+  created_at: string;
+  created_by: string;
+  supplier_id: string;
+  updated_at: string | null;
+  author?: {
+    firstname: string | null;
+    lastname: string | null;
+  } | null;
+};
+
+export type DBMissionNote = {
+  id: number;
+  content: string;
+  created_at: string;
+  created_by: string;
+  mission_id: number;
+  updated_at: string | null;
+  author?: {
+    firstname: string | null;
+    lastname: string | null;
+  } | null;
+};

@@ -449,6 +449,7 @@ export type Database = {
           sector_renewable_energy: string | null;
           sector_renewable_energy_other: string | null;
           sector_waste_treatment: string | null;
+          show_on_website: boolean | null;
           signed_quote_file_name: string | null;
           specialties: string[] | null;
           specialties_other: string | null;
@@ -507,6 +508,7 @@ export type Database = {
           sector_renewable_energy?: string | null;
           sector_renewable_energy_other?: string | null;
           sector_waste_treatment?: string | null;
+          show_on_website?: boolean | null;
           signed_quote_file_name?: string | null;
           specialties?: string[] | null;
           specialties_other?: string | null;
@@ -565,6 +567,7 @@ export type Database = {
           sector_renewable_energy?: string | null;
           sector_renewable_energy_other?: string | null;
           sector_waste_treatment?: string | null;
+          show_on_website?: boolean | null;
           signed_quote_file_name?: string | null;
           specialties?: string[] | null;
           specialties_other?: string | null;
@@ -709,6 +712,48 @@ export type Database = {
             foreignKeyName: 'mission_checkpoints_mission_id_fkey';
             columns: ['mission_id'];
             isOneToOne: true;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      mission_notes: {
+        Row: {
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          mission_id: number;
+          updated_at: string | null;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          mission_id: number;
+          updated_at?: string | null;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          mission_id?: number;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mission_notes_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'mission_notes_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
             referencedRelation: 'mission';
             referencedColumns: ['id'];
           },
@@ -1432,6 +1477,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      supplier_notes: {
+        Row: {
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          supplier_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          supplier_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          supplier_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'supplier_notes_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'supplier_notes_supplier_id_fkey';
+            columns: ['supplier_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       task_history: {
         Row: {
           action: Database['public']['Enums']['task_history_action'];
@@ -1627,6 +1714,48 @@ export type Database = {
           {
             foreignKeyName: 'user_alerts_user_id_fkey';
             columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      xpert_notes: {
+        Row: {
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          updated_at: string | null;
+          xpert_id: string;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          updated_at?: string | null;
+          xpert_id: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          updated_at?: string | null;
+          xpert_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'xpert_notes_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'xpert_notes_xpert_id_fkey';
+            columns: ['xpert_id'];
             isOneToOne: false;
             referencedRelation: 'profile';
             referencedColumns: ['id'];

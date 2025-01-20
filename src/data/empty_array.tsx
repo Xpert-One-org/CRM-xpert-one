@@ -44,6 +44,7 @@ export const emptyMission: DBMission = {
   referent: null,
   detail_deletion: null,
   address: null,
+  show_on_website: null,
   sector_renewable_energy_other: null,
   advantages_company: null,
   sector_infrastructure_other: null,
