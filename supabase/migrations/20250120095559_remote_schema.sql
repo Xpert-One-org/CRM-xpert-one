@@ -319,6 +319,39 @@ END;$$;
 ALTER FUNCTION "public"."assign_referent"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."assign_referent_mission"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    selected_referent_id UUID;
+BEGIN
+    -- Vérifie si aucun référent n'est affecté
+    IF NEW.affected_referent_id IS NULL THEN
+        -- Trouve un référent parmi les admins et chefs de projet autorisés
+        SELECT id
+        INTO selected_referent_id
+        FROM public.profile
+        WHERE role IN ('admin', 'project_manager')
+          AND is_authorized_referent = TRUE
+        ORDER BY (
+            -- Compte le nombre de missions déjà affectées à chaque référent
+            SELECT COUNT(*)
+            FROM public.mission AS m
+            WHERE m.affected_referent_id = public.profile.id
+        ) ASC
+        LIMIT 1;
+
+        -- Affecte le référent sélectionné à la nouvelle mission
+        NEW.affected_referent_id := selected_referent_id;
+    END IF;
+
+    -- Retourne la ligne modifiée
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."assign_referent_mission"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") RETURNS numeric
     LANGUAGE "plpgsql"
     AS $$
@@ -485,15 +518,18 @@ $$;
 ALTER FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status") RETURNS "void"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    AS $$BEGIN
+CREATE OR REPLACE FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status" DEFAULT 'standard'::"public"."notification_status", "is_global" boolean DEFAULT false, "category" "text" DEFAULT ''::"text") RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
     INSERT INTO notification (
         user_id,
         link,
         message,
         subject,
         status,
+        is_global,
+        category,
         created_at
     ) VALUES (
         user_id,
@@ -501,12 +537,15 @@ CREATE OR REPLACE FUNCTION "public"."create_notification"("user_id" "uuid", "lin
         message,
         subject,
         status,
-        NOW()  
+        is_global,
+        category,
+        NOW()
     );
-END;$$;
+END;
+$$;
 
 
-ALTER FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status") OWNER TO "postgres";
+ALTER FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."create_selection_matching"() RETURNS "trigger"
@@ -890,6 +929,7 @@ CREATE OR REPLACE FUNCTION "public"."notify_new_conversation"() RETURNS "trigger
     AS $$DECLARE
     sender_info RECORD;
     alert_status BOOLEAN;
+    display_name TEXT;
 BEGIN
     IF NEW.type <> 'chat' THEN
         RETURN NEW; 
@@ -919,13 +959,19 @@ BEGIN
         RAISE EXCEPTION 'No sender data found for created_by = %', NEW.created_by;
     END IF;
 
+    IF sender_info.role IN ('xpert', 'company') THEN
+        display_name := 'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
+                       ' (' || sender_info.generated_id || ')';
+    ELSE
+        display_name := 'Xpert One';
+    END IF;
+
     -- Création de la notification
     PERFORM create_notification(
         NEW.receiver_id,
         'messagerie',
-        '',
-        'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
-        ' (' || sender_info.generated_id || ') a démarré une nouvelle conversation avec vous',
+        display_name || ' a démarré une nouvelle conversation avec vous',
+        'Messagerie',
         'info'::notification_status
     );
     
@@ -934,6 +980,142 @@ END;$$;
 
 
 ALTER FUNCTION "public"."notify_new_conversation"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_echo_message"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$DECLARE
+    sender_info RECORD;
+    alert_status BOOLEAN;
+    chat_type TEXT;
+    notification_receiver_id UUID; 
+    display_name TEXT;
+BEGIN
+    SELECT c.type INTO chat_type
+    FROM chat c
+    WHERE c.id = NEW.chat_id;
+
+    IF chat_type <> 'echo_community' THEN
+        RETURN NEW;
+    END IF;
+
+    WITH sender_data AS (
+        SELECT 
+            c.id AS chat_id,
+            c.created_by,
+            c.title,
+            c.receiver_id,
+            p.firstname,
+            p.lastname,
+            p.generated_id,
+            p.role
+        FROM chat c
+        JOIN profile p ON p.id = NEW.send_by 
+        WHERE c.id = NEW.chat_id 
+    )
+    SELECT * INTO sender_info FROM sender_data;
+
+    IF sender_info IS NULL THEN
+        RAISE EXCEPTION 'No sender data found for chat_id = %', NEW.chat_id;
+    END IF;
+
+    IF NEW.send_by = sender_info.created_by THEN
+        notification_receiver_id := sender_info.receiver_id;
+    ELSE
+        notification_receiver_id := sender_info.created_by;
+    END IF;
+
+    IF sender_info.role IN ('xpert', 'company') THEN
+        display_name := 'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
+                       ' (' || sender_info.generated_id || ')';
+    ELSE
+        display_name := 'Xpert One';
+    END IF;
+
+    PERFORM create_notification(
+        notification_receiver_id,
+        'communaute/echo-de-la-communaute',
+        display_name || ' a envoyé un message',
+        'Echo de la communauté : '||sender_info.title,
+        'info'::notification_status,
+        true
+    );
+    
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_echo_message"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_forum_message"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$DECLARE
+    sender_info RECORD;
+    alert_status BOOLEAN;
+    chat_type TEXT;
+    notification_receiver_id UUID; 
+    display_name TEXT;
+BEGIN
+    SELECT c.type INTO chat_type
+    FROM chat c
+    WHERE c.id = NEW.chat_id;
+
+    IF chat_type <> 'forum' THEN
+        RETURN NEW;
+    END IF;
+
+    WITH sender_data AS (
+        SELECT 
+            c.id AS chat_id,
+            c.created_by,
+            c.title,
+            c.receiver_id,
+            c.category,
+            p.firstname,
+            p.lastname,
+            p.generated_id,
+            p.role
+        FROM chat c
+        JOIN profile p ON p.id = NEW.send_by 
+        WHERE c.id = NEW.chat_id 
+    )
+    SELECT * INTO sender_info FROM sender_data;
+
+    IF sender_info IS NULL THEN
+        RAISE EXCEPTION 'No sender data found for chat_id = %', NEW.chat_id;
+    END IF;
+
+    IF NEW.send_by = sender_info.created_by THEN
+        notification_receiver_id := sender_info.receiver_id;
+    ELSE
+        notification_receiver_id := sender_info.created_by;
+    END IF;
+
+    IF sender_info.role IN ('xpert', 'company') THEN
+        display_name := 'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
+                       ' (' || sender_info.generated_id || ')';
+    ELSE
+        display_name := 'Xpert One';
+    END IF;
+
+    PERFORM create_notification(
+        notification_receiver_id,
+        'communaute/forum',
+        display_name || ' a envoyé un message',
+        'Forum : '||sender_info.title,
+        'info'::notification_status,
+        true,
+        sender_info.category
+    );
+    
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_forum_message"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."notify_new_message"() RETURNS "trigger"
@@ -1001,8 +1183,8 @@ BEGIN
     PERFORM create_notification(
         notification_receiver_id,
         'messagerie',
-        '',
         display_name || ' vous a envoyé un message',
+        'Messagerie'
         'info'::notification_status
     );
     
@@ -1019,8 +1201,8 @@ CREATE OR REPLACE FUNCTION "public"."notify_new_task"() RETURNS "trigger"
     PERFORM create_notification(
         NEW.assigned_to,
         'dashboard/todo'::text,
-        NEW.details,
-        'Nouvelle tâche créée:'::text,
+        'Nouvelle tâche créée : '::text || NEW.details::text,
+        'Todolist'::text,
         CASE 
             WHEN NEW.status = 'urgent' THEN 'urgent'::notification_status
             ELSE 'standard'::notification_status
@@ -1040,8 +1222,8 @@ CREATE OR REPLACE FUNCTION "public"."notify_task_done"() RETURNS "trigger"
         PERFORM create_notification(
             NEW.assigned_to, 
             'dashboard/todo'::text,
-            '',
             'La tâche n°' || NEW.id || ' a été traitée'::text,
+            'Todolist'
             'info'::notification_status 
         );
     END IF;
@@ -1548,7 +1730,10 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "xpert_associated_status" "text",
     "facturation_fournisseur_payment" "jsonb"[],
     "facturation_salary_payment" "jsonb"[],
-    "facturation_invoice_paid" "jsonb"[]
+    "facturation_invoice_paid" "jsonb"[],
+    "show_on_website" boolean DEFAULT false,
+    "affected_referent_id" "uuid",
+    "detail_deletion" "text"
 );
 
 
@@ -1646,7 +1831,9 @@ CREATE TABLE IF NOT EXISTS "public"."notification" (
     "message" "text" NOT NULL,
     "status" "public"."notification_status" DEFAULT 'standard'::"public"."notification_status" NOT NULL,
     "subject" "text",
-    "user_id" "uuid" NOT NULL
+    "user_id" "uuid",
+    "category" "text",
+    "is_global" boolean DEFAULT false
 );
 
 
@@ -2459,11 +2646,23 @@ CREATE OR REPLACE TRIGGER "after_mission_application_insert" AFTER INSERT ON "pu
 
 
 
+CREATE OR REPLACE TRIGGER "assign_referent_mission_trigger" BEFORE INSERT ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."assign_referent_mission"();
+
+
+
+CREATE OR REPLACE TRIGGER "assign_referent_trigger" BEFORE INSERT ON "public"."profile" FOR EACH ROW EXECUTE FUNCTION "public"."assign_referent"();
+
+
+
 CREATE OR REPLACE TRIGGER "notify_new_chat_trigger" AFTER INSERT ON "public"."chat" FOR EACH ROW WHEN (("new"."type" = 'chat'::"public"."chat_type")) EXECUTE FUNCTION "public"."notify_new_conversation"();
 
 
 
-CREATE OR REPLACE TRIGGER "notify_new_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_message"();
+CREATE OR REPLACE TRIGGER "notify_new_echo_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_echo_message"();
+
+
+
+CREATE OR REPLACE TRIGGER "notify_new_forum_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_forum_message"();
 
 
 
@@ -2476,10 +2675,6 @@ CREATE OR REPLACE TRIGGER "task_insert_trigger" AFTER INSERT ON "public"."tasks"
 
 
 CREATE OR REPLACE TRIGGER "task_status_update_notify" AFTER UPDATE ON "public"."tasks" FOR EACH ROW WHEN ((("new"."status" = 'done'::"public"."task_status") AND ("old"."status" <> 'done'::"public"."task_status"))) EXECUTE FUNCTION "public"."notify_task_done"();
-
-
-
-CREATE OR REPLACE TRIGGER "trigger_assign_referent" BEFORE INSERT ON "public"."profile" FOR EACH ROW EXECUTE FUNCTION "public"."assign_referent"();
 
 
 
@@ -2545,6 +2740,11 @@ ALTER TABLE ONLY "public"."message"
 
 ALTER TABLE ONLY "public"."message"
     ADD CONSTRAINT "messages_chat_id_fkey" FOREIGN KEY ("chat_id") REFERENCES "public"."chat"("id") ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."mission"
+    ADD CONSTRAINT "mission_affected_referent_id_fkey" FOREIGN KEY ("affected_referent_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 
@@ -3419,15 +3619,21 @@ GRANT ALL ON FUNCTION "public"."assign_referent"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."assign_referent_mission"() TO "anon";
+GRANT ALL ON FUNCTION "public"."assign_referent_mission"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."assign_referent_mission"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status") TO "anon";
-GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status") TO "service_role";
+GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") TO "service_role";
 
 
 
@@ -3524,6 +3730,18 @@ GRANT ALL ON FUNCTION "public"."notify_email_confirmation"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "anon";
 GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_echo_message"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_echo_message"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_echo_message"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_forum_message"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_forum_message"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_forum_message"() TO "service_role";
 
 
 
