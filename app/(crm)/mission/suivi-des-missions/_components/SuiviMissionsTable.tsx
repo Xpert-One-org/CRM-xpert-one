@@ -11,8 +11,14 @@ import ComboboxSuivi from './ComboboxSuivi';
 import type { DBMission } from '@/types/typesDb';
 
 export default function SuiviMissionsTable() {
-  const { missions, totalMissions, isLoading, fetchMissions, resetPagination } =
-    useMissionStore();
+  const {
+    missions,
+    totalMissions,
+    isLoading,
+    fetchMissions,
+    hasMore,
+    resetPagination,
+  } = useMissionStore();
 
   const [shouldLoad, setShouldLoad] = React.useState(true);
   const [sortedMissions, setSortedMissions] = React.useState<DBMission[]>([]);
@@ -285,9 +291,7 @@ export default function SuiviMissionsTable() {
 
       <InfiniteScroll
         isLoading={isLoading}
-        hasMore={
-          shouldLoad && missions.length > 0 && missions.length < totalMissions
-        }
+        hasMore={hasMore}
         next={fetchMissions}
         threshold={0.8}
       >

@@ -50,7 +50,7 @@ export default function SelectionDragAndDropColumns({
             key={zone}
             droppableId={zone}
             isDropDisabled={
-              isDropDisabled(zone, xpertsByColumn) || isIntern ? false : true
+              isDropDisabled(zone, xpertsByColumn) || isIntern ? true : false
             }
           >
             {(provided, snapshot) => (
