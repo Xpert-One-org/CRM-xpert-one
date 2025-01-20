@@ -68,6 +68,7 @@ type MissionState = {
   ) => void;
   activeFilters: FilterMission;
   setActiveFilters: (filters: FilterMission) => void;
+  hasMore: boolean;
 };
 
 export const useMissionStore = create<MissionState>((set, get) => ({
@@ -99,34 +100,69 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       set({ isLoading: false });
     }
   },
+  hasMore: true,
   fetchMissions: async () => {
-    const { page } = get();
+    const { page, totalMissions, missions, isLoading } = get();
+
+    if (isLoading) return;
+
     set({ isLoading: true });
+
     try {
-      const response = await getAllMissions(page);
+      if (missions.length >= totalMissions && totalMissions !== 0) {
+        set({ hasMore: false });
+        return;
+      }
+
+      console.log('Fetching page:', page);
+      const response = await getAllMissions(page, 10, {
+        sortBy: {
+          column: 'start_date',
+          ascending: true,
+          nullsLast: true,
+        },
+        states: ['open', 'open_all'],
+      });
+      console.log('Response:', response);
+
       if (page === 1) {
-        set({ missions: response.missions, totalMissions: response.total });
+        set({
+          missions: response.missions,
+          totalMissions: response.total,
+          hasMore:
+            response.missions.length > 0 &&
+            response.missions.length < response.total,
+          page: page + 1,
+        });
       } else {
+        if (response.missions.length === 0) {
+          set({ hasMore: false });
+          return;
+        }
+
         set((state) => {
-          // Créer un Set des IDs des missions existantes
           const existingMissionIds = new Set(state.missions.map((m) => m.id));
-          // Filtrer les nouvelles missions pour ne garder que celles qui n'existent pas déjà
           const newMissions = response.missions.filter(
             (mission) => !existingMissionIds.has(mission.id)
           );
+
+          if (newMissions.length === 0) {
+            return { hasMore: false };
+          }
+
+          const updatedMissions = [...state.missions, ...newMissions];
           return {
-            missions: [...state.missions, ...newMissions],
+            missions: updatedMissions,
             totalMissions: response.total,
+            hasMore: updatedMissions.length < response.total,
+            page: state.page + 1,
           };
         });
-      }
-      // N'incrémente la page que si on a reçu de nouvelles missions
-      if (response.missions.length > 0) {
-        set((state) => ({ page: state.page + 1 }));
       }
     } catch (error) {
       console.error('Error fetching missions:', error);
       toast.error('Erreur lors du chargement des missions');
+      set({ hasMore: false });
     } finally {
       set({ isLoading: false });
     }
@@ -259,7 +295,6 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         return mission;
       });
 
-      // Ne pas déclencher de rechargement complet, juste mettre à jour la mission spécifique
       return {
         ...state,
         missions: updatedMissions,
