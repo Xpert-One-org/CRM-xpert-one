@@ -13,8 +13,9 @@ import { Button } from './ui/button';
 import { AlertTriangle, Check, Info } from 'lucide-react';
 import InfiniteScroll from './ui/infinite-scroll';
 import Loader from './Loader';
+import type { User } from '@supabase/supabase-js';
 
-function NotificationBell() {
+function NotificationBell({ user }: { user: User }) {
   const [isOpen, setIsOpen] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const pathname = usePathname();
@@ -28,7 +29,6 @@ function NotificationBell() {
     removeNotification,
   } = useNotifications();
   const supabase = createSupabaseFrontendClient();
-  const { user } = useUser();
 
   useEffect(() => {
     if (isOpen) {
@@ -59,7 +59,7 @@ function NotificationBell() {
           event: 'INSERT',
           schema: 'public',
           table: 'notification',
-          filter: `userId=eq.${user?.id}`,
+          filter: `user_id=eq.${user?.id}`,
         },
         (payload) => {
           const newNotifications = notifications
@@ -111,12 +111,12 @@ function NotificationBell() {
 
     setDeletingIds((prev) => [...prev, notificationId]);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    removeNotification(notificationId);
 
     // const newNotifications = notifications ? notifications.filter(notif => notif.id !== notificationId) : []
     // setNotifications(newNotifications)
 
-    removeNotification(notificationId);
     setDeletingIds((prev) => prev.filter((id) => id !== notificationId));
   };
 
@@ -161,7 +161,7 @@ function NotificationBell() {
                   {notifications.map((notification) => (
                     <li
                       key={notification.id}
-                      className={`group rounded-md bg-gray-50 transition-all duration-500 ease-in-out hover:bg-gray-100 ${deletingIds.includes(notification.id) ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'} `}
+                      className={`group rounded-md bg-gray-50 transition-all duration-700 ease-in-out hover:bg-gray-100 ${deletingIds.includes(notification.id) ? 'translate-x-[1500px] opacity-0' : 'translate-x-0 opacity-100'} `}
                     >
                       <div className="flex items-center justify-between p-2">
                         <Link
