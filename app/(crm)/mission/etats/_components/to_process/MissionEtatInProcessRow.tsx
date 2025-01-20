@@ -1,12 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Box } from '@/components/ui/box';
-import type { DBMission } from '@/types/typesDb';
+import type { ReasonMissionDeletion} from '@/types/typesDb';
+import { type DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getTimeBeforeMission } from '@/utils/string';
 import { useRouter } from 'next/navigation';
 import { getLabel } from '@/utils/getLabel';
 import { empty } from '@/data/constant';
 import { useSelect } from '@/store/select';
+import {
+  jobTitleSelect,
+  posts,
+  reasonDeleteMissionSelect,
+} from '@/data/mocked_select';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import TextArea from '@/components/inputs/TextArea';
+import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
+import SelectComponent from '@/components/SelectComponent';
 
 export default function MissionEtatInProcessRow({
   mission,
@@ -14,11 +31,22 @@ export default function MissionEtatInProcessRow({
   onValidationChangeAll,
 }: {
   mission: DBMission;
-  onValidationChange: (missionId: string, state: string | null) => void;
+  onValidationChange: (
+    missionId: string,
+    state: string | null,
+    reason?: ReasonMissionDeletion,
+    details?: string
+  ) => void;
   onValidationChangeAll: (missionId: string, isValidated: boolean) => void;
 }) {
   const router = useRouter();
-  const { jobTitles, fetchJobTitles } = useSelect();
+
+  const [isRefusalDialogOpen, setIsRefusalDialogOpen] = useState(false);
+  const [refusalReason, setRefusalReason] = useState<ReasonMissionDeletion>();
+  const [detailsRefusal, setDetailsRefusal] = useState('');
+  const [tempValidationState, setTempValidationState] = useState<string | null>(
+    null
+  );
 
   const [validationState, setValidationState] = useState<string>(
     mission.state === 'in_process' || mission.state === 'open_all_to_validate'
@@ -29,10 +57,6 @@ export default function MissionEtatInProcessRow({
   const [openAllInProcess, setOpenAllInProcess] = useState(
     mission.state === 'open_all_to_validate'
   );
-
-  useEffect(() => {
-    fetchJobTitles();
-  }, [fetchJobTitles]);
 
   useEffect(() => {
     setValidationState(
@@ -70,14 +94,16 @@ export default function MissionEtatInProcessRow({
   };
 
   const handleValidationChange = (value: string) => {
-    let newState: string | null;
+    if (value === 'refused') {
+      setTempValidationState(value);
+      setIsRefusalDialogOpen(true);
+      return;
+    }
 
+    let newState: string | null;
     switch (value) {
       case 'open':
         newState = 'open';
-        break;
-      case 'refused':
-        newState = 'refused';
         break;
       default:
         newState = 'in_process';
@@ -86,6 +112,31 @@ export default function MissionEtatInProcessRow({
 
     setValidationState(newState);
     onValidationChange(mission.id.toString(), newState);
+  };
+
+  const handleRefusalSubmit = () => {
+    if (refusalReason?.trim()) {
+      setValidationState('refused');
+      onValidationChange(
+        mission.id.toString(),
+        'refused',
+        refusalReason,
+        detailsRefusal
+      );
+      setIsRefusalDialogOpen(false);
+      setRefusalReason(undefined);
+      setDetailsRefusal('');
+      setTempValidationState(null);
+    }
+  };
+
+  const handleRefusalCancel = () => {
+    setIsRefusalDialogOpen(false);
+    setRefusalReason(undefined);
+    setDetailsRefusal('');
+    setTempValidationState(null);
+    // Reset to previous state
+    setValidationState(validationState);
   };
 
   const handleOpenAllValidationChange = (value: string) => {
@@ -125,11 +176,13 @@ export default function MissionEtatInProcessRow({
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-1">{mission.referent_name}</Box>
+      <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box className="col-span-1">
-        {getLabel({ value: mission.job_title ?? empty, select: jobTitles }) ??
-          empty}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box
         className="col-span-1"
@@ -157,6 +210,45 @@ export default function MissionEtatInProcessRow({
             ? 'En cours de traitement'
             : 'NON'}
       </Box>
+
+      <Dialog open={isRefusalDialogOpen} onOpenChange={setIsRefusalDialogOpen}>
+        <DialogContent className="bg-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Motif de refus</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 flex flex-col gap-y-4">
+            <SelectComponent
+              name="reason_deletion"
+              required
+              label="Raison de la suppression"
+              placeholder="Sélectionner une raison"
+              options={reasonDeleteMissionSelect}
+              defaultSelectedKeys={''}
+              onValueChange={(value) =>
+                setRefusalReason(value as ReasonMissionDeletion)
+              }
+            />
+            <TextArea
+              value={detailsRefusal}
+              onChange={(e) => setDetailsRefusal(e.target.value)}
+              placeholder="Veuillez indiquer le motif de refus de la mission"
+              className="min-h-32"
+            />
+          </div>
+          <DialogFooter className="mt-4 flex justify-end space-x-2">
+            <Button variant="outline" onClick={handleRefusalCancel}>
+              Annuler
+            </Button>
+            <Button
+              onClick={handleRefusalSubmit}
+              disabled={!refusalReason?.trim()}
+              className="bg-primary text-white"
+            >
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

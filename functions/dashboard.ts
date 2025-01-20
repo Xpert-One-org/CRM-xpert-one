@@ -4,13 +4,19 @@ import type { DBMissionState, DBProfile } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from './auth/checkRole';
 
-export const getLastSignupNewUsers = async () => {
+export const getLastSignupNewUsers = async (role?: string) => {
   const supabase = await createSupabaseAppServerClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('profile')
     .select('*')
     .order('created_at', { ascending: false });
+
+  if (role) {
+    query = query.eq('role', role);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -19,13 +25,13 @@ export const getLastSignupNewUsers = async () => {
   return { data };
 };
 
-export const getLastSignUpNewUsersWeek = async () => {
+export const getLastSignUpNewUsersWeek = async (role?: string) => {
   const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('profile')
       .select('*')
       .gte(
@@ -35,6 +41,12 @@ export const getLastSignUpNewUsersWeek = async () => {
         })
       )
       .order('created_at', { ascending: false });
+
+    if (role) {
+      query = query.eq('role', role);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw error;

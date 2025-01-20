@@ -7,49 +7,115 @@ import type {
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
-export const getAllMissions = async (): Promise<DBMission[]> => {
+export const getAllMissions = async (
+  page: number = 1,
+  limit: number = 10,
+  options?: {
+    sortBy?: {
+      column: string;
+      ascending: boolean;
+      nullsLast?: boolean;
+    };
+    states?: DBMissionState[];
+  }
+): Promise<{ missions: DBMission[]; total: number }> => {
   const supabase = await createSupabaseAppServerClient();
-  const { data, error } = await supabase.from('mission').select(
+
+  const offset = (page - 1) * limit;
+  console.log('Fetching with offset:', offset, 'limit:', limit);
+
+  let query = supabase.from('mission').select('*', {
+    count: 'exact',
+    head: true,
+  });
+
+  // Appliquer le filtre d'état si spécifié
+  if (options?.states) {
+    query = query.in('state', options.states);
+  }
+
+  const { count: total } = await query;
+
+  // Construire la requête principale
+  let mainQuery = supabase.from('mission').select(
     `
       *,
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
       xpert:profile!mission_xpert_associated_id_fkey(
         *,
         profile_status (
           status
         )
       ),
-      supplier:profile!mission_created_by_fkey(*)
-      `
+      supplier:profile!mission_created_by_fkey(*),
+      checkpoints:mission_checkpoints(*)
+    `
   );
+
+  // Appliquer le filtre d'état si spécifié
+  if (options?.states) {
+    mainQuery = mainQuery.in('state', options.states);
+  }
+
+  // Appliquer le tri si spécifié
+  if (options?.sortBy) {
+    mainQuery = mainQuery.order(options.sortBy.column, {
+      ascending: options.sortBy.ascending,
+      nullsFirst: !options.sortBy.nullsLast,
+    });
+  }
+
+  // Appliquer la pagination
+  mainQuery = mainQuery.range(offset, offset + limit - 1);
+
+  const { data, error } = await mainQuery;
+
   if (error) {
+    console.error('Query error:', error);
     throw new Error(error.message);
   }
 
-  return data;
+  console.log('Fetched missions:', data?.length);
+
+  const missionsWithCheckpoints = data?.map((mission) => ({
+    ...mission,
+    checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+  }));
+
+  return {
+    missions: missionsWithCheckpoints || [],
+    total: total || 0,
+  };
 };
 
 export const getMissionState = async (
   state: DBMissionState
 ): Promise<DBMission[]> => {
   const supabase = await createSupabaseAppServerClient();
-
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
-    let query = supabase.from('mission').select(
-      `
-      *,
-      xpert:profile!mission_xpert_associated_id_fkey(
-        *
-      ), 
-      supplier:profile!mission_created_by_fkey(*)
-      `
-    );
+    let query = supabase.from('mission').select(`
+        *,
+              referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+
+        xpert:profile!mission_xpert_associated_id_fkey(
+          *
+        ), 
+        supplier:profile!mission_created_by_fkey(*),
+        checkpoints:mission_checkpoints(*)
+      `);
 
     if (state === 'open') {
       query = query.in('state', ['open', 'open_all']);
     } else if (state === 'in_process') {
-      query = query.in('state', ['in_process', 'open_all_to_validate']);
+      query = query.in('state', [
+        'in_process',
+        'open_all_to_validate',
+        'to_validate',
+      ]);
+    } else if (state === 'deleted') {
+      query = query.in('state', ['refused', 'deleted']);
     } else {
       query = query.eq('state', state);
     }
@@ -60,7 +126,13 @@ export const getMissionState = async (
       throw new Error(error.message);
     }
 
-    return data;
+    // Transforme les checkpoints en tableau
+    const missionsWithCheckpoints = data?.map((mission) => ({
+      ...mission,
+      checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+    }));
+
+    return missionsWithCheckpoints;
   }
   return [];
 };
@@ -69,6 +141,9 @@ export const searchMission = async (missionId: string) => {
   const supabase = await createSupabaseAppServerClient();
 
   let query = supabase.from('mission').select('mission_number');
+
+  // Filtrer par état open ou open_all
+  query = query.in('state', ['open', 'open_all']);
 
   if (missionId) {
     query = query.ilike('mission_number', `%${missionId}%`);
@@ -84,13 +159,15 @@ export const searchMission = async (missionId: string) => {
 
 export const updateMissionState = async (
   missionId: string,
-  state: DBMissionState
+  state: DBMissionState,
+  reason_deletion?: ReasonMissionDeletion,
+  detail_deletion?: string
 ) => {
   const supabase = await createSupabaseAppServerClient();
 
   const { data, error } = await supabase
     .from('mission')
-    .update({ state })
+    .update({ state, reason_deletion, detail_deletion })
     .eq('id', missionId)
     .select('*');
 

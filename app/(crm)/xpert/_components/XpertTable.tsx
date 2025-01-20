@@ -70,6 +70,7 @@ export default function XpertTable() {
   const [habilitationInfo, setHabilitationInfo] = useState<DocumentInfo>({
     publicUrl: '',
   });
+  const [openTooltip, setOpenTooltip] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -254,56 +255,53 @@ export default function XpertTable() {
   }, [openedXpertNotSaved, openedXpert]);
 
   const renderMissions = (xpert: DBXpert) => {
-    const isProfileComplete = xpert.totale_progression >= 80;
-    const hasCV = Boolean(xpert.cv_name);
-    const canShowMissions = isProfileComplete && hasCV;
+    const canShowMissions =
+      xpert.totale_progression >= 80 && Boolean(xpert.cv_name);
 
-    return (
-      <>
-        {canShowMissions ? (
-          <>
-            {xpert.mission.length > 0 ? (
-              xpert.mission.map((mission) => (
-                <XpertMissionRow key={mission.id} mission={mission} />
-              ))
-            ) : (
-              <div className="col-span-4 ml-5 flex items-center justify-center gap-2">
-                <p className="text-gray-secondary whitespace-nowrap text-center text-sm">
-                  Aucune mission
-                </p>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="size-4 text-primary" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[300px] bg-white p-2">
-                    <p>Pour voir les missions, il faut :</p>
-                    <ul className="list-disc pl-4">
-                      <li>Un profil complété à 80% minimum</li>
-                      <li>Un CV téléchargé</li>
-                    </ul>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="col-span-4 flex items-center justify-center gap-2">
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="size-4 text-primary" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[300px] bg-white p-2">
-                <p>Pour voir les missions, il faut :</p>
-                <ul className="list-disc pl-4">
-                  <li>Un profil complété à 80% minimum</li>
-                  <li>Un CV téléchargé</li>
-                </ul>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
-      </>
+    const tooltipContent = (
+      <TooltipContent className="max-w-[300px] bg-white p-2">
+        <p>Pour voir les missions, il faut :</p>
+        <ul className="list-disc pl-4">
+          <li>Un profil complété à 80% minimum</li>
+          <li>Un CV téléchargé</li>
+        </ul>
+      </TooltipContent>
     );
+
+    const infoTooltip = (
+      <Tooltip open={openTooltip} onOpenChange={setOpenTooltip}>
+        <TooltipTrigger onClick={() => setOpenTooltip(true)}>
+          <Info className="size-4 text-primary" />
+        </TooltipTrigger>
+        {tooltipContent}
+      </Tooltip>
+    );
+
+    if (!canShowMissions) {
+      return (
+        <div className="flex items-center justify-center gap-2">
+          <p className="text-gray-secondary text-center text-sm">
+            Les conditions ne sont pas remplies
+          </p>
+          {infoTooltip}
+        </div>
+      );
+    }
+
+    if (xpert.mission.length === 0) {
+      return (
+        <div className="col-span-4 ml-5 flex items-center justify-center gap-2">
+          <p className="text-gray-secondary whitespace-nowrap text-center text-sm">
+            Aucune mission
+          </p>
+          {infoTooltip}
+        </div>
+      );
+    }
+
+    return xpert.mission.map((mission) => (
+      <XpertMissionRow key={mission.id} mission={mission} />
+    ));
   };
 
   useEffect(() => {

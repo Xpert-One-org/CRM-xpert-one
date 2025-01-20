@@ -189,6 +189,30 @@ CREATE TYPE "public"."msg_files" AS (
 ALTER TYPE "public"."msg_files" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."notification_status" AS ENUM (
+    'urgent',
+    'info',
+    'standard'
+);
+
+
+ALTER TYPE "public"."notification_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."profile_roles" AS ENUM (
+    'xpert',
+    'company',
+    'admin',
+    'project_manager',
+    'intern',
+    'hr',
+    'adv'
+);
+
+
+ALTER TYPE "public"."profile_roles" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."reason_mission_deletion" AS ENUM (
     'status_candidate_not_found',
     'won_competition',
@@ -198,6 +222,16 @@ CREATE TYPE "public"."reason_mission_deletion" AS ENUM (
 
 
 ALTER TYPE "public"."reason_mission_deletion" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."referent_type" AS (
+	"id" "uuid",
+	"firstname" "text",
+	"lastname" "text"
+);
+
+
+ALTER TYPE "public"."referent_type" OWNER TO "postgres";
 
 
 CREATE TYPE "public"."revenu_type" AS ENUM (
@@ -254,6 +288,68 @@ CREATE TYPE "public"."task_subject_type" AS ENUM (
 
 
 ALTER TYPE "public"."task_subject_type" OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."assign_referent"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    selected_referent_id UUID;
+BEGIN
+    IF NEW.role IN ('xpert', 'company') THEN
+        SELECT id
+        INTO selected_referent_id
+        FROM public.profile
+        WHERE role IN ('admin', 'project_manager')
+          AND is_authorized_referent = TRUE
+        ORDER BY (
+        
+            SELECT COUNT(*)
+            FROM public.profile AS p
+            WHERE p.affected_referent_id = public.profile.id
+        ) ASC
+        LIMIT 1;
+
+        NEW.affected_referent_id := selected_referent_id;
+    END IF;
+
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."assign_referent"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."assign_referent_mission"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    selected_referent_id UUID;
+BEGIN
+    -- Vérifie si aucun référent n'est affecté
+    IF NEW.affected_referent_id IS NULL THEN
+        -- Trouve un référent parmi les admins et chefs de projet autorisés
+        SELECT id
+        INTO selected_referent_id
+        FROM public.profile
+        WHERE role IN ('admin', 'project_manager')
+          AND is_authorized_referent = TRUE
+        ORDER BY (
+            -- Compte le nombre de missions déjà affectées à chaque référent
+            SELECT COUNT(*)
+            FROM public.mission AS m
+            WHERE m.affected_referent_id = public.profile.id
+        ) ASC
+        LIMIT 1;
+
+        -- Affecte le référent sélectionné à la nouvelle mission
+        NEW.affected_referent_id := selected_referent_id;
+    END IF;
+
+    -- Retourne la ligne modifiée
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."assign_referent_mission"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") RETURNS numeric
@@ -422,6 +518,36 @@ $$;
 ALTER FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status" DEFAULT 'standard'::"public"."notification_status", "is_global" boolean DEFAULT false, "category" "text" DEFAULT ''::"text") RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    INSERT INTO notification (
+        user_id,
+        link,
+        message,
+        subject,
+        status,
+        is_global,
+        category,
+        created_at
+    ) VALUES (
+        user_id,
+        link,
+        message,
+        subject,
+        status,
+        is_global,
+        category,
+        NOW()
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."create_selection_matching"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$BEGIN
@@ -454,6 +580,46 @@ END;$$;
 
 
 ALTER FUNCTION "public"."create_selection_matching"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."do_nothing"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- La fonction ne fait rien
+END;
+$$;
+
+
+ALTER FUNCTION "public"."do_nothing"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."do_nothing_trigger"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- La fonction ne fait rien
+    RETURN NEW; -- Retourne la ligne modifiée (nécessaire pour les triggers BEFORE)
+END;
+$$;
+
+
+ALTER FUNCTION "public"."do_nothing_trigger"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."enforce_is_authorized_referent"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    IF NEW.role IN ('xpert', 'company') THEN
+        NEW.is_authorized_referent := FALSE;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."enforce_is_authorized_referent"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."generate_mission_unique_id"() RETURNS "text"
@@ -692,50 +858,50 @@ ALTER FUNCTION "public"."get_profile_other_languages"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
     AS $$DECLARE
-    v_role TEXT;
-    v_is_student BOOLEAN;
+    v_role text;
+    v_generated_id TEXT;
 BEGIN
-    -- Déterminer le rôle
-    v_role := COALESCE(NEW.raw_user_meta_data->>'role', 'NULL');
+    -- Log pour debug
+    RAISE NOTICE 'Raw user meta data: %', NEW.raw_user_meta_data;
     
-    -- Déterminer si c'est un étudiant
-    v_is_student := (NEW.raw_user_meta_data->>'is_student')::boolean;
+    v_role := COALESCE(NEW.raw_user_meta_data->>'role', 'xpert');
+    
+    v_generated_id := CASE 
+        WHEN v_role = 'xpert' THEN public.generate_unique_id()::text
+        ELSE public.generate_unique_id_f()::text
+    END;
 
-    -- Insérer dans public.profile avec toutes les métadonnées pertinentes
+    -- Log pour debug
+    RAISE NOTICE 'Attempting to insert with role: %, generated_id: %', v_role, v_generated_id;
+
     INSERT INTO public.profile (
-        id, firstname, lastname, email, mobile, role, 
-        company_role, company_name, referent_id, 
-        generated_id, username
+        id,
+        email,
+        role,
+        firstname,
+        lastname,
+        mobile,
+        company_role,
+        company_name,
+        referent_id,
+        generated_id
     )
     VALUES (
         NEW.id,
+        NEW.email,
+        (v_role)::public.profile_roles,
         NEW.raw_user_meta_data->>'firstname',
         NEW.raw_user_meta_data->>'lastname',
-        NEW.email,
-        NEW.raw_user_meta_data->>'default_phone',
-        CASE 
-            WHEN v_is_student THEN 'xpert'
-            ELSE v_role
-        END,
-        CASE 
-            WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_role'
-            ELSE NULL
-        END,
-        CASE 
-            WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_name'
-            ELSE NULL
-        END,
-        NEW.raw_user_meta_data->>'referent_generated_id',
-        CASE
-            WHEN new.raw_user_meta_data->>'role' = 'xpert' THEN public.generate_unique_id()::text
-            ELSE public.generate_unique_id_f()::text
-        END,  
-        NEW.raw_user_meta_data->>'username'
+        NEW.raw_user_meta_data->>'mobile',
+        CASE WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_role' ELSE NULL END,
+        CASE WHEN v_role = 'company' THEN NEW.raw_user_meta_data->>'company_name' ELSE NULL END,
+        NEW.raw_user_meta_data->>'referent_id',
+        v_generated_id
     );
 
     RETURN NEW;
+
 END;$$;
 
 
@@ -756,6 +922,316 @@ end;$$;
 
 
 ALTER FUNCTION "public"."notify_email_confirmation"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_conversation"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    sender_info RECORD;
+    alert_status BOOLEAN;
+    display_name TEXT;
+BEGIN
+    IF NEW.type <> 'chat' THEN
+        RETURN NEW; 
+    END IF;
+
+    SELECT new_message_alert INTO alert_status
+    FROM user_alerts
+    WHERE user_id = NEW.receiver_id;
+
+    IF alert_status IS NOT TRUE THEN
+        RETURN NEW;
+    END IF;
+
+    WITH sender_data AS (
+        SELECT 
+            c.id AS chat_id,
+            p.firstname,
+            p.lastname,
+            p.generated_id
+        FROM chat c
+        JOIN profile p ON p.id = c.created_by
+        WHERE c.created_by = NEW.created_by
+    )
+    SELECT * INTO sender_info FROM sender_data;
+
+    IF sender_info IS NULL THEN
+        RAISE EXCEPTION 'No sender data found for created_by = %', NEW.created_by;
+    END IF;
+
+    IF sender_info.role IN ('xpert', 'company') THEN
+        display_name := 'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
+                       ' (' || sender_info.generated_id || ')';
+    ELSE
+        display_name := 'Xpert One';
+    END IF;
+
+    -- Création de la notification
+    PERFORM create_notification(
+        NEW.receiver_id,
+        'messagerie',
+        display_name || ' a démarré une nouvelle conversation avec vous',
+        'Messagerie',
+        'info'::notification_status
+    );
+    
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_conversation"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_echo_message"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$DECLARE
+    sender_info RECORD;
+    alert_status BOOLEAN;
+    chat_type TEXT;
+    notification_receiver_id UUID; 
+    display_name TEXT;
+BEGIN
+    SELECT c.type INTO chat_type
+    FROM chat c
+    WHERE c.id = NEW.chat_id;
+
+    IF chat_type <> 'echo_community' THEN
+        RETURN NEW;
+    END IF;
+
+    WITH sender_data AS (
+        SELECT 
+            c.id AS chat_id,
+            c.created_by,
+            c.title,
+            c.receiver_id,
+            p.firstname,
+            p.lastname,
+            p.generated_id,
+            p.role
+        FROM chat c
+        JOIN profile p ON p.id = NEW.send_by 
+        WHERE c.id = NEW.chat_id 
+    )
+    SELECT * INTO sender_info FROM sender_data;
+
+    IF sender_info IS NULL THEN
+        RAISE EXCEPTION 'No sender data found for chat_id = %', NEW.chat_id;
+    END IF;
+
+    IF NEW.send_by = sender_info.created_by THEN
+        notification_receiver_id := sender_info.receiver_id;
+    ELSE
+        notification_receiver_id := sender_info.created_by;
+    END IF;
+
+    IF sender_info.role IN ('xpert', 'company') THEN
+        display_name := 'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
+                       ' (' || sender_info.generated_id || ')';
+    ELSE
+        display_name := 'Xpert One';
+    END IF;
+
+    PERFORM create_notification(
+        notification_receiver_id,
+        'communaute/echo-de-la-communaute',
+        display_name || ' a envoyé un message',
+        'Echo de la communauté : '||sender_info.title,
+        'info'::notification_status,
+        true
+    );
+    
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_echo_message"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_forum_message"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$DECLARE
+    sender_info RECORD;
+    alert_status BOOLEAN;
+    chat_type TEXT;
+    notification_receiver_id UUID; 
+    display_name TEXT;
+BEGIN
+    SELECT c.type INTO chat_type
+    FROM chat c
+    WHERE c.id = NEW.chat_id;
+
+    IF chat_type <> 'forum' THEN
+        RETURN NEW;
+    END IF;
+
+    WITH sender_data AS (
+        SELECT 
+            c.id AS chat_id,
+            c.created_by,
+            c.title,
+            c.receiver_id,
+            c.category,
+            p.firstname,
+            p.lastname,
+            p.generated_id,
+            p.role
+        FROM chat c
+        JOIN profile p ON p.id = NEW.send_by 
+        WHERE c.id = NEW.chat_id 
+    )
+    SELECT * INTO sender_info FROM sender_data;
+
+    IF sender_info IS NULL THEN
+        RAISE EXCEPTION 'No sender data found for chat_id = %', NEW.chat_id;
+    END IF;
+
+    IF NEW.send_by = sender_info.created_by THEN
+        notification_receiver_id := sender_info.receiver_id;
+    ELSE
+        notification_receiver_id := sender_info.created_by;
+    END IF;
+
+    IF sender_info.role IN ('xpert', 'company') THEN
+        display_name := 'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
+                       ' (' || sender_info.generated_id || ')';
+    ELSE
+        display_name := 'Xpert One';
+    END IF;
+
+    PERFORM create_notification(
+        notification_receiver_id,
+        'communaute/forum',
+        display_name || ' a envoyé un message',
+        'Forum : '||sender_info.title,
+        'info'::notification_status,
+        true,
+        sender_info.category
+    );
+    
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_forum_message"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_message"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    sender_info RECORD;
+    alert_status BOOLEAN;
+    chat_type TEXT;
+    notification_receiver_id UUID; 
+    display_name TEXT;
+
+BEGIN
+    SELECT c.type INTO chat_type
+    FROM chat c
+    WHERE c.id = NEW.chat_id;
+
+    IF chat_type <> 'chat' THEN
+        RETURN NEW;
+    END IF;
+
+   
+    WITH sender_data AS (
+        SELECT 
+            c.id AS chat_id,
+            c.created_by,
+            c.receiver_id,
+            p.firstname,
+            p.lastname,
+            p.generated_id,
+            p.role
+
+        FROM chat c
+        JOIN profile p ON p.id = NEW.send_by 
+        WHERE c.id = NEW.chat_id 
+    )
+    SELECT * INTO sender_info FROM sender_data;
+
+    IF sender_info IS NULL THEN
+        RAISE EXCEPTION 'No sender data found for chat_id = %', NEW.chat_id;
+    END IF;
+
+    IF NEW.send_by = sender_info.created_by THEN
+       
+        notification_receiver_id := sender_info.receiver_id;
+    ELSE
+       
+        notification_receiver_id := sender_info.created_by;
+    END IF;
+
+    SELECT new_message_alert INTO alert_status
+    FROM user_alerts
+    WHERE user_id = notification_receiver_id;
+
+    IF alert_status IS NOT TRUE THEN
+        RETURN NEW;
+    END IF;
+
+    IF sender_info.role IN ('xpert', 'company') THEN
+        display_name := 'L''utilisateur ' || sender_info.firstname || ' ' || sender_info.lastname || 
+                       ' (' || sender_info.generated_id || ')';
+    ELSE
+        display_name := 'Xpert One';
+    END IF;
+
+    PERFORM create_notification(
+        notification_receiver_id,
+        'messagerie',
+        display_name || ' vous a envoyé un message',
+        'Messagerie'
+        'info'::notification_status
+    );
+    
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_message"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_task"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$BEGIN
+    PERFORM create_notification(
+        NEW.assigned_to,
+        'dashboard/todo'::text,
+        'Nouvelle tâche créée : '::text || NEW.details::text,
+        'Todolist'::text,
+        CASE 
+            WHEN NEW.status = 'urgent' THEN 'urgent'::notification_status
+            ELSE 'standard'::notification_status
+        END
+    );
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_task"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_task_done"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$BEGIN
+    IF NEW.status = 'done' AND OLD.status != 'done' THEN
+        PERFORM create_notification(
+            NEW.assigned_to, 
+            'dashboard/todo'::text,
+            'La tâche n°' || NEW.id || ' a été traitée'::text,
+            'Todolist'
+            'info'::notification_status 
+        );
+    END IF;
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_task_done"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."set_unique_slug"() RETURNS "trigger"
@@ -786,6 +1262,19 @@ $$;
 
 
 ALTER FUNCTION "public"."update_chat_timestamp"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_mission_checkpoints_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_mission_checkpoints_updated_at"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_progression"() RETURNS "trigger"
@@ -1238,7 +1727,13 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "image_url" "text",
     "reason_deletion" "public"."reason_mission_deletion",
     "deleted_at" timestamp with time zone,
-    "xpert_associated_status" "text"
+    "xpert_associated_status" "text",
+    "facturation_fournisseur_payment" "jsonb"[],
+    "facturation_salary_payment" "jsonb"[],
+    "facturation_invoice_paid" "jsonb"[],
+    "show_on_website" boolean DEFAULT false,
+    "affected_referent_id" "uuid",
+    "detail_deletion" "text"
 );
 
 
@@ -1289,6 +1784,35 @@ ALTER TABLE "public"."mission_canceled" ALTER COLUMN "id" ADD GENERATED BY DEFAU
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."mission_checkpoints" (
+    "id" bigint NOT NULL,
+    "mission_id" bigint NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "point_j_moins_10_f" boolean DEFAULT false NOT NULL,
+    "point_j_moins_10_x" boolean DEFAULT false NOT NULL,
+    "point_j_plus_10_f" boolean DEFAULT false NOT NULL,
+    "point_j_plus_10_x" boolean DEFAULT false NOT NULL,
+    "point_j_plus_10_referent" boolean DEFAULT false NOT NULL,
+    "point_rh_fin_j_plus_10_f" boolean DEFAULT false NOT NULL,
+    "point_fin_j_moins_30" boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE "public"."mission_checkpoints" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."mission_checkpoints" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."mission_checkpoints_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
 ALTER TABLE "public"."mission" ALTER COLUMN "id" ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME "public"."mission_id_seq"
     START WITH 1
@@ -1303,9 +1827,13 @@ ALTER TABLE "public"."mission" ALTER COLUMN "id" ADD GENERATED ALWAYS AS IDENTIT
 CREATE TABLE IF NOT EXISTS "public"."notification" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "type" "text",
-    "read_by" "uuid"[],
-    "chat_id" bigint
+    "link" "text",
+    "message" "text" NOT NULL,
+    "status" "public"."notification_status" DEFAULT 'standard'::"public"."notification_status" NOT NULL,
+    "subject" "text",
+    "user_id" "uuid",
+    "category" "text",
+    "is_global" boolean DEFAULT false
 );
 
 
@@ -1368,7 +1896,7 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "how_did_you_hear_about_us" "text",
     "how_did_you_hear_about_us_other" "text",
     "id" "uuid" NOT NULL,
-    "role" "text" DEFAULT 'NULL'::"text" NOT NULL,
+    "role" "public"."profile_roles" DEFAULT 'xpert'::"public"."profile_roles" NOT NULL,
     "company_role" "text",
     "company_name" "text",
     "referent_id" "text",
@@ -1405,7 +1933,11 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "cv_name" "text",
     "community_banning_explanations" "text",
     "is_banned_from_community" boolean DEFAULT false NOT NULL,
-    "admin_opinion" "public"."admin_opinion"
+    "admin_opinion" "public"."admin_opinion",
+    "affected_referent_id" "uuid",
+    "collaborator_is_absent" boolean DEFAULT false,
+    "collaborator_replacement_id" "uuid",
+    "get_welcome_call" boolean DEFAULT false
 );
 
 
@@ -1706,7 +2238,7 @@ ALTER TABLE "public"."task_history" ALTER COLUMN "id" ADD GENERATED BY DEFAULT A
 CREATE TABLE IF NOT EXISTS "public"."tasks" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "created_by" "uuid" NOT NULL,
+    "created_by" "uuid",
     "assigned_to" "uuid" NOT NULL,
     "subject_type" "public"."task_subject_type" NOT NULL,
     "xpert_id" "uuid",
@@ -1733,6 +2265,32 @@ ALTER TABLE "public"."tasks" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENT
     CACHE 1
 );
 
+
+
+CREATE OR REPLACE VIEW "public"."unique_posts" AS
+ SELECT DISTINCT "pe"."post"
+   FROM ("public"."profile_experience" "pe"
+     LEFT JOIN "public"."profile" "p" ON ((("p"."id" = "pe"."profile_id") AND ("p"."role" = 'xpert'::"public"."profile_roles"))))
+  WHERE (("pe"."post" IS NOT NULL) AND ("p"."role" = 'xpert'::"public"."profile_roles") AND ("pe"."is_last" = 'true'::"text"))
+  ORDER BY "pe"."post";
+
+
+ALTER TABLE "public"."unique_posts" OWNER TO "postgres";
+
+
+CREATE OR REPLACE VIEW "public"."unique_posts_with_referents" AS
+ SELECT "u"."post",
+    "count"("pe"."id") AS "post_count",
+    "array_agg"(DISTINCT ROW("pr"."id", "pr"."firstname", "pr"."lastname")::"public"."referent_type") FILTER (WHERE ("pr"."id" IS NOT NULL)) AS "referents"
+   FROM ((("public"."unique_posts" "u"
+     LEFT JOIN "public"."profile_experience" "pe" ON ((("u"."post" = "pe"."post") AND ("pe"."is_last" = 'true'::"text"))))
+     LEFT JOIN "public"."profile" "p" ON (("pe"."profile_id" = "p"."id")))
+     LEFT JOIN "public"."profile" "pr" ON (("p"."affected_referent_id" = "pr"."id")))
+  GROUP BY "u"."post"
+  ORDER BY "u"."post";
+
+
+ALTER TABLE "public"."unique_posts_with_referents" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."user_alerts" (
@@ -1912,13 +2470,23 @@ ALTER TABLE ONLY "public"."mission_canceled"
 
 
 
+ALTER TABLE ONLY "public"."mission_checkpoints"
+    ADD CONSTRAINT "mission_checkpoints_mission_id_key" UNIQUE ("mission_id");
+
+
+
+ALTER TABLE ONLY "public"."mission_checkpoints"
+    ADD CONSTRAINT "mission_checkpoints_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."mission"
     ADD CONSTRAINT "mission_pkey" PRIMARY KEY ("id");
 
 
 
 ALTER TABLE ONLY "public"."notification"
-    ADD CONSTRAINT "notifications_pkey" PRIMARY KEY ("id");
+    ADD CONSTRAINT "notifications_pkey1" PRIMARY KEY ("id");
 
 
 
@@ -2017,6 +2585,10 @@ ALTER TABLE ONLY "public"."user_alerts"
 
 
 
+CREATE INDEX "idx_affected_referent_id" ON "public"."profile" USING "btree" ("affected_referent_id");
+
+
+
 CREATE INDEX "selection_matching_column_status_idx" ON "public"."selection_matching" USING "btree" ("column_status");
 
 
@@ -2073,11 +2645,47 @@ CREATE OR REPLACE TRIGGER "after_mission_application_insert" AFTER INSERT ON "pu
 
 
 
+CREATE OR REPLACE TRIGGER "assign_referent_mission_trigger" BEFORE INSERT ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."assign_referent_mission"();
+
+
+
+CREATE OR REPLACE TRIGGER "assign_referent_trigger" BEFORE INSERT ON "public"."profile" FOR EACH ROW EXECUTE FUNCTION "public"."assign_referent"();
+
+
+
+CREATE OR REPLACE TRIGGER "notify_new_chat_trigger" AFTER INSERT ON "public"."chat" FOR EACH ROW WHEN (("new"."type" = 'chat'::"public"."chat_type")) EXECUTE FUNCTION "public"."notify_new_conversation"();
+
+
+
+CREATE OR REPLACE TRIGGER "notify_new_echo_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_echo_message"();
+
+
+
+CREATE OR REPLACE TRIGGER "notify_new_forum_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_forum_message"();
+
+
+
 CREATE OR REPLACE TRIGGER "slugify_title_unique" BEFORE INSERT OR UPDATE ON "public"."article" FOR EACH ROW EXECUTE FUNCTION "public"."set_unique_slug"();
 
 
 
+CREATE OR REPLACE TRIGGER "task_insert_trigger" AFTER INSERT ON "public"."tasks" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_task"();
+
+
+
+CREATE OR REPLACE TRIGGER "task_status_update_notify" AFTER UPDATE ON "public"."tasks" FOR EACH ROW WHEN ((("new"."status" = 'done'::"public"."task_status") AND ("old"."status" <> 'done'::"public"."task_status"))) EXECUTE FUNCTION "public"."notify_task_done"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_enforce_is_authorized_referent" BEFORE INSERT OR UPDATE ON "public"."profile" FOR EACH ROW EXECUTE FUNCTION "public"."enforce_is_authorized_referent"();
+
+
+
 CREATE OR REPLACE TRIGGER "update_chat_updated_at" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."update_chat_timestamp"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_mission_checkpoints_updated_at" BEFORE UPDATE ON "public"."mission_checkpoints" FOR EACH ROW EXECUTE FUNCTION "public"."update_mission_checkpoints_updated_at"();
 
 
 
@@ -2134,6 +2742,11 @@ ALTER TABLE ONLY "public"."message"
 
 
 
+ALTER TABLE ONLY "public"."mission"
+    ADD CONSTRAINT "mission_affected_referent_id_fkey" FOREIGN KEY ("affected_referent_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+
 ALTER TABLE ONLY "public"."mission_application"
     ADD CONSTRAINT "mission_application_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
@@ -2149,6 +2762,11 @@ ALTER TABLE ONLY "public"."mission_canceled"
 
 
 
+ALTER TABLE ONLY "public"."mission_checkpoints"
+    ADD CONSTRAINT "mission_checkpoints_mission_id_fkey" FOREIGN KEY ("mission_id") REFERENCES "public"."mission"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."mission"
     ADD CONSTRAINT "mission_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
@@ -2160,7 +2778,17 @@ ALTER TABLE ONLY "public"."mission"
 
 
 ALTER TABLE ONLY "public"."notification"
-    ADD CONSTRAINT "notification_chat_id_fkey" FOREIGN KEY ("chat_id") REFERENCES "public"."chat"("id") ON UPDATE CASCADE ON DELETE CASCADE;
+    ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."profile"
+    ADD CONSTRAINT "profile_affected_referent_id_fkey" FOREIGN KEY ("affected_referent_id") REFERENCES "public"."profile"("id");
+
+
+
+ALTER TABLE ONLY "public"."profile"
+    ADD CONSTRAINT "profile_collaborator_replacement_id_fkey" FOREIGN KEY ("collaborator_replacement_id") REFERENCES "public"."profile"("id");
 
 
 
@@ -2254,23 +2882,21 @@ ALTER TABLE ONLY "public"."user_alerts"
 
 
 
-CREATE POLICY "Admins can insert matches" ON "public"."selection_matching" FOR INSERT WITH CHECK (( SELECT ("profile"."role" = 'admin'::"text")
+CREATE POLICY "Admins can insert matches" ON "public"."selection_matching" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"())));
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
-CREATE POLICY "Admins can update matches" ON "public"."selection_matching" FOR UPDATE USING (( SELECT ("profile"."role" = 'admin'::"text")
+CREATE POLICY "Admins can update matches" ON "public"."selection_matching" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"()))) WITH CHECK (( SELECT ("profile"."role" = 'admin'::"text")
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Admins can view all matches" ON "public"."selection_matching" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"())));
-
-
-
-CREATE POLICY "Admins can view all matches" ON "public"."selection_matching" FOR SELECT USING (( SELECT ("profile"."role" = 'admin'::"text")
-   FROM "public"."profile"
-  WHERE ("profile"."id" = "auth"."uid"())));
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
@@ -2307,6 +2933,36 @@ CREATE POLICY "Enable delete for users based on user_id" ON "public"."profile_mi
 
 
 CREATE POLICY "Enable delete for users based on user_id" ON "public"."profile_status" FOR DELETE USING ((( SELECT "auth"."uid"() AS "uid") = "profile_id"));
+
+
+
+CREATE POLICY "Enable delete for users based on user_id or admin" ON "public"."profile_experience" USING ((("auth"."uid"() = "profile_id") OR (EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_experience" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_expertise" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_mission" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
+
+
+
+CREATE POLICY "Enable insert for admin users only" ON "public"."profile_status" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
@@ -2562,11 +3218,55 @@ CREATE POLICY "Enable update for users based on email" ON "public"."profile_stat
 
 
 
-CREATE POLICY "Enable update for users based on email or admin" ON "public"."profile" FOR UPDATE USING (((( SELECT "auth"."uid"() AS "uid") = "id") OR (( SELECT "profile_1"."role"
+CREATE POLICY "Enable update for users based on email or admin" ON "public"."profile" FOR UPDATE TO "authenticated" USING ((("auth"."uid"() = "id") OR (EXISTS ( SELECT 1
    FROM "public"."profile" "profile_1"
-  WHERE ("profile_1"."id" = ( SELECT "auth"."uid"() AS "uid"))) = 'admin'::"text"))) WITH CHECK (((( SELECT "auth"."uid"() AS "uid") = "id") OR (( SELECT "profile_1"."role"
-   FROM "public"."profile" "profile_1"
-  WHERE ("profile_1"."id" = ( SELECT "auth"."uid"() AS "uid"))) = 'admin'::"text")));
+  WHERE (("profile_1"."id" = "auth"."uid"()) AND ("profile_1"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Seule l'application peut créer des notifications" ON "public"."notification" FOR INSERT WITH CHECK (("auth"."role"() = 'service_role'::"text"));
+
+
+
+CREATE POLICY "Users can update their own profile_education or admin can updat" ON "public"."profile_education" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_education"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_experience or admin can upda" ON "public"."profile_experience" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_experience"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_expertise or admin can updat" ON "public"."profile_expertise" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_expertise"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_mission or admin can update" ON "public"."profile_mission" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_mission"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Users can update their own profile_status or admin can update a" ON "public"."profile_status" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."profile"
+  WHERE (("profile"."id" = "auth"."uid"()) AND (("profile"."id" = "profile_status"."profile_id") OR ("profile"."role" = 'admin'::"public"."profile_roles"))))));
+
+
+
+CREATE POLICY "Utilisateurs peuvent mettre à jour leurs notifications" ON "public"."notification" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Utilisateurs peuvent supprimer leurs notifications" ON "public"."notification" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Utilisateurs peuvent voir leurs notifications" ON "public"."notification" FOR SELECT USING (("auth"."uid"() = "user_id"));
 
 
 
@@ -2612,11 +3312,14 @@ CREATE POLICY "message_crud" ON "public"."message" TO "authenticated" USING (tru
 
 CREATE POLICY "message_delete_admin" ON "public"."message" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."profile"
-  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"text")))));
+  WHERE (("profile"."id" = "auth"."uid"()) AND ("profile"."role" = 'admin'::"public"."profile_roles")))));
 
 
 
 ALTER TABLE "public"."mission_application" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."notification" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."posts" ENABLE ROW LEVEL SECURITY;
@@ -2909,15 +3612,51 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."assign_referent"() TO "anon";
+GRANT ALL ON FUNCTION "public"."assign_referent"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."assign_referent"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."assign_referent_mission"() TO "anon";
+GRANT ALL ON FUNCTION "public"."assign_referent_mission"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."assign_referent_mission"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status", "is_global" boolean, "category" "text") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."create_selection_matching"() TO "anon";
 GRANT ALL ON FUNCTION "public"."create_selection_matching"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_selection_matching"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."do_nothing"() TO "anon";
+GRANT ALL ON FUNCTION "public"."do_nothing"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."do_nothing"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."do_nothing_trigger"() TO "anon";
+GRANT ALL ON FUNCTION "public"."do_nothing_trigger"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."do_nothing_trigger"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."enforce_is_authorized_referent"() TO "anon";
+GRANT ALL ON FUNCTION "public"."enforce_is_authorized_referent"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."enforce_is_authorized_referent"() TO "service_role";
 
 
 
@@ -2987,6 +3726,42 @@ GRANT ALL ON FUNCTION "public"."notify_email_confirmation"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_echo_message"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_echo_message"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_echo_message"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_forum_message"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_forum_message"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_forum_message"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_message"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_message"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_message"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_task"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_task"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_task"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."set_unique_slug"() TO "anon";
 GRANT ALL ON FUNCTION "public"."set_unique_slug"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_unique_slug"() TO "service_role";
@@ -3024,6 +3799,12 @@ GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "intern
 GRANT ALL ON FUNCTION "public"."update_chat_timestamp"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_chat_timestamp"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_chat_timestamp"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_mission_checkpoints_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_mission_checkpoints_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_mission_checkpoints_updated_at"() TO "service_role";
 
 
 
@@ -3240,6 +4021,18 @@ GRANT ALL ON SEQUENCE "public"."mission_canceled_id_seq" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."mission_checkpoints" TO "anon";
+GRANT ALL ON TABLE "public"."mission_checkpoints" TO "authenticated";
+GRANT ALL ON TABLE "public"."mission_checkpoints" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."mission_checkpoints_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."mission_checkpoints_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."mission_checkpoints_id_seq" TO "service_role";
+
+
+
 GRANT ALL ON SEQUENCE "public"."mission_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."mission_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."mission_id_seq" TO "service_role";
@@ -3393,6 +4186,18 @@ GRANT ALL ON TABLE "public"."tasks" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."tasks_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."tasks_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."tasks_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."unique_posts" TO "anon";
+GRANT ALL ON TABLE "public"."unique_posts" TO "authenticated";
+GRANT ALL ON TABLE "public"."unique_posts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."unique_posts_with_referents" TO "anon";
+GRANT ALL ON TABLE "public"."unique_posts_with_referents" TO "authenticated";
+GRANT ALL ON TABLE "public"."unique_posts_with_referents" TO "service_role";
 
 
 

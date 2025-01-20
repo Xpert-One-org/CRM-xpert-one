@@ -8,7 +8,7 @@ import { FilterButton } from '@/components/FilterButton';
 import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 
 export default function EtatsFacturationsPage() {
-  const { missions, fetchMissions } = useMissionStore();
+  const { missions, fetchMissionsState } = useMissionStore();
   const { fileStatusesByMission, checkAllMissionsFiles } =
     useFileStatusFacturationStore();
 
@@ -34,8 +34,8 @@ export default function EtatsFacturationsPage() {
   );
 
   useEffect(() => {
-    fetchMissions();
-  }, [fetchMissions]);
+    fetchMissionsState('in_progress');
+  }, [fetchMissionsState]);
 
   useEffect(() => {
     if (shouldUpdateFileStatuses(filteredMissions)) {

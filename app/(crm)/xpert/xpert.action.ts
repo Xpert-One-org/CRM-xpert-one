@@ -4,7 +4,7 @@ import type {
   ProfileDataPicked,
   UserData,
 } from '@/components/dialogs/CreateXpertDialog';
-import { limitXpert } from '@/data/constant';
+import { limitXpert, limitXpertLastJobs } from '@/data/constant';
 import { transformArray } from '@/lib/utils';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
 import type {
@@ -14,6 +14,7 @@ import type {
   DBProfileMission,
   DBProfileStatus,
   DBXpert,
+  DBXpertLastPost,
   DBXpertOptimized,
 } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
@@ -160,7 +161,7 @@ export const getXpertsOptimized = async ({
     let query = supabase
       .from('profile')
       .select(
-        'firstname, lastname, id, country, generated_id, created_at, admin_opinion, cv_name, profile_mission(availability, job_titles), mission!mission_xpert_associated_id_fkey(xpert_associated_id), affected_referent_id',
+        'firstname, lastname, id, country, generated_id, created_at, admin_opinion, cv_name, profile_mission(availability, job_titles), profile_experience(post, post_other), mission!mission_xpert_associated_id_fkey(xpert_associated_id), affected_referent_id',
         { count: 'exact' }
       )
       .eq('role', 'xpert');
@@ -248,8 +249,16 @@ export const getXpertsOptimized = async ({
       throw new Error('No data returned');
     }
 
+    // first experience
+    const dataWithFirstExp = data.map((xpert) => {
+      return {
+        ...xpert,
+        profile_experience: xpert.profile_experience?.[0],
+      };
+    });
+
     return {
-      data: data,
+      data: dataWithFirstExp,
       count: count || 0,
     };
   }
@@ -257,6 +266,64 @@ export const getXpertsOptimized = async ({
   return {
     data: [],
     count: null,
+  };
+};
+
+export const getXpertLastJobs = async ({
+  offset,
+}: {
+  offset: number;
+}): Promise<{
+  data: DBXpertLastPost[];
+  error: string | null;
+  count: number | null;
+}> => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { user } = (await supabase.auth.getUser()).data;
+
+  if (!user) {
+    throw new Error("Vous n'êtes pas connecté");
+  }
+
+  const {
+    data: uniqueJobs,
+    error,
+    count,
+  } = await supabase
+    .from('unique_posts_with_referents')
+    .select('*', { count: 'exact' })
+    .range(offset, offset + limitXpertLastJobs - 1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    data: uniqueJobs,
+    count: count || 0,
+    error: null,
+  };
+};
+
+export const getXpertIdByJobName = async (
+  jobName: string
+): Promise<{ data: { profile_id: string | null }[] }> => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('profile_experience')
+    .select('profile_id')
+    .or(`post.eq.${jobName},post_other.eq.${jobName}`)
+    .eq('is_last', 'true');
+
+  if (error) {
+    console.error(error);
+    throw new Error(error.message);
+  }
+
+  return {
+    data: data,
   };
 };
 
@@ -299,7 +366,7 @@ export const createUser = async ({
 
   const {
     address,
-    birthdate,
+    company_name,
     city,
     civility,
     country,
@@ -314,7 +381,7 @@ export const createUser = async ({
     .from('profile')
     .update({
       address,
-      birthdate,
+      company_name,
       city,
       civility,
       country,

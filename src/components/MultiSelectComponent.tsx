@@ -67,7 +67,7 @@ export default function MultiSelectComponent({
     <div className={cn('w-full font-light xl:max-w-[280px]', className)}>
       {label && (
         <Label htmlFor={id} className={cn('flex items-center', classNameLabel)}>
-          {label}
+          {label} {required && <span className="text-accent">*</span>}
         </Label>
       )}
 

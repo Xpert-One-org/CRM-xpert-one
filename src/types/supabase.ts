@@ -404,6 +404,7 @@ export type Database = {
         Row: {
           address: string | null;
           advantages_company: string | null;
+          affected_referent_id: string | null;
           city: string | null;
           contract_file_name: string | null;
           country: string | null;
@@ -412,6 +413,7 @@ export type Database = {
           deadline_application: string | null;
           deleted_at: string | null;
           description: string | null;
+          detail_deletion: string | null;
           diplomas: string[] | null;
           diplomas_other: string | null;
           end_date: string | null;
@@ -460,6 +462,7 @@ export type Database = {
         Insert: {
           address?: string | null;
           advantages_company?: string | null;
+          affected_referent_id?: string | null;
           city?: string | null;
           contract_file_name?: string | null;
           country?: string | null;
@@ -468,6 +471,7 @@ export type Database = {
           deadline_application?: string | null;
           deleted_at?: string | null;
           description?: string | null;
+          detail_deletion?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
           end_date?: string | null;
@@ -516,6 +520,7 @@ export type Database = {
         Update: {
           address?: string | null;
           advantages_company?: string | null;
+          affected_referent_id?: string | null;
           city?: string | null;
           contract_file_name?: string | null;
           country?: string | null;
@@ -524,6 +529,7 @@ export type Database = {
           deadline_application?: string | null;
           deleted_at?: string | null;
           description?: string | null;
+          detail_deletion?: string | null;
           diplomas?: string[] | null;
           diplomas_other?: string | null;
           end_date?: string | null;
@@ -570,6 +576,13 @@ export type Database = {
           xpert_associated_status?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'mission_affected_referent_id_fkey';
+            columns: ['affected_referent_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'mission_created_by_fkey';
             columns: ['created_by'];
@@ -651,34 +664,96 @@ export type Database = {
           },
         ];
       };
-      notification: {
+      mission_checkpoints: {
         Row: {
-          chat_id: number | null;
           created_at: string;
           id: number;
-          read_by: string[] | null;
-          type: string | null;
+          mission_id: number;
+          point_fin_j_moins_30: boolean;
+          point_j_moins_10_f: boolean;
+          point_j_moins_10_x: boolean;
+          point_j_plus_10_f: boolean;
+          point_j_plus_10_referent: boolean;
+          point_j_plus_10_x: boolean;
+          point_rh_fin_j_plus_10_f: boolean;
+          updated_at: string;
         };
         Insert: {
-          chat_id?: number | null;
           created_at?: string;
           id?: number;
-          read_by?: string[] | null;
-          type?: string | null;
+          mission_id: number;
+          point_fin_j_moins_30?: boolean;
+          point_j_moins_10_f?: boolean;
+          point_j_moins_10_x?: boolean;
+          point_j_plus_10_f?: boolean;
+          point_j_plus_10_referent?: boolean;
+          point_j_plus_10_x?: boolean;
+          point_rh_fin_j_plus_10_f?: boolean;
+          updated_at?: string;
         };
         Update: {
-          chat_id?: number | null;
           created_at?: string;
           id?: number;
-          read_by?: string[] | null;
-          type?: string | null;
+          mission_id?: number;
+          point_fin_j_moins_30?: boolean;
+          point_j_moins_10_f?: boolean;
+          point_j_moins_10_x?: boolean;
+          point_j_plus_10_f?: boolean;
+          point_j_plus_10_referent?: boolean;
+          point_j_plus_10_x?: boolean;
+          point_rh_fin_j_plus_10_f?: boolean;
+          updated_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'notification_chat_id_fkey';
-            columns: ['chat_id'];
+            foreignKeyName: 'mission_checkpoints_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: true;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification: {
+        Row: {
+          category: string | null;
+          created_at: string;
+          id: number;
+          is_global: boolean | null;
+          link: string | null;
+          message: string;
+          status: Database['public']['Enums']['notification_status'];
+          subject: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          category?: string | null;
+          created_at?: string;
+          id?: number;
+          is_global?: boolean | null;
+          link?: string | null;
+          message: string;
+          status?: Database['public']['Enums']['notification_status'];
+          subject?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          category?: string | null;
+          created_at?: string;
+          id?: number;
+          is_global?: boolean | null;
+          link?: string | null;
+          message?: string;
+          status?: Database['public']['Enums']['notification_status'];
+          subject?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: 'chat';
+            referencedRelation: 'profile';
             referencedColumns: ['id'];
           },
         ];
@@ -729,6 +804,7 @@ export type Database = {
           fix: string | null;
           france_detail: string[] | null;
           generated_id: string;
+          get_welcome_call: boolean | null;
           has_seen_available_missions: boolean | null;
           has_seen_blog: boolean | null;
           has_seen_community: boolean | null;
@@ -740,6 +816,7 @@ export type Database = {
           how_did_you_hear_about_us: string | null;
           how_did_you_hear_about_us_other: string | null;
           id: string;
+          is_authorized_referent: boolean;
           is_banned_from_community: boolean;
           lastname: string | null;
           linkedin: string | null;
@@ -789,6 +866,7 @@ export type Database = {
           fix?: string | null;
           france_detail?: string[] | null;
           generated_id: string;
+          get_welcome_call?: boolean | null;
           has_seen_available_missions?: boolean | null;
           has_seen_blog?: boolean | null;
           has_seen_community?: boolean | null;
@@ -800,6 +878,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id: string;
+          is_authorized_referent?: boolean;
           is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
@@ -849,6 +928,7 @@ export type Database = {
           fix?: string | null;
           france_detail?: string[] | null;
           generated_id?: string;
+          get_welcome_call?: boolean | null;
           has_seen_available_missions?: boolean | null;
           has_seen_blog?: boolean | null;
           has_seen_community?: boolean | null;
@@ -860,6 +940,7 @@ export type Database = {
           how_did_you_hear_about_us?: string | null;
           how_did_you_hear_about_us_other?: string | null;
           id?: string;
+          is_authorized_referent?: boolean;
           is_banned_from_community?: boolean;
           lastname?: string | null;
           linkedin?: string | null;
@@ -898,13 +979,6 @@ export type Database = {
             columns: ['collaborator_replacement_id'];
             isOneToOne: false;
             referencedRelation: 'profile';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'profile_id_fkey';
-            columns: ['id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
             referencedColumns: ['id'];
           },
           {
@@ -1408,7 +1482,7 @@ export type Database = {
           assigned_to: string;
           completed_at: string | null;
           created_at: string;
-          created_by: string;
+          created_by: string | null;
           details: string | null;
           id: number;
           last_updated_at: string | null;
@@ -1423,7 +1497,7 @@ export type Database = {
           assigned_to: string;
           completed_at?: string | null;
           created_at?: string;
-          created_by: string;
+          created_by?: string | null;
           details?: string | null;
           id?: number;
           last_updated_at?: string | null;
@@ -1438,7 +1512,7 @@ export type Database = {
           assigned_to?: string;
           completed_at?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           details?: string | null;
           id?: number;
           last_updated_at?: string | null;
@@ -1561,7 +1635,22 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      unique_posts: {
+        Row: {
+          post: string | null;
+        };
+        Relationships: [];
+      };
+      unique_posts_with_referents: {
+        Row: {
+          post: string | null;
+          post_count: number | null;
+          referents:
+            | Database['public']['CompositeTypes']['referent_type'][]
+            | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       calculate_matching_score: {
@@ -1570,6 +1659,22 @@ export type Database = {
           p_xpert_id: string;
         };
         Returns: number;
+      };
+      create_notification: {
+        Args: {
+          user_id: string;
+          link: string;
+          message: string;
+          subject: string;
+          status?: Database['public']['Enums']['notification_status'];
+          is_global?: boolean;
+          category?: string;
+        };
+        Returns: undefined;
+      };
+      do_nothing: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
       };
       generate_mission_unique_id: {
         Args: Record<PropertyKey, never>;
@@ -1664,6 +1769,7 @@ export type Database = {
         | 'in_process'
         | 'validated'
         | 'refused';
+      notification_status: 'urgent' | 'info' | 'standard';
       profile_roles:
         | 'xpert'
         | 'company'
@@ -1706,6 +1812,11 @@ export type Database = {
         name: string | null;
         type: string | null;
         url: string | null;
+      };
+      referent_type: {
+        id: string | null;
+        firstname: string | null;
+        lastname: string | null;
       };
     };
   };
@@ -1791,4 +1902,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema['CompositeTypes']
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database;
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
+    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;

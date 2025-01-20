@@ -9,11 +9,23 @@ import { useAdminCollaborators } from '@/store/adminCollaborators';
 import { useXpertStore } from '@/store/xpert';
 import { useFournisseurStore } from '@/store/fournisseur';
 import { toast } from 'sonner';
+import type { DBReferentType } from '@/types/typesDb';
 
 export default function GestionCollaborateursPage() {
   const { fetchCollaborators } = useAdminCollaborators();
-  const { updateXpertReferent } = useXpertStore();
-  const { updateFournisseurReferent } = useFournisseurStore();
+  const {
+    updateXpertReferent,
+    setHasReferentReassign,
+    updateXpertGroupReferent,
+  } = useXpertStore();
+  const {
+    updateFournisseurReferent,
+    setHasReferentReassign: setHasReferentReassignFournisseur,
+  } = useFournisseurStore();
+
+  const [xpertGroupPendingChanges, setXpertGroupPendingChanges] = useState<
+    { post: string; affected_referent: DBReferentType | null }[]
+  >([]);
 
   const [xpertPendingChanges, setXpertPendingChanges] = useState<
     { id: string; affected_referent_id: string | null }[]
@@ -28,6 +40,11 @@ export default function GestionCollaborateursPage() {
 
   const handleSaveAll = async () => {
     try {
+      const xpertGroupResults = await Promise.all(
+        xpertGroupPendingChanges.map((change) =>
+          updateXpertGroupReferent(change.post, change.affected_referent)
+        )
+      );
       const xpertResults = await Promise.all(
         xpertPendingChanges.map((change) =>
           updateXpertReferent(
@@ -38,6 +55,8 @@ export default function GestionCollaborateursPage() {
           )
         )
       );
+
+      setHasReferentReassign(false);
 
       const fournisseurResults = await Promise.all(
         fournisseurPendingChanges.map((change) =>
@@ -50,9 +69,13 @@ export default function GestionCollaborateursPage() {
         )
       );
 
-      const errors = [...xpertResults, ...fournisseurResults].filter(
-        (result) => result
-      );
+      setHasReferentReassignFournisseur(false);
+
+      const errors = [
+        ...xpertResults,
+        ...fournisseurResults,
+        ...xpertGroupResults,
+      ].filter((result) => result);
 
       if (errors.length > 0) {
         toast.error(
@@ -75,6 +98,8 @@ export default function GestionCollaborateursPage() {
   const hasPendingChanges =
     xpertPendingChanges.length > 0 || fournisseurPendingChanges.length > 0;
 
+  const hasGroupPendingChanges = xpertGroupPendingChanges.length > 0;
+
   return (
     <ProtectedRoleRoutes
       notAllowedRoles={['project_manager', 'intern', 'hr', 'adv']}
@@ -85,6 +110,7 @@ export default function GestionCollaborateursPage() {
             <XpertGestionCollaborateursTable
               pendingChanges={xpertPendingChanges}
               setPendingChanges={setXpertPendingChanges}
+              setGroupPendingChanges={setXpertGroupPendingChanges}
             />
           </div>
         </div>
@@ -97,7 +123,7 @@ export default function GestionCollaborateursPage() {
           </div>
         </div>
 
-        {hasPendingChanges && (
+        {(hasPendingChanges || hasGroupPendingChanges) && (
           <div className="flex justify-end">
             <Button
               onClick={handleSaveAll}

@@ -1,3 +1,5 @@
+import type { DBMission } from './typesDb';
+
 export type FileType =
   // cdi
   | 'recap_mission_cdi'
@@ -59,3 +61,7 @@ export type PaymentType =
   | 'facturation_salary_payment'
   | 'facturation_fournisseur_payment'
   | 'facturation_invoice_paid';
+
+export type BaseSectionProps = {
+  onUpdate: (field: keyof DBMission, value: any) => void;
+};

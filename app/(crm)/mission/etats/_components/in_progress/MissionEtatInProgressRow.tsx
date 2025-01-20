@@ -164,7 +164,7 @@ export default function MissionEtatInProgressRow({
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-1">{mission.referent_name}</Box>
+      <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box
         className={cn('col-span-1 text-white', {

@@ -220,17 +220,17 @@ export const menuCrm = [
     ),
     url: '/statistiques',
   },
-  {
-    id: 10,
-    title: 'Paramètres',
-    icon: (
-      <Cog
-        width={32}
-        height={32}
-        fill="dark"
-        className="fill-white transition group-hover:fill-accent"
-      />
-    ),
-    url: '/parametres',
-  },
+  // {
+  //   id: 10,
+  //   title: 'Paramètres',
+  //   icon: (
+  //     <Cog
+  //       width={32}
+  //       height={32}
+  //       fill="dark"
+  //       className="fill-white transition group-hover:fill-accent"
+  //     />
+  //   ),
+  //   url: '/parametres',
+  // },
 ];

@@ -39,7 +39,10 @@ export const emptyEducation: DBProfileEducation = {
 export const emptyMission: DBMission = {
   image_url: null,
   deleted_at: null,
+  affected_referent_id: null,
   reason_deletion: null,
+  referent: null,
+  detail_deletion: null,
   address: null,
   sector_renewable_energy_other: null,
   advantages_company: null,

@@ -55,14 +55,17 @@ export type DBXpert = DBProfile & {
 };
 
 // NOTIFICATION
-export type DBNotification = Pick<
-  Database['public']['Tables']['notification']['Row'],
-  'id'
-> & {
-  chat: Database['public']['Tables']['chat']['Row'] & {
-    message: Database['public']['Tables']['message']['Row'][];
-  };
-};
+// export type DBNotification = Pick<
+//   Database['public']['Tables']['notification']['Row'],
+//   'id'
+// > & {
+//   chat: Database['public']['Tables']['chat']['Row'] & {
+//     message: Database['public']['Tables']['message']['Row'][];
+//   };
+// };
+
+export type DBNotification =
+  Database['public']['Tables']['notification']['Row'];
 
 // CHAT
 export type DBChat = Database['public']['Tables']['chat']['Row'] & {
@@ -116,17 +119,31 @@ export type DBArticle = Database['public']['Tables']['article']['Row'];
 // SETTINGS
 export type DBUserAlerts = Database['public']['Tables']['user_alerts']['Row'];
 
+export type DBMissionCheckpoint =
+  Database['public']['Tables']['mission_checkpoints']['Row'];
+
+export type DBMissionCheckpoints =
+  Database['public']['Tables']['mission_checkpoints']['Row'][];
+
 // MISSIONS
 export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   company_name?: string | null;
   supplier?: DBProfile | null;
+  referent?: Pick<
+    DBProfile,
+    'id' | 'mobile' | 'fix' | 'firstname' | 'lastname' | 'email'
+  > | null;
   xpert?: DBProfile | null;
   generated_id?: string | null;
   mission_application?: Database['public']['Tables']['mission_application']['Row'][];
+  checkpoints?: DBMissionCheckpoints;
 };
 
 // CUSTOM TYPES
 export type ChatType = Database['public']['Enums']['chat_type'];
+
+export type ReasonMissionDeletion =
+  Database['public']['Enums']['reason_mission_deletion'];
 
 export type MsgFiles = Database['public']['CompositeTypes']['msg_files'];
 
@@ -173,9 +190,6 @@ export type DBUserChat = Pick<
 
 export type ColumnStatus = Database['public']['Enums']['selection_column_type'];
 
-export type ReasonMissionDeletion =
-  Database['public']['Enums']['reason_mission_deletion'];
-
 export type DBMissionXpertsSelection =
   Database['public']['Tables']['selection_matching']['Row'] & {
     xpert: Pick<DBProfile, 'firstname' | 'lastname' | 'generated_id'>;
@@ -196,6 +210,16 @@ export type DBXpertOptimized = Pick<
 > & {
   mission: Pick<DBMission, 'xpert_associated_id'>[];
   profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+  profile_experience: Pick<DBProfileExperience, 'post' | 'post_other'> | null;
+};
+
+export type DBReferentType =
+  Database['public']['CompositeTypes']['referent_type'];
+
+export type DBXpertLastPost = {
+  post: string | null;
+  referents: DBReferentType[] | null;
+  post_count: number | null;
 };
 
 export type DBCollaboratorRole = Database['public']['Enums']['profile_roles'];

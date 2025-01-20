@@ -5,11 +5,6 @@ import React from 'react';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import MenuBurger from '@components/MenuBurger';
 import NotificationBell from '@components/NotificationBell';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import ActualPageTitle from './actual-page-title';
 
 export default async function Layout({
@@ -52,7 +47,7 @@ export default async function Layout({
           <ActualPageTitle className="flex items-center justify-center" />
           <div className="flex items-center justify-end gap-x-spaceSmall sm:gap-x-spaceContainer lg:items-end">
             <div>
-              <NotificationBell />
+              <NotificationBell user={user} />
             </div>
             <Image
               src={avatar_url ? avatar_url : '/static/avatar.png'}

@@ -15,6 +15,7 @@ import {
   getMissionSelectionXperts,
 } from '../../mission-etat-open.action';
 import { Skeleton } from '@/components/ui/skeleton';
+import { jobTitleSelect } from '@/data/mocked_select';
 
 export default function MissionEtatOpenRow({
   mission,
@@ -22,7 +23,6 @@ export default function MissionEtatOpenRow({
   mission: DBMission;
 }) {
   const router = useRouter();
-  const { jobTitles } = useSelect();
 
   const [matchingCount, setMatchingCount] = useState<number>(0);
   const [isLoadingMatching, setIsLoadingMatching] = useState<boolean>(false);
@@ -149,15 +149,18 @@ export default function MissionEtatOpenRow({
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-2">{mission.referent_name ?? empty}</Box>
+      <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
         {timeBeforeDeadlineApplication}
       </Box>
       <Box className="col-span-2">
-        {getLabel({ value: mission.job_title ?? empty, select: jobTitles }) ??
-          empty}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
+      <Box className="col-span-1">{mission.city ?? empty}</Box>
       <Box className="col-span-1">
         {isLoadingMatching ? <Skeleton className="size-full" /> : matchingCount}
       </Box>
