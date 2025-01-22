@@ -273,3 +273,16 @@ export type DBMissionNote = {
     lastname: string | null;
   } | null;
 };
+
+export type DBChatNote = {
+  id: number;
+  content: string;
+  created_at: string;
+  created_by: string;
+  chat_id: number;
+  updated_at: string | null;
+  author?: {
+    firstname: string | null;
+    lastname: string | null;
+  } | null;
+};

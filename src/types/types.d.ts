@@ -254,3 +254,15 @@ export type FilterTasks = {
 export type AdminOpinionValue = 'positive' | 'neutral' | 'negative' | '';
 export type TaskHistoryAction =
   Database['public']['Enums']['task_history_action'];
+
+export type CheckpointField = keyof Pick<
+  DBMissionCheckpoint,
+  | 'point_j_moins_10_f'
+  | 'point_j_moins_10_x'
+  | 'point_j_plus_10_f'
+  | 'point_j_plus_10_x'
+  | 'point_trimestre_x'
+  | 'point_j_plus_10_referent'
+  | 'point_rh_fin_j_plus_10_f'
+  | 'point_fin_j_moins_30'
+>;

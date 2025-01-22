@@ -42,10 +42,8 @@ export const getUserChats = async (type: ChatType) => {
     .from('chat')
     .select('*, messages:message(*), mission(mission_number)')
     .order('updated_at', { ascending: false })
-
     .eq('type', type)
     .order('created_at', { referencedTable: 'message', ascending: false })
-
     .limit(1, { referencedTable: 'message' });
 
   const chatsWithSingleMission = chats?.map((chat) => ({

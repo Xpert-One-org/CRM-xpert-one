@@ -71,6 +71,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           id: number;
+          is_done: boolean;
           mission_id: number | null;
           receiver_id: string | null;
           title: string;
@@ -83,6 +84,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           id?: number;
+          is_done?: boolean;
           mission_id?: number | null;
           receiver_id?: string | null;
           title: string;
@@ -95,6 +97,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           id?: number;
+          is_done?: boolean;
           mission_id?: number | null;
           receiver_id?: string | null;
           title?: string;
@@ -120,6 +123,48 @@ export type Database = {
           {
             foreignKeyName: 'chat_receiver_id_fkey';
             columns: ['receiver_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      chat_notes: {
+        Row: {
+          chat_id: number;
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          updated_at: string | null;
+        };
+        Insert: {
+          chat_id: number;
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          updated_at?: string | null;
+        };
+        Update: {
+          chat_id?: number;
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'chat_notes_chat_id_fkey';
+            columns: ['chat_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_notes_created_by_fkey';
+            columns: ['created_by'];
             isOneToOne: false;
             referencedRelation: 'profile';
             referencedColumns: ['id'];
@@ -679,6 +724,7 @@ export type Database = {
           point_j_plus_10_referent: boolean;
           point_j_plus_10_x: boolean;
           point_rh_fin_j_plus_10_f: boolean;
+          point_trimestre_x: boolean | null;
           updated_at: string;
         };
         Insert: {
@@ -692,6 +738,7 @@ export type Database = {
           point_j_plus_10_referent?: boolean;
           point_j_plus_10_x?: boolean;
           point_rh_fin_j_plus_10_f?: boolean;
+          point_trimestre_x?: boolean | null;
           updated_at?: string;
         };
         Update: {
@@ -705,6 +752,7 @@ export type Database = {
           point_j_plus_10_referent?: boolean;
           point_j_plus_10_x?: boolean;
           point_rh_fin_j_plus_10_f?: boolean;
+          point_trimestre_x?: boolean | null;
           updated_at?: string;
         };
         Relationships: [

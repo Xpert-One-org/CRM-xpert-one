@@ -47,7 +47,7 @@ export default async function Layout({
           <ActualPageTitle className="flex items-center justify-center" />
           <div className="flex items-center justify-end gap-x-spaceSmall sm:gap-x-spaceContainer lg:items-end">
             <div>
-              <NotificationBell />
+              <NotificationBell user={user} />
             </div>
             <Image
               src={avatar_url ? avatar_url : '/static/avatar.png'}

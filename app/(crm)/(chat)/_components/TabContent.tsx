@@ -85,7 +85,7 @@ const TabChat = ({
   isReadByMe: boolean;
   setChatSelected: (chat: DBChat | null) => void;
 }) => {
-  const { title } = chat ?? {};
+  const { title, is_done } = chat ?? {};
   const { created_at: sent_at, read_by } = chat?.messages[0] ?? {};
 
   const handleChangeTab = () => {
@@ -118,10 +118,17 @@ const TabChat = ({
         />
       </div>
       <div className="flex flex-col">
-        <p className="text-xs font-[400] text-light-gray-third">
-          Reçu{' '}
-          {getTimeFromNow(sent_at ?? new Date().toISOString()).toLowerCase()}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-[400] text-light-gray-third">
+            Reçu{' '}
+            {getTimeFromNow(sent_at ?? new Date().toISOString()).toLowerCase()}
+          </p>
+          {is_done && (
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+              Traité
+            </span>
+          )}
+        </div>
         <p className="max-w-[200px] truncate font-[700]">{title}</p>
       </div>
     </button>

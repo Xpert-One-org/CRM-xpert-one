@@ -7,20 +7,20 @@ export const useIsAdmin = () => {
 
 export const useIsProjectManager = () => {
   const { user } = useAuth();
-  return user?.role === 'project_manager' || user?.role === 'admin';
+  return user?.role === 'project_manager';
 };
 
 export const useIsIntern = () => {
   const { user } = useAuth();
-  return user?.role === 'intern' || user?.role === 'admin';
+  return user?.role === 'intern';
 };
 
 export const useIsHr = () => {
   const { user } = useAuth();
-  return user?.role === 'hr' || user?.role === 'admin';
+  return user?.role === 'hr';
 };
 
 export const useIsAdv = () => {
   const { user } = useAuth();
-  return user?.role === 'adv' || user?.role === 'admin';
+  return user?.role === 'adv';
 };
