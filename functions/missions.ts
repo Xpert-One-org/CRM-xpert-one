@@ -21,8 +21,13 @@ export const getAllMissions = async (
 ): Promise<{ missions: DBMission[]; total: number }> => {
   const supabase = await createSupabaseAppServerClient();
 
+  const { user } = (await supabase.auth.getUser()).data;
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
   const offset = (page - 1) * limit;
-  console.log('Fetching with offset:', offset, 'limit:', limit);
 
   let query = supabase.from('mission').select('*', {
     count: 'exact',
@@ -51,6 +56,16 @@ export const getAllMissions = async (
       checkpoints:mission_checkpoints(*)
     `
   );
+
+  const { data: userData } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('id', user?.id ?? '')
+    .single();
+
+  if (userData && userData.role !== 'admin') {
+    mainQuery = mainQuery.eq('affected_referent_id', userData.id);
+  }
 
   // Appliquer le filtre d'état si spécifié
   if (options?.states) {

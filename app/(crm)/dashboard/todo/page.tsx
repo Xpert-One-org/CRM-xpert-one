@@ -29,6 +29,7 @@ import DeleteTaskDialog from './DeleteTaskDialog';
 import DialogTaskHistory from './HistoryTaskDialog';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
 import { useIsAdmin } from '@/hooks/useRoles';
+import Link from 'next/link';
 
 type TaskStatus = 'urgent' | 'pending' | 'done';
 
@@ -135,6 +136,7 @@ export default function TaskTable() {
         if (data.status.status === 'done') {
           const { error } = await completeTask(data.status.task_id);
           if (error) {
+            console.log({ error });
             return { error };
           } else {
             return { error: null };
@@ -162,6 +164,7 @@ export default function TaskTable() {
     }
   };
   const handleUpdateAssignedTo = async () => {
+    console.log('HERE');
     if (!newAssignedToNotSaved.length) {
       return { error: null };
     }
@@ -177,10 +180,13 @@ export default function TaskTable() {
       const data = await Promise.all(promise);
 
       if (data.some((d) => d?.error)) {
+        console.log({ data });
+
         return { error: true };
       }
       return { error: null };
     } catch (error) {
+      console.log({ error });
       return { error: true };
     }
   };
@@ -350,9 +356,13 @@ export default function TaskTable() {
                       task={task}
                       adminOptions={adminOptions}
                     />
-                    <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                      {getSubjectReference(task)}
-                    </Box>
+                    <Link
+                      href={`/mission/fiche/${task.mission?.mission_number?.split(' ').join('-').toUpperCase() ?? ''}`}
+                    >
+                      <Box className="flex h-[70px] items-center bg-[#4A8B96] px-4 text-white">
+                        {getSubjectReference(task)}
+                      </Box>
+                    </Link>
                     <Box className="line-clamp-3 flex h-[70px] items-center bg-[#E6E6E6] px-4">
                       {task.details}
                     </Box>

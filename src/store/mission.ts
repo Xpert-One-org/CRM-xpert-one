@@ -128,9 +128,8 @@ export const useMissionStore = create<MissionState>((set, get) => ({
           ascending: true,
           nullsLast: true,
         },
-        states: ['open', 'open_all'],
+        states: ['open', 'open_all', 'in_progress', 'finished'],
       });
-      console.log('Response:', response);
 
       if (page === 1) {
         set({

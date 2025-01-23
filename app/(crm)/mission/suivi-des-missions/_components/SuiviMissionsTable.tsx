@@ -31,16 +31,12 @@ export default function SuiviMissionsTable() {
 
   const missionsOpen = useMemo(
     () =>
-      missions
-        .filter(
-          (mission) => mission.state === 'open' || mission.state === 'open_all'
-        )
-        .sort((a, b) => {
-          if (!a.start_date || !b.start_date) return 0;
-          return (
-            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-          );
-        }),
+      missions.sort((a, b) => {
+        if (!a.start_date || !b.start_date) return 0;
+        return (
+          new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+        );
+      }),
     [missions]
   );
 
@@ -256,6 +252,11 @@ export default function SuiviMissionsTable() {
         />
         <FilterButton
           className="col-span-1"
+          placeholder="Point fin de mission X J-30"
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-1"
           placeholder="Point Référent J+10"
           filter={false}
         />
@@ -264,11 +265,7 @@ export default function SuiviMissionsTable() {
           placeholder="Point RH F J+10"
           filter={false}
         />
-        <FilterButton
-          className="col-span-1"
-          placeholder="Point fin de mission X J-30"
-          filter={false}
-        />
+
         <FilterButton
           className="col-span-1"
           placeholder="Référent mission XPERT ONE"
@@ -319,6 +316,11 @@ export default function SuiviMissionsTable() {
         />
         <FilterButton
           className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
+          placeholder={checkpointCounts.point_fin_j_moins_30.toString()}
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
           placeholder={checkpointCounts.point_j_plus_10_referent.toString()}
           filter={false}
         />
@@ -327,11 +329,7 @@ export default function SuiviMissionsTable() {
           placeholder={checkpointCounts.point_rh_fin_j_plus_10_f.toString()}
           filter={false}
         />
-        <FilterButton
-          className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
-          placeholder={checkpointCounts.point_fin_j_moins_30.toString()}
-          filter={false}
-        />
+
         <FilterButton
           className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
           placeholder="TOUS"
