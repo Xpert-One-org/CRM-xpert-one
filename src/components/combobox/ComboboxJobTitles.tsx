@@ -77,9 +77,10 @@ export default function ComboboxJobTitles({
       <PopoverContent>
         <p className="text-sm">Trier par le type de poste</p>
         <MultiSelectComponent
-          options={jobTitles.map((jobTitle) => ({
+          options={jobTitles.map((jobTitle, index) => ({
             value: jobTitle.value || '',
             label: jobTitle.label || '',
+            key: `${jobTitle.value}-${index}`,
           }))}
           defaultSelectedKeys={selectedValues}
           onValueChange={handleValueChange}

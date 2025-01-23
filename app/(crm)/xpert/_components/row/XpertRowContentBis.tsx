@@ -232,49 +232,91 @@ export default function XpertRowContentBis({
     if (file) setNewFile(file);
   };
 
+  const normalizeFileName = (fileName: string) => {
+    return fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Supprime les accents
+  };
+
   const uploadFile = async () => {
     const supabase = createSupabaseFrontendClient();
     if (!newFile || !newFileType || !xpert) {
+      toast.error('Fichier, type ou profil manquant');
       return;
     }
 
     try {
-      // Upload the file
-      const file = newFile;
-      const fileType = newFileType;
-      const fileName = `${xpert.generated_id}/${fileType}/${fileType}_${new Date().getTime()}_${file.name}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('profile_files')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrl } = supabase.storage
-        .from('profile_files-bucket')
-        .getPublicUrl(uploadData?.fullPath ?? '');
-
-      // Update the appropriate column in the profile table based on file type
-      if (fileType === 'cv') {
-        const { error: updateError } = await supabase
-          .from('profile')
-          .update({ cv_name: file.name })
-          .eq('id', xpert.id);
-
-        if (updateError) throw updateError;
+      if (newFile.size > 50 * 1024 * 1024) {
+        toast.error('Fichier trop volumineux (max 50 Mo)');
+        return;
       }
 
-      // Reset states
+      const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+      if (!allowedTypes.includes(newFile.type)) {
+        toast.error('Type de fichier non supporté');
+        return;
+      }
+
+      const sanitizeFileName = (fileName: string) => {
+        return fileName
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '') // Remove accents
+          .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+          .replace(/_+/g, '_') // Replace multiple underscores with single
+          .toLowerCase(); // Convert to lowercase
+      };
+
+      const fileName = `${xpert.generated_id}/${newFileType}/${newFileType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
+
+      console.log('Debug - Tentative upload:', {
+        bucket: 'profile_files',
+        path: fileName,
+        fileType: newFile.type,
+        fileSize: newFile.size,
+      });
+
+      const { data, error } = await supabase.storage
+        .from('profile_files')
+        .upload(fileName, newFile, {
+          contentType: newFile.type,
+          upsert: false,
+        });
+
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        throw new Error(`Erreur upload: ${error.message}`);
+      }
+
+      if (!data?.path) {
+        throw new Error('Chemin du fichier manquant dans la réponse');
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('profile_files')
+        .getPublicUrl(data.path);
+
+      if (!urlData?.publicUrl) {
+        throw new Error('URL publique manquante');
+      }
+
+      if (newFileType === 'cv') {
+        const { error: updateError } = await supabase
+          .from('profile')
+          .update({ cv_name: newFile.name })
+          .eq('id', xpert.id);
+
+        if (updateError) {
+          throw new Error(`Erreur mise à jour profil: ${updateError.message}`);
+        }
+      }
+
       setNewFile(null);
       setNewFileType(null);
       setReload(true);
-
-      toast.success(
-        'Fichier uploadé avec succès (recharger la page pour voir les changements)'
-      );
+      toast.success('Fichier uploadé avec succès');
     } catch (error) {
-      console.error('Error uploading file:', error);
-      toast.error("Une erreur est survenue lors de l'upload du fichier");
+      console.error('Erreur détaillée:', error);
+      toast.error(
+        error instanceof Error ? error.message : "Erreur d'upload inconnue"
+      );
     }
   };
 
@@ -286,58 +328,120 @@ export default function XpertRowContentBis({
     window.location.reload();
   };
 
+  const renderDocument = (
+    documentType: string,
+    cvInfo: DocumentInfo,
+    urssafInfo: DocumentInfo,
+    kbisInfo: DocumentInfo,
+    responsabiliteCivileInfo: DocumentInfo,
+    ribInfo: DocumentInfo,
+    habilitationInfo: DocumentInfo
+  ) => {
+    if (documentType === 'cv' && cvInfo.publicUrl) {
+      return (
+        <iframe
+          src={cvInfo.publicUrl}
+          className="h-[90vh] w-full py-2"
+          title="cv"
+        />
+      );
+    }
+    if (documentType === 'urssaf' && urssafInfo.publicUrl) {
+      return (
+        <iframe
+          src={urssafInfo.publicUrl}
+          className="h-[90vh] w-full py-2"
+          title="urssaf"
+        />
+      );
+    }
+    if (documentType === 'kbis' && kbisInfo.publicUrl) {
+      return (
+        <iframe
+          src={kbisInfo.publicUrl}
+          className="h-[90vh] w-full py-2"
+          title="kbis"
+        />
+      );
+    }
+    if (
+      documentType === 'civil_responsability' &&
+      responsabiliteCivileInfo.publicUrl
+    ) {
+      return (
+        <iframe
+          title="civil_responsability"
+          src={responsabiliteCivileInfo.publicUrl}
+          className="h-[90vh] w-full py-2"
+        />
+      );
+    }
+    if (documentType === 'rib' && ribInfo.publicUrl) {
+      return (
+        <iframe src={ribInfo.publicUrl} className="h-[90vh] w-full py-2" />
+      );
+    }
+    if (documentType === 'habilitation' && habilitationInfo.publicUrl) {
+      return (
+        <iframe
+          src={habilitationInfo.publicUrl}
+          className="h-[90vh] w-full py-2"
+        />
+      );
+    }
+    return <p>Aucun document uploadé par l'xpert pour le moment</p>;
+  };
+
   if (!xpert) {
     return null;
   }
   return (
     <>
       {(cvInfo.created_at ?? urssafInfo.created_at) && (
-        <>
-          <div className="w-full p-1 font-light xl:max-w-[280px]">
-            <Label htmlFor="document_type" className="mb-1 flex items-center">
-              Type de documents
-            </Label>
-            <Select
-              onValueChange={onValueChange}
-              name="document_type"
-              disabled={false}
-            >
-              <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
-                <SelectValue
-                  className="bg-white"
-                  placeholder={
-                    <div className="flex flex-row items-center gap-2">
-                      <p className="font-medium text-black">
-                        {selectOptions[0]?.label}
-                      </p>
-                      <p className="font-medium text-[#BEBEC0] group-hover:text-black">
-                        {selectOptions[0]?.json_key}
-                      </p>
-                    </div>
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className="group w-full">
-                <SelectGroup>
-                  {selectOptions
-                    .filter((item) => item.value)
-                    .map((item) => (
-                      <SelectItem
-                        key={item.value || ''}
-                        value={item.value || ''}
-                        className="transition duration-150"
-                      >
-                        <div className="flex flex-row items-center gap-2">
-                          <p className="font-medium text-black">{item.label}</p>
-                          <p className="font-medium">{item.json_key}</p>
-                        </div>
-                      </SelectItem>
-                    ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </>
+        <div className="w-full p-1 font-light xl:max-w-[280px]">
+          <Label htmlFor="document_type" className="mb-1 flex items-center">
+            Type de documents
+          </Label>
+          <Select
+            onValueChange={onValueChange}
+            name="document_type"
+            disabled={false}
+          >
+            <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
+              <SelectValue
+                className="bg-white"
+                placeholder={
+                  <div className="flex flex-row items-center gap-2">
+                    <p className="font-medium text-black">
+                      {selectOptions[0]?.label}
+                    </p>
+                    <p className="font-medium text-[#BEBEC0] group-hover:text-black">
+                      {selectOptions[0]?.json_key}
+                    </p>
+                  </div>
+                }
+              />
+            </SelectTrigger>
+            <SelectContent className="group w-full">
+              <SelectGroup>
+                {selectOptions
+                  .filter((item) => item.value)
+                  .map((item) => (
+                    <SelectItem
+                      key={item.value || ''}
+                      value={item.value || ''}
+                      className="transition duration-150"
+                    >
+                      <div className="flex flex-row items-center gap-2">
+                        <p className="font-medium text-black">{item.label}</p>
+                        <p className="font-medium">{item.json_key}</p>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       )}
       <div className="bg flex w-full items-center gap-x-4">
         <FileInput
@@ -371,33 +475,15 @@ export default function XpertRowContentBis({
       {isLoading ? (
         <Loader className="size-full" />
       ) : (
-        <>
-          {documentType === 'cv' && cvInfo.publicUrl ? (
-            <iframe src={cvInfo.publicUrl} className="h-[90vh] w-full py-2" />
-          ) : documentType === 'urssaf' && urssafInfo.publicUrl ? (
-            <iframe
-              src={urssafInfo.publicUrl}
-              className="h-[90vh] w-full py-2"
-            />
-          ) : documentType === 'kbis' && kbisInfo.publicUrl ? (
-            <iframe src={kbisInfo.publicUrl} className="h-[90vh] w-full py-2" />
-          ) : documentType === 'civil_responsability' &&
-            responsabiliteCivileInfo.publicUrl ? (
-            <iframe
-              src={responsabiliteCivileInfo.publicUrl}
-              className="h-[90vh] w-full py-2"
-            />
-          ) : documentType === 'rib' && ribInfo.publicUrl ? (
-            <iframe src={ribInfo.publicUrl} className="h-[90vh] w-full py-2" />
-          ) : documentType === 'habilitation' && habilitationInfo.publicUrl ? (
-            <iframe
-              src={habilitationInfo.publicUrl}
-              className="h-[90vh] w-full py-2"
-            />
-          ) : (
-            <p>Aucun document uploadé par l'xpert pour le moment</p>
-          )}
-        </>
+        renderDocument(
+          documentType,
+          cvInfo,
+          urssafInfo,
+          kbisInfo,
+          responsabiliteCivileInfo,
+          ribInfo,
+          habilitationInfo
+        )
       )}
       <div className="flex w-full flex-col gap-4 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
         <p className="text-lg font-medium text-black">Recherche de mission</p>

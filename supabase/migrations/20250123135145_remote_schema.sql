@@ -518,6 +518,103 @@ $$;
 ALTER FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."check_mission_checkpoints"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Vérification J-10 FOURNISSEUR
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT
+        m.affected_referent_id,
+        'mission'::task_subject_type,
+        'Point à J-10 à effectuer avec le fournisseur ' || p.generated_id || ' pour la mission ' || m.mission_number,
+        m.id,
+        'pending'::task_status,
+        NOW()
+    FROM mission m
+    JOIN mission_checkpoints mc ON mc.mission_id = m.id
+    JOIN profile p ON p.id = m.affected_referent_id
+    WHERE
+        m.start_date - INTERVAL '10 days' <= CURRENT_DATE
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+        AND NOT mc.point_j_moins_10_f
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t
+            WHERE t.mission_id = m.id
+            AND t.details LIKE 'Point à J-10%'
+        );
+
+    -- Vérification J-10 XPERT
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT
+        m.affected_referent_id,
+        'mission'::task_subject_type,
+        'Point à J-10 à effectuer avec l''xpert ' || p.generated_id || ' pour la mission ' || m.mission_number,
+        m.id,
+        'pending'::task_status,
+        NOW()
+    FROM mission m
+    JOIN mission_checkpoints mc ON mc.mission_id = m.id
+    JOIN profile p ON p.id = m.affected_referent_id
+    WHERE
+        m.start_date - INTERVAL '10 days' <= CURRENT_DATE
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+        AND NOT mc.point_j_moins_10_x
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t
+            WHERE t.mission_id = m.id
+            AND t.details LIKE 'Point à J-10%'
+        );
+
+    -- Vérification J+10 XPERT
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT
+        m.affected_referent_id,
+        'mission'::task_subject_type,
+        'Point à J+10 à effectuer avec l''xpert ' || p.generated_id || ' pour la mission ' || m.mission_number,    
+        m.id,
+        'pending'::task_status,
+        NOW()
+    FROM mission m
+    JOIN mission_checkpoints mc ON mc.mission_id = m.id
+    JOIN profile p ON p.id = m.affected_referent_id
+    WHERE
+        m.start_date + INTERVAL '10 days' <= CURRENT_DATE
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+        AND NOT mc.point_j_plus_10_x
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t
+            WHERE t.mission_id = m.id
+            AND t.details LIKE 'Point à J+10%'
+        );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_mission_checkpoints"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."create_mission_checkpoints"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -1259,7 +1356,7 @@ CREATE OR REPLACE FUNCTION "public"."notify_task_done"() RETURNS "trigger"
             NEW.assigned_to, 
             'dashboard/todo'::text,
             'La tâche n°' || NEW.id || ' a été traitée'::text,
-            'Todolist'
+            'Todolist',
             'info'::notification_status 
         );
     END IF;
@@ -1411,6 +1508,7 @@ CREATE TABLE IF NOT EXISTS "public"."chat" (
     "type" "public"."chat_type" DEFAULT 'chat'::"public"."chat_type" NOT NULL,
     "receiver_id" "uuid",
     "updated_at" timestamp without time zone DEFAULT "now"(),
+    "is_done" boolean DEFAULT false NOT NULL,
     CONSTRAINT "chk_xpert_recipient_id" CHECK ((("type" <> 'xpert_to_xpert'::"public"."chat_type") OR ("receiver_id" IS NOT NULL)))
 );
 
@@ -3172,6 +3270,10 @@ CREATE POLICY "Admins can view all matches" ON "public"."selection_matching" FOR
 
 
 
+CREATE POLICY "Allow ALL for ALL" ON "public"."tasks" USING (true) WITH CHECK (true);
+
+
+
 CREATE POLICY "Allow read for all" ON "public"."article" FOR SELECT USING (true);
 
 
@@ -3672,6 +3774,9 @@ ALTER TABLE "public"."subjects" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."supplier_notes" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."tasks" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."xpert_notes" ENABLE ROW LEVEL SECURITY;
 
 
@@ -3684,6 +3789,12 @@ CREATE PUBLICATION "realtime_messages_publication_v2_34_1" WITH (publish = 'inse
 
 
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
+
+
+CREATE PUBLICATION "supabase_realtime_messages_publication_v2_34_2" WITH (publish = 'insert, update, delete, truncate');
+
+
+-- ALTER PUBLICATION "supabase_realtime_messages_publication_v2_34_2" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";
@@ -3957,6 +4068,12 @@ GRANT ALL ON FUNCTION "public"."assign_referent_mission"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "service_role";
 
 
 

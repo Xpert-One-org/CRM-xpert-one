@@ -210,6 +210,7 @@ export default function MultiCreatableSelect({
                           : options,
                       })}
                       <button
+                        title="Supprimer la sélection"
                         className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         onMouseDown={(e) => {
                           e.preventDefault();
@@ -232,6 +233,7 @@ export default function MultiCreatableSelect({
           </PopoverTrigger>
           {state.values.length > 0 && (
             <button
+              title="Vider la sélection"
               className="absolute right-8 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-gray-100"
               onClick={(e) => {
                 e.stopPropagation();

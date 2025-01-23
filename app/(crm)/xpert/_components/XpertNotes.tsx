@@ -53,7 +53,7 @@ export function XpertNotes({ xpertId }: XpertNotesProps) {
   };
 
   useEffect(() => {
-    fetchNotes();
+    !notes && fetchNotes();
   }, [xpertId]);
 
   // Ajouter une note

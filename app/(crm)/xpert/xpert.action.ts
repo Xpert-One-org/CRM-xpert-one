@@ -391,6 +391,7 @@ export const createUser = async ({
       postal_code,
       street_number,
       role: role,
+      mobile, // Add mobile number to profile update
     })
     .eq('email', email);
 

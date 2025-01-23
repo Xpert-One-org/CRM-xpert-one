@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 export type Option = {
   value: string;
   label: string;
+  key?: string;
   disable?: boolean;
   /** fixed option that can't be removed. */
   fixed?: boolean;
@@ -421,9 +422,9 @@ const MultipleSelector = React.forwardRef<
             {selected.map((option, index) => {
               return (
                 <Badge
-                  key={option?.value}
+                  key={option?.key || option.value}
                   className={cn(
-                    'data-[disabled]:bg-muted-foreground data-[disabled]:hover:bg-muted-foreground font-light data-[disabled]:text-muted',
+                    'data-[disabled]:bg-muted-foreground data-[disabled]:hover:bg-muted-foreground data-[disabled]:text-muted',
                     'data-[fixed]:bg-muted-foreground data-[fixed]:hover:bg-muted-foreground data-[fixed]:text-muted',
                     badgeClassName
                   )}
@@ -433,22 +434,15 @@ const MultipleSelector = React.forwardRef<
                   {option?.label}
                   {showIndividualX && (
                     <button
+                      aria-label={`Remove ${option.label}`}
                       className={cn(
-                        'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                        'ml-1 rounded-sm opacity-50 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+
                         (disabled || option?.fixed) && 'hidden'
                       )}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleUnselect(option);
-                        }
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
                       onClick={() => handleUnselect(option)}
                     >
-                      <X className="text-muted-foreground size-3 hover:text-foreground" />
+                      <X className="size-4" />
                     </button>
                   )}
                 </Badge>
@@ -498,29 +492,27 @@ const MultipleSelector = React.forwardRef<
               )}
             />
 
-            <button
-              type="button"
-              onClick={() => {
-                setSelected(selected.filter((s) => s?.fixed));
-                onChange?.(selected.filter((s) => s?.fixed));
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className={cn(
-                'absolute right-0 ml-1 h-6 w-6 rounded-full p-0 outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+            {!hideClearAllButton && selected.length > 0 && (
+              <button
+                aria-label="Clear all selected items"
+                className={cn(
+                  'absolute right-0 ml-1 h-6 w-6 rounded-full p-0 outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
 
-                (hideClearAllButton ||
-                  disabled ||
-                  selected.length < 1 ||
-                  selected.filter((s) => s?.fixed).length ===
-                    selected.length) &&
-                  'hidden'
-              )}
-            >
-              <X className="size-3 hover:text-foreground" />
-            </button>
+                  (hideClearAllButton ||
+                    disabled ||
+                    selected.length < 1 ||
+                    selected.filter((s) => s?.fixed).length ===
+                      selected.length) &&
+                    'hidden'
+                )}
+                onClick={() => {
+                  setSelected(selected.filter((s) => s?.fixed));
+                  onChange?.(selected.filter((s) => s?.fixed));
+                }}
+              >
+                <X className="size-3 hover:text-foreground" />
+              </button>
+            )}
           </div>
         </div>
         <div className="relative">
@@ -553,40 +545,36 @@ const MultipleSelector = React.forwardRef<
                     <CommandGroup
                       key={key}
                       heading={key}
-                      className="h-full overflow-auto bg-white"
+                      className="capitalize"
                     >
-                      <>
-                        {dropdowns.map((option, index) => {
-                          return (
-                            <CommandItem
-                              key={`${option?.value}-${option?.label}-${index}`}
-                              value={option?.label}
-                              disabled={option?.disable}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                              onSelect={() => {
-                                if (selected.length >= maxSelected) {
-                                  onMaxSelected?.(selected.length);
-                                  return;
-                                }
-                                setInputValue('');
-                                const newOptions = [...selected, option];
-                                setSelected(newOptions);
-                                onChange?.(newOptions);
-                              }}
-                              className={cn(
-                                'cursor-pointer',
-                                option?.disable &&
-                                  'text-muted-foreground cursor-default'
-                              )}
-                            >
-                              {option?.label}
-                            </CommandItem>
-                          );
-                        })}
-                      </>
+                      {dropdowns.map((option, index) => (
+                        <CommandItem
+                          key={option.key || option.value}
+                          value={option?.label}
+                          disabled={option?.disable}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onSelect={() => {
+                            if (selected.length >= maxSelected) {
+                              onMaxSelected?.(selected.length);
+                              return;
+                            }
+                            setInputValue('');
+                            const newOptions = [...selected, option];
+                            setSelected(newOptions);
+                            onChange?.(newOptions);
+                          }}
+                          className={cn(
+                            'cursor-pointer',
+                            option?.disable &&
+                              'text-muted-foreground cursor-default'
+                          )}
+                        >
+                          {option?.label}
+                        </CommandItem>
+                      ))}
                     </CommandGroup>
                   ))}
                 </>

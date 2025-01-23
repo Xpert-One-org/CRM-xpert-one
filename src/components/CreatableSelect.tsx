@@ -27,6 +27,7 @@ type CreatableSelectProps = {
   defaultValue?: Option;
   className?: string;
   classNameLabel?: string;
+  classNameInput?: string;
   isLoading?: boolean;
   mutate?: () => void;
   label?: string;
@@ -82,6 +83,7 @@ export default function CreatableSelect({
   defaultValue,
   className,
   classNameLabel,
+  classNameInput,
   isLoading = false,
   mutate,
   name,
@@ -147,7 +149,10 @@ export default function CreatableSelect({
             variant="outline"
             role="combobox"
             aria-expanded={state.open}
-            className="w-full justify-between bg-white font-light hover:border-primary"
+            className={cn(
+              classNameInput,
+              'w-full justify-between bg-white font-light hover:border-primary'
+            )}
             disabled={isLoading}
           >
             {isLoading ? (
