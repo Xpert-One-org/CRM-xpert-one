@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import useNotifications from '@/hooks/useNotifications';
-import type { DBNotification } from '@/types/typesDb';
+import type { DBMissionState, DBNotification } from '@/types/typesDb';
 import Bell from './svg/Bell';
 import useUser from '@/store/useUser';
 import { Button } from './ui/button';
@@ -120,6 +120,23 @@ function NotificationBell({ user }: { user: User }) {
     setDeletingIds((prev) => prev.filter((id) => id !== notificationId));
   };
 
+  const convertMissionState = (text: string) => {
+    text = text.replace(/\bto_validate\b/, 'à valider');
+    text = text.replace(
+      /\bopen_all_to_validate\b/,
+      'OUVERTE À TOUS ET À VALIDER'
+    );
+    text = text.replace(/\bopen\b/, 'OUVERTE');
+    text = text.replace(/\bopen_all\b/, 'OUVERTE À TOUS');
+    text = text.replace(/\bin_progress\b/, 'EN COURS');
+    text = text.replace(/\bdeleted\b/, 'SUPPRIMÉE');
+    text = text.replace(/\bfinished\b/, 'TERMINÉE');
+    text = text.replace(/\bin_process\b/, 'EN COURS DE VALIDATION');
+    text = text.replace(/\bvalidated\b/, 'VALIDÉE');
+    text = text.replace(/\brefused\b/, 'REFUSÉE');
+
+    return text;
+  };
   const hasMore =
     notifications && totalNotifications
       ? notifications.length < totalNotifications
@@ -175,7 +192,7 @@ function NotificationBell({ user }: { user: User }) {
                                 {notification.subject}
                               </h4>
                               <p className="text-xs text-gray-500">
-                                {notification.message}
+                                {convertMissionState(notification.message)}
                               </p>
                             </div>
                           </div>

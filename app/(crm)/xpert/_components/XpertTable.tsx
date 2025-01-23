@@ -447,7 +447,9 @@ export default function XpertTable() {
                   />
                 )}
                 {/* Notes section */}
-                <XpertNotes xpertId={xpert.id} />
+                {xpertIdOpened === xpert.generated_id && (
+                  <XpertNotes xpertId={xpert.id} />
+                )}
                 {/* task and redirection button here */}
                 <div className="flex w-full justify-between gap-2 py-2">
                   <RedirectButtons user={xpert} />

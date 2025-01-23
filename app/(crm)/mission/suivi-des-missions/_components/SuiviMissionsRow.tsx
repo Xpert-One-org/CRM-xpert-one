@@ -44,7 +44,6 @@ export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
     field: CheckpointField,
     newValue: boolean
   ) => {
-    console.log('field', field);
     updateMissionCheckpoints(mission.id, {
       [field]: newValue,
     });

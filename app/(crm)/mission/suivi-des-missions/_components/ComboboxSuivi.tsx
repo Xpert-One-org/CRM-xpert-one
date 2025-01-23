@@ -24,12 +24,10 @@ export default function ComboboxSuivi({
 
   const fetchMissions = async () => {
     const { data } = await searchMission('');
-    console.log('Fetched missions:', data);
     setMissions(data || []);
   };
 
   const handleSearch = (value: string) => {
-    console.log('handleSearch value:', value);
     // Always update the search term and trigger the filter
     setSearchTerm(value);
     onMissionSelect?.(value);

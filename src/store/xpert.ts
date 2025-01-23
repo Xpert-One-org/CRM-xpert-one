@@ -11,7 +11,6 @@ import type {
 import { create } from 'zustand';
 import {
   deleteXpert,
-  getAllXperts,
   getSpecificXpert,
   getXpertIdByJobName,
   getXpertLastJobs,
@@ -43,7 +42,7 @@ type XpertState = {
   setOpenedXpertNotSaved: (xpert: DBXpert | null) => void;
   getXpertSelected: (xpertId: string) => Promise<{ xpert: DBXpert | null }>;
   resetXperts: () => void;
-  fetchXperts: () => void;
+  // fetchXperts: () => void;
   fetchXpertOptimized: () => void;
   fetchXpertOptimizedFiltered: (
     replacing?: boolean
@@ -215,21 +214,21 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       totalXpertOptimized: 1,
     });
   },
-  fetchXperts: async () => {
-    set({ loading: true });
-    const offset = get().xperts?.length || 0;
+  // fetchXperts: async () => {
+  //   set({ loading: true });
+  //   const offset = get().xperts?.length || 0;
 
-    const { data, count } = await getAllXperts({ offset: offset - 1 });
-    const xperts = get().xperts || [];
-    const filterXpert = data.filter(
-      (xpert) => !xperts.find((x) => x.generated_id === xpert.generated_id)
-    );
-    set({
-      xperts: [...xperts, ...filterXpert],
-      totalXperts: count,
-      loading: false,
-    });
-  },
+  //   const { data, count } = await getAllXperts({ offset: offset - 1 });
+  //   const xperts = get().xperts || [];
+  //   const filterXpert = data.filter(
+  //     (xpert) => !xperts.find((x) => x.generated_id === xpert.generated_id)
+  //   );
+  //   set({
+  //     xperts: [...xperts, ...filterXpert],
+  //     totalXperts: count,
+  //     loading: false,
+  //   });
+  // },
 
   fetchXpertOptimizedFiltered: async (replacing) => {
     set({ loading: true });
