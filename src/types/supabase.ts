@@ -71,6 +71,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           id: number;
+          is_done: boolean;
           mission_id: number | null;
           receiver_id: string | null;
           title: string;
@@ -83,6 +84,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           id?: number;
+          is_done?: boolean;
           mission_id?: number | null;
           receiver_id?: string | null;
           title: string;
@@ -95,6 +97,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           id?: number;
+          is_done?: boolean;
           mission_id?: number | null;
           receiver_id?: string | null;
           title?: string;
@@ -120,6 +123,48 @@ export type Database = {
           {
             foreignKeyName: 'chat_receiver_id_fkey';
             columns: ['receiver_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      chat_notes: {
+        Row: {
+          chat_id: number;
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          updated_at: string | null;
+        };
+        Insert: {
+          chat_id: number;
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          updated_at?: string | null;
+        };
+        Update: {
+          chat_id?: number;
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'chat_notes_chat_id_fkey';
+            columns: ['chat_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_notes_created_by_fkey';
+            columns: ['created_by'];
             isOneToOne: false;
             referencedRelation: 'profile';
             referencedColumns: ['id'];
@@ -679,7 +724,7 @@ export type Database = {
           point_j_plus_10_referent: boolean;
           point_j_plus_10_x: boolean;
           point_rh_fin_j_plus_10_f: boolean;
-          point_trimestre_x: boolean;
+          point_trimestre_x: boolean | null;
           updated_at: string;
         };
         Insert: {
@@ -693,7 +738,7 @@ export type Database = {
           point_j_plus_10_referent?: boolean;
           point_j_plus_10_x?: boolean;
           point_rh_fin_j_plus_10_f?: boolean;
-          point_trimestre_x?: boolean;
+          point_trimestre_x?: boolean | null;
           updated_at?: string;
         };
         Update: {
@@ -707,7 +752,7 @@ export type Database = {
           point_j_plus_10_referent?: boolean;
           point_j_plus_10_x?: boolean;
           point_rh_fin_j_plus_10_f?: boolean;
-          point_trimestre_x?: boolean;
+          point_trimestre_x?: boolean | null;
           updated_at?: string;
         };
         Relationships: [
@@ -715,6 +760,48 @@ export type Database = {
             foreignKeyName: 'mission_checkpoints_mission_id_fkey';
             columns: ['mission_id'];
             isOneToOne: true;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      mission_notes: {
+        Row: {
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          mission_id: number;
+          updated_at: string | null;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          mission_id: number;
+          updated_at?: string | null;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          mission_id?: number;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mission_notes_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'mission_notes_mission_id_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
             referencedRelation: 'mission';
             referencedColumns: ['id'];
           },
@@ -1438,6 +1525,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      supplier_notes: {
+        Row: {
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          supplier_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          supplier_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          supplier_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'supplier_notes_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'supplier_notes_supplier_id_fkey';
+            columns: ['supplier_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       task_history: {
         Row: {
           action: Database['public']['Enums']['task_history_action'];
@@ -1639,6 +1768,48 @@ export type Database = {
           },
         ];
       };
+      xpert_notes: {
+        Row: {
+          content: string;
+          created_at: string;
+          created_by: string;
+          id: number;
+          updated_at: string | null;
+          xpert_id: string;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          created_by: string;
+          id?: number;
+          updated_at?: string | null;
+          xpert_id: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: number;
+          updated_at?: string | null;
+          xpert_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'xpert_notes_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'xpert_notes_xpert_id_fkey';
+            columns: ['xpert_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       unique_posts: {
@@ -1665,22 +1836,6 @@ export type Database = {
           p_xpert_id: string;
         };
         Returns: number;
-      };
-      check_mission_checkpoints: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      create_new_task: {
-        Args: {
-          assigned_to: string;
-          subject_type: Database['public']['Enums']['task_subject_type'];
-          details: string;
-          xpert_id?: string;
-          supplier_id?: string;
-          mission_id?: number;
-          status?: Database['public']['Enums']['task_status'];
-        };
-        Returns: undefined;
       };
       create_notification: {
         Args: {

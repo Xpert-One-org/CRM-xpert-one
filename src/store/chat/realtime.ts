@@ -95,60 +95,6 @@ export const useRealtimeChat = ({
     }
   }, []);
 
-  // useEffect(() => {
-  //   const xpert_channel = supabase
-  //     .channel("chat_xpert_to_xpert")
-  //     .on(
-  //       "postgres_changes",
-  //       {
-  //         event: "*",
-  //         schema: "public",
-  //         table: "chat",
-  //         filter: "xpert_recipient_id=eq." + user_id,
-  //       },
-  //       (payload: RealtimePostgresChangesPayload<DBChat>) => {
-  //         if (payload.eventType === "DELETE") {
-  //           setChats((prev) =>
-  //             prev?.filter((chat) => chat.id !== payload.old.id)
-  //           );
-  //         }
-  //         if (payload.eventType === "INSERT") {
-  //           // setChats((prev) => [...(prev || []), payload.new] as DBChat[])
-  //           setChats((prev) => {
-  //             if (!prev) return prev;
-  //             const sortedChats = [...prev, payload.new].sort((a, b) => {
-  //               const aLastMessage =
-  //                 a.messages?.[a.messages.length - 1]?.created_at ||
-  //                 a.created_at;
-  //               const bLastMessage =
-  //                 b.messages?.[b.messages.length - 1]?.created_at ||
-  //                 b.created_at;
-  //               return (
-  //                 new Date(bLastMessage).getTime() -
-  //                 new Date(aLastMessage).getTime()
-  //               );
-  //             });
-  //             return sortedChats;
-  //           });
-  //           setChatSelected(payload.new);
-  //         }
-  //         if (payload.eventType === "UPDATE") {
-  //           setChats((prev) => {
-  //             if (!prev) return prev;
-  //             return prev.map((chat) =>
-  //               chat.id === payload.new.id ? payload.new : chat
-  //             );
-  //           });
-  //         }
-  //       }
-  //     )
-  //     .subscribe();
-
-  //   return () => {
-  //     supabase.removeChannel(xpert_channel);
-  //   };
-  // }, [supabase, chatSelected?.id]);
-
   useEffect(() => {
     const channel = supabase
       .channel('chats')
@@ -179,6 +125,18 @@ export const useRealtimeChat = ({
 
             setCurrentChat(newChats);
             if (!chatSelected) setCurrentChatSelected(newChats[0]);
+          }
+          if (payload.eventType === 'UPDATE') {
+            const updatedChats = currentChat.map((chat) => {
+              if (chat.id === payload.new.id) {
+                return { ...chat, ...payload.new };
+              }
+              return chat;
+            });
+            setCurrentChat(updatedChats);
+            if (chatSelected?.id === payload.new.id) {
+              setCurrentChatSelected({ ...chatSelected, ...payload.new });
+            }
           }
         }
       )

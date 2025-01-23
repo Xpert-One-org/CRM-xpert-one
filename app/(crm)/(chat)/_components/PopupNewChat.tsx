@@ -53,6 +53,7 @@ export default function PopupNewChat({
     topic: '',
     mission_id: null,
     created_at: '',
+    is_done: false,
     created_by: '',
     id: 0,
     messages: [],
