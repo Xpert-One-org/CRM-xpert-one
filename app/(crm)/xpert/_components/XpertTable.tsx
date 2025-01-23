@@ -28,6 +28,8 @@ import RedirectButtons from './row/RedirectButtons';
 import Button from '@/components/Button';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import { XpertNotes } from './XpertNotes';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -56,6 +58,8 @@ export default function XpertTable() {
     setKeyDBProfileMissionChanged,
     setOpenedXpertNotSaved,
     setOpenedXpert,
+    activeFilters,
+    setActiveFilters,
   } = useXpertStore();
 
   useWarnIfUnsavedChanges(!areObjectsEqual(openedXpert, openedXpertNotSaved));
@@ -324,16 +328,72 @@ export default function XpertTable() {
           xperts={xpertsOptimized || []}
           // onSortedDataChange={handleFilterChange}
         />
-        <div className="col-span-11">
+        <div className="col-span-11 flex items-center gap-4">
           {!loading ? (
-            <div className="flex w-fit items-center gap-x-4">
+            <>
               <p className="whitespace-nowrap">
                 {totalXpertOptimized} résultats
               </p>
               <button className="font-[600] text-primary" onClick={resetXperts}>
                 Réinitialiser
               </button>
-            </div>
+
+              {/* Affichage des filtres actifs */}
+              <div className="flex flex-wrap items-center gap-2">
+                {activeFilters.jobTitles && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
+                    Poste: {activeFilters.jobTitles}
+                    <X
+                      className="size-3 cursor-pointer"
+                      onClick={() => {
+                        const newFilters = { ...activeFilters, jobTitles: '' };
+                        setActiveFilters(newFilters);
+                        fetchXpertOptimizedFiltered(true);
+                      }}
+                    />
+                  </Badge>
+                )}
+                {activeFilters.availability && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
+                    Disponibilité: {activeFilters.availability}
+                    <X
+                      className="size-3 cursor-pointer"
+                      onClick={() => {
+                        const newFilters = {
+                          ...activeFilters,
+                          availability: '',
+                        };
+                        setActiveFilters(newFilters);
+                        fetchXpertOptimizedFiltered(true);
+                      }}
+                    />
+                  </Badge>
+                )}
+                {activeFilters.countries.length > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
+                    Pays: {activeFilters.countries.join(', ')}
+                    <X
+                      className="size-3 cursor-pointer"
+                      onClick={() => {
+                        const newFilters = { ...activeFilters, countries: [] };
+                        setActiveFilters(newFilters);
+                        fetchXpertOptimizedFiltered(true);
+                      }}
+                    />
+                  </Badge>
+                )}
+                {/* Ajoutez d'autres filtres selon vos besoins */}
+              </div>
+            </>
           ) : (
             <Skeleton className="h-6 w-40" />
           )}

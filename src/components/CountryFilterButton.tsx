@@ -10,6 +10,7 @@ type CountryFilterButtonProps = {
   onFilter?: (filteredData: DBXpertOptimized[]) => void;
   selectedCountries: string[];
   onCountryChange: (values: string[]) => void;
+  showSelectedOption?: boolean;
 };
 
 export default function CountryFilterButton({
@@ -17,6 +18,7 @@ export default function CountryFilterButton({
   onFilter,
   selectedCountries,
   onCountryChange,
+  showSelectedOption,
 }: CountryFilterButtonProps) {
   const { countries, fetchCountries } = useSelect();
 
@@ -55,6 +57,7 @@ export default function CountryFilterButton({
       onValueChange={handleValueChange}
       placeholder="Nationalité"
       className="border-none"
+      showSelectedOption={showSelectedOption}
     />
   );
 }

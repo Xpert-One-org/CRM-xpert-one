@@ -26,6 +26,7 @@ type FilterButtonProps = {
   sortKey?: string;
   onSort?: (sortedData: any[]) => void;
   coloredOptions?: boolean;
+  showSelectedOption?: boolean;
 };
 
 export const FilterButton = ({
@@ -40,6 +41,7 @@ export const FilterButton = ({
   sortKey,
   onSort,
   coloredOptions = false,
+  showSelectedOption,
 }: FilterButtonProps) => {
   const [selectedOption, setSelectedOption] = useState<SelectedOption>({
     label: '',
@@ -104,7 +106,7 @@ export const FilterButton = ({
                   <FilterSvg />
                 </div>
               </div>
-              {selectedOption.value !== '' && (
+              {selectedOption.value !== '' && showSelectedOption && (
                 <div>
                   <Badge
                     className="whitespace-nowrap"

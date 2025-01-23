@@ -22,7 +22,7 @@ import { profileDataExperience } from '@/data/profile';
 import { cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
 import type { DBProfileExperience, DBXpert } from '@/types/typesDb';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { NestedTableKey } from './row/XpertRowContent';
 import CreatableSelect from '@/components/CreatableSelect';
 import { getLabel } from '@/utils/getLabel';
@@ -42,6 +42,15 @@ export default function XpertExperience({
     useXpertStore();
   const { experiences } = xpert?.profile_expertise ?? {};
   const [experienceSelected, setExperienceSelected] = useState(0);
+  const [sectorOther, setSectorOther] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (xpert?.profile_expertise?.experiences) {
+      setSectorOther(
+        xpert.profile_expertise.experiences.map((exp) => exp.sector_other || '')
+      );
+    }
+  }, [xpert]);
 
   const handleChangeInput = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -192,6 +201,29 @@ export default function XpertExperience({
     }
   };
 
+  const handleOtherInput = (value: string, field: string, index: number) => {
+    if (xpert && xpert.profile_expertise) {
+      const newExperiences = [...xpert.profile_expertise.experiences];
+      newExperiences[index] = {
+        ...newExperiences[index],
+        [`${field}_other`]: value,
+      };
+      const newXpert = {
+        ...xpert,
+        profile_expertise: {
+          ...xpert.profile_expertise,
+          experiences: newExperiences,
+        },
+      };
+      handleKeyChanges('profile_expertise', 'experiences');
+      setXpert(newXpert);
+
+      const newSectorOther = [...sectorOther];
+      newSectorOther[index] = value;
+      setSectorOther(newSectorOther);
+    }
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-x-spaceXSmall gap-y-spaceXXSmall">
@@ -328,20 +360,28 @@ export default function XpertExperience({
                       }) ?? '',
                     value: experience.sector ?? '',
                   }}
-                  onChange={(e) => handleChangeSelect(e.value, 'sector', index)}
+                  onChange={(e) => {
+                    handleChangeSelect(e.value, 'sector', index);
+                    if (
+                      !e.value.includes('Autre') &&
+                      !e.value.includes('other')
+                    ) {
+                      handleOtherInput('', 'sector', index);
+                    }
+                  }}
                   optionsOther={experience.sector_other}
-                  options={
-                    experience.sector_other
-                      ? [
-                          ...sectorSelect,
-                          {
-                            label: experience.sector_other,
-                            value: experience.sector_other,
-                          },
-                        ]
-                      : sectorSelect
-                  }
+                  options={sectorSelect}
                 />
+                {(experience.sector?.includes('Autre') ||
+                  experience.sector?.includes('other')) && (
+                  <Input
+                    label="Précisez le secteur d'activité"
+                    value={sectorOther[index] || ''}
+                    onChange={(e) =>
+                      handleOtherInput(e.target.value, 'sector', index)
+                    }
+                  />
+                )}
 
                 {experience.sector == 'energy' && (
                   <CreatableSelect

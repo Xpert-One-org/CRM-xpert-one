@@ -29,7 +29,7 @@ type XpertState = {
   loading: boolean;
   xperts: DBXpert[] | null;
   activeFilters: FilterXpert;
-  setActiveFilters: (filter: FilterXpert) => void;
+  setActiveFilters: (filter: Partial<FilterXpert>) => void;
   xpertFilterKey: number;
   setXpertFilterKey: () => void;
   xpertsOptimized: DBXpertOptimized[] | null;
@@ -108,8 +108,20 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     generated_id: '',
     lastname: '',
   },
-  setActiveFilters: (filter) => {
-    set({ activeFilters: filter });
+  setActiveFilters: (filter: Partial<FilterXpert>) => {
+    console.log('Setting filters:', filter);
+    console.log('Current filters:', get().activeFilters);
+
+    const newFilters = {
+      ...get().activeFilters,
+      ...filter,
+    };
+
+    console.log('New filters:', newFilters);
+    set({ activeFilters: newFilters });
+
+    console.log('Updated filters:', get().activeFilters);
+    get().fetchXpertOptimizedFiltered(true);
   },
   openedXpert: null,
   openedXpertNotSaved: null,

@@ -84,6 +84,7 @@ export default function XpertFilter({
   return (
     <>
       <FilterButton
+        showSelectedOption={true}
         options={sortDateOptions}
         onValueChange={handleSortDateChange}
         placeholder="Inscription"
@@ -93,6 +94,7 @@ export default function XpertFilter({
       />
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <SearchComponentFilter
+          showSelectedOption={true}
           placeholder="Nom"
           filterKey="lastname"
           placeholderSearch="Rechercher un nom"
@@ -104,12 +106,12 @@ export default function XpertFilter({
           onClear={() => {
             const newActiveFilter = { ...activeFilters, lastname: '' };
             setActiveFilters(newActiveFilter);
-            fetchXpertOptimizedFiltered(true);
           }}
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <SearchComponentFilter
+          showSelectedOption={true}
           placeholder="Prénom"
           filterKey="firstname"
           placeholderSearch="Rechercher un prénom"
@@ -121,12 +123,12 @@ export default function XpertFilter({
           onClear={() => {
             const newActiveFilter = { ...activeFilters, firstname: '' };
             setActiveFilters(newActiveFilter);
-            fetchXpertOptimizedFiltered(true);
           }}
         />
       </div>
       <div className="col-span-2 flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <SearchComponentFilter
+          showSelectedOption={true}
           placeholder="Poste"
           filterKey="jobTitles"
           placeholderSearch="Rechercher un poste"
@@ -138,7 +140,6 @@ export default function XpertFilter({
           onClear={() => {
             const newActiveFilter = { ...activeFilters, jobTitles: '' };
             setActiveFilters(newActiveFilter);
-            fetchXpertOptimizedFiltered(true);
           }}
         />
       </div>
@@ -147,10 +148,12 @@ export default function XpertFilter({
           data={xperts}
           selectedCountries={activeFilters.countries}
           onCountryChange={handleCountryChange}
+          showSelectedOption={true}
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
         <SearchComponentFilter
+          showSelectedOption={true}
           placeholder="N° identification"
           filterKey="generated_id"
           placeholderSearch="Rechercher un X"
@@ -162,7 +165,6 @@ export default function XpertFilter({
           onClear={() => {
             const newActiveFilter = { ...activeFilters, generated_id: '' };
             setActiveFilters(newActiveFilter);
-            fetchXpertOptimizedFiltered(true);
           }}
         />
       </div>
@@ -171,23 +173,27 @@ export default function XpertFilter({
         onValueChange={handleAvailabilityChange}
         placeholder="Disponible"
         coloredOptions
+        showSelectedOption={true}
       />
       <FilterButton
         options={cvOptions}
         onValueChange={handleCvChange}
         placeholder="CV"
         coloredOptions
+        showSelectedOption={true}
       />
       <FilterButton
         options={adminOpinionOptions}
         onValueChange={handleAdminOpinionChange}
         placeholder="Qualité"
         coloredOptions
+        showSelectedOption={true}
       />
       <FilterButton
         className="font-bold"
         placeholder="Fiche détaillée"
         filter={false}
+        showSelectedOption={true}
       />
     </>
   );
