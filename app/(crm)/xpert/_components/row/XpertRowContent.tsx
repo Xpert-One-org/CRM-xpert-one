@@ -232,7 +232,7 @@ export default function XpertRowContent({
           <Input
             hasPreIcon
             label="Référant XPERT ONE"
-            value={'Olivier'}
+            value={`${xpert.referent?.firstname ?? ''} ${xpert.referent?.lastname ?? ''}`}
             disabled
           />
           <div className="flex gap-x-4">

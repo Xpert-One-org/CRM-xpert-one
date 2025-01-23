@@ -31,8 +31,6 @@ export function CheckpointBox({
   const handleToggle = async () => {
     if (isLoading) return;
     setIsLoading(true);
-    console.log('missionId', missionId);
-    console.log('checkpointField', checkpointField);
 
     const { data, error } = await toggleMissionCheckpoint(
       missionId,

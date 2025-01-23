@@ -90,8 +90,6 @@ export const getAllMissions = async (
     throw new Error(error.message);
   }
 
-  console.log('Fetched missions:', data?.length);
-
   const missionsWithCheckpoints = data?.map((mission) => ({
     ...mission,
     checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
@@ -157,8 +155,8 @@ export const searchMission = async (missionId: string) => {
 
   let query = supabase.from('mission').select('mission_number');
 
-  // Filtrer par état open ou open_all
-  query = query.in('state', ['open', 'open_all']);
+  // // Filtrer par état open ou open_all
+  // query = query.in('state', ['open', 'open_all']);
 
   if (missionId) {
     query = query.ilike('mission_number', `%${missionId}%`);
