@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSelect } from '@/store/select';
 import type { DBXpertOptimized } from '@/types/typesDb';
 import { getLabel } from '@/utils/getLabel';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   degreeSelect,
   expertiseSelect,
@@ -212,6 +212,44 @@ export default function XpertRowContent({
     setXpert(newXpert);
   };
 
+  const [specialtiesOther, setSpecialtiesOther] = useState<string>('');
+  const [expertisesOther, setExpertisesOther] = useState<string>('');
+  const [habilitationsOther, setHabilitationsOther] = useState<string>('');
+
+  useEffect(() => {
+    if (xpert?.profile_expertise) {
+      setSpecialtiesOther(xpert.profile_expertise.specialties_other || '');
+      setExpertisesOther(xpert.profile_expertise.expertises_other || '');
+      setHabilitationsOther(xpert.profile_expertise.habilitations_other || '');
+    }
+  }, [xpert]);
+
+  const handleOtherInput = (value: string, field: string) => {
+    handleKeyChanges('profile_expertise', `${field}_other`);
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          profile_expertise: {
+            ...xpert.profile_expertise!,
+            [`${field}_other`]: value,
+          },
+        }
+      : null;
+    setXpert(newXpert);
+
+    switch (field) {
+      case 'specialties':
+        setSpecialtiesOther(value);
+        break;
+      case 'expertises':
+        setExpertisesOther(value);
+        break;
+      case 'habilitations':
+        setHabilitationsOther(value);
+        break;
+    }
+  };
+
   useEffect(() => {
     handleGetSpecificXpert();
   }, [xpertOptimized]);
@@ -232,7 +270,7 @@ export default function XpertRowContent({
           <Input
             hasPreIcon
             label="Référant XPERT ONE"
-            value={'Olivier'}
+            value={`${xpert.referent?.firstname ?? ''} ${xpert.referent?.lastname ?? ''}`}
             disabled
           />
           <div className="flex gap-x-4">
@@ -478,26 +516,27 @@ export default function XpertRowContent({
               value: specialty ?? '',
             })
           )}
-          onChange={(selectedOption) =>
-            handleChangeMultiSelect(
-              selectedOption.map((option) => option.value),
-              'specialties',
-              'profile_expertise'
-            )
-          }
+          onChange={(selectedOption) => {
+            const values = selectedOption.map((option) => option.value);
+            handleChangeMultiSelect(values, 'specialties', 'profile_expertise');
+            if (
+              !values.some((v) => v.includes('Autre') || v.includes('other'))
+            ) {
+              handleOtherInput('', 'specialties');
+            }
+          }}
           optionsOther={xpert.profile_expertise?.specialties_other}
-          options={
-            xpert.profile_expertise?.specialties_other
-              ? [
-                  ...specialitySelect,
-                  {
-                    label: xpert.profile_expertise.specialties_other ?? '',
-                    value: xpert.profile_expertise.specialties_other ?? '',
-                  },
-                ]
-              : specialitySelect
-          }
+          options={specialitySelect}
         />
+        {xpert.profile_expertise?.specialties?.some(
+          (v) => v.includes('Autre') || v.includes('other')
+        ) && (
+          <Input
+            label="Précisez la spécialité"
+            value={specialtiesOther}
+            onChange={(e) => handleOtherInput(e.target.value, 'specialties')}
+          />
+        )}
 
         <MultiCreatableSelect
           creatable
@@ -509,26 +548,27 @@ export default function XpertRowContent({
               value: expertise ?? '',
             })
           )}
-          onChange={(selectedOption) =>
-            handleChangeMultiSelect(
-              selectedOption.map((option) => option.value),
-              'expertises',
-              'profile_expertise'
-            )
-          }
+          onChange={(selectedOption) => {
+            const values = selectedOption.map((option) => option.value);
+            handleChangeMultiSelect(values, 'expertises', 'profile_expertise');
+            if (
+              !values.some((v) => v.includes('Autre') || v.includes('other'))
+            ) {
+              handleOtherInput('', 'expertises');
+            }
+          }}
           optionsOther={xpert.profile_expertise?.expertises_other}
-          options={
-            xpert.profile_expertise?.expertises
-              ? [
-                  ...expertiseSelect,
-                  {
-                    label: xpert.profile_expertise.expertises_other ?? '',
-                    value: xpert.profile_expertise.expertises_other ?? '',
-                  },
-                ]
-              : expertiseSelect
-          }
+          options={expertiseSelect}
         />
+        {xpert.profile_expertise?.expertises?.some(
+          (v) => v.includes('Autre') || v.includes('other')
+        ) && (
+          <Input
+            label="Précisez l'expertise"
+            value={expertisesOther}
+            onChange={(e) => handleOtherInput(e.target.value, 'expertises')}
+          />
+        )}
 
         <MultiCreatableSelect
           creatable
@@ -543,32 +583,29 @@ export default function XpertRowContent({
               value: habilitation ?? '',
             })
           )}
-          onChange={(selectedOption) =>
+          onChange={(selectedOption) => {
+            const values = selectedOption.map((option) => option.value);
             handleChangeMultiSelect(
-              selectedOption.map((option) => option.value),
+              values,
               'habilitations',
               'profile_expertise'
-            )
-          }
+            );
+            if (
+              !values.some((v) => v.includes('Autre') || v.includes('other'))
+            ) {
+              handleOtherInput('', 'habilitations');
+            }
+          }}
           optionsOther={xpert.profile_expertise?.habilitations_other}
-          options={
-            xpert.profile_expertise?.habilitations
-              ? [
-                  ...habilitationsSelect,
-                  {
-                    label: xpert.profile_expertise.habilitations_other ?? '',
-                    value: xpert.profile_expertise.habilitations_other ?? '',
-                  },
-                ]
-              : habilitationsSelect
-          }
+          options={habilitationsSelect}
         />
-
-        {xpert.profile_expertise?.habilitations_other && (
-          <TextArea
-            label="Détails des habilitations"
-            value={xpert.profile_expertise.habilitations_other}
-            disabled
+        {xpert.profile_expertise?.habilitations?.some(
+          (v) => v.includes('Autre') || v.includes('other')
+        ) && (
+          <Input
+            label="Précisez l'habilitation"
+            value={habilitationsOther}
+            onChange={(e) => handleOtherInput(e.target.value, 'habilitations')}
           />
         )}
       </div>

@@ -52,6 +52,7 @@ export type DBXpert = DBProfile & {
   mission: DBMission[];
   profile_status: DBProfileStatus | null;
   profile_expertise: DBProfileExpertise | null;
+  referent: Pick<DBProfile, 'id' | 'firstname' | 'lastname'> | null;
 };
 
 // NOTIFICATION

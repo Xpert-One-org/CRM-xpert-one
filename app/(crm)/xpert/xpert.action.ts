@@ -47,6 +47,7 @@ export const getSpecificXpert = async (
       .single();
 
     if (error) {
+      console.log('ICI');
       console.error(error);
       throw new Error(error.message);
     }
@@ -57,8 +58,20 @@ export const getSpecificXpert = async (
     }
 
     const { experiences, educations, profile_expertise, ...rest } = data;
+
+    const { data: referent, error: errorReferent } = await supabase
+      .from('profile')
+      .select('firstname, id, lastname')
+      .eq('id', data.affected_referent_id ?? '')
+      .single();
+
+    if (error) {
+      console.error(error);
+    }
+
     return {
       ...rest,
+      referent: referent,
       profile_expertise: {
         ...profile_expertise,
         experiences,
@@ -85,66 +98,68 @@ export const searchXpert = async (): Promise<{ data: DBXpert[] }> => {
   return { data: data as DBXpert[] };
 };
 
-export const getAllXperts = async ({
-  offset,
-}: {
-  offset: number;
-}): Promise<{ data: DBXpert[]; count: number | null }> => {
-  const supabase = await createSupabaseAppServerClient();
+// export const getAllXperts = async ({
+//   offset,
+// }: {
+//   offset: number;
+// }): Promise<{ data: DBXpert[]; count: number | null }> => {
+//   const supabase = await createSupabaseAppServerClient();
 
-  const isAdmin = await checkAuthRole();
+//   const isAdmin = await checkAuthRole();
 
-  if (isAdmin) {
-    const { data, error, count } = await supabase
-      .from('profile')
-      .select(
-        `
-        *,
-        profile_mission(*),
-        experiences:profile_experience(*), educations:profile_education(*),
-        mission!mission_created_by_fkey(*),
-        profile_status(*),
-        profile_expertise(*)
-      `,
-        { count: 'exact' }
-      )
-      .eq('role', 'xpert')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limitXpert - 1);
+//   if (isAdmin) {
+//     const { data, error, count } = await supabase
+//       .from('profile')
+//       .select(
+//         `
+//         *,
+//         profile_mission(*),
+//         referent:profile!profile_affected_referent_id_fkey(firstname, id, lastname),
+//         experiences:profile_experience(*), educations:profile_education(*),
+//         mission!mission_created_by_fkey(*),
+//         profile_status(*),
+//         profile_expertise(*)
+//       `,
+//         { count: 'exact' }
+//       )
+//       .eq('role', 'xpert')
+//       .order('created_at', { ascending: false })
+//       .range(offset, offset + limitXpert - 1);
 
-    if (error) {
-      console.error(error);
-      throw new Error(error.message);
-    }
+//     if (error) {
+//       console.error(error);
+//       throw new Error(error.message);
+//     }
 
-    if (!data) {
-      console.error('No data returned');
-      throw new Error('No data returned');
-    }
+//     if (!data) {
+//       console.error('No data returned');
+//       throw new Error('No data returned');
+//     }
 
-    const processedData = data.map((profile) => {
-      const { experiences, educations, profile_expertise, ...rest } = profile;
-      return {
-        ...rest,
-        profile_expertise: {
-          ...profile_expertise,
-          experiences,
-          educations,
-        } as DBXpert['profile_expertise'],
-      };
-    });
+//     const processedData = data.map((profile) => {
+//       const { experiences, educations, profile_expertise, ...rest } = profile;
+//       return {
+//         ...rest,
 
-    return {
-      data: processedData,
-      count: count || 0,
-    };
-  }
+//         profile_expertise: {
+//           ...profile_expertise,
+//           experiences,
+//           educations,
+//         } as DBXpert['profile_expertise'],
+//       };
+//     });
 
-  return {
-    data: [],
-    count: null,
-  };
-};
+//     return {
+//       data: processedData,
+//       count: count || 0,
+//     };
+//   }
+
+//   return {
+//     data: [],
+//     count: null,
+//   };
+// };
 
 export const getXpertsOptimized = async ({
   offset,
@@ -391,6 +406,7 @@ export const createUser = async ({
       postal_code,
       street_number,
       role: role,
+      mobile, // Add mobile number to profile update
     })
     .eq('email', email);
 

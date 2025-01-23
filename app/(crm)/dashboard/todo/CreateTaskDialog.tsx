@@ -201,12 +201,20 @@ export default function CreateTaskDialog({ onTaskCreate }: Props) {
 
   return (
     <>
-      <Button
-        onClick={() => setCreateTaskDialogOpen(true)}
-        className="w-fit bg-[#4A8B96] text-white hover:bg-[#4A8B96]/90 sm:w-full sm:max-w-[178px]"
-      >
-        Créer une tâche
-      </Button>
+      <div className="flex flex-col justify-start gap-y-2">
+        <Button
+          onClick={() => setCreateTaskDialogOpen(true)}
+          className="w-fit bg-[#4A8B96] text-white hover:bg-[#4A8B96]/90 sm:w-full sm:max-w-[178px]"
+        >
+          Créer une tâche
+        </Button>
+        <button
+          className="text-nowrap text-sm underline"
+          onClick={() => useTasksStore.getState().loadTasks(true)}
+        >
+          Recharger les tâches
+        </button>
+      </div>
 
       <Credenza
         open={createTaskDialogOpen}

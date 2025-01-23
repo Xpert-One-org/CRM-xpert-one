@@ -8,11 +8,13 @@ type SearchComponentFilterProps = {
   filterKey: string;
   placeholderSearch?: string;
   value?: string;
+  showSelectedOption?: boolean;
   onValueChange: (value: string) => void;
   onClear?: () => void;
-}
+};
 
 export const SearchComponentFilter = ({
+  showSelectedOption = true,
   placeholderSearch = 'Rechercher',
   placeholder,
   filterKey,
@@ -53,6 +55,7 @@ export const SearchComponentFilter = ({
   return (
     <Combobox
       data={[]}
+      showSelectedOption={showSelectedOption}
       value={searchTerm}
       handleSetValue={handleSearch}
       handleValueChange={handleSearch}

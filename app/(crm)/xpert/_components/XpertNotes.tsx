@@ -53,7 +53,7 @@ export function XpertNotes({ xpertId }: XpertNotesProps) {
   };
 
   useEffect(() => {
-    fetchNotes();
+    !notes && fetchNotes();
   }, [xpertId]);
 
   // Ajouter une note
@@ -101,7 +101,7 @@ export function XpertNotes({ xpertId }: XpertNotesProps) {
 
   return (
     <div className="flex flex-col gap-3 py-4">
-      {/* Liste des notes existantes */}
+      Liste des notes existantes
       <div className="flex max-h-[500px] flex-col gap-2 overflow-y-auto">
         {notes.map((note) => (
           <div key={note.id} className="rounded-lg bg-gray-100 p-4">
@@ -190,7 +190,6 @@ export function XpertNotes({ xpertId }: XpertNotesProps) {
           </div>
         ))}
       </div>
-
       {/* Formulaire d'ajout de note */}
       <form onSubmit={handleSubmit} className="mt-2">
         <Textarea

@@ -25,7 +25,6 @@ export async function toggleMissionCheckpoint(
     .eq('mission_id', missionId)
     .single();
 
-  console.log('currentData', currentData);
   if (fetchError) {
     console.error(fetchError);
     return { data: null, error: fetchError.message };

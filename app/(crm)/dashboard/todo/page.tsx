@@ -164,7 +164,6 @@ export default function TaskTable() {
     }
   };
   const handleUpdateAssignedTo = async () => {
-    console.log('HERE');
     if (!newAssignedToNotSaved.length) {
       return { error: null };
     }
@@ -180,8 +179,6 @@ export default function TaskTable() {
       const data = await Promise.all(promise);
 
       if (data.some((d) => d?.error)) {
-        console.log({ data });
-
         return { error: true };
       }
       return { error: null };
@@ -254,7 +251,7 @@ export default function TaskTable() {
   return (
     <div
       className={cn(
-        'flex size-full flex-col justify-between gap-4 overflow-hidden'
+        'flex size-full flex-col justify-between gap-4 overflow-hidden p-2'
       )}
     >
       <div className="relative flex flex-col gap-4">

@@ -1837,6 +1837,10 @@ export type Database = {
         };
         Returns: number;
       };
+      check_mission_checkpoints: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       create_notification: {
         Args: {
           user_id: string;
