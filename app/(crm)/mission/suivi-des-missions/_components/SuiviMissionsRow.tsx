@@ -110,6 +110,15 @@ export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
       <Box className="">
         <p></p>
       </Box>
+      {/* Point fin de mission J-30 */}
+      <CheckpointBox
+        value={mission.checkpoints?.[0]?.point_fin_j_moins_30 ?? false}
+        daysDisplay={formatEndMissionDisplay(daysInfo, 'endMinus30')}
+        colorClass={getEndMissionColor(daysInfo, 'endMinus30')}
+        missionId={mission.id}
+        checkpointField="point_fin_j_moins_30"
+        onToggle={handleCheckpointToggle}
+      />
       {/* Point J+10 Référent */}
       <CheckpointBox
         value={mission.checkpoints?.[0]?.point_j_plus_10_referent ?? false}
@@ -128,15 +137,7 @@ export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
         checkpointField="point_rh_fin_j_plus_10_f"
         onToggle={handleCheckpointToggle}
       />
-      {/* Point fin de mission J-30 */}
-      <CheckpointBox
-        value={mission.checkpoints?.[0]?.point_fin_j_moins_30 ?? false}
-        daysDisplay={formatEndMissionDisplay(daysInfo, 'endMinus30')}
-        colorClass={getEndMissionColor(daysInfo, 'endMinus30')}
-        missionId={mission.id}
-        checkpointField="point_fin_j_moins_30"
-        onToggle={handleCheckpointToggle}
-      />
+
       <Box className="col-span-1">
         {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
       </Box>
