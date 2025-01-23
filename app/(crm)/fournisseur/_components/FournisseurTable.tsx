@@ -33,6 +33,7 @@ import FournisseurRedirectButtons from './FournisseurRedirectButtons';
 import DeleteFournisseurDialog from './DeleteFournisseurDialog';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import type { DBFournisseur } from '@/types/typesDb';
+import { FournisseurNotes } from './FournisseurNotes';
 
 export default function FournisseurTable() {
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
@@ -487,7 +488,7 @@ export default function FournisseurTable() {
                   )}
                 </div>
               </div>
-
+              <FournisseurNotes fournisseurId={fournisseur.id} />
               {/* Boutons de contrôle */}
               <div className="flex w-full justify-between gap-2 py-2">
                 <FournisseurRedirectButtons user={fournisseur} />
