@@ -42,7 +42,7 @@ export default function MatchingXpertsRow({
     Object.keys(matchedXpert.nonMatchingCriteria).length > 0;
 
   const availability =
-    matchedXpert.profile_mission && matchedXpert.profile_mission.availability;
+    matchedXpert.profile_mission?.availability;
 
   const isAvailable = availability && new Date(availability) > new Date();
 
@@ -138,7 +138,7 @@ export default function MatchingXpertsRow({
                       <Badge
                         key={`${key}-${val}`}
                         variant={'outline'}
-                        className="mb-1 mr-1 border-none bg-[#D64242]"
+                        className="mb-1 mr-1 border-none bg-[#D64242] text-white"
                       >
                         {getLabel({
                           value:

@@ -114,6 +114,7 @@ export default function MatchingLeftSide({
 
   const handleExcludedCriteriaClick = (type: string, value: string) => {
     if (isIntern) return;
+    console.log('handleExcludedCriteriaClick', type, value);
     setExcludedCriteria((prev) => {
       const newSelected = { ...prev };
       if (!newSelected[type]) {
@@ -168,7 +169,7 @@ export default function MatchingLeftSide({
     setAdditionalCriteria((prev) => {
       const newCriteria = {
         ...prev,
-        availability: value === 'yes' ? ['yes'] : [],
+        availability: value === 'yes' ? ['yes'] : ['no'],
       };
       setHasChanges(true);
       return newCriteria;
@@ -669,7 +670,12 @@ export default function MatchingLeftSide({
               options={actionOptions}
               onValueChange={handleAvailabilityChange}
             >
-              {additionalCriteria.availability?.length > 0 ? 'OUI' : 'NON'}
+              {!additionalCriteria.availability ||
+              additionalCriteria.availability.length === 0
+                ? ''
+                : additionalCriteria.availability?.includes('yes')
+                  ? 'OUI'
+                  : 'NON'}
             </Box>
           </div>
         </div>
@@ -704,11 +710,14 @@ export default function MatchingLeftSide({
               options={actionOptions}
               onValueChange={handleManagementChange}
             >
-              {additionalCriteria.management?.includes('yes')
-                ? 'OUI'
-                : additionalCriteria.management?.includes('no')
-                  ? 'NON'
-                  : 'OUI'}
+              {!additionalCriteria.management ||
+              additionalCriteria.management.length === 0
+                ? ''
+                : additionalCriteria.management?.includes('yes')
+                  ? 'OUI'
+                  : additionalCriteria.management?.includes('no')
+                    ? 'NON'
+                    : 'OUI'}
             </Box>
           </div>
         </div>
@@ -945,13 +954,16 @@ export default function MatchingLeftSide({
               options={actionOptions}
               onValueChange={handleHandicapChange}
             >
-              {additionalCriteria.handicap?.includes('yes')
-                ? 'OUI'
-                : additionalCriteria.handicap?.includes('no')
-                  ? 'NON'
-                  : missionData.open_to_disabled === 'true'
-                    ? 'OUI'
-                    : 'NON'}
+              {!additionalCriteria.handicap ||
+              additionalCriteria.handicap?.length === 0
+                ? ''
+                : additionalCriteria.handicap?.includes('yes')
+                  ? 'OUI'
+                  : additionalCriteria.handicap?.includes('no')
+                    ? 'NON'
+                    : missionData.open_to_disabled === 'true'
+                      ? 'OUI'
+                      : 'NON'}
             </Box>
           </div>
         </div>
