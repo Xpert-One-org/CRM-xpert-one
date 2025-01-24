@@ -525,6 +525,42 @@ $$;
 ALTER FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."check_and_create_mission_tasks"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$BEGIN
+    -- Insérer les tâches manquantes pour les missions à J-30
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT 
+        m.affected_referent_id,
+        'mission',
+        'Il reste moins de 30J avant la fin de remise de candidature pour la mission ' || m.mission_number,
+        m.id,
+        'urgent',
+        CURRENT_TIMESTAMP
+    FROM mission m
+    WHERE 
+        m.deadline_application - INTERVAL '30 days' <= CURRENT_DATE
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM tasks t 
+            WHERE 
+                t.mission_id = m.id AND 
+                t.details LIKE 'Il reste moins de 30J avant la fin de remise de candidature pour la mission ' || m.mission_number
+                
+        );
+END;$$;
+
+
+ALTER FUNCTION "public"."check_and_create_mission_tasks"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."check_mission_checkpoints"() RETURNS "void"
     LANGUAGE "plpgsql"
     AS $$BEGIN
@@ -769,6 +805,53 @@ $$;
 
 
 ALTER FUNCTION "public"."create_mission_checkpoints"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."create_mission_notifications"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$BEGIN
+    IF NEW.xpert_associated_id IS NOT NULL AND 
+       NEW.xpert_associated_id IS DISTINCT FROM OLD.xpert_associated_id THEN
+        
+        -- Notification pour le affected_referent_id
+        IF NEW.affected_referent_id IS NOT NULL THEN
+            PERFORM create_notification(
+                NEW.affected_referent_id,
+                'mission/fiche/' || REPLACE(NEW.mission_number, ' ', '-'),
+                'Une nouvelle mission vous a été affectée',
+                'Nouvelle mission',
+                'info'
+            );
+        END IF;
+
+        -- Notification pour le xpert_associated_id
+        PERFORM create_notification(
+            NEW.xpert_associated_id,
+            'mission/' || REPLACE(NEW.mission_number, ' ', '-'),  -- Corrigé de mission_id à mission_number
+            'Une nouvelle mission est associée',
+            'Mission affectée',
+            'info'
+          
+        );
+
+        -- Notification pour le created_by
+        IF NEW.created_by IS NOT NULL THEN
+            PERFORM create_notification(
+                NEW.created_by,
+                'mission/' || REPLACE(NEW.mission_number, ' ', '-'),  -- Corrigé de /mission/id à mission_number
+                'Une de vos missions a été affectée à un xpert',
+                'Mission affectée',
+                'info' -- Changé de 'unread' à 'info' pourcohérence
+             
+            );
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."create_mission_notifications"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."create_notification"("user_id" "uuid", "link" "text", "message" "text", "subject" "text", "status" "public"."notification_status" DEFAULT 'standard'::"public"."notification_status", "is_global" boolean DEFAULT false, "category" "text" DEFAULT ''::"text") RETURNS "void"
@@ -3159,6 +3242,10 @@ CREATE OR REPLACE TRIGGER "create_checkpoints_after_mission_insert" AFTER INSERT
 
 
 
+CREATE OR REPLACE TRIGGER "mission_notification_trigger" AFTER UPDATE ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."create_mission_notifications"();
+
+
+
 CREATE OR REPLACE TRIGGER "mission_state_change_trigger" AFTER UPDATE OF "state" ON "public"."mission" FOR EACH ROW WHEN (("old"."state" IS DISTINCT FROM "new"."state")) EXECUTE FUNCTION "public"."notify_mission_state"();
 
 
@@ -3980,27 +4067,12 @@ ALTER TABLE "public"."tasks" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."xpert_notes" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE PUBLICATION "realtime_messages_publication_v2_34_1" WITH (publish = 'insert, update, delete, truncate');
-
-
-
-
 
 
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 
 
-CREATE PUBLICATION "supabase_realtime_messages_publication_v2_34_2" WITH (publish = 'insert, update, delete, truncate');
-
-
-
-
-CREATE PUBLICATION "supabase_realtime_messages_publication_v2_34_4" WITH (publish = 'insert, update, delete, truncate');
-
-
-
-
-CREATE PUBLICATION "supabase_realtime_messages_publication_v2_34_6" WITH (publish = 'insert, update, delete, truncate');
+CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
 
@@ -4303,6 +4375,12 @@ GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint,
 
 
 
+GRANT ALL ON FUNCTION "public"."check_and_create_mission_tasks"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_and_create_mission_tasks"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_and_create_mission_tasks"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "anon";
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "service_role";
@@ -4312,6 +4390,12 @@ GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."create_mission_checkpoints"() TO "anon";
 GRANT ALL ON FUNCTION "public"."create_mission_checkpoints"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_mission_checkpoints"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."create_mission_notifications"() TO "anon";
+GRANT ALL ON FUNCTION "public"."create_mission_notifications"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_mission_notifications"() TO "service_role";
 
 
 

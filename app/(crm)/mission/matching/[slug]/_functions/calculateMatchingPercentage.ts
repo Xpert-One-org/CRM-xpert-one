@@ -84,13 +84,13 @@ const getTotalCriteriaCount = (
     );
     count++;
   }
-  if (additionalCriteria.availability?.length) {
-    console.log(
-      'CRITERE AVAILABILITY ADDITIONNEL : ',
-      additionalCriteria.availability
-    );
-    count++;
-  }
+  // if (additionalCriteria.availability?.length) {
+  //   console.log(
+  //     'CRITERE AVAILABILITY ADDITIONNEL : ',
+  //     additionalCriteria.availability
+  //   );
+  //   count++;
+  // }
   if (additionalCriteria.management?.length) {
     console.log(
       'CRITERE MANAGEMENT ADDITIONNEL : ',
@@ -132,8 +132,6 @@ export const calculateMatchingPercentage = (
   const numberOfNonMatches = Object.entries(nonMatchingCriteria).filter(
     ([_, value]) => value && value.length > 0
   ).length;
-
-  console.log({ totalCriteria });
 
   // Calculate percentage based on matching criteria
   const matchingPercentage = 100 - numberOfNonMatches * pointsPerCriteria;
@@ -296,19 +294,19 @@ export const calculatePartialMatches = (
   }
 
   // Availability
-  if (nonMatchingCriteria.availability?.length && mission?.availability) {
-    const missionStartDate = new Date(missionData.start_date ?? '');
-    const xpertAvailability = new Date(mission.availability);
+  // if (nonMatchingCriteria.availability?.length && mission?.availability) {
+  //   const missionStartDate = new Date(missionData.start_date ?? '');
+  //   const xpertAvailability = new Date(mission.availability);
 
-    console.log('Is xpert available ? ', xpertAvailability <= missionStartDate);
+  //   console.log('Is xpert available ? ', xpertAvailability <= missionStartDate);
 
-    if (
-      additionalCriteria.availability?.includes('yes') &&
-      xpertAvailability <= missionStartDate
-    ) {
-      additionalPoints += pointsPerCriteria / 2;
-    }
-  }
+  //   if (
+  //     additionalCriteria.availability?.includes('yes') &&
+  //     xpertAvailability <= missionStartDate
+  //   ) {
+  //     additionalPoints += pointsPerCriteria / 2;
+  //   }
+  // }
 
   // Management
   if (nonMatchingCriteria.management?.length && experience) {
@@ -350,7 +348,6 @@ export const calculateTotalMatchingScore = (
     additionalCriteria,
   });
 
-  console.log({ nonMatchingCriteria });
   const baseMatchingScore = calculateMatchingPercentage(
     xpert,
     missionData,
