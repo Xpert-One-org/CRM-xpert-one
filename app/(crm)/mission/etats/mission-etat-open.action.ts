@@ -137,12 +137,12 @@ export async function getCountMatchedXperts(
 
   const enhancedXperts = matchedXperts
     .map((xpert) => {
-      const nonMatchingCriteria = getNonMatchingCriteria(
-        xpert as DBMatchedXpert,
+      const nonMatchingCriteria = getNonMatchingCriteria({
+        xpert: xpert as DBMatchedXpert,
+        additionalCriteria: {},
+        excludedCriteria: {},
         missionData,
-        {},
-        {}
-      );
+      });
 
       const matchingScore = calculateTotalMatchingScore(
         xpert as DBMatchedXpert,

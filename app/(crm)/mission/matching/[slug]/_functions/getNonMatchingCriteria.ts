@@ -13,22 +13,23 @@ export type NonMatchingCriteria = {
   handicap?: string[];
 };
 
-export const getNonMatchingCriteria = (
-  xpert: DBMatchedXpert,
-  missionData: DBMission,
-  excludedCriteria: Record<string, string[]>,
-  additionalCriteria: Record<string, string[]>
-): NonMatchingCriteria => {
+export const getNonMatchingCriteria = ({
+  xpert,
+  excludedCriteria,
+  additionalCriteria,
+  missionData,
+}: {
+  xpert: DBMatchedXpert;
+  excludedCriteria: Record<string, string[]>;
+  additionalCriteria: Record<string, string[]>;
+  missionData?: DBMission;
+}): NonMatchingCriteria => {
   const mission = xpert.profile_mission;
   const expertise = xpert.profile_expertise;
   const experience = xpert.profile_experience;
   const nonMatching: NonMatchingCriteria = {};
 
-  if (!mission || !expertise || !experience || !missionData) {
-    return nonMatching;
-  }
-
-  if (mission.job_titles && missionData.job_title) {
+  if (mission?.job_titles && missionData?.job_title) {
     const requiredJobTitles = [
       missionData.job_title,
       ...(additionalCriteria?.job_title || []),
@@ -43,42 +44,42 @@ export const getNonMatchingCriteria = (
     }
   }
 
-  if (missionData.post_type || additionalCriteria?.post_type) {
-    const experiencePostTypes = experience.flatMap(
+  if (missionData?.post_type || additionalCriteria?.post_type) {
+    const experiencePostTypes = experience?.flatMap(
       (exp) => exp.post_type || []
     );
     const requiredPostTypes = [
-      ...(missionData.post_type || []),
+      ...(missionData?.post_type || []),
       ...(additionalCriteria?.post_type || []),
     ];
 
     const nonMatchingPostTypes = requiredPostTypes
       .filter((type) => !excludedCriteria?.post_type?.includes(type))
-      .filter((type) => !experiencePostTypes.includes(type));
+      .filter((type) => !experiencePostTypes?.includes(type));
 
     if (nonMatchingPostTypes.length) {
       nonMatching.post_type = nonMatchingPostTypes;
     }
   }
 
-  if (missionData.sector || additionalCriteria.sector) {
+  if (missionData?.sector || additionalCriteria.sector) {
     const requiredSectors = [
-      missionData.sector,
+      missionData?.sector,
       ...(additionalCriteria?.sector || []),
     ];
 
     const nonMatchingSectors = requiredSectors
       .filter((sector) => !excludedCriteria?.sector?.includes(sector ?? ''))
-      .filter((sector) => !experience.some((exp) => exp.sector === sector));
+      .filter((sector) => !experience?.some((exp) => exp.sector === sector));
 
     if (nonMatchingSectors.length) {
       nonMatching.sector = nonMatchingSectors as string[];
     }
   }
 
-  if (missionData.specialties || additionalCriteria.specialties) {
+  if (missionData?.specialties || additionalCriteria.specialties) {
     const requiredSpecialties = [
-      ...(missionData.specialties || []),
+      ...(missionData?.specialties || []),
       ...(additionalCriteria?.specialties || []),
     ];
 
@@ -86,52 +87,52 @@ export const getNonMatchingCriteria = (
       .filter(
         (specialty) => !excludedCriteria?.specialties?.includes(specialty)
       )
-      .filter((specialty) => !expertise.specialties?.includes(specialty));
+      .filter((specialty) => !expertise?.specialties?.includes(specialty));
 
     if (nonMatchingSpecialties.length) {
       nonMatching.specialties = nonMatchingSpecialties;
     }
   }
 
-  if (missionData.expertises || additionalCriteria.expertises) {
+  if (missionData?.expertises || additionalCriteria.expertises) {
     const requiredExpertises = [
-      ...(missionData.expertises || []),
+      ...(missionData?.expertises || []),
       ...(additionalCriteria?.expertises || []),
     ];
 
     const nonMatchingExpertises = requiredExpertises
       .filter((exp) => !excludedCriteria?.expertises?.includes(exp))
-      .filter((exp) => !expertise.expertises?.includes(exp));
+      .filter((exp) => !expertise?.expertises?.includes(exp));
 
     if (nonMatchingExpertises.length) {
       nonMatching.expertises = nonMatchingExpertises;
     }
   }
 
-  if (missionData.languages || additionalCriteria.languages) {
+  if (missionData?.languages || additionalCriteria.languages) {
     const requiredLanguages = [
-      ...(missionData.languages || []),
+      ...(missionData?.languages || []),
       ...(additionalCriteria?.languages || []),
     ];
 
     const nonMatchingLanguages = requiredLanguages
       .filter((lang) => !excludedCriteria?.languages?.includes(lang))
-      .filter((language) => !expertise.maternal_language?.includes(language));
+      .filter((language) => !expertise?.maternal_language?.includes(language));
 
     if (nonMatchingLanguages.length) {
       nonMatching.languages = nonMatchingLanguages;
     }
   }
 
-  if (missionData.diplomas || additionalCriteria.diplomas) {
+  if (missionData?.diplomas || additionalCriteria.diplomas) {
     const requiredDiplomas = [
-      ...(missionData.diplomas || []),
+      ...(missionData?.diplomas || []),
       ...(additionalCriteria?.diplomas || []),
     ];
 
     const nonMatchingDiplomas = requiredDiplomas
       .filter((diploma) => !excludedCriteria?.diplomas?.includes(diploma))
-      .filter((diploma) => !expertise.diploma?.includes(diploma));
+      .filter((diploma) => !expertise?.diploma?.includes(diploma));
 
     if (nonMatchingDiplomas.length) {
       nonMatching.diplomas = nonMatchingDiplomas;
@@ -140,8 +141,8 @@ export const getNonMatchingCriteria = (
 
   // Availability check
   if (additionalCriteria.availability?.length > 0) {
-    const missionStartDate = new Date(missionData.start_date ?? '');
-    const xpertAvailability = new Date(mission.availability ?? '');
+    const missionStartDate = new Date(missionData?.start_date ?? '');
+    const xpertAvailability = new Date(mission?.availability ?? '');
 
     if (additionalCriteria.availability.includes('yes')) {
       if (xpertAvailability > missionStartDate) {
@@ -152,7 +153,7 @@ export const getNonMatchingCriteria = (
 
   // Management check
   if (additionalCriteria.management?.length > 0) {
-    const hasLedTeam = experience.some((exp) => exp.has_led_team === 'true');
+    const hasLedTeam = experience?.some((exp) => exp.has_led_team === 'true');
 
     if (additionalCriteria.management.includes('yes') && !hasLedTeam) {
       nonMatching.management = ['yes'];
@@ -163,7 +164,7 @@ export const getNonMatchingCriteria = (
 
   // Handicap check
   if (additionalCriteria.handicap?.length > 0) {
-    const needsWorkstation = mission.workstation_needed === 'true';
+    const needsWorkstation = mission?.workstation_needed === 'true';
 
     if (additionalCriteria.handicap.includes('yes') && !needsWorkstation) {
       nonMatching.handicap = ['yes'];

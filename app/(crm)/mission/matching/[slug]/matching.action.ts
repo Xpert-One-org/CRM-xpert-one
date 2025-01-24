@@ -57,7 +57,7 @@ export async function getAllMatchedXperts(
     {} as Record<string, string[]>
   );
 
-  const { data, error } = await supabase
+  const { data, count, error } = await supabase
     .from('profile')
     .select(
       `
@@ -88,7 +88,8 @@ export async function getAllMatchedXperts(
         degree,
         maternal_language
       )
-    `
+    `,
+      { count: 'exact' }
     )
     .eq('role', 'xpert');
 
@@ -254,16 +255,16 @@ export async function getAllMatchedXperts(
 
   const enhancedXperts = matchedXperts
     .map((xpert) => {
-      const nonMatchingCriteria = getNonMatchingCriteria(
-        xpert as DBMatchedXpert,
-        missionData,
-        excludedCriteria || {},
-        Object.fromEntries(
+      const nonMatchingCriteria = getNonMatchingCriteria({
+        xpert: xpert as DBMatchedXpert,
+        excludedCriteria: excludedCriteria || {},
+        additionalCriteria: Object.fromEntries(
           Object.entries(additionalCriteria || {}).filter(
             ([key]) => !key.startsWith('secondary_')
           )
-        )
-      );
+        ),
+        missionData,
+      });
 
       const matchingScore = calculateTotalMatchingScore(
         xpert as DBMatchedXpert,
