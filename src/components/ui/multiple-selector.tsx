@@ -422,7 +422,7 @@ const MultipleSelector = React.forwardRef<
             {selected.map((option, index) => {
               return (
                 <Badge
-                  key={option?.key || option.value}
+                  key={option?.key || option?.value}
                   className={cn(
                     'data-[disabled]:bg-muted-foreground data-[disabled]:hover:bg-muted-foreground data-[disabled]:text-muted',
                     'data-[fixed]:bg-muted-foreground data-[fixed]:hover:bg-muted-foreground data-[fixed]:text-muted',
@@ -434,7 +434,7 @@ const MultipleSelector = React.forwardRef<
                   {option?.label}
                   {showIndividualX && (
                     <button
-                      aria-label={`Remove ${option.label}`}
+                      aria-label={`Remove ${option?.label}`}
                       className={cn(
                         'ml-1 rounded-sm opacity-50 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
 

@@ -40,9 +40,9 @@ export type DBMatchedXpert = DBProfileMission & {
   firstname: string;
   lastname: string;
   generated_id: string;
-  profile_mission: DBProfileMission;
-  profile_experience: DBProfileExperience[];
-  profile_expertise: DBProfileExpertise;
+  profile_mission?: DBProfileMission;
+  profile_experience?: DBProfileExperience[];
+  profile_expertise?: DBProfileExpertise;
   matchingScore: number;
   nonMatchingCriteria: Record<string, string[]>;
 };

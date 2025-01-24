@@ -9,7 +9,7 @@ import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 export default function SelectionPage(props: {
   params: Promise<{ slug: string }>;
 }) {
-  const { missions, fetchMissions } = useMissionStore();
+  const { missions, fetchUniqueMission } = useMissionStore();
   const params = use(props.params);
   const { slug } = params;
 
@@ -19,8 +19,8 @@ export default function SelectionPage(props: {
   );
 
   useEffect(() => {
-    fetchMissions();
-  }, [fetchMissions]);
+    fetchUniqueMission(missionNumber);
+  }, [fetchUniqueMission]);
 
   return (
     <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>

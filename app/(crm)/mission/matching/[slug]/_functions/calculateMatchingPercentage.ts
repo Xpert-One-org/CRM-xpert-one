@@ -9,29 +9,99 @@ const getTotalCriteriaCount = (
 ): number => {
   let count = 0;
 
-  if (missionData.job_title && !excludedCriteria.job_title?.length) count++;
-  if (missionData.post_type?.length && !excludedCriteria.post_type?.length)
+  if (missionData.job_title && !excludedCriteria.job_title?.length) {
+    console.log('CRITERE JOB TITLE : ', missionData.job_title);
     count++;
-  if (missionData.sector && !excludedCriteria.sector?.length) count++;
-  if (missionData.specialties?.length && !excludedCriteria.specialties?.length)
+  }
+  if (missionData.post_type?.length && !excludedCriteria.post_type?.length) {
+    console.log('CRITERE POST TYPE : ', missionData.post_type);
     count++;
-  if (missionData.expertises?.length && !excludedCriteria.expertises?.length)
+  }
+  if (missionData.sector && !excludedCriteria.sector?.length) {
+    console.log('CRITERE SECTOR : ', missionData.sector);
     count++;
-  if (missionData.diplomas?.length && !excludedCriteria.diplomas?.length)
+  }
+  if (
+    missionData.specialties?.length &&
+    !excludedCriteria.specialties?.length
+  ) {
+    console.log('CRITERE SPECIALTIES : ', missionData.specialties);
     count++;
-  if (missionData.languages?.length && !excludedCriteria.languages?.length)
+  }
+  if (missionData.expertises?.length && !excludedCriteria.expertises?.length) {
+    console.log('CRITERE EXPERTISES : ', missionData.expertises);
     count++;
+  }
+  if (missionData.diplomas?.length && !excludedCriteria.diplomas?.length) {
+    console.log('CRITERE DIPLOMAS : ', missionData.diplomas);
+    count++;
+  }
+  if (missionData.languages?.length && !excludedCriteria.languages?.length) {
+    console.log('CRITERE LANGUAGES : ', missionData.languages);
+    count++;
+  }
 
-  if (additionalCriteria.job_title?.length) count++;
-  if (additionalCriteria.post_type?.length) count++;
-  if (additionalCriteria.sector?.length) count++;
-  if (additionalCriteria.specialties?.length) count++;
-  if (additionalCriteria.expertises?.length) count++;
-  if (additionalCriteria.diplomas?.length) count++;
-  if (additionalCriteria.languages?.length) count++;
-  if (additionalCriteria.availability?.length) count++;
-  if (additionalCriteria.management?.length) count++;
-  if (additionalCriteria.handicap?.length) count++;
+  if (additionalCriteria.job_title?.length) {
+    console.log(
+      'CRITERE JOB TITLE ADDITIONNEL : ',
+      additionalCriteria.job_title
+    );
+    count++;
+  }
+  if (additionalCriteria.post_type?.length) {
+    console.log(
+      'CRITERE POST TYPE ADDITIONNEL : ',
+      additionalCriteria.post_type
+    );
+    count++;
+  }
+  if (additionalCriteria.sector?.length) {
+    console.log('CRITERE SECTOR ADDITIONNEL : ', additionalCriteria.sector);
+    count++;
+  }
+  if (additionalCriteria.specialties?.length) {
+    console.log(
+      'CRITERE SPECIALTIES ADDITIONNEL : ',
+      additionalCriteria.specialties
+    );
+    count++;
+  }
+  if (additionalCriteria.expertises?.length) {
+    console.log(
+      'CRITERE EXPERTISES ADDITIONNEL : ',
+      additionalCriteria.expertises
+    );
+    count++;
+  }
+  if (additionalCriteria.diplomas?.length) {
+    console.log('CRITERE DIPLOMAS ADDITIONNEL : ', additionalCriteria.diplomas);
+    count++;
+  }
+  if (additionalCriteria.languages?.length) {
+    console.log(
+      'CRITERE LANGUAGES ADDITIONNEL : ',
+      additionalCriteria.languages
+    );
+    count++;
+  }
+  if (additionalCriteria.availability?.length) {
+    console.log(
+      'CRITERE AVAILABILITY ADDITIONNEL : ',
+      additionalCriteria.availability
+    );
+    count++;
+  }
+  if (additionalCriteria.management?.length) {
+    console.log(
+      'CRITERE MANAGEMENT ADDITIONNEL : ',
+      additionalCriteria.management
+    );
+    count++;
+  }
+  if (additionalCriteria.handicap?.length) {
+    console.log('CRITERE HANDICAP ADDITIONNEL : ', additionalCriteria.handicap);
+    count++;
+  }
 
   return Math.max(1, count); // Ensure we don't divide by zero
 };
@@ -51,17 +121,19 @@ export const calculateMatchingPercentage = (
   const pointsPerCriteria = 100 / totalCriteria;
 
   // Get non-matching criteria
-  const nonMatchingCriteria: NonMatchingCriteria = getNonMatchingCriteria(
+  const nonMatchingCriteria: NonMatchingCriteria = getNonMatchingCriteria({
     xpert,
-    missionData,
     excludedCriteria,
-    additionalCriteria
-  );
+    additionalCriteria,
+    missionData,
+  });
 
   // Count number of non-matching criteria that have non-empty arrays
   const numberOfNonMatches = Object.entries(nonMatchingCriteria).filter(
     ([_, value]) => value && value.length > 0
   ).length;
+
+  console.log({ totalCriteria });
 
   // Calculate percentage based on matching criteria
   const matchingPercentage = 100 - numberOfNonMatches * pointsPerCriteria;
@@ -89,7 +161,7 @@ export const calculatePartialMatches = (
   let additionalPoints = 0;
 
   // Job Title
-  if (nonMatchingCriteria.job_title?.length && mission.job_titles) {
+  if (nonMatchingCriteria.job_title?.length && mission?.job_titles) {
     const requiredTitles = [
       ...(excludedCriteria.job_title ? [] : [missionData.job_title]),
       ...(additionalCriteria.job_title || []),
@@ -143,7 +215,7 @@ export const calculatePartialMatches = (
   }
 
   // Specialties
-  if (nonMatchingCriteria.specialties?.length && mission.specialties) {
+  if (nonMatchingCriteria.specialties?.length && mission?.specialties) {
     const requiredSpecialties = [
       ...(excludedCriteria.specialties ? [] : [missionData.specialties]),
       ...(additionalCriteria.specialties || []),
@@ -154,7 +226,7 @@ export const calculatePartialMatches = (
     );
 
     const matchingCount = requiredSpecialties.filter((specialty) =>
-      mission.specialties?.includes(specialty as string)
+      mission?.specialties?.includes(specialty as string)
     ).length;
 
     if (matchingCount > 0) {
@@ -164,7 +236,7 @@ export const calculatePartialMatches = (
   }
 
   // Expertises
-  if (nonMatchingCriteria.expertises?.length && mission.expertises) {
+  if (nonMatchingCriteria.expertises?.length && mission?.expertises) {
     const requiredExpertises = [
       ...(excludedCriteria.expertises ? [] : [missionData.expertises]),
       ...(additionalCriteria.expertises || []),
@@ -224,9 +296,11 @@ export const calculatePartialMatches = (
   }
 
   // Availability
-  if (nonMatchingCriteria.availability?.length && mission.availability) {
+  if (nonMatchingCriteria.availability?.length && mission?.availability) {
     const missionStartDate = new Date(missionData.start_date ?? '');
     const xpertAvailability = new Date(mission.availability);
+
+    console.log('Is xpert available ? ', xpertAvailability <= missionStartDate);
 
     if (
       additionalCriteria.availability?.includes('yes') &&
@@ -249,7 +323,7 @@ export const calculatePartialMatches = (
   }
 
   // Handicap
-  if (nonMatchingCriteria.handicap?.length && mission.workstation_needed) {
+  if (nonMatchingCriteria.handicap?.length && mission?.workstation_needed) {
     const needsWorkstation = mission.workstation_needed === 'true';
 
     if (
@@ -269,13 +343,14 @@ export const calculateTotalMatchingScore = (
   excludedCriteria: Record<string, string[]>,
   additionalCriteria: Record<string, string[]>
 ): number => {
-  const nonMatchingCriteria = getNonMatchingCriteria(
+  const nonMatchingCriteria = getNonMatchingCriteria({
     xpert,
     missionData,
     excludedCriteria,
-    additionalCriteria
-  );
+    additionalCriteria,
+  });
 
+  console.log({ nonMatchingCriteria });
   const baseMatchingScore = calculateMatchingPercentage(
     xpert,
     missionData,
