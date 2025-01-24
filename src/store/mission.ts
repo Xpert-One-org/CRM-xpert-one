@@ -10,6 +10,7 @@ import {
   getAllMissions,
   getLastMissionNumber,
   getMissionState,
+  getSpecificMission,
   searchMission,
   updateMissionState,
 } from '@functions/missions';
@@ -34,6 +35,7 @@ type MissionState = {
   page: number;
   setIsLoading: (loading: boolean) => void;
   fetchMissions: () => Promise<void>;
+  fetchUniqueMission: (missionId: string) => Promise<DBMission>;
   fetchLastMissionNumber: () => Promise<void>;
   resetPagination: () => void;
   fetchMissionsState: (selectedState: DBMissionState | null) => Promise<void>;
@@ -92,6 +94,26 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   },
   setActiveFilters: (filters) => set({ activeFilters: filters }),
   resetPagination: () => set({ page: 1, missions: [] }),
+  fetchUniqueMission: async (missionNumber: string): Promise<DBMission> => {
+    const formattedMissionNumber = missionNumber.replace('-', ' ');
+    const missionsAlreadyFetched = get().missions;
+    const existingMission = missionsAlreadyFetched.find(
+      (m) => m.mission_number === missionNumber
+    );
+    if (existingMission) {
+      return existingMission;
+    }
+
+    const { data } = await getSpecificMission(formattedMissionNumber);
+    if (!data) {
+      throw new Error('Mission not found');
+    }
+
+    set({
+      missions: [...missionsAlreadyFetched, data],
+    });
+    return data;
+  },
   fetchLastMissionNumber: async () => {
     const { data } = await getLastMissionNumber();
     set({ lastMissionNumber: data ?? '' });

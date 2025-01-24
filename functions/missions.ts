@@ -7,6 +7,45 @@ import type {
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
+export const getSpecificMission = async (
+  missionNumber: string
+): Promise<{ data: DBMission }> => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('mission')
+    .select(
+      `
+      *,
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+      xpert:profile!mission_xpert_associated_id_fkey(
+        *,
+        profile_status (
+          status
+        )
+      ),
+      supplier:profile!mission_created_by_fkey(*),
+      checkpoints:mission_checkpoints(*)
+    `
+    )
+    .eq('mission_number', missionNumber);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error('Mission not found');
+  }
+
+  const missionsWithCheckpoints = data?.map((mission) => ({
+    ...mission,
+    checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+  }));
+
+  return { data: missionsWithCheckpoints[0] };
+};
+
 export const getAllMissions = async (
   page: number = 1,
   limit: number = 10,
