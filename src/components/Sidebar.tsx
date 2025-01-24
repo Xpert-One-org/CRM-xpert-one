@@ -134,14 +134,35 @@ export default function Sidebar() {
                           const isSubActive =
                             sub.url === '/mission/fiche'
                               ? pathanmeWithoutParams.includes(subWithoutParams)
-                              : subWithoutParams === pathanmeWithoutParams;
+                              : sub.url === '/mission/matching'
+                                ? pathanmeWithoutParams.includes(
+                                    subWithoutParams
+                                  )
+                                : sub.url === '/mission/selection'
+                                  ? pathanmeWithoutParams.includes(
+                                      subWithoutParams
+                                    )
+                                  : sub.url ===
+                                      '/mission/activation-des-missions'
+                                    ? pathanmeWithoutParams.includes(
+                                        subWithoutParams
+                                      )
+                                    : subWithoutParams ===
+                                      pathanmeWithoutParams;
                           return (
                             <Link
                               key={sub.url}
                               href={
                                 sub.url === '/mission/fiche'
                                   ? `/mission/fiche/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
-                                  : sub.url
+                                  : sub.url === '/mission/matching'
+                                    ? `/mission/matching/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                                    : sub.url === '/mission/selection'
+                                      ? `/mission/selection/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                                      : sub.url ===
+                                          '/mission/activation-des-missions'
+                                        ? `/mission/activation-des-missions/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                                        : sub.url
                               }
                               className={cn('w-fit px-[10px] py-1 font-light', {
                                 'bg-dark_hard text-white': isSubActive,

@@ -17,7 +17,7 @@ export default function MissionActivationPage(props: {
 }) {
   const params = use(props.params);
   const missionNumber = params.slug.replaceAll('-', ' ');
-  const { missions, fetchMissions } = useMissionStore();
+  const { missions, fetchUniqueMission } = useMissionStore();
   const router = useRouter();
   const [allFilesUploaded, setAllFilesUploaded] = useState(false);
   const [fileStatuses, setFileStatuses] = useState<
@@ -92,8 +92,8 @@ export default function MissionActivationPage(props: {
   }, [missionData]);
 
   useEffect(() => {
-    fetchMissions();
-  }, [fetchMissions]);
+    fetchUniqueMission(missionNumber);
+  }, [fetchUniqueMission]);
 
   useEffect(() => {
     checkAllFilesStatus();
