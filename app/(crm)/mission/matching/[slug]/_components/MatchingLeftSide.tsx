@@ -114,7 +114,6 @@ export default function MatchingLeftSide({
 
   const handleExcludedCriteriaClick = (type: string, value: string) => {
     if (isIntern) return;
-    console.log('handleExcludedCriteriaClick', type, value);
     setExcludedCriteria((prev) => {
       const newSelected = { ...prev };
       if (!newSelected[type]) {
