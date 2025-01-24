@@ -13,7 +13,7 @@ import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 export default function MissionMatchingPage(props: {
   params: Promise<{ slug: string }>;
 }) {
-  const { missions, fetchMissions } = useMissionStore();
+  const { missions, fetchUniqueMission } = useMissionStore();
   const params = use(props.params);
   const { slug } = params;
   const missionNumber = slug.replace('-', ' ');
@@ -24,9 +24,9 @@ export default function MissionMatchingPage(props: {
   const { loadCriteria } = useMatchingCriteriaStore();
 
   useEffect(() => {
-    fetchMissions();
+    fetchUniqueMission(missionNumber);
     loadCriteria(missionData?.mission_number ?? '');
-  }, [fetchMissions, loadCriteria, missionData?.mission_number]);
+  }, [fetchUniqueMission, loadCriteria, missionData?.mission_number]);
 
   return (
     <>

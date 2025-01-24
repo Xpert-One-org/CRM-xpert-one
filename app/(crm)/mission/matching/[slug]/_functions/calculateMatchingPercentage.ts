@@ -51,12 +51,12 @@ export const calculateMatchingPercentage = (
   const pointsPerCriteria = 100 / totalCriteria;
 
   // Get non-matching criteria
-  const nonMatchingCriteria: NonMatchingCriteria = getNonMatchingCriteria(
+  const nonMatchingCriteria: NonMatchingCriteria = getNonMatchingCriteria({
     xpert,
-    missionData,
     excludedCriteria,
-    additionalCriteria
-  );
+    additionalCriteria,
+    missionData,
+  });
 
   // Count number of non-matching criteria that have non-empty arrays
   const numberOfNonMatches = Object.entries(nonMatchingCriteria).filter(
@@ -89,7 +89,7 @@ export const calculatePartialMatches = (
   let additionalPoints = 0;
 
   // Job Title
-  if (nonMatchingCriteria.job_title?.length && mission.job_titles) {
+  if (nonMatchingCriteria.job_title?.length && mission?.job_titles) {
     const requiredTitles = [
       ...(excludedCriteria.job_title ? [] : [missionData.job_title]),
       ...(additionalCriteria.job_title || []),
@@ -143,7 +143,7 @@ export const calculatePartialMatches = (
   }
 
   // Specialties
-  if (nonMatchingCriteria.specialties?.length && mission.specialties) {
+  if (nonMatchingCriteria.specialties?.length && mission?.specialties) {
     const requiredSpecialties = [
       ...(excludedCriteria.specialties ? [] : [missionData.specialties]),
       ...(additionalCriteria.specialties || []),
@@ -154,7 +154,7 @@ export const calculatePartialMatches = (
     );
 
     const matchingCount = requiredSpecialties.filter((specialty) =>
-      mission.specialties?.includes(specialty as string)
+      mission?.specialties?.includes(specialty as string)
     ).length;
 
     if (matchingCount > 0) {
@@ -164,7 +164,7 @@ export const calculatePartialMatches = (
   }
 
   // Expertises
-  if (nonMatchingCriteria.expertises?.length && mission.expertises) {
+  if (nonMatchingCriteria.expertises?.length && mission?.expertises) {
     const requiredExpertises = [
       ...(excludedCriteria.expertises ? [] : [missionData.expertises]),
       ...(additionalCriteria.expertises || []),
@@ -224,7 +224,7 @@ export const calculatePartialMatches = (
   }
 
   // Availability
-  if (nonMatchingCriteria.availability?.length && mission.availability) {
+  if (nonMatchingCriteria.availability?.length && mission?.availability) {
     const missionStartDate = new Date(missionData.start_date ?? '');
     const xpertAvailability = new Date(mission.availability);
 
@@ -249,7 +249,7 @@ export const calculatePartialMatches = (
   }
 
   // Handicap
-  if (nonMatchingCriteria.handicap?.length && mission.workstation_needed) {
+  if (nonMatchingCriteria.handicap?.length && mission?.workstation_needed) {
     const needsWorkstation = mission.workstation_needed === 'true';
 
     if (
@@ -269,12 +269,12 @@ export const calculateTotalMatchingScore = (
   excludedCriteria: Record<string, string[]>,
   additionalCriteria: Record<string, string[]>
 ): number => {
-  const nonMatchingCriteria = getNonMatchingCriteria(
+  const nonMatchingCriteria = getNonMatchingCriteria({
     xpert,
     missionData,
     excludedCriteria,
-    additionalCriteria
-  );
+    additionalCriteria,
+  });
 
   const baseMatchingScore = calculateMatchingPercentage(
     xpert,
