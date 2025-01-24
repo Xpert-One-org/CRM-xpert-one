@@ -143,9 +143,11 @@ export const getNonMatchingCriteria = ({
   if (additionalCriteria.availability?.length > 0) {
     const missionStartDate = new Date(missionData?.start_date ?? '');
     const xpertAvailability = new Date(mission?.availability ?? '');
-
+    console.log;
     if (additionalCriteria.availability.includes('yes')) {
       if (xpertAvailability > missionStartDate) {
+        nonMatching.availability = ['yes'];
+      } else {
         nonMatching.availability = ['yes'];
       }
     }
@@ -166,9 +168,7 @@ export const getNonMatchingCriteria = ({
   if (additionalCriteria.handicap?.length > 0) {
     const needsWorkstation = mission?.workstation_needed === 'true';
 
-    if (additionalCriteria.handicap.includes('yes') && !needsWorkstation) {
-      nonMatching.handicap = ['yes'];
-    } else if (additionalCriteria.handicap.includes('no') && needsWorkstation) {
+    if (additionalCriteria.handicap.includes('no') && !needsWorkstation) {
       nonMatching.handicap = ['no'];
     }
   }
