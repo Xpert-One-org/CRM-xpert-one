@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Logo from './svg/Logo';
 import LogoXpertCRM from './svg/LogoXpertCRM';
 
@@ -14,6 +14,7 @@ import { useSidebarOpenStore } from '@store/useSideBarOpen';
 import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
 import { useXpertStore } from '@/store/xpert';
+import { useMissionStore } from '@/store/mission';
 
 export default function Sidebar() {
   const { isSidebarOpen, toggleSidebar } = useSidebarOpenStore();
@@ -21,6 +22,7 @@ export default function Sidebar() {
   const [openSubMenus, setOpenSubMenus] = useState<string[]>(menuCrmIds);
   const sidebarOpenWidth = 'min-w-[260px]';
   const pathname = usePathname();
+  const { lastMissionNumber, fetchLastMissionNumber } = useMissionStore();
 
   const toggleSubMenu = (id: string, open?: boolean) => {
     open
@@ -39,6 +41,12 @@ export default function Sidebar() {
       toggleSubMenu(el.id.toString(), open);
     }
   };
+
+  useEffect(() => {
+    if (!lastMissionNumber) {
+      fetchLastMissionNumber();
+    }
+  }, []);
 
   return (
     <div className="relative hidden lg:block">
@@ -122,12 +130,19 @@ export default function Sidebar() {
                         {el.sub?.map((sub) => {
                           const pathanmeWithoutParams = pathname.split('?')[0];
                           const subWithoutParams = sub.url.split('?')[0];
+
                           const isSubActive =
-                            subWithoutParams === pathanmeWithoutParams;
+                            sub.url === '/mission/fiche'
+                              ? pathanmeWithoutParams.includes(subWithoutParams)
+                              : subWithoutParams === pathanmeWithoutParams;
                           return (
                             <Link
                               key={sub.url}
-                              href={sub.url}
+                              href={
+                                sub.url === '/mission/fiche'
+                                  ? `/mission/fiche/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                                  : sub.url
+                              }
                               className={cn('w-fit px-[10px] py-1 font-light', {
                                 'bg-dark_hard text-white': isSubActive,
                               })}

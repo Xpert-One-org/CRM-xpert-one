@@ -33,12 +33,14 @@ type Props = {
   showValue?: boolean;
   onClear?: () => void;
   showPlaceholderWithValue?: boolean;
+  showSelectedOption?: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 export default function Combobox({
   data,
   isLoading,
   className,
+  showSelectedOption = true,
   value,
   handleSetValue,
   placeholder,
@@ -53,6 +55,7 @@ export default function Combobox({
   onClear,
   showValue = true,
   showPlaceholderWithValue = true,
+
   ...props
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -81,7 +84,7 @@ export default function Combobox({
           >
             <div className="flex items-center gap-1">
               {showPlaceholderWithValue ? placeholder : ''}
-              {value && showValue && (
+              {value && showValue && showSelectedOption && (
                 <div>
                   <Badge className="flex items-center justify-center gap-1">
                     {value}

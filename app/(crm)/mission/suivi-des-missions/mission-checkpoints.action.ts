@@ -1,20 +1,11 @@
 'use server';
 
 import type { Database } from '@/types/supabase';
+import type { CheckpointField } from '@/types/types';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 
 type MissionCheckpoint =
   Database['public']['Tables']['mission_checkpoints']['Row'];
-type CheckpointField = keyof Pick<
-  MissionCheckpoint,
-  | 'point_j_moins_10_f'
-  | 'point_j_moins_10_x'
-  | 'point_j_plus_10_f'
-  | 'point_j_plus_10_x'
-  | 'point_j_plus_10_referent'
-  | 'point_rh_fin_j_plus_10_f'
-  | 'point_fin_j_moins_30'
->;
 
 type ToggleResponse = {
   data: MissionCheckpoint | null;

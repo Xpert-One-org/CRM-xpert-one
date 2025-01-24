@@ -34,6 +34,7 @@ type CountryMultiSelectProps = {
   placeholder?: string;
   searchPlaceholder?: string;
   className?: string;
+  showSelectedOption?: boolean;
 };
 
 export default function CountryMultiSelect({
@@ -43,6 +44,7 @@ export default function CountryMultiSelect({
   placeholder = 'Sélectionner des pays',
   searchPlaceholder = 'Rechercher un pays...',
   className,
+  showSelectedOption,
 }: CountryMultiSelectProps) {
   const [open, setOpen] = useState(false);
 
@@ -83,6 +85,7 @@ export default function CountryMultiSelect({
             <span className="text-sm">{placeholder}</span>
             <FilterSvg className="size-4" />
             {selectedValues.length > 0 &&
+              showSelectedOption &&
               selectedValues.map((value) => {
                 const option = options.find((opt) => opt.value === value);
                 return (

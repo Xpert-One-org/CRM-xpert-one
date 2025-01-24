@@ -9,6 +9,8 @@ import InfiniteScroll from '@/components/ui/infinite-scroll';
 import Loader from '@/components/Loader';
 import ComboboxSuivi from './ComboboxSuivi';
 import type { DBMission } from '@/types/typesDb';
+import { calculateDaysInfo } from '../_functions/day.actions';
+import { getBeforeStartColor } from '../_functions/getBoxColor';
 
 export default function SuiviMissionsTable() {
   const {
@@ -29,16 +31,12 @@ export default function SuiviMissionsTable() {
 
   const missionsOpen = useMemo(
     () =>
-      missions
-        .filter(
-          (mission) => mission.state === 'open' || mission.state === 'open_all'
-        )
-        .sort((a, b) => {
-          if (!a.start_date || !b.start_date) return 0;
-          return (
-            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-          );
-        }),
+      missions.sort((a, b) => {
+        if (!a.start_date || !b.start_date) return 0;
+        return (
+          new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+        );
+      }),
     [missions]
   );
 
@@ -49,27 +47,81 @@ export default function SuiviMissionsTable() {
   // Calcule des compteurs pour chaque type de point
   const checkpointCounts = useMemo(() => {
     return {
-      point_j_moins_10_f: missionsOpen.filter(
-        (m) => m.checkpoints?.[0]?.point_j_moins_10_f
+      point_j_moins_10_f: missionsOpen.filter((m) => {
+        const dateBefore = new Date(m.start_date ?? '');
+        dateBefore.setDate(dateBefore.getDate() - 10);
+        const daysInfo = calculateDaysInfo(dateBefore.toString(), null);
+        return (
+          !m.checkpoints?.[0]?.point_j_moins_10_f &&
+          (daysInfo.isPastStart ||
+            (daysInfo?.daysUntilStart !== null &&
+              daysInfo.daysUntilStart <= 10))
+        );
+      }).length,
+      point_j_moins_10_x: missionsOpen.filter((m) => {
+        const dateBefore = new Date(m.start_date ?? '');
+        dateBefore.setDate(dateBefore.getDate() - 10);
+        const daysInfo = calculateDaysInfo(dateBefore.toString(), null);
+        return (
+          !m.checkpoints?.[0]?.point_j_moins_10_x &&
+          (daysInfo.isPastStart ||
+            (daysInfo?.daysUntilStart !== null &&
+              daysInfo.daysUntilStart <= 10))
+        );
+      }).length,
+      point_j_plus_10_f: missionsOpen.filter((m) => {
+        const daysInfo = calculateDaysInfo(m.start_date, null);
+        return (
+          !m.checkpoints?.[0]?.point_j_plus_10_f &&
+          (daysInfo.isPastJPlus10 ||
+            (daysInfo.daysUntilJPlus10 !== null &&
+              daysInfo.daysUntilJPlus10 <= 5))
+        );
+      }).length,
+
+      point_j_plus_10_x: missionsOpen.filter((m) => {
+        const daysInfo = calculateDaysInfo(m.start_date, null);
+        return (
+          !m.checkpoints?.[0]?.point_j_plus_10_x &&
+          (daysInfo.isPastJPlus10 ||
+            (daysInfo.daysUntilJPlus10 !== null &&
+              daysInfo.daysUntilJPlus10 <= 5))
+        );
+      }).length,
+
+      point_trimestre_x: missionsOpen.filter(
+        (m) => m.checkpoints?.[0]?.point_trimestre_x
       ).length,
-      point_j_moins_10_x: missionsOpen.filter(
-        (m) => m.checkpoints?.[0]?.point_j_moins_10_x
-      ).length,
-      point_j_plus_10_f: missionsOpen.filter(
-        (m) => m.checkpoints?.[0]?.point_j_plus_10_f
-      ).length,
-      point_j_plus_10_x: missionsOpen.filter(
-        (m) => m.checkpoints?.[0]?.point_j_plus_10_x
-      ).length,
-      point_j_plus_10_referent: missionsOpen.filter(
-        (m) => m.checkpoints?.[0]?.point_j_plus_10_referent
-      ).length,
-      point_rh_fin_j_plus_10_f: missionsOpen.filter(
-        (m) => m.checkpoints?.[0]?.point_rh_fin_j_plus_10_f
-      ).length,
-      point_fin_j_moins_30: missionsOpen.filter(
-        (m) => m.checkpoints?.[0]?.point_fin_j_moins_30
-      ).length,
+
+      point_j_plus_10_referent: missionsOpen.filter((m) => {
+        const daysInfo = calculateDaysInfo(null, m.end_date);
+        return (
+          !m.checkpoints?.[0]?.point_j_plus_10_referent &&
+          (daysInfo.isPastEndPlus10 ||
+            (daysInfo.daysUntilEndPlus10 !== null &&
+              daysInfo.daysUntilEndPlus10 <= 5))
+        );
+      }).length,
+
+      point_rh_fin_j_plus_10_f: missionsOpen.filter((m) => {
+        const daysInfo = calculateDaysInfo(null, m.end_date);
+        return (
+          !m.checkpoints?.[0]?.point_rh_fin_j_plus_10_f &&
+          (daysInfo.isPastEndPlus10 ||
+            (daysInfo.daysUntilEndPlus10 !== null &&
+              daysInfo.daysUntilEndPlus10 <= 5))
+        );
+      }).length,
+
+      point_fin_j_moins_30: missionsOpen.filter((m) => {
+        const daysInfo = calculateDaysInfo(m.start_date, m.end_date);
+        return (
+          !m.checkpoints?.[0]?.point_fin_j_moins_30 &&
+          (daysInfo.isPastEndMinus30 ||
+            (daysInfo.daysUntilEndMinus30 !== null &&
+              daysInfo.daysUntilEndMinus30 <= 10))
+        );
+      }).length,
     };
   }, [missionsOpen]);
 
@@ -130,7 +182,7 @@ export default function SuiviMissionsTable() {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-11 gap-3">
+      <div className="grid grid-cols-12 gap-3">
         <FilterButton
           className="col-span-2"
           placeholder="Trier par"
@@ -154,7 +206,7 @@ export default function SuiviMissionsTable() {
         />
       </div>
 
-      <div className="grid grid-cols-11 gap-3">
+      <div className="grid grid-cols-12 gap-3">
         <FilterButton
           className="col-span-1"
           placeholder="Mission"
@@ -175,12 +227,12 @@ export default function SuiviMissionsTable() {
         />
         <FilterButton
           className="col-span-1"
-          placeholder="Point J-10 F"
+          placeholder="Point J-10 F (J-20)"
           filter={false}
         />
         <FilterButton
           className="col-span-1"
-          placeholder="Point J-10 X"
+          placeholder="Point J-10 X (J-20)"
           filter={false}
         />
         <FilterButton
@@ -195,12 +247,7 @@ export default function SuiviMissionsTable() {
         />
         <FilterButton
           className="col-span-1"
-          placeholder="Point Référent J+10"
-          filter={false}
-        />
-        <FilterButton
-          className="col-span-1"
-          placeholder="Point RH F J+10"
+          placeholder="Point Trimestre X"
           filter={false}
         />
         <FilterButton
@@ -210,12 +257,23 @@ export default function SuiviMissionsTable() {
         />
         <FilterButton
           className="col-span-1"
+          placeholder="Point Référent J+10"
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-1"
+          placeholder="Point RH F J+10"
+          filter={false}
+        />
+
+        <FilterButton
+          className="col-span-1"
           placeholder="Référent mission XPERT ONE"
           filter={false}
         />
       </div>
 
-      <div className="grid grid-cols-11 gap-3">
+      <div className="grid grid-cols-12 gap-3">
         <FilterButton
           className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
           placeholder="TOUS"
@@ -253,6 +311,16 @@ export default function SuiviMissionsTable() {
         />
         <FilterButton
           className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
+          placeholder={checkpointCounts.point_trimestre_x.toString()}
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
+          placeholder={checkpointCounts.point_fin_j_moins_30.toString()}
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
           placeholder={checkpointCounts.point_j_plus_10_referent.toString()}
           filter={false}
         />
@@ -261,11 +329,7 @@ export default function SuiviMissionsTable() {
           placeholder={checkpointCounts.point_rh_fin_j_plus_10_f.toString()}
           filter={false}
         />
-        <FilterButton
-          className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
-          placeholder={checkpointCounts.point_fin_j_moins_30.toString()}
-          filter={false}
-        />
+
         <FilterButton
           className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
           placeholder="TOUS"

@@ -8,6 +8,7 @@ import type {
 } from '@/types/typesDb';
 import {
   getAllMissions,
+  getLastMissionNumber,
   getMissionState,
   searchMission,
   updateMissionState,
@@ -26,12 +27,14 @@ export type FilterMission = {
 
 type MissionState = {
   missions: DBMission[];
+  lastMissionNumber: string;
   missionsNumbers: { mission_number: string | null }[];
   totalMissions: number;
   isLoading: boolean;
   page: number;
   setIsLoading: (loading: boolean) => void;
   fetchMissions: () => Promise<void>;
+  fetchLastMissionNumber: () => Promise<void>;
   resetPagination: () => void;
   fetchMissionsState: (selectedState: DBMissionState | null) => Promise<void>;
   searchMissions: (missionId: string) => Promise<void>;
@@ -73,6 +76,7 @@ type MissionState = {
 
 export const useMissionStore = create<MissionState>((set, get) => ({
   missions: [],
+  lastMissionNumber: '',
   inProgressMissions: [],
   missionsNumbers: [],
   totalMissions: 0,
@@ -88,6 +92,10 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   },
   setActiveFilters: (filters) => set({ activeFilters: filters }),
   resetPagination: () => set({ page: 1, missions: [] }),
+  fetchLastMissionNumber: async () => {
+    const { data } = await getLastMissionNumber();
+    set({ lastMissionNumber: data ?? '' });
+  },
   searchMissions: async (missionId: string) => {
     set({ isLoading: true });
     try {
@@ -114,16 +122,14 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         return;
       }
 
-      console.log('Fetching page:', page);
       const response = await getAllMissions(page, 10, {
         sortBy: {
           column: 'start_date',
           ascending: true,
           nullsLast: true,
         },
-        states: ['open', 'open_all'],
+        states: ['open', 'open_all', 'in_progress', 'finished'],
       });
-      console.log('Response:', response);
 
       if (page === 1) {
         set({

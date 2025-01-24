@@ -15,7 +15,7 @@ import { DBCollaboratorRole } from '@/types/typesDb';
 
 const taskQuery = `
   *,
-  created_by_profile:profile!tasks_created_by_fkey!inner(id, firstname, lastname, generated_id, role),
+  created_by_profile:profile!tasks_created_by_fkey(id, firstname, lastname, generated_id, role),
   assigned_to_profile:profile!tasks_assigned_to_fkey!inner(id, firstname, lastname, generated_id, role),
   xpert:profile!tasks_xpert_id_fkey(id, firstname, lastname, generated_id),
   supplier:profile!tasks_supplier_id_fkey(id, firstname, lastname, generated_id),

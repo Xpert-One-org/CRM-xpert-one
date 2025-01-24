@@ -3,6 +3,9 @@ import TabContent from '../_components/TabContent';
 import ChatContent from '../_components/ChatContent';
 import PopupNewChat from '../_components/PopupNewChat';
 import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
+import NotesSection from '../_components/NotesSection'; // Import the new component
+import ChatUserInfo from '../_components/ChatUserInfo';
+import ChatActions from '../_components/ChatActions';
 
 export default function MessageriePage() {
   return (
@@ -21,6 +24,15 @@ export default function MessageriePage() {
           <TabContent type="chat" />
           {/* Content */}
           <ChatContent type="chat" />
+          {/* Notes Section */}
+          <div className="ml-6 flex h-[calc(100vh_-_255px)] w-full flex-col lg:max-w-[300px]">
+            <div className="flex-1 space-y-4 overflow-y-auto">
+              <ChatUserInfo />
+              <NotesSection />
+              <ChatActions />
+              {/* Bouton action */}
+            </div>
+          </div>
         </section>
       </section>
     </ProtectedRoleRoutes>

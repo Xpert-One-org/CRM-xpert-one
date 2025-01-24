@@ -21,8 +21,13 @@ export const getAllMissions = async (
 ): Promise<{ missions: DBMission[]; total: number }> => {
   const supabase = await createSupabaseAppServerClient();
 
+  const { user } = (await supabase.auth.getUser()).data;
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
   const offset = (page - 1) * limit;
-  console.log('Fetching with offset:', offset, 'limit:', limit);
 
   let query = supabase.from('mission').select('*', {
     count: 'exact',
@@ -52,6 +57,16 @@ export const getAllMissions = async (
     `
   );
 
+  const { data: userData } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('id', user?.id ?? '')
+    .single();
+
+  if (userData && userData.role !== 'admin') {
+    mainQuery = mainQuery.eq('affected_referent_id', userData.id);
+  }
+
   // Appliquer le filtre d'état si spécifié
   if (options?.states) {
     mainQuery = mainQuery.in('state', options.states);
@@ -74,8 +89,6 @@ export const getAllMissions = async (
     console.error('Query error:', error);
     throw new Error(error.message);
   }
-
-  console.log('Fetched missions:', data?.length);
 
   const missionsWithCheckpoints = data?.map((mission) => ({
     ...mission,
@@ -142,8 +155,8 @@ export const searchMission = async (missionId: string) => {
 
   let query = supabase.from('mission').select('mission_number');
 
-  // Filtrer par état open ou open_all
-  query = query.in('state', ['open', 'open_all']);
+  // // Filtrer par état open ou open_all
+  // query = query.in('state', ['open', 'open_all']);
 
   if (missionId) {
     query = query.ilike('mission_number', `%${missionId}%`);
@@ -157,6 +170,22 @@ export const searchMission = async (missionId: string) => {
   return { data };
 };
 
+export const getLastMissionNumber = async () => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('mission')
+    .select('mission_number')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { data: data.mission_number };
+};
 export const updateMissionState = async (
   missionId: string,
   state: DBMissionState,
