@@ -114,7 +114,6 @@ export default function MatchingLeftSide({
 
   const handleExcludedCriteriaClick = (type: string, value: string) => {
     if (isIntern) return;
-    console.log('handleExcludedCriteriaClick', type, value);
     setExcludedCriteria((prev) => {
       const newSelected = { ...prev };
       if (!newSelected[type]) {
@@ -653,7 +652,7 @@ export default function MatchingLeftSide({
             />
           </div>
         )}
-        <div className="flex w-full gap-6">
+        {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
               Disponibilité durant la mission
@@ -678,7 +677,7 @@ export default function MatchingLeftSide({
                   : 'NON'}
             </Box>
           </div>
-        </div>
+        </div> */}
         {/* <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">

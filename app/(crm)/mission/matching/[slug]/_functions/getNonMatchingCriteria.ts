@@ -143,7 +143,6 @@ export const getNonMatchingCriteria = ({
   if (additionalCriteria.availability?.length > 0) {
     const missionStartDate = new Date(missionData?.start_date ?? '');
     const xpertAvailability = new Date(mission?.availability ?? '');
-    console.log;
     if (additionalCriteria.availability.includes('yes')) {
       if (xpertAvailability > missionStartDate) {
         nonMatching.availability = ['yes'];

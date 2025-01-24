@@ -9,6 +9,7 @@ import { getLabel } from '@/utils/getLabel';
 import { useSelect } from '@/store/select';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { formatDateSlash } from '@/utils/formatDates';
 
 export default function MatchingXpertsRow({
   matchedXpert,
@@ -41,10 +42,9 @@ export default function MatchingXpertsRow({
   const hasNonMatchingCriteria =
     Object.keys(matchedXpert.nonMatchingCriteria).length > 0;
 
-  const availability =
-    matchedXpert.profile_mission?.availability;
+  const availability = matchedXpert.profile_mission?.availability;
 
-  const isAvailable = availability && new Date(availability) > new Date();
+  const isAvailable = availability && new Date(availability) < new Date();
 
   useEffect(() => {
     fetchJobTitles();
@@ -170,7 +170,7 @@ export default function MatchingXpertsRow({
                         })}
                         {key === 'availability' && (
                           <span className="text-xs">
-                            {`Disponible à partir du ${availability}`}
+                            {`Disponible à partir du ${formatDateSlash(availability ?? '')}`}
                           </span>
                         )}
                         {key === 'handicap' && (
