@@ -12,6 +12,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 
+CREATE EXTENSION IF NOT EXISTS "pg_cron" WITH SCHEMA "pg_catalog";
+
+
+
+
+
+
 CREATE EXTENSION IF NOT EXISTS "pg_net" WITH SCHEMA "extensions";
 
 
@@ -518,10 +525,45 @@ $$;
 ALTER FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint, "p_xpert_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."check_and_create_mission_tasks"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$BEGIN
+    -- Insérer les tâches manquantes pour les missions à J-30
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT 
+        m.affected_referent_id,
+        'mission',
+        'Il reste moins de 30J avant la fin de remise de candidature pour la mission ' || m.mission_number,
+        m.id,
+        'urgent',
+        CURRENT_TIMESTAMP
+    FROM mission m
+    WHERE 
+        m.deadline_application - INTERVAL '30 days' <= CURRENT_DATE
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM tasks t 
+            WHERE 
+                t.mission_id = m.id AND 
+                t.details LIKE 'Il reste moins de 30J avant la fin de remise de candidature pour la mission ' || m.mission_number
+                
+        );
+END;$$;
+
+
+ALTER FUNCTION "public"."check_and_create_mission_tasks"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."check_mission_checkpoints"() RETURNS "void"
     LANGUAGE "plpgsql"
-    AS $$
-BEGIN
+    AS $$BEGIN
     -- Vérification J-10 FOURNISSEUR
     INSERT INTO tasks (
         assigned_to,
@@ -548,7 +590,7 @@ BEGIN
         AND NOT EXISTS (
             SELECT 1 FROM tasks t
             WHERE t.mission_id = m.id
-            AND t.details LIKE 'Point à J-10%'
+            AND t.details LIKE 'Point à J-10 à effectuer avec le fournisseur ' || p.generated_id || ' pour la mission ' || m.mission_number
         );
 
     -- Vérification J-10 XPERT
@@ -577,7 +619,7 @@ BEGIN
         AND NOT EXISTS (
             SELECT 1 FROM tasks t
             WHERE t.mission_id = m.id
-            AND t.details LIKE 'Point à J-10%'
+            AND t.details LIKE 'Point à J-10 à effectuer avec l''xpert ' || p.generated_id || ' pour la mission ' || m.mission_number
         );
 
     -- Vérification J+10 XPERT
@@ -606,10 +648,125 @@ BEGIN
         AND NOT EXISTS (
             SELECT 1 FROM tasks t
             WHERE t.mission_id = m.id
-            AND t.details LIKE 'Point à J+10%'
+            AND t.details LIKE 'Point à J+10 à effectuer avec l''xpert ' || p.generated_id || ' pour la mission ' || m.mission_number
         );
-END;
-$$;
+
+      -- Vérification J+10 FOURNISSEUR
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT
+        m.affected_referent_id,
+        'mission'::task_subject_type,
+        'Point à J+10 à effectuer avec le fournisseur ' || p.generated_id || ' pour la mission ' || m.mission_number,    
+        m.id,
+        'pending'::task_status,
+        NOW()
+    FROM mission m
+    JOIN mission_checkpoints mc ON mc.mission_id = m.id
+    JOIN profile p ON p.id = m.affected_referent_id
+    WHERE
+        m.start_date + INTERVAL '10 days' <= CURRENT_DATE
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+        AND NOT mc.point_j_plus_10_f
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t
+            WHERE t.mission_id = m.id
+            AND t.details LIKE 'Point à J+10 à effectuer avec le fournisseur ' || p.generated_id || ' pour la mission ' || m.mission_number
+        );
+
+     -- Vérification J-30 FIN DE MISSION XPERT 
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT
+        m.affected_referent_id,
+        'mission'::task_subject_type,
+        'Point à J-30 de la fin de mission, à effectuer avec l''xpert ' || p.generated_id || ' pour la mission ' || m.mission_number,    
+        m.id,
+        'pending'::task_status,
+        NOW()
+    FROM mission m
+    JOIN mission_checkpoints mc ON mc.mission_id = m.id
+    JOIN profile p ON p.id = m.affected_referent_id
+    WHERE
+        m.end_date - INTERVAL '30 days' <= CURRENT_DATE
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+        AND NOT mc.point_fin_j_moins_30
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t
+            WHERE t.mission_id = m.id
+            AND t.details LIKE 'Point à J-30 de la fin de mission, à effectuer avec l''xpert ' || p.generated_id || ' pour la mission ' || m.mission_number
+        );
+
+     -- Vérification J+10 FIN DE MISSION FOURNISSEUR
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT
+        m.affected_referent_id,
+        'mission'::task_subject_type,
+        'Point à J+10 de la fin de mission, à effectuer avec le fournisseur ' || p.generated_id || ' pour la mission ' || m.mission_number,    
+        m.id,
+        'pending'::task_status,
+        NOW()
+    FROM mission m
+    JOIN mission_checkpoints mc ON mc.mission_id = m.id
+    JOIN profile p ON p.id = m.affected_referent_id
+    WHERE
+        m.end_date + INTERVAL '10 days' <= CURRENT_DATE
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+        AND NOT mc.point_rh_fin_j_plus_10_f
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t
+            WHERE t.mission_id = m.id
+            AND t.details LIKE 'Point à J+10 de la fin de mission, à effectuer avec le fournisseur ' || p.generated_id || ' pour la mission ' || m.mission_number
+        );
+
+        -- Vérification J+10 FIN DE MISSION REFERENT
+    INSERT INTO tasks (
+        assigned_to,
+        subject_type,
+        details,
+        mission_id,
+        status,
+        created_at
+    )
+    SELECT
+        m.affected_referent_id,
+        'mission'::task_subject_type,
+        'Point à J+10 de la fin de mission, à effectuer avec le référent pour la mission ' || m.mission_number,    
+        m.id,
+        'pending'::task_status,
+        NOW()
+    FROM mission m
+    JOIN mission_checkpoints mc ON mc.mission_id = m.id
+    JOIN profile p ON p.id = m.affected_referent_id
+    WHERE
+        m.end_date + INTERVAL '10 days' <= CURRENT_DATE
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+        AND NOT mc.point_j_plus_10_referent
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t
+            WHERE t.mission_id = m.id
+            AND t.details LIKE 'Point à J+10 de la fin de mission, à effectuer avec le référent pour la mission ' || m.mission_number
+        );
+END;$$;
 
 
 ALTER FUNCTION "public"."check_mission_checkpoints"() OWNER TO "postgres";
@@ -1056,6 +1213,58 @@ end;$$;
 ALTER FUNCTION "public"."notify_email_confirmation"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."notify_mission_state"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    receiver_id UUID;
+    number_mission TEXT;
+BEGIN
+    -- Récupérer le mission_number pour éviter la duplication
+    WITH mission_info AS (
+        SELECT mission_number 
+        FROM mission 
+        WHERE id = NEW.id
+    ),
+    mission_receivers AS (
+        SELECT DISTINCT p.id 
+        FROM mission m
+        JOIN profile p ON p.id IN (
+            m.affected_referent_id, 
+            m.created_by, 
+            m.xpert_associated_id
+        )
+        WHERE m.id = NEW.id
+    )
+    -- Insérer les notifications pour les destinataires
+    INSERT INTO notification (
+        user_id,
+        link,
+        message,
+        subject,
+        status,
+        is_global,
+        category,
+        created_at
+    )
+    SELECT 
+        id,
+        'mission/fiche/' || REPLACE(mission_info.mission_number, ' ', '-'),  -- Utilisation de mission_info.mission_number
+        'La mission ' || mission_info.mission_number || 
+        ' est passée de l''état ' || OLD.state || ' à l''état ' || NEW.state,
+        'Mission',
+        'info'::notification_status,
+        false,
+        null,
+        NOW()
+    FROM mission_receivers, mission_info;  -- Joindre mission_info p
+
+    RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_mission_state"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."notify_new_conversation"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$DECLARE
@@ -1365,6 +1574,25 @@ END;$$;
 
 
 ALTER FUNCTION "public"."notify_task_done"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_welcome_call_done"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    PERFORM create_notification(
+        NEW.affected_referent_id,
+        'xpert?id=' || NEW.generated_id,
+        'XPERT',
+        'Call de bienvenue effectué pour l''Xpert ' || NEW.generated_id,
+        'standard'::notification_status
+    );
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."notify_welcome_call_done"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."set_unique_slug"() RETURNS "trigger"
@@ -2967,6 +3195,10 @@ CREATE OR REPLACE TRIGGER "create_checkpoints_after_mission_insert" AFTER INSERT
 
 
 
+CREATE OR REPLACE TRIGGER "mission_state_change_trigger" AFTER UPDATE OF "state" ON "public"."mission" FOR EACH ROW WHEN (("old"."state" IS DISTINCT FROM "new"."state")) EXECUTE FUNCTION "public"."notify_mission_state"();
+
+
+
 CREATE OR REPLACE TRIGGER "notify_new_chat_trigger" AFTER INSERT ON "public"."chat" FOR EACH ROW WHEN (("new"."type" = 'chat'::"public"."chat_type")) EXECUTE FUNCTION "public"."notify_new_conversation"();
 
 
@@ -2976,6 +3208,10 @@ CREATE OR REPLACE TRIGGER "notify_new_echo_message_trigger" AFTER INSERT ON "pub
 
 
 CREATE OR REPLACE TRIGGER "notify_new_forum_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_forum_message"();
+
+
+
+CREATE OR REPLACE TRIGGER "notify_welcome_call_trigger" AFTER UPDATE OF "get_welcome_call" ON "public"."profile" FOR EACH ROW WHEN ((("new"."get_welcome_call" = true) AND ("old"."get_welcome_call" IS DISTINCT FROM true))) EXECUTE FUNCTION "public"."notify_welcome_call_done"();
 
 
 
@@ -3780,21 +4016,14 @@ ALTER TABLE "public"."tasks" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."xpert_notes" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE PUBLICATION "realtime_messages_publication_v2_34_1" WITH (publish = 'insert, update, delete, truncate');
-
-
--- ALTER PUBLICATION "realtime_messages_publication_v2_34_1" OWNER TO "supabase_admin";
-
-
 
 
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 
 
-CREATE PUBLICATION "supabase_realtime_messages_publication_v2_34_2" WITH (publish = 'insert, update, delete, truncate');
+CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
--- ALTER PUBLICATION "supabase_realtime_messages_publication_v2_34_2" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";
@@ -3812,10 +4041,34 @@ ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."notification";
 
 
 
+
+
+
 GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4071,6 +4324,12 @@ GRANT ALL ON FUNCTION "public"."calculate_matching_score"("p_mission_id" bigint,
 
 
 
+GRANT ALL ON FUNCTION "public"."check_and_create_mission_tasks"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_and_create_mission_tasks"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_and_create_mission_tasks"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "anon";
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "service_role";
@@ -4179,6 +4438,12 @@ GRANT ALL ON FUNCTION "public"."notify_email_confirmation"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."notify_mission_state"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_mission_state"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_mission_state"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "anon";
 GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notify_new_conversation"() TO "service_role";
@@ -4212,6 +4477,12 @@ GRANT ALL ON FUNCTION "public"."notify_new_task"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "anon";
 GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_welcome_call_done"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_welcome_call_done"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_welcome_call_done"() TO "service_role";
 
 
 
@@ -4282,6 +4553,12 @@ GRANT ALL ON FUNCTION "public"."update_timestamp"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."update_xpert_notes_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_xpert_notes_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_xpert_notes_updated_at"() TO "service_role";
+
+
+
+
+
+
 
 
 

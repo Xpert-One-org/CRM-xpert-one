@@ -91,7 +91,6 @@ export async function getAllMatchedXperts(
     `,
       { count: 'exact' }
     )
-    .eq('generated_id', 'X 7360')
     .eq('role', 'xpert');
 
   if (error) {
