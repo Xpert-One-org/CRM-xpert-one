@@ -68,7 +68,10 @@ export default function UploadFileDialog({
 
       const { error } = await supabase.storage
         .from('mission_files')
-        .upload(filePath, selectedFile);
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: true,
+        });
 
       if (error) {
         toast.error("Erreur lors de l'upload du fichier");

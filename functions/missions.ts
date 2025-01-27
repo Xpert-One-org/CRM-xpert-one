@@ -172,7 +172,9 @@ export const getMissionState = async (
       query = query.eq('state', state);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.order('start_date', {
+      ascending: true,
+    });
 
     if (error) {
       throw new Error(error.message);

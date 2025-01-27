@@ -13,6 +13,7 @@ export async function checkFileExists(
     : `${missionData.mission_number}/${missionData.xpert?.generated_id}/${isFacturation ? 'facturation' : 'activation'}/${type}`;
 
   try {
+    console.log('Checking file existence:', filePath);
     const { data: files, error } = await supabase.storage
       .from('mission_files')
       .list(filePath);

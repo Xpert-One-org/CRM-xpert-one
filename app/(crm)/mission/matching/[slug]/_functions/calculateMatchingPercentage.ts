@@ -10,78 +10,78 @@ const getTotalCriteriaCount = (
   let count = 0;
 
   if (missionData.job_title && !excludedCriteria.job_title?.length) {
-    console.log('CRITERE JOB TITLE : ', missionData.job_title);
+    // console.log('CRITERE JOB TITLE : ', missionData.job_title);
     count++;
   }
   if (missionData.post_type?.length && !excludedCriteria.post_type?.length) {
-    console.log('CRITERE POST TYPE : ', missionData.post_type);
+    // console.log('CRITERE POST TYPE : ', missionData.post_type);
     count++;
   }
   if (missionData.sector && !excludedCriteria.sector?.length) {
-    console.log('CRITERE SECTOR : ', missionData.sector);
+    // console.log('CRITERE SECTOR : ', missionData.sector);
     count++;
   }
   if (
     missionData.specialties?.length &&
     !excludedCriteria.specialties?.length
   ) {
-    console.log('CRITERE SPECIALTIES : ', missionData.specialties);
+    // console.log('CRITERE SPECIALTIES : ', missionData.specialties);
     count++;
   }
   if (missionData.expertises?.length && !excludedCriteria.expertises?.length) {
-    console.log('CRITERE EXPERTISES : ', missionData.expertises);
+    // console.log('CRITERE EXPERTISES : ', missionData.expertises);
     count++;
   }
   if (missionData.diplomas?.length && !excludedCriteria.diplomas?.length) {
-    console.log('CRITERE DIPLOMAS : ', missionData.diplomas);
+    // console.log('CRITERE DIPLOMAS : ', missionData.diplomas);
     count++;
   }
   if (missionData.languages?.length && !excludedCriteria.languages?.length) {
-    console.log('CRITERE LANGUAGES : ', missionData.languages);
+    // console.log('CRITERE LANGUAGES : ', missionData.languages);
     count++;
   }
 
   if (additionalCriteria.job_title?.length) {
-    console.log(
-      'CRITERE JOB TITLE ADDITIONNEL : ',
-      additionalCriteria.job_title
-    );
+    // console.log(
+    //   'CRITERE JOB TITLE ADDITIONNEL : ',
+    //   additionalCriteria.job_title
+    // );
     count++;
   }
   if (additionalCriteria.post_type?.length) {
-    console.log(
-      'CRITERE POST TYPE ADDITIONNEL : ',
-      additionalCriteria.post_type
-    );
+    // console.log(
+    //   'CRITERE POST TYPE ADDITIONNEL : ',
+    //   additionalCriteria.post_type
+    // );
     count++;
   }
   if (additionalCriteria.sector?.length) {
-    console.log('CRITERE SECTOR ADDITIONNEL : ', additionalCriteria.sector);
+    // console.log('CRITERE SECTOR ADDITIONNEL : ', additionalCriteria.sector);
     count++;
   }
   if (additionalCriteria.specialties?.length) {
-    console.log(
-      'CRITERE SPECIALTIES ADDITIONNEL : ',
-      additionalCriteria.specialties
-    );
+    // console.log(
+    //   'CRITERE SPECIALTIES ADDITIONNEL : ',
+    //   additionalCriteria.specialties
+    // );
     count++;
   }
   if (additionalCriteria.expertises?.length) {
-    console.log(
-      'CRITERE EXPERTISES ADDITIONNEL : ',
-      additionalCriteria.expertises
-    );
+    // console.log(
+    //   'CRITERE EXPERTISES ADDITIONNEL : ',
+    //   additionalCriteria.expertises
+    // );
     count++;
   }
   if (additionalCriteria.diplomas?.length) {
-    console.log('CRITERE DIPLOMAS ADDITIONNEL : ', additionalCriteria.diplomas);
+    // console.log('CRITERE DIPLOMAS ADDITIONNEL : ', additionalCriteria.diplomas);
     count++;
   }
   if (additionalCriteria.languages?.length) {
-    console.log(
-      'CRITERE LANGUAGES ADDITIONNEL : ',
-      additionalCriteria.languages
-    );
+    // console.log(
+    //   'CRITERE LANGUAGES ADDITIONNEL : ',
+    //   additionalCriteria.languages
+    // );
     count++;
   }
   // if (additionalCriteria.availability?.length) {
@@ -92,14 +92,14 @@ const getTotalCriteriaCount = (
   //   count++;
   // }
   if (additionalCriteria.management?.length) {
-    console.log(
-      'CRITERE MANAGEMENT ADDITIONNEL : ',
-      additionalCriteria.management
-    );
+    // console.log(
+    //   'CRITERE MANAGEMENT ADDITIONNEL : ',
+    //   additionalCriteria.management
+    // );
     count++;
   }
   if (additionalCriteria.handicap?.length) {
-    console.log('CRITERE HANDICAP ADDITIONNEL : ', additionalCriteria.handicap);
+    // console.log('CRITERE HANDICAP ADDITIONNEL : ', additionalCriteria.handicap);
     count++;
   }
 
