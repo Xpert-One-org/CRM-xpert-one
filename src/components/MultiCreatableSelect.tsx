@@ -31,6 +31,9 @@ type MultiCreatableSelectProps = {
   isLoading?: boolean;
   mutate?: () => void;
   label?: string;
+  hasError?: boolean;
+  placeholder?: string;
+  required?: boolean;
   name?: string;
   id?: string;
   onChange?: (options: Option[]) => void;
@@ -96,6 +99,9 @@ export default function MultiCreatableSelect({
   className,
   classNameLabel,
   isLoading = false,
+  placeholder = 'Choisir',
+  required = false,
+  hasError,
   mutate,
   name,
   label,
@@ -175,7 +181,7 @@ export default function MultiCreatableSelect({
     <div className={cn('w-full font-light', className)}>
       {label && (
         <Label htmlFor={id} className={cn('flex items-center', classNameLabel)}>
-          {label}
+          {label} {required && <span className="text-accent">*</span>}
         </Label>
       )}
       <input type="hidden" name={name} value={state.values.join(',')} />
@@ -184,7 +190,7 @@ export default function MultiCreatableSelect({
           open={state.open}
           onOpenChange={(open) => dispatch({ type: 'SET_OPEN', payload: open })}
         >
-          <PopoverTrigger asChild>
+          <PopoverTrigger asChild className="min-w-[200px]">
             <Button
               id={id}
               variant="outline"
@@ -192,7 +198,8 @@ export default function MultiCreatableSelect({
               aria-expanded={state.open}
               className={cn(
                 'h-auto min-h-[2.5rem] w-full justify-between bg-white pr-12 font-light hover:border-primary',
-                !state.values.length && 'text-muted-foreground'
+                !state.values.length && 'text-muted-foreground',
+                { 'border-important': hasError }
               )}
               disabled={isLoading}
             >
@@ -225,7 +232,7 @@ export default function MultiCreatableSelect({
                 ) : isLoading ? (
                   <Loader2Icon className="size-4 animate-spin" />
                 ) : (
-                  ''
+                  placeholder
                 )}
               </div>
               <ChevronDown className="absolute right-3 size-4 shrink-0 opacity-50" />

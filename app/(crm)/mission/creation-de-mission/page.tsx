@@ -8,10 +8,17 @@ import SelectComponent from '@/components/SelectComponent';
 import Separator from '@/components/Separator';
 import {
   booleanSelect,
+  degreeSelect,
   energyRenewableSelect,
   energySelect,
+  expertiseSelect,
+  infrastructureSelect,
+  jobTitleSelect,
+  languageSelect,
   postTypesSelect,
   profilSearchedSelect,
+  sectorSelect,
+  specialitySelect,
   wasteTreatmentSelect,
 } from '@/data/mocked_select';
 import { cn } from '@/lib/utils';
@@ -43,6 +50,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import CreatableSelect from '@/components/CreatableSelect';
+import { getLabel } from '@/utils/getLabel';
+import MultiCreatableSelect from '@/components/MultiCreatableSelect';
 
 export default function Page() {
   const [mission, setMission] = useState<DBMission>(emptyMission);
@@ -81,27 +91,6 @@ export default function Page() {
     useField({ user: mission, page: 'creation_mission' });
 
   const {
-    diplomas: diplomasSelect,
-    expertises: expertisesSelect,
-    infrastructures: infrastructuresSelect,
-    jobTitles: jobTitlesSelect,
-    languages: languagesSelect,
-    sectors: sectorsSelect,
-    specialities: specialtiesSelect,
-    loadingDiplomas,
-    loadingExpertises,
-    loadingInfrastructures,
-    loadingJobTitles,
-    loadingLanguages,
-    loadingSectors,
-    loadingSpecialties,
-    fetchDiplomas,
-    fetchExpertises,
-    fetchInfrastructures,
-    fetchJobTitles,
-    fetchLanguages,
-    fetchSectors,
-    fetchSpecialties,
     addDiploma,
     addExpertise,
     addJobTitle,
@@ -356,13 +345,13 @@ export default function Page() {
 
   useEffect(() => {
     getCountries();
-    fetchSectors();
-    fetchJobTitles();
-    fetchSpecialties();
-    fetchExpertises();
-    fetchDiplomas();
-    fetchLanguages();
-    fetchInfrastructures();
+    // fetchSectors();
+    // fetchJobTitles();
+    // fetchSpecialties();
+    // fetchExpertises();
+    // fetchDiplomas();
+    // fetchLanguages();
+    // fetchInfrastructures();
   }, []);
 
   useEffect(() => {
@@ -379,302 +368,214 @@ export default function Page() {
 
         {/* Line 1 */}
         <div className="flex w-full flex-wrap gap-x-spaceContainer gap-y-spaceSmall">
-          <SelectComponent
+          <CreatableSelect
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.profile_searched?.name as keyof UserType
             )}
-            className="xl:max-w-[165px]"
-            classNameLabel="h-spaceContainer"
-            label={creationMissionData.profile_searched?.label}
+            className="xl:w-fit"
+            label={'Profil recherché'}
             options={profilSearchedSelect}
-            defaultSelectedKeys={
-              loadingJobTitles ? null : (profile_searched ?? '')
-            }
-            name={creationMissionData.profile_searched?.name ?? ''}
+            defaultValue={{
+              label: '',
+              value: '',
+            }}
             required
-            onValueChange={handleChangeSelect}
-            disabled={loadingJobTitles}
+            onChange={(e) => handleChangeSelect(e.value, 'profile_searched')}
           />
 
-          <ComboboxSelect
+          <CreatableSelect
+            required
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.job_title?.name as keyof UserType
             )}
-            label={creationMissionData.job_title?.label}
-            options={jobTitlesSelect}
-            defaultSelectedKeys={loadingJobTitles ? null : (job_title ?? '')}
-            name={creationMissionData.job_title?.name ?? ''}
-            required
-            onValueChange={handleChangeSelect}
+            className="xl:w-fit"
+            options={jobTitleSelect}
+            creatable
+            defaultValue={{
+              label: '',
+              value: '',
+            }}
+            onChange={(e) => handleChangeSelect(e.value, 'job_title')}
+            label={'Intitulé de poste'}
           />
 
-          {job_title == 'other' && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.job_title_other?.name as keyof UserType
-              )}
-              label={creationMissionData.job_title_other?.label}
-              name={creationMissionData.job_title_other?.name ?? ''}
-              placeholder="Préciser votre intitulé de mission"
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
-            />
-          )}
-
-          <MultiSelectComponent
+          <MultiCreatableSelect
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.post_type?.name as keyof UserType
             )}
             label={creationMissionData.post_type?.label}
             options={postTypesSelect}
             placeholder={'Type de poste'}
-            defaultSelectedKeys={post_type ?? []}
+            className="w-fit"
+            defaultValue={[]}
             name={creationMissionData.post_type?.name ?? ''}
             required
-            onValueChange={handleChangeSelect}
+            onChange={(selectedOption) => {
+              const values = selectedOption.map((option) => option.value);
+              handleChangeSelect(values, 'post_type');
+            }}
           />
 
-          <ComboboxSelect
+          <CreatableSelect
             label={creationMissionData.sector?.label}
+            creatable
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.sector?.name as keyof UserType
             )}
-            options={sectorsSelect}
-            placeholder={loadingSectors ? 'Chargement...' : 'Choisir'}
-            defaultSelectedKeys={loadingSectors ? null : (sector ?? '')}
+            options={sectorSelect}
+            placeholder={'Choisir'}
+            className="w-fit"
+            defaultValue={{
+              label: '',
+              value: '',
+            }}
             name={creationMissionData.sector?.name ?? ''}
             required
-            onValueChange={handleChangeSelect}
+            onChange={(e) => handleChangeSelect(e.value, 'sector')}
           />
 
           {sector == 'energy' && (
-            <SelectComponent
+            <CreatableSelect
               hasError={checkIfRequiredAndNotMissing(
                 creationMissionData.sector_energy?.name as keyof UserType
               )}
-              className="xpertise_input"
-              defaultSelectedKeys={sector_energy ?? ''}
+              className="xpertise_input w-fit"
+              defaultValue={{
+                label: '',
+                value: '',
+              }}
               placeholder="Choisir"
               options={energySelect}
               label={creationMissionData.sector_energy?.label}
-              name={creationMissionData.sector_energy?.name ?? ''}
               required
-              onValueChange={handleChangeSelect}
-            />
-          )}
-
-          {sector == 'others' && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.sector_other?.name as keyof UserType
-              )}
-              label={creationMissionData.sector_other?.label}
-              name={creationMissionData.sector_other?.name ?? ''}
-              placeholder="Préciser vos autres secteurs d'activités"
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
+              onChange={(e) => handleChangeSelect(e.value, 'sector_energy')}
             />
           )}
 
           {sector == 'renewable_energy' && (
-            <SelectComponent
+            <CreatableSelect
               hasError={checkIfRequiredAndNotMissing(
                 creationMissionData.sector_renewable_energy
                   ?.name as keyof UserType
               )}
-              className="xpertise_input"
-              defaultSelectedKeys={sector_renewable_energy ?? ''}
+              className="xpertise_input w-fit"
+              defaultValue={{
+                label: '',
+                value: '',
+              }}
               placeholder="Choisir"
               options={energyRenewableSelect}
               label={creationMissionData.sector_renewable_energy?.label}
-              name={creationMissionData.sector_renewable_energy?.name ?? ''}
               required
-              onValueChange={handleChangeSelect}
-            />
-          )}
-
-          {(sector_renewable_energy == 'others' ||
-            sector_renewable_energy == 'other') && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.sector_renewable_energy_other
-                  ?.name as keyof UserType
-              )}
-              label={creationMissionData.sector_renewable_energy_other?.label}
-              name={creationMissionData.sector_renewable_energy_other?.name}
-              placeholder="Préciser votre énergie renouvelable"
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
+              onChange={(e) =>
+                handleChangeSelect(e.value, 'sector_renewable_energy')
+              }
             />
           )}
 
           {sector == 'waste_treatment' && (
-            <SelectComponent
+            <CreatableSelect
               hasError={checkIfRequiredAndNotMissing(
                 creationMissionData.sector_waste_treatment
                   ?.name as keyof UserType
               )}
-              className="xpertise_input"
-              defaultSelectedKeys={sector_waste_treatment ?? ''}
+              className="xpertise_input w-fit"
               placeholder="Choisir"
               options={wasteTreatmentSelect}
               label={creationMissionData.sector_waste_treatment?.label}
-              name={creationMissionData.sector_waste_treatment?.name ?? ''}
               required
-              onValueChange={handleChangeSelect}
+              onChange={(e) =>
+                handleChangeSelect(e.value, 'sector_waste_treatment')
+              }
             />
           )}
 
           {sector == 'infrastructure' && (
-            <SelectComponent
+            <CreatableSelect
               hasError={checkIfRequiredAndNotMissing(
                 creationMissionData.sector_infrastructure
                   ?.name as keyof UserType
               )}
-              className="xpertise_input"
-              defaultSelectedKeys={
-                loadingInfrastructures ? null : (sector_infrastructure ?? '')
-              }
-              placeholder={loadingInfrastructures ? 'Chargement...' : 'Choisir'}
-              options={infrastructuresSelect}
+              className="xpertise_input w-fit"
+              defaultValue={{
+                label: '',
+                value: '',
+              }}
+              placeholder={'Choisir'}
+              options={infrastructureSelect}
               label={creationMissionData.sector_infrastructure?.label}
               name={creationMissionData.sector_infrastructure?.name ?? ''}
               required
-              onValueChange={handleChangeSelect}
-              disabled={loadingInfrastructures}
-            />
-          )}
-          {(sector_infrastructure == 'others' ||
-            sector_infrastructure == 'other') && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.sector_infrastructure_other
-                  ?.name as keyof UserType
-              )}
-              label={creationMissionData.sector_infrastructure_other?.label}
-              name={creationMissionData.sector_infrastructure_other?.name}
-              placeholder="Préciser votre infrastructure"
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
+              onChange={(e) =>
+                handleChangeSelect(e.value, 'sector_infrastructure')
+              }
             />
           )}
 
-          <MultiSelectComponent
+          <MultiCreatableSelect
+            creatable
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.specialties?.name as keyof UserType
             )}
             label={creationMissionData.specialties?.label}
-            options={specialtiesSelect}
-            placeholder={loadingSpecialties ? 'Chargement...' : 'Spécialités'}
-            defaultSelectedKeys={
-              loadingSpecialties ? null : (specialties ?? [])
-            }
+            options={specialitySelect}
+            placeholder={'Spécialités'}
+            className="w-fit"
             name={creationMissionData.specialties?.name ?? ''}
             required
-            onValueChange={handleChangeSelect}
-            disabled={loadingSpecialties}
+            onChange={(selectedOption) => {
+              const values = selectedOption.map((option) => option.value);
+              handleChangeSelect(values, 'specialties');
+            }}
           />
 
-          {specialties?.includes('others') && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.specialties_other?.name as keyof UserType
-              )}
-              label={creationMissionData.specialties_other?.label}
-              name={creationMissionData.specialties_other?.name}
-              placeholder="Préciser la spécialité"
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
-            />
-          )}
-
-          <MultiSelectComponent
+          <MultiCreatableSelect
+            creatable
             label={creationMissionData.expertises?.label}
+            className="w-fit"
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.expertises?.name as keyof UserType
             )}
-            options={expertisesSelect}
-            placeholder={loadingExpertises ? 'Chargement...' : 'Expertise'}
-            defaultSelectedKeys={loadingExpertises ? null : (expertises ?? [])}
-            name={creationMissionData.expertises?.name ?? ''}
+            options={expertiseSelect}
+            placeholder={'Expertise'}
             required
-            onValueChange={handleChangeSelect}
-            disabled={loadingExpertises}
+            onChange={(selectedOption) => {
+              const values = selectedOption.map((option) => option.value);
+              handleChangeSelect(values, 'expertises');
+            }}
           />
 
-          {expertises?.includes('others') && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.expertises_other?.name as keyof UserType
-              )}
-              label={creationMissionData.expertises_other?.label}
-              name={creationMissionData.expertises_other?.name ?? ''}
-              placeholder="Préciser l'expertise"
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
-            />
-          )}
-
-          <MultiSelectComponent
+          <MultiCreatableSelect
+            creatable
             label={creationMissionData.diplomas?.label}
+            className="w-fit"
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.diplomas?.name as keyof UserType
             )}
-            options={diplomasSelect}
-            placeholder={loadingDiplomas ? 'Chargement...' : 'Diplômes'}
-            defaultSelectedKeys={loadingDiplomas ? null : (diplomas ?? [])}
-            name={creationMissionData.diplomas?.name ?? ''}
+            options={degreeSelect}
+            placeholder={'Diplômes'}
             required
-            onValueChange={handleChangeSelect}
-            disabled={loadingDiplomas}
+            onChange={(selectedOption) => {
+              const values = selectedOption.map((option) => option.value);
+              handleChangeSelect(values, 'diplomas');
+            }}
           />
 
-          {diplomas?.includes('other') && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.diplomas_other?.name as keyof UserType
-              )}
-              label={creationMissionData.diplomas_other?.label}
-              name={creationMissionData.diplomas_other?.name}
-              placeholder={creationMissionData.diplomas_other?.label}
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
-            />
-          )}
-          <MultiSelectComponent
+          <MultiCreatableSelect
+            creatable
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.languages?.name as keyof UserType
             )}
             label={creationMissionData.languages?.label}
-            placeholder={loadingLanguages ? 'Chargement...' : 'Langues parlées'}
-            options={languagesSelect}
-            defaultSelectedKeys={loadingLanguages ? null : (languages ?? [])}
-            name={creationMissionData.languages?.name ?? ''}
+            placeholder={'Langues parlées'}
+            className="w-fit"
+            options={languageSelect}
             required
-            onValueChange={handleChangeSelect}
-            disabled={loadingLanguages}
+            onChange={(selectedOption) => {
+              const values = selectedOption.map((option) => option.value);
+              handleChangeSelect(values, 'languages');
+            }}
           />
-
-          {languages?.includes('other') && (
-            <Input
-              required
-              hasError={checkIfRequiredAndNotMissing(
-                creationMissionData.languages_other?.name as keyof UserType
-              )}
-              label={creationMissionData.languages_other?.label}
-              name={creationMissionData.languages_other?.name}
-              placeholder={creationMissionData.languages_other?.label}
-              className="mission_input min-w-[200px] flex-1 xl:max-w-full"
-              onChange={handleChange}
-            />
-          )}
 
           <Input
             label={creationMissionData.tjm?.label}
@@ -689,17 +590,15 @@ export default function Page() {
             onChange={handleChange}
           />
 
-          <SelectComponent
+          <CreatableSelect
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.open_to_disabled?.name as keyof UserType
             )}
             label={creationMissionData.open_to_disabled?.label}
             options={booleanSelect}
-            defaultSelectedKeys=""
-            className="xl:max-w-[340px]"
-            name={creationMissionData.open_to_disabled?.name ?? ''}
+            className="w-fit xl:max-w-[340px]"
             required
-            onValueChange={handleChangeSelect}
+            onChange={(e) => handleChangeSelect(e.value, 'open_to_disabled')}
           />
         </div>
         <div className="flex w-full flex-wrap gap-x-spaceContainer gap-y-spaceSmall">
@@ -778,16 +677,16 @@ export default function Page() {
             onChange={handleChange}
           />
 
-          <ComboboxSelect
+          <CreatableSelect
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.country?.name as keyof UserType
             )}
             options={countries}
-            defaultSelectedKeys={country ?? ''}
+            className="w-fit"
             label={creationMissionData.country?.label}
             name={creationMissionData.country?.name ?? ''}
             required
-            onValueChange={handleChangeSelect}
+            onChange={(e) => handleChangeSelect(e.value, 'country')}
           />
         </div>
 

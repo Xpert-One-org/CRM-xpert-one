@@ -50,7 +50,7 @@ export default function MultiSelectComponent({
   disabled,
 }: Props) {
   const handleOnChange = (options: any[] | undefined) => {
-    const values = options ? options.map((option) => option.value) : [];
+    const values = options ? options.map((option) => option?.value) : [];
     const json_keys = options ? options.map((option) => option.json_key) : [];
     onValueChange(values, name, json_keys);
   };
