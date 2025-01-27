@@ -9,6 +9,7 @@ import { getXpertsSelection } from '../../selection.action';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useMissionStore } from '@/store/mission';
+import CreatableSelect from '@/components/CreatableSelect';
 
 export default function SelectionDragAndDropTable({
   missionId,
@@ -119,6 +120,7 @@ export default function SelectionDragAndDropTable({
           <FilterButton placeholder="XPERT Refusés" filter={false} />
           <FilterButton placeholder="XPERT Validés" filter={false} />
         </div>
+
         <div className="grid grid-cols-8 gap-3">
           <SelectionDragAndDropColumns xpertsSelection={xpertsSelection} />
         </div>

@@ -45,6 +45,8 @@ export async function getAllMatchedXperts(
     secondary_post_type: additionalCriteria?.secondary_post_type || [],
     secondary_specialties: additionalCriteria?.secondary_specialties || [],
     secondary_expertises: additionalCriteria?.secondary_expertises || [],
+    secondary_firstname: additionalCriteria?.secondary_firstname || [],
+    secondary_lastname: additionalCriteria?.secondary_lastname || [],
   };
 
   const finalCriteria = Object.entries(mergedCriteria).reduce(
@@ -57,41 +59,61 @@ export async function getAllMatchedXperts(
     {} as Record<string, string[]>
   );
 
-  const { data, count, error } = await supabase
+  const firstname =
+    finalCriteria.secondary_firstname.length > 0
+      ? finalCriteria.secondary_firstname[0]
+      : '';
+  const lastname =
+    finalCriteria.secondary_lastname.length > 0
+      ? finalCriteria.secondary_lastname[0]
+      : '';
+
+  let query = supabase
     .from('profile')
     .select(
       `
-      id,
-      firstname,
-      lastname,
-      generated_id,
-      profile_mission (
-        job_titles,
-        posts_type,
-        sector,
-        specialties,
-        expertises,
-        availability,
-        workstation_needed
-      ),
-      profile_experience (
-        sector,
-        post_type,
-        post,
-        has_led_team
-      ),
-      profile_expertise (
-        seniority,
-        specialties,
-        expertises,
-        diploma,
-        degree,
-        maternal_language
-      )
-    `,
+    id,
+    firstname,
+    lastname,
+    generated_id,
+    profile_mission (
+      job_titles,
+      posts_type,
+      sector,
+      specialties,
+      expertises,
+      availability,
+      workstation_needed
+    ),
+    profile_experience (
+      sector,
+      post_type,
+      post,
+      has_led_team
+    ),
+    profile_expertise (
+      seniority,
+      specialties,
+      expertises,
+      diploma,
+      degree,
+      maternal_language
+    )
+  `,
       { count: 'exact' }
     )
+
     .eq('role', 'xpert');
+
+  if (firstname) {
+    query = query.ilike('firstname', firstname);
+  }
+
+  if (lastname) {
+    query = query.ilike('lastname', lastname);
+  }
+
+  const { data, count, error } = await query;
 
   if (error) {
     console.error('Error fetching matching experts:', error);
@@ -242,6 +264,22 @@ export async function getAllMatchedXperts(
         )
       );
     }
+
+    // if (finalCriteria.secondary_firstname?.length > 0) {
+    //   secondaryConditions.push(
+    //     xpert.firstname &&
+    //       finalCriteria.secondary_firstname.includes(xpert.firstname)
+
+    //   );
+    // }
+
+    // if (finalCriteria.secondary_lastname?.length > 0) {
+    //   secondaryConditions.push(
+    //     xpert.lastname &&
+    //       finalCriteria.secondary_lastname.includes(xpert.lastname)
+
+    //   );
+    // }
 
     const hasPrimaryMatch =
       primaryConditions.length === 0 ||
