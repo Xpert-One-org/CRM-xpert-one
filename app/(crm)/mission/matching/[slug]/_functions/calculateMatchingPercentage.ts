@@ -169,12 +169,19 @@ export const calculateMatchingPercentage = (
   });
 
   // Count number of non-matching criteria that have non-empty arrays
-  const numberOfNonMatches = Object.entries(nonMatchingCriteria).filter(
-    ([_, value]) => value && value.length > 0
-  ).length;
+  const numberOfNonMatches = Object.values(nonMatchingCriteria).reduce(
+    (sum, array) => sum + (array ? array.length : 0),
+    0
+  );
 
   // Calculate percentage based on matching criteria
   const matchingPercentage = 100 - numberOfNonMatches * pointsPerCriteria;
+
+  console.log({ matchingPercentage });
+  console.log({ totalCriteria });
+  console.log({ nonMatchingCriteria });
+  console.log({ numberOfNonMatches });
+  console.log({ pointsPerCriteria });
 
   // Round to 1 decimal place and ensure it's between 0 and 100
   return Math.max(0, Math.min(100, Math.round(matchingPercentage * 10) / 10));
