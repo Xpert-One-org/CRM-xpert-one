@@ -12,6 +12,7 @@ import {
   energyRenewableSelect,
   energySelect,
   wasteTreatmentSelect,
+  degreeSelect,
 } from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
 import { useEditMissionStore } from '../../../editMissionStore';
@@ -25,7 +26,6 @@ export function MissionDetails() {
     jobTitles,
     sectors,
     specialities,
-    diplomas: diplomasSelect,
     languages: languagesSelect,
     expertises: expertisesSelect,
     infrastructures: infrastructuresSelect,
@@ -40,7 +40,6 @@ export function MissionDetails() {
     fetchSectors,
     fetchSpecialties,
     fetchExpertises,
-    fetchDiplomas,
     fetchLanguages,
     fetchInfrastructures,
   } = useSelect();
@@ -52,7 +51,6 @@ export function MissionDetails() {
         fetchSectors(),
         fetchSpecialties(),
         fetchExpertises(),
-        fetchDiplomas(),
         fetchLanguages(),
         fetchInfrastructures(),
       ]);
@@ -261,7 +259,7 @@ export function MissionDetails() {
         <MultiSelectComponent
           className="w-[280px]"
           label="Diplôme / Niveau d'étude"
-          options={diplomasSelect}
+          options={degreeSelect}
           defaultSelectedKeys={mission.diplomas}
           name="diplomas"
           onValueChange={(value) => handleUpdateField('diplomas', value)}

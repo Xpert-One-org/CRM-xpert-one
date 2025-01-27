@@ -32,7 +32,6 @@ export default function MatchingXpertsRow({
     fetchSectors,
     fetchSpecialties,
     fetchExpertises,
-    fetchDiplomas,
     fetchLanguages,
     fetchPosts,
   } = useSelect();
@@ -51,11 +50,9 @@ export default function MatchingXpertsRow({
     fetchSectors();
     fetchSpecialties();
     fetchExpertises();
-    fetchDiplomas();
     fetchLanguages();
     fetchPosts();
   }, [
-    fetchDiplomas,
     fetchExpertises,
     fetchJobTitles,
     fetchLanguages,

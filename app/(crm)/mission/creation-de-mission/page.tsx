@@ -349,7 +349,6 @@ export default function Page() {
     // fetchJobTitles();
     // fetchSpecialties();
     // fetchExpertises();
-    // fetchDiplomas();
     // fetchLanguages();
     // fetchInfrastructures();
   }, []);

@@ -62,7 +62,6 @@ export default function MatchingLeftSide({
     fetchExpertises,
     fetchSectors,
     fetchLanguages,
-    fetchDiplomas,
   } = useSelect();
 
   const isIntern = useIsIntern();
@@ -74,7 +73,6 @@ export default function MatchingLeftSide({
     fetchExpertises();
     fetchSectors();
     fetchLanguages();
-    fetchDiplomas();
   }, [
     fetchJobTitles,
     fetchPosts,
@@ -82,7 +80,6 @@ export default function MatchingLeftSide({
     fetchExpertises,
     fetchSectors,
     fetchLanguages,
-    fetchDiplomas,
   ]);
 
   const seniorityOptions = [
