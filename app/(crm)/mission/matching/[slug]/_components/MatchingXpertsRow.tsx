@@ -10,6 +10,15 @@ import { useSelect } from '@/store/select';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { formatDateSlash } from '@/utils/formatDates';
+import {
+  degreeSelect,
+  expertiseSelect,
+  jobTitleSelect,
+  languageSelect,
+  posts,
+  sectorSelect,
+  specialitySelect,
+} from '@/data/mocked_select';
 
 export default function MatchingXpertsRow({
   matchedXpert,
@@ -20,22 +29,6 @@ export default function MatchingXpertsRow({
   onXpertSelection: (xpertId: string, checked: boolean) => void;
   isSelected: boolean;
 }) {
-  const {
-    jobTitles,
-    sectors,
-    specialities,
-    expertises,
-    diplomas,
-    languages,
-    posts,
-    fetchJobTitles,
-    fetchSectors,
-    fetchSpecialties,
-    fetchExpertises,
-    fetchLanguages,
-    fetchPosts,
-  } = useSelect();
-
   const router = useRouter();
 
   const hasNonMatchingCriteria =
@@ -44,22 +37,6 @@ export default function MatchingXpertsRow({
   const availability = matchedXpert.profile_mission?.availability;
 
   const isAvailable = availability && new Date(availability) < new Date();
-
-  useEffect(() => {
-    fetchJobTitles();
-    fetchSectors();
-    fetchSpecialties();
-    fetchExpertises();
-    fetchLanguages();
-    fetchPosts();
-  }, [
-    fetchExpertises,
-    fetchJobTitles,
-    fetchLanguages,
-    fetchSectors,
-    fetchSpecialties,
-    fetchPosts,
-  ]);
 
   return (
     <>
@@ -150,17 +127,17 @@ export default function MatchingXpertsRow({
                                     : val,
                           select:
                             key === 'job_title'
-                              ? jobTitles
+                              ? jobTitleSelect
                               : key === 'sector'
-                                ? sectors
+                                ? sectorSelect
                                 : key === 'specialties'
-                                  ? specialities
+                                  ? specialitySelect
                                   : key === 'expertises'
-                                    ? expertises
+                                    ? expertiseSelect
                                     : key === 'diplomas'
-                                      ? diplomas
+                                      ? degreeSelect
                                       : key === 'languages'
-                                        ? languages
+                                        ? languageSelect
                                         : key === 'post_type'
                                           ? posts
                                           : [],
