@@ -13,6 +13,13 @@ import { Button } from '@/components/ui/button';
 import { useIsIntern } from '@/hooks/useRoles';
 import { fi } from 'date-fns/locale';
 import Input from '@/components/inputs/Input';
+import {
+  expertiseSelect,
+  jobTitleSelect,
+  posts,
+  sectorSelect,
+  specialitySelect,
+} from '@/data/mocked_select';
 
 export default function MatchingLeftSideSecond({
   missionNumber,
@@ -47,14 +54,6 @@ export default function MatchingLeftSideSecond({
   const [hasChanges, setHasChanges] = useState(false);
   const [addingFirstname, setAddingFirstname] = useState('');
   const [addingLastname, setAddingLastname] = useState('');
-
-  const {
-    jobTitles,
-    posts,
-    expertises,
-    specialities: specialitiesSelect,
-    sectors,
-  } = useSelect();
 
   const handleAddClick = (criteriaType: keyof typeof showAdditionalSelects) => {
     if (isIntern) return;
@@ -269,7 +268,7 @@ export default function MatchingLeftSideSecond({
               >
                 {getLabel({
                   value: option,
-                  select: jobTitles,
+                  select: jobTitleSelect,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -281,7 +280,7 @@ export default function MatchingLeftSideSecond({
         {showAdditionalSelects.jobTitle && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={jobTitles}
+              options={jobTitleSelect}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'job_title',
@@ -395,7 +394,7 @@ export default function MatchingLeftSideSecond({
               >
                 {getLabel({
                   value: option,
-                  select: sectors,
+                  select: sectorSelect,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -407,7 +406,7 @@ export default function MatchingLeftSideSecond({
         {showAdditionalSelects.sector && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={sectors}
+              options={sectorSelect}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'sector',
@@ -457,7 +456,7 @@ export default function MatchingLeftSideSecond({
               >
                 {getLabel({
                   value: option,
-                  select: specialitiesSelect,
+                  select: specialitySelect,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -469,7 +468,7 @@ export default function MatchingLeftSideSecond({
         {showAdditionalSelects.specialties && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={specialitiesSelect}
+              options={specialitySelect}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'specialties',
@@ -521,7 +520,7 @@ export default function MatchingLeftSideSecond({
               >
                 {getLabel({
                   value: option,
-                  select: expertises,
+                  select: expertiseSelect,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -533,7 +532,7 @@ export default function MatchingLeftSideSecond({
         {showAdditionalSelects.expertises && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={expertises}
+              options={expertiseSelect}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'expertises',
