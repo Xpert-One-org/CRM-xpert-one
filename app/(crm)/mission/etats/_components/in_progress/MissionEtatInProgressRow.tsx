@@ -146,100 +146,108 @@ export default function MissionEtatInProgressRow({
   };
 
   return (
-    <>
-      <Box className="col-span-1">{createdAt}</Box>
-      <Box
-        className="col-span-1 cursor-pointer bg-primary text-white"
-        primary
-        onClick={() =>
-          handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
-        }
-      >
-        {mission.supplier?.generated_id}
-      </Box>
-      <Box
-        className="col-span-1 cursor-pointer bg-primary text-white"
-        primary
-        onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
-      >
-        {mission.mission_number}
-      </Box>
-      <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
-      <Box className="col-span-1">{timeBeforeMission}</Box>
-      <Box
-        className={cn('col-span-1 text-white', {
-          'cursor-pointer': mission.xpert?.id,
-        })}
-        primary
-        onClick={() => handleRedirectXpert(mission.xpert?.generated_id ?? '')}
-      >
-        {mission.xpert?.generated_id ?? empty}
-      </Box>
-      <Box className={`col-span-2`}>
-        {fileStatuses[
-          getFileTypeByStatus('recap_mission_signed', missionXpertStatus ?? '')
-        ]?.exists
-          ? `Reçu le ${formatDate(
-              fileStatuses[
-                getFileTypeByStatus(
-                  'recap_mission_signed',
-                  missionXpertStatus ?? ''
-                )
-              ].createdAt ?? ''
-            )}`
-          : 'Non reçu'}
-      </Box>
-      <Box className={`col-span-1 ${getBackgroundClass}`}>
-        {fileStatuses[
-          getFileTypeByStatus(
-            missionXpertStatus === 'cdi'
-              ? 'contrat_signed'
-              : missionXpertStatus === 'freelance'
-                ? 'commande_societe_signed'
-                : 'devis',
-            missionXpertStatus ?? ''
-          )
-        ]?.exists
-          ? `Reçu le ${formatDate(
-              fileStatuses[
-                getFileTypeByStatus(
-                  missionXpertStatus === 'cdi'
-                    ? 'contrat_signed'
-                    : missionXpertStatus === 'freelance'
-                      ? 'commande_societe_signed'
-                      : 'devis',
-                  missionXpertStatus ?? ''
-                )
-              ].createdAt ?? ''
-            )}`
-          : 'Non reçu'}
-      </Box>
-      <Box className={`col-span-1 ${getBackgroundClass}`}>
-        {fileStatuses[
-          getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
-        ]?.exists
-          ? `Reçu le ${formatDate(
-              fileStatuses[
-                getFileTypeByStatus(
-                  'contrat_commande',
-                  missionXpertStatus ?? ''
-                )
-              ].createdAt ?? ''
-            )}`
-          : 'Non reçu'}
-      </Box>
-      <Button
-        className="col-span-1 h-full"
-        onClick={handleRedirectionActivation}
-      >
-        <BriefCase width={28} height={28} className="fill-white" />
-      </Button>
-      <Button
-        className="col-span-1 h-full"
-        onClick={handleRedirectionFacturation}
-      >
-        <FacturationLogo width={28} height={28} className="fill-white" />
-      </Button>
-    </>
+    console.log({ fileStatuses }),
+    (
+      <>
+        <Box className="col-span-1">{createdAt}</Box>
+        <Box
+          className="col-span-1 cursor-pointer bg-primary text-white"
+          primary
+          onClick={() =>
+            handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
+          }
+        >
+          {mission.supplier?.generated_id}
+        </Box>
+        <Box
+          className="col-span-1 cursor-pointer bg-primary text-white"
+          primary
+          onClick={() =>
+            handleRedirectFicheMission(mission.mission_number ?? '')
+          }
+        >
+          {mission.mission_number}
+        </Box>
+        <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
+        <Box className="col-span-1">{timeBeforeMission}</Box>
+        <Box
+          className={cn('col-span-1 text-white', {
+            'cursor-pointer': mission.xpert?.id,
+          })}
+          primary
+          onClick={() => handleRedirectXpert(mission.xpert?.generated_id ?? '')}
+        >
+          {mission.xpert?.generated_id ?? empty}
+        </Box>
+        <Box className={`col-span-2`}>
+          {fileStatuses[
+            getFileTypeByStatus(
+              'recap_mission_signed',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists
+            ? `Reçu le ${formatDate(
+                fileStatuses[
+                  getFileTypeByStatus(
+                    'recap_mission_signed',
+                    missionXpertStatus ?? ''
+                  )
+                ].createdAt ?? ''
+              )}`
+            : 'Non reçu'}
+        </Box>
+        <Box className={`col-span-1 ${getBackgroundClass}`}>
+          {fileStatuses[
+            getFileTypeByStatus(
+              missionXpertStatus === 'cdi'
+                ? 'contrat_signed'
+                : missionXpertStatus === 'freelance'
+                  ? 'commande_societe_signed'
+                  : 'devis',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists
+            ? `Reçu le ${formatDate(
+                fileStatuses[
+                  getFileTypeByStatus(
+                    missionXpertStatus === 'cdi'
+                      ? 'contrat_signed'
+                      : missionXpertStatus === 'freelance'
+                        ? 'commande_societe_signed'
+                        : 'devis',
+                    missionXpertStatus ?? ''
+                  )
+                ].createdAt ?? ''
+              )}`
+            : 'Non reçu'}
+        </Box>
+        <Box className={`col-span-1 ${getBackgroundClass}`}>
+          {fileStatuses[
+            getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+          ]?.exists
+            ? `Reçu le ${formatDate(
+                fileStatuses[
+                  getFileTypeByStatus(
+                    'contrat_commande',
+                    missionXpertStatus ?? ''
+                  )
+                ].createdAt ?? ''
+              )}`
+            : 'Non reçu'}
+        </Box>
+        <Button
+          className="col-span-1 h-full"
+          onClick={handleRedirectionActivation}
+        >
+          <BriefCase width={28} height={28} className="fill-white" />
+        </Button>
+        <Button
+          className="col-span-1 h-full"
+          onClick={handleRedirectionFacturation}
+        >
+          <FacturationLogo width={28} height={28} className="fill-white" />
+        </Button>
+      </>
+    )
   );
 }

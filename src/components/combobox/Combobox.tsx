@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   data: string[];
@@ -59,6 +60,7 @@ export default function Combobox({
   ...props
 }: Props) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -86,7 +88,10 @@ export default function Combobox({
               {showPlaceholderWithValue ? placeholder : ''}
               {value && showValue && showSelectedOption && (
                 <div>
-                  <Badge className="flex items-center justify-center gap-1">
+                  <Badge
+                    className="flex items-center justify-center gap-1 bg-secondary hover:bg-primary"
+                    onClick={() => router.push(`/mission/fiche/${value}`)}
+                  >
                     {value}
                     {onClear && (
                       <X
