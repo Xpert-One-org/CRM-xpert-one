@@ -34,6 +34,8 @@ export default function MatchingLeftSide({
     expertises: false,
     languages: false,
     diplomas: false,
+    firstname: false,
+    lastname: false,
   });
 
   const [criteriaIconShow, setCriteriaIconShow] = useState({
@@ -44,6 +46,8 @@ export default function MatchingLeftSide({
     expertises: false,
     languages: false,
     diplomas: false,
+    firstname: false,
+    lastname: false,
   });
 
   const [hasChanges, setHasChanges] = useState(false);

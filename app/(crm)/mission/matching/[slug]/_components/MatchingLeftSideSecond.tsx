@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Box } from '@/components/ui/box';
 import AddIcon from '@/components/svg/AddIcon';
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useSelect } from '@/store/select';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
@@ -11,6 +11,8 @@ import { getLabel } from '@/utils/getLabel';
 import { empty } from '@/data/constant';
 import { Button } from '@/components/ui/button';
 import { useIsIntern } from '@/hooks/useRoles';
+import { fi } from 'date-fns/locale';
+import Input from '@/components/inputs/Input';
 
 export default function MatchingLeftSideSecond({
   missionNumber,
@@ -28,6 +30,8 @@ export default function MatchingLeftSideSecond({
     sector: false,
     specialties: false,
     expertises: false,
+    firstname: false,
+    lastname: false,
   });
 
   const [criteriaIconShow, setCriteriaIconShow] = useState({
@@ -36,9 +40,13 @@ export default function MatchingLeftSideSecond({
     sector: false,
     specialties: false,
     expertises: false,
+    firstname: false,
+    lastname: false,
   });
 
   const [hasChanges, setHasChanges] = useState(false);
+  const [addingFirstname, setAddingFirstname] = useState('');
+  const [addingLastname, setAddingLastname] = useState('');
 
   const {
     jobTitles,
@@ -104,6 +112,126 @@ export default function MatchingLeftSideSecond({
             Missions recherchées par les XPERTS
           </p>
         </div>
+        <div className="flex w-full gap-6">
+          <div className="min-w-[300px]">
+            <Box className="justify-between bg-[#D0DDE1] p-3">
+              Prénom
+              {!criteriaIconShow.firstname ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('firstname')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('firstname')}
+                />
+              )}
+            </Box>
+          </div>
+          <div className="flex flex-wrap gap-[10px]">
+            {additionalCriteria.secondary_firstname?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('firstname', option);
+                }}
+              >
+                {option}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
+          </div>
+        </div>
+        {showAdditionalSelects.firstname && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <Input
+              onChange={(e) => setAddingFirstname(e.target.value)}
+              value={addingFirstname}
+            />
+            <Button
+              className="h-full rounded-sm bg-primary p-2 text-white"
+              onClick={() => {
+                handleAdditionalSelection('firstname', [addingFirstname]),
+                  setAddingFirstname('');
+              }}
+            >
+              <Check size={20} />
+            </Button>
+          </div>
+        )}
+        <div className="flex w-full gap-6">
+          <div className="min-w-[300px]">
+            <Box className="justify-between bg-[#D0DDE1] p-3">
+              Nom
+              {!criteriaIconShow.lastname ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('lastname')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('lastname')}
+                />
+              )}
+            </Box>
+          </div>
+          <div className="flex flex-wrap gap-[10px]">
+            {additionalCriteria.secondary_lastname?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('lastname', option);
+                }}
+              >
+                {option}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
+          </div>
+        </div>
+        {showAdditionalSelects.lastname && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <Input
+              onChange={(e) => setAddingLastname(e.target.value)}
+              value={addingLastname}
+            />
+            <Button
+              className="h-full rounded-sm bg-primary p-2 text-white"
+              onClick={(e) => {
+                handleAdditionalSelection('lastname', [addingLastname]),
+                  setAddingLastname('');
+              }}
+            >
+              <Check size={20} />
+            </Button>
+          </div>
+        )}
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
