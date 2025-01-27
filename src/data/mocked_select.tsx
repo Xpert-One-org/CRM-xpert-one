@@ -326,10 +326,6 @@ export const sectorSelect = [
     label: 'Traitement des Déchêts',
     value: 'waste_treatment',
   },
-  {
-    label: 'Autre',
-    value: 'others',
-  },
 ];
 
 export const infrastructureSelect = [
@@ -340,10 +336,6 @@ export const infrastructureSelect = [
   {
     label: 'Tunnel',
     value: 'tunnel',
-  },
-  {
-    label: 'Autre',
-    value: 'other',
   },
 ];
 
@@ -972,10 +964,6 @@ export const specialitySelect = [
     label: 'VRD',
     value: 'vrd',
   },
-  {
-    label: 'Autre',
-    value: 'others',
-  },
 ];
 
 export const expertiseSelect = [
@@ -1074,10 +1062,6 @@ export const expertiseSelect = [
   {
     label: 'Test de boucles',
     value: 'test_boucles',
-  },
-  {
-    label: 'Autre',
-    value: 'others',
   },
   {
     label: "Pas d'expertise",
@@ -1181,10 +1165,6 @@ export const degreeSelect = [
     label: 'Master',
     value: 'master',
   },
-  {
-    label: 'Autre',
-    value: 'other',
-  },
 ];
 
 export const languageSelect = [
@@ -1223,10 +1203,6 @@ export const languageSelect = [
   {
     label: 'Portugais',
     value: 'pt',
-  },
-  {
-    label: 'Autre',
-    value: 'other',
   },
 ];
 

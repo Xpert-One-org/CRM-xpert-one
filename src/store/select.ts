@@ -214,6 +214,9 @@ export const useSelect = create<SelectStore>((set, get) => ({
       return;
     }
     if (data) {
+      // const filterLanguageNotNull = data
+      //   .filter((lang) => lang.label !== null)
+      //   .map((lang) => ({ label: lang.label ?? '', value: lang.value ?? '' }));
       set({ languages: data });
       set({ loadingLanguages: false });
     }
