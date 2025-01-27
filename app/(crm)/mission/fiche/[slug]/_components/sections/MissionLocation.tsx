@@ -1,10 +1,36 @@
+'use client';
 // components/mission/sections/MissionLocation.tsx
 import Input from '@/components/inputs/Input';
 import { useEditMissionStore } from '../../../editMissionStore';
+import CreatableSelect from '@/components/CreatableSelect';
+import { useEffect, useState } from 'react';
+import type { Country } from '@/types/types';
+import { fetchCountries } from '@/utils/functions/fetchCountries';
+import { getLabel } from '@/utils/getLabel';
 
 export function MissionLocation() {
   const { openedMissionNotSaved: mission, handleUpdateField } =
     useEditMissionStore();
+
+  const [countries, setCountries] = useState<Country[]>([]);
+
+  const getCountries = async () => {
+    if (countries.length) return;
+    const countriesSorted = await fetchCountries();
+    const fr = countriesSorted.find(
+      (country: any) => country.label === 'France'
+    );
+    const index = countriesSorted.findIndex(
+      (country: any) => country.label === 'France'
+    );
+    countriesSorted.splice(index, 1);
+    countriesSorted.unshift(fr);
+    setCountries(countriesSorted);
+  };
+
+  useEffect(() => {
+    getCountries();
+  }, []);
 
   if (!mission) return null;
 
@@ -42,12 +68,24 @@ export function MissionLocation() {
           value={mission.postal_code ?? ''}
           onChange={(e) => handleUpdateField('postal_code', e.target.value)}
         />
-        <Input
-          className="w-full max-w-[200px]"
-          label="Pays"
-          value={mission.country ?? ''}
-          onChange={(e) => handleUpdateField('country', e.target.value)}
-        />
+        {countries.length > 0 && (
+          <CreatableSelect
+            label="Pays"
+            className="w-fit"
+            options={countries}
+            defaultValue={{
+              label:
+                getLabel({
+                  value: mission.country ?? '',
+                  select: countries,
+                }) ?? '',
+              value: mission.country ?? '',
+            }}
+            onChange={(selectedOption) =>
+              handleUpdateField('country', selectedOption.value)
+            }
+          />
+        )}
       </div>
     </div>
   );
