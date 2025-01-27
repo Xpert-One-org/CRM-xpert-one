@@ -304,6 +304,8 @@ export async function getAllMatchedXperts(
         missionData,
       });
 
+      console.log({ additionalCriteria });
+      console.log('ok');
       const matchingScore = calculateTotalMatchingScore(
         xpert as DBMatchedXpert,
         missionData,
