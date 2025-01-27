@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { jobTitleSelect } from '@/data/mocked_select';
 
 type MissionState =
   | 'open_all_to_validate'
@@ -28,7 +29,6 @@ type MissionState =
 export default function FicheMissionTable() {
   const { openedMissionNotSaved: mission, handleUpdateField } =
     useEditMissionStore();
-  const { jobTitles } = useSelect();
 
   if (!mission) return null;
 
@@ -36,9 +36,7 @@ export default function FicheMissionTable() {
     <div className="flex w-full flex-col gap-4">
       <div className="w-fit self-center rounded-lg bg-primary px-spaceMediumContainer py-[10px] text-white shadow-container">
         <h2 className="text-md font-bold">
-          {jobTitles.length
-            ? getLabel({ value: mission.job_title ?? '', select: jobTitles })
-            : 'Chargement...'}
+          {getLabel({ value: mission.job_title ?? '', select: jobTitleSelect })}
         </h2>
       </div>
 

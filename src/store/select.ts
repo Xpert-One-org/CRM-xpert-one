@@ -85,7 +85,6 @@ type SelectStore = {
   fetchSpecialties: () => Promise<void>;
   fetchExpertises: () => Promise<void>;
   fetchHabilitations: () => Promise<void>;
-  fetchDiplomas: () => Promise<void>;
   fetchLanguages: () => Promise<void>;
   fetchSectors: () => Promise<void>;
   fetchJobTitles: () => Promise<void>;
@@ -190,20 +189,7 @@ export const useSelect = create<SelectStore>((set, get) => ({
       set({ loadingHabilitations: false });
     }
   },
-  fetchDiplomas: async () => {
-    if (get().diplomas.length) {
-      return;
-    }
-    const { data, error } = await getDiplomas();
-    if (error) {
-      console.error('Error fetching diplomas:', error);
-      return;
-    }
-    if (data) {
-      set({ diplomas: data });
-      set({ loadingDiplomas: false });
-    }
-  },
+
   fetchLanguages: async () => {
     if (get().languages.length) {
       return;
@@ -214,6 +200,9 @@ export const useSelect = create<SelectStore>((set, get) => ({
       return;
     }
     if (data) {
+      // const filterLanguageNotNull = data
+      //   .filter((lang) => lang.label !== null)
+      //   .map((lang) => ({ label: lang.label ?? '', value: lang.value ?? '' }));
       set({ languages: data });
       set({ loadingLanguages: false });
     }

@@ -24,13 +24,16 @@ type Option = {
 type CreatableSelectProps = {
   options: Option[];
   optionsOther?: string | null;
+  hasError?: boolean;
   defaultValue?: Option;
+  placeholder?: string;
   className?: string;
   classNameLabel?: string;
   classNameInput?: string;
   isLoading?: boolean;
   mutate?: () => void;
   label?: string;
+  required?: boolean;
   name?: string;
   id?: string;
   onChange?: (option: Option) => void;
@@ -82,8 +85,11 @@ export default function CreatableSelect({
   optionsOther,
   defaultValue,
   className,
+  hasError,
   classNameLabel,
   classNameInput,
+  placeholder = 'Choisir',
+  required = false,
   isLoading = false,
   mutate,
   name,
@@ -135,7 +141,7 @@ export default function CreatableSelect({
     <div className={cn('w-full font-light', className)}>
       {label && (
         <Label htmlFor={id} className={cn('flex items-center', classNameLabel)}>
-          {label}
+          {label} {required && <span className="text-accent">*</span>}
         </Label>
       )}
       <input className="hidden" type="hidden" name={name} value={state.value} />
@@ -143,7 +149,7 @@ export default function CreatableSelect({
         open={state.open}
         onOpenChange={(open) => dispatch({ type: 'SET_OPEN', payload: open })}
       >
-        <PopoverTrigger asChild>
+        <PopoverTrigger asChild className="min-w-[200px]">
           <Button
             id={id}
             variant="outline"
@@ -151,7 +157,8 @@ export default function CreatableSelect({
             aria-expanded={state.open}
             className={cn(
               classNameInput,
-              'w-full justify-between bg-white font-light hover:border-primary'
+              'w-full justify-between bg-white font-light hover:border-primary',
+              { 'border-important': hasError }
             )}
             disabled={isLoading}
           >
@@ -163,7 +170,7 @@ export default function CreatableSelect({
                 select: optionsOther
                   ? [...options, { value: optionsOther, label: optionsOther }]
                   : options,
-              }) || ''
+              }) || placeholder
             )}
             <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
