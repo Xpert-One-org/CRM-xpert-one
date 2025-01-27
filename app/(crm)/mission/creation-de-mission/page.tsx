@@ -59,16 +59,9 @@ export default function Page() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [isSavingLoading, setIsSavingLoading] = useState(false);
   const {
-    post_type,
     job_title,
-    profile_searched,
     sector,
-    country,
-    sector_energy,
     sector_other,
-    sector_infrastructure,
-    sector_renewable_energy,
-    sector_waste_treatment,
     specialties,
     expertises,
     languages,
@@ -334,23 +327,8 @@ export default function Page() {
     fetchCollaborators();
   }, [fetchCollaborators]);
 
-  // useEffect(() => {
-  //   const missionWithoutNotRequired = deleteUnusedFields(mission);
-  //   const isCompleted = Object.values(missionWithoutNotRequired).every(
-  //     (value) => value !== null
-  //   );
-
-  //   setIsCompleted(isCompleted);
-  // }, [mission]);
-
   useEffect(() => {
     getCountries();
-    // fetchSectors();
-    // fetchJobTitles();
-    // fetchSpecialties();
-    // fetchExpertises();
-    // fetchLanguages();
-    // fetchInfrastructures();
   }, []);
 
   useEffect(() => {
