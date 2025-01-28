@@ -283,7 +283,7 @@ export default function XpertGestionFacturationRow({
       </div>
 
       <Box className="col-span-2 h-[70px] w-full bg-[#F5F5F5]">
-        {status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
+        {status === 'cdi' ? 'Feuille de salaire' : 'Facture validée'}
       </Box>
       <div className="col-span-1 flex gap-2">
         {status !== 'cdi' ? (
@@ -292,7 +292,7 @@ export default function XpertGestionFacturationRow({
               'invoice_received',
               missionData?.xpert_associated_status || ''
             )}
-            title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
+            title={status === 'cdi' ? 'Feuille de salaire' : 'Facture validée'}
             missionData={missionData}
             hasFile={salaryOrInvoiceStatus.exists}
             isFacturation
@@ -306,7 +306,7 @@ export default function XpertGestionFacturationRow({
               'salary_sheet',
               missionData?.xpert_associated_status || ''
             )}
-            title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
+            title={status === 'cdi' ? 'Feuille de salaire' : 'Facture validée'}
             missionData={missionData}
             onUploadSuccess={onFileUpdate}
             isFacturation
@@ -334,8 +334,8 @@ export default function XpertGestionFacturationRow({
             'invoice_received',
             missionData?.xpert_associated_status || ''
           )}
-          title={status === 'cdi' ? 'Feuille de salaire' : 'Facture reçue'}
-          buttonText="Loader facture reçue"
+          title={status === 'cdi' ? 'Feuille de salaire' : 'Facture validée'}
+          buttonText="Loader facture validée"
           missionData={missionData}
           onUploadSuccess={onFileUpdate}
           isFacturation
