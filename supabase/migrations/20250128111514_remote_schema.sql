@@ -772,6 +772,159 @@ END;$$;
 ALTER FUNCTION "public"."check_mission_checkpoints"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."check_mission_documents"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    mission_record RECORD;
+    storage_path TEXT;
+    document_name TEXT;
+    document_name_showed TEXT;
+    file_exists BOOLEAN;
+BEGIN
+    -- Pour chaque mission qui commence dans moins de 5 jours
+    FOR mission_record IN
+        SELECT 
+            m.id,
+            m.mission_number,
+            m.start_date,
+            COALESCE(m.xpert_associated_id::text, 'undefined') as xpert_folder,
+            m.xpert_associated_status,
+            m.affected_referent_id
+        FROM mission m
+        WHERE m.start_date BETWEEN NOW() AND NOW() + INTERVAL '5 days'
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+    LOOP
+        -- Définir le nom du document selon le statut
+        CASE mission_record.xpert_associated_status
+            WHEN 'portage' THEN 
+                document_name := 'commande_portage';
+                document_name_showed := 'Commande de portage';
+            WHEN 'freelance' THEN 
+                document_name := 'commande_societe_freelance';
+                document_name_showed := 'Commande société';
+
+            WHEN 'cdi' THEN 
+                document_name := 'contract_cdi';
+                document_name_showed := 'Contrat';
+            ELSE
+                CONTINUE; -- Passer à l'itération suivante si le statut n'est pas reconnu
+        END CASE;
+        
+
+        -- Construire le chemin du fichier dans le storage
+        storage_path := mission_record.mission_number || '/' || 
+                       mission_record.xpert_folder || '/activation/' ||
+                       document_name;
+
+        -- Vérifier si le fichier existe dans le storage
+        SELECT EXISTS (
+            SELECT 1 
+            FROM storage.objects 
+            WHERE bucket_id = 'mission_files'
+            AND name LIKE storage_path || '%'
+        ) INTO file_exists;
+
+        -- Si le fichier n'existe pas, créer une tâche
+        IF NOT file_exists AND NOT EXISTS (
+            SELECT 1 
+            FROM tasks t 
+            WHERE 
+                t.mission_id = mission_record.id AND 
+                t.details LIKE 'Le document ' || document_name_showed || ' est manquant pour la mission ' || 
+                mission_record.mission_number || ' qui commence le ' || 
+                to_char(mission_record.start_date, 'DD/MM/YYYY')
+                
+        ) THEN
+            INSERT INTO tasks (
+                assigned_to,
+                subject_type,
+                details,
+                mission_id
+
+            ) VALUES (
+                mission_record.affected_referent_id,
+                'mission',
+                'Le document ' || document_name_showed || ' est manquant pour la mission ' || 
+                mission_record.mission_number || ' qui commence le ' || 
+                to_char(mission_record.start_date, 'DD/MM/YYYY'),
+                mission_record.id
+
+            );
+        END IF;
+    END LOOP;
+END;$$;
+
+
+ALTER FUNCTION "public"."check_mission_documents"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."check_mission_documents_bis"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$DECLARE
+    mission_record RECORD;
+    storage_path TEXT;
+    file_exists BOOLEAN;
+BEGIN
+    -- Pour chaque mission qui commence dans moins de 15 jours
+    FOR mission_record IN
+        SELECT 
+            m.id,
+            m.mission_number,
+            m.start_date,
+            COALESCE(m.xpert_associated_id::text, 'undefined') as xpert_folder,
+            m.xpert_associated_status,
+            m.affected_referent_id
+        FROM mission m
+        WHERE m.start_date BETWEEN NOW() AND NOW() + INTERVAL '15 days'
+        AND m.state IN ('open', 'open_all', 'in_progress', 'finished')
+    LOOP
+        -- Construire le chemin du fichier dans le storage
+        storage_path := mission_record.mission_number || '/' || 
+                       mission_record.xpert_folder || '/activation/recap_mission_' ||
+                       mission_record.xpert_associated_status;
+
+        -- Vérifier si le fichier existe dans le storage
+        SELECT EXISTS (
+            SELECT 1 
+            FROM storage.objects 
+            WHERE bucket_id = 'mission_files'
+            AND name LIKE storage_path || '%'
+        ) INTO file_exists;
+
+        -- Si le fichier n'existe pas, créer une tâche
+        IF NOT file_exists AND NOT EXISTS (
+            SELECT 1 
+            FROM tasks t 
+            WHERE 
+                t.mission_id = mission_record.id AND 
+                t.details LIKE 'Le document Récapitulatif de mission est manquant pour la mission ' || 
+                mission_record.mission_number || ' qui commence le ' || 
+                to_char(mission_record.start_date, 'DD/MM/YYYY')
+                
+        ) THEN
+            INSERT INTO tasks (
+                assigned_to,
+                subject_type,
+                details,
+                mission_id
+               
+            ) VALUES (
+                mission_record.affected_referent_id,
+                'mission',
+                'Le document Récapitulatif de mission est manquant pour la mission ' || 
+                mission_record.mission_number || ' qui commence le ' || 
+                to_char(mission_record.start_date, 'DD/MM/YYYY'),
+                mission_record.id
+             
+            );
+        END IF;
+    END LOOP;
+END;$$;
+
+
+ALTER FUNCTION "public"."check_mission_documents_bis"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."create_mission_checkpoints"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -4075,6 +4228,7 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
+-- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";
@@ -4384,6 +4538,18 @@ GRANT ALL ON FUNCTION "public"."check_and_create_mission_tasks"() TO "service_ro
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "anon";
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."check_mission_checkpoints"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."check_mission_documents"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_mission_documents"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_mission_documents"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."check_mission_documents_bis"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_mission_documents_bis"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_mission_documents_bis"() TO "service_role";
 
 
 

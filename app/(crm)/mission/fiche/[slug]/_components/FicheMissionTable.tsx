@@ -17,7 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import { jobTitleSelect } from '@/data/mocked_select';
+
+import { MissionNotes } from './MissionNotes';
 
 type MissionState =
   | 'open_all_to_validate'
@@ -146,6 +149,7 @@ export default function FicheMissionTable() {
               </p>
             </div>
           </div>
+          <MissionNotes missionId={mission.id} />
         </div>
         <RightSideFicheMission />
       </div>

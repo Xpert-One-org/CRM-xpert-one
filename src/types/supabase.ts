@@ -500,6 +500,7 @@ export type Database = {
           specialties_other: string | null;
           start_date: string | null;
           state: Database['public']['Enums']['mission_state'];
+          statut_xpert: string | null;
           street_number: number | null;
           tjm: string | null;
           xpert_associated_id: string | null;
@@ -559,6 +560,7 @@ export type Database = {
           specialties_other?: string | null;
           start_date?: string | null;
           state?: Database['public']['Enums']['mission_state'];
+          statut_xpert?: string | null;
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
@@ -618,6 +620,7 @@ export type Database = {
           specialties_other?: string | null;
           start_date?: string | null;
           state?: Database['public']['Enums']['mission_state'];
+          statut_xpert?: string | null;
           street_number?: number | null;
           tjm?: string | null;
           xpert_associated_id?: string | null;
@@ -760,6 +763,69 @@ export type Database = {
             foreignKeyName: 'mission_checkpoints_mission_id_fkey';
             columns: ['mission_id'];
             isOneToOne: true;
+            referencedRelation: 'mission';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      mission_finance: {
+        Row: {
+          annex_costs: number | null;
+          base_tarifaire:
+            | Database['public']['Enums']['base_tarifaire_type']
+            | null;
+          created_at: string;
+          daily_rate: number | null;
+          days_worked: number | null;
+          gd_rate: number | null;
+          id: number;
+          margin: number | null;
+          mission_id: number;
+          monthly_rate: number | null;
+          months_worked: number | null;
+          xpert_status: Database['public']['Enums']['xpert_status_type'] | null;
+        };
+        Insert: {
+          annex_costs?: number | null;
+          base_tarifaire?:
+            | Database['public']['Enums']['base_tarifaire_type']
+            | null;
+          created_at?: string;
+          daily_rate?: number | null;
+          days_worked?: number | null;
+          gd_rate?: number | null;
+          id?: number;
+          margin?: number | null;
+          mission_id: number;
+          monthly_rate?: number | null;
+          months_worked?: number | null;
+          xpert_status?:
+            | Database['public']['Enums']['xpert_status_type']
+            | null;
+        };
+        Update: {
+          annex_costs?: number | null;
+          base_tarifaire?:
+            | Database['public']['Enums']['base_tarifaire_type']
+            | null;
+          created_at?: string;
+          daily_rate?: number | null;
+          days_worked?: number | null;
+          gd_rate?: number | null;
+          id?: number;
+          margin?: number | null;
+          mission_id?: number;
+          monthly_rate?: number | null;
+          months_worked?: number | null;
+          xpert_status?:
+            | Database['public']['Enums']['xpert_status_type']
+            | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mission_finance_mission_fkey';
+            columns: ['mission_id'];
+            isOneToOne: false;
             referencedRelation: 'mission';
             referencedColumns: ['id'];
           },
@@ -1837,6 +1903,10 @@ export type Database = {
         };
         Returns: number;
       };
+      check_and_create_mission_tasks: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       check_mission_checkpoints: {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
@@ -1928,6 +1998,7 @@ export type Database = {
       admin_opinion: 'positive' | 'neutral' | 'negative';
       article_status: 'published' | 'draft';
       article_type: 'web' | 'link' | 'press';
+      base_tarifaire_type: 'TJM' | 'Prix Mensuel' | 'Brut Mensuel';
       categories:
         | 'energy_and_nuclear'
         | 'renewable_energy'
@@ -1977,6 +2048,7 @@ export type Database = {
       task_history_action: 'created' | 'updated' | 'completed' | 'deleted';
       task_status: 'urgent' | 'pending' | 'done';
       task_subject_type: 'xpert' | 'supplier' | 'mission' | 'other';
+      xpert_status_type: 'Entreprise' | 'CDI de mission';
     };
     CompositeTypes: {
       chat_files: {

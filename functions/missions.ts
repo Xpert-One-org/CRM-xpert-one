@@ -25,7 +25,8 @@ export const getSpecificMission = async (
         )
       ),
       supplier:profile!mission_created_by_fkey(*),
-      checkpoints:mission_checkpoints(*)
+      checkpoints:mission_checkpoints(*),
+      finance:mission_finance(*)
     `
     )
     .eq('mission_number', missionNumber);
@@ -41,6 +42,7 @@ export const getSpecificMission = async (
   const missionsWithCheckpoints = data?.map((mission) => ({
     ...mission,
     checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+    finance: mission.finance ? mission.finance[0] : null,
   }));
 
   return { data: missionsWithCheckpoints[0] };
@@ -81,20 +83,19 @@ export const getAllMissions = async (
   const { count: total } = await query;
 
   // Construire la requête principale
-  let mainQuery = supabase.from('mission').select(
-    `
+  let mainQuery = supabase.from('mission').select(`
+    *,
+    referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+    xpert:profile!mission_xpert_associated_id_fkey(
       *,
-      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
-      xpert:profile!mission_xpert_associated_id_fkey(
-        *,
-        profile_status (
-          status
-        )
-      ),
-      supplier:profile!mission_created_by_fkey(*),
-      checkpoints:mission_checkpoints(*)
-    `
-  );
+      profile_status (
+        status
+      )
+    ),
+    supplier:profile!mission_created_by_fkey(*),
+    checkpoints:mission_checkpoints(*),
+    finance:mission_finance(*)
+  `);
 
   const { data: userData } = await supabase
     .from('profile')
@@ -132,6 +133,7 @@ export const getAllMissions = async (
   const missionsWithCheckpoints = data?.map((mission) => ({
     ...mission,
     checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+    finance: mission.finance ? mission.finance[0] : null,
   }));
 
   return {
@@ -148,15 +150,15 @@ export const getMissionState = async (
 
   if (isAdmin) {
     let query = supabase.from('mission').select(`
-        *,
-              referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
-
-        xpert:profile!mission_xpert_associated_id_fkey(
-          *
-        ), 
-        supplier:profile!mission_created_by_fkey(*),
-        checkpoints:mission_checkpoints(*)
-      `);
+      *,
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+      xpert:profile!mission_xpert_associated_id_fkey(
+        *
+      ), 
+      supplier:profile!mission_created_by_fkey(*),
+      checkpoints:mission_checkpoints(*),
+      finance:mission_finance(*)
+    `);
 
     if (state === 'open') {
       query = query.in('state', ['open', 'open_all']);
@@ -184,6 +186,7 @@ export const getMissionState = async (
     const missionsWithCheckpoints = data?.map((mission) => ({
       ...mission,
       checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
+      finance: mission.finance ? mission.finance[0] : null,
     }));
 
     return missionsWithCheckpoints;
