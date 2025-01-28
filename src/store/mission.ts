@@ -29,6 +29,7 @@ export type FilterMission = {
 type MissionState = {
   missions: DBMission[];
   lastMissionNumber: string;
+  lastMissionNumberFacturation: string;
   missionsNumbers: { mission_number: string | null }[];
   totalMissions: number;
   isLoading: boolean;
@@ -79,6 +80,7 @@ type MissionState = {
 export const useMissionStore = create<MissionState>((set, get) => ({
   missions: [],
   lastMissionNumber: '',
+  lastMissionNumberFacturation: '',
   inProgressMissions: [],
   missionsNumbers: [],
   totalMissions: 0,
@@ -116,7 +118,11 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   },
   fetchLastMissionNumber: async () => {
     const { data } = await getLastMissionNumber();
-    set({ lastMissionNumber: data ?? '' });
+    const { data: dataFacturation } = await getLastMissionNumber(true);
+    set({
+      lastMissionNumber: data ?? '',
+      lastMissionNumberFacturation: dataFacturation ?? data ?? '',
+    });
   },
   searchMissions: async (missionId: string) => {
     set({ isLoading: true });
@@ -200,7 +206,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       set({ isLoading: true });
       try {
         const fetchedMissions = await getMissionState(selectedState);
-
+        console.log('fetchedMissions', fetchedMissions);
         set({ missions: fetchedMissions });
       } catch (error) {
         console.error('Error fetching missions state:', error);
