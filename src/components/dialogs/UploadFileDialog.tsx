@@ -51,6 +51,18 @@ export default function UploadFileDialog({
 
     setIsUploading(true);
     const supabase = createSupabaseFrontendClient();
+    const sanitizeFileName = (fileName: string) => {
+      return (
+        fileName
+          .replace(/[\\\/:*?"<>|]/g, '_')
+          .replace(/\s+/g, '_')
+
+          .normalize('NFD')
+          //remove accent
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+      );
+    };
 
     try {
       const dateFolder =
@@ -62,9 +74,9 @@ export default function UploadFileDialog({
         isFournisseurSide
           ? missionData.supplier?.generated_id
           : missionData.xpert?.generated_id
-      }/${isFacturation ? `facturation/${dateFolder}` : 'activation'}/${type}/${
+      }/${isFacturation ? `facturation/${dateFolder}` : 'activation'}/${type}/${sanitizeFileName(
         selectedFile.name
-      }`;
+      )}`;
 
       const { error } = await supabase.storage
         .from('mission_files')
