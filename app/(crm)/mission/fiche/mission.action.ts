@@ -11,7 +11,13 @@ export const getMissionDetails = async (missionId: string) => {
   const { data, error } = await supabase
     .from('mission')
     .select(
-      '*, referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email), xpert:profile!mission_xpert_associated_id_fkey(*), supplier:profile!mission_created_by_fkey(*)'
+      `
+      *,
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+      xpert:profile!mission_xpert_associated_id_fkey(*),
+      supplier:profile!mission_created_by_fkey(*),
+      finance:mission_finance(*)
+    `
     )
     .eq('mission_number', formattedMissionId);
 
@@ -24,7 +30,12 @@ export const getMissionDetails = async (missionId: string) => {
     throw new Error('Mission non trouvée');
   }
 
-  return data[0];
+  const missionWithFinance = {
+    ...data[0],
+    finance: data[0].finance ? data[0].finance[0] : null,
+  };
+
+  return missionWithFinance;
 };
 
 type UpdateMissionData = Omit<Partial<DBMission>, 'id'> & {
@@ -36,7 +47,7 @@ export const updateMission = async ({
   newData,
 }: {
   mission_id: number;
-  newData: UpdateMissionData;
+  newData: UpdateMissionData & { finance?: any };
 }) => {
   const supabase = await createSupabaseAppServerClient();
 
@@ -59,14 +70,34 @@ export const updateMission = async ({
     return { error: 'État de mission invalide' };
   }
 
-  const { error } = await supabase
+  // Extract finance data and remove it from mission data
+  const { finance, ...missionData } = newData;
+
+  // Start a transaction to update both tables
+  const { error: missionError } = await supabase
     .from('mission')
-    .update(newData)
+    .update(missionData)
     .eq('id', mission_id);
 
-  if (error) {
-    console.error('Error updating mission:', error);
-    return { error: error.message };
+  if (missionError) {
+    console.error('Error updating mission:', missionError);
+    return { error: missionError.message };
+  }
+
+  // Update finance data if provided
+  if (finance) {
+    const { error: financeError } = await supabase
+      .from('mission_finance')
+      .upsert({
+        ...finance,
+        mission_id,
+      })
+      .eq('mission_id', mission_id);
+
+    if (financeError) {
+      console.error('Error updating mission finance:', financeError);
+      return { error: financeError.message };
+    }
   }
 
   return { error: null };

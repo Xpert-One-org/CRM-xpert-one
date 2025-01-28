@@ -46,7 +46,7 @@ export default function RightSideFicheMission() {
       <MissionReferentXpertOne />
 
       <MissionEvaluation />
-      <MissionNotes missionId={mission.id} />
+      {/* <MissionNotes missionId={mission.id} /> */}
       <div className="flex w-full flex-row justify-between gap-4">
         <div className="flex gap-3">
           <Button

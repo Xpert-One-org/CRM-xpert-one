@@ -16,6 +16,8 @@ type Props = {
   fillExplain?: string;
   hasError?: boolean;
   sideEplain?: 'left' | 'right' | 'top' | 'bottom';
+  suffix?: string;
+  numbersOnly?: boolean;
 } & ComponentProps<'input'>;
 
 export default function Input({
@@ -30,12 +32,30 @@ export default function Input({
   classNameLabel,
   explain,
   children,
+  suffix,
+  numbersOnly = false,
+  onChange,
   ...props
 }: Props) {
   const [isShowing, setIsShowing] = useState(false);
 
   const placeholderIfNotPrecised = props.type == 'search' ? 'Rechercher' : '';
   const placeholder = props.placeholder ?? placeholderIfNotPrecised;
+
+  const handleNumberInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (numbersOnly) {
+      const value = e.target.value.replace(',', '.'); // Convert comma to point for validation
+      // Allow empty string, numbers, one decimal point, and up to 2 decimal places
+      if (value === '' || /^-?\d*\.?\d{0,2}$/.test(value)) {
+        // Convert back to comma for display
+        e.target.value = value.replace('.', ',');
+        onChange?.(e);
+      }
+    } else {
+      onChange?.(e);
+    }
+  };
+
   return (
     <div className={cn('w-full', className)}>
       {label && (
@@ -91,24 +111,36 @@ export default function Input({
           <Lock color="black" className="ml-3 outline-none" type="button" />
         )}
 
-        <input
-          {...props}
-          type={
-            props.type === 'password'
-              ? isShowing
-                ? 'text'
-                : 'password'
-              : props.type
-          }
-          placeholder={placeholder}
-          className={cn(
-            'h-full w-full rounded-xs bg-white px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary',
-            { uppercase: props.id === 'lastname' || uppercase },
-            { 'cursor-not-allowed': props.disabled }
+        <div className="relative flex h-full flex-1">
+          <input
+            {...props}
+            onChange={handleNumberInput}
+            type={numbersOnly ? 'text' : props.type}
+            inputMode={numbersOnly ? 'decimal' : undefined}
+            placeholder={placeholder}
+            className={cn(
+              'h-full w-full rounded-xs bg-white px-[14px] text-sm font-light outline-none placeholder:text-sm placeholder:font-light placeholder:text-light-gray-third disabled:bg-lightgray-secondary',
+              { uppercase: props.id === 'lastname' || uppercase },
+              { 'cursor-not-allowed': props.disabled },
+              { 'pr-6': suffix && numbersOnly } // Add padding for suffix
+            )}
+          />
+          {suffix && numbersOnly && (
+            <span className="pointer-events-none absolute right-[14px] top-1/2 -translate-y-1/2 text-sm text-gray-500">
+              {suffix}
+            </span>
           )}
-        />
+        </div>
+        {/* Move non-number suffix outside the input wrapper */}
+        {suffix && !numbersOnly && (
+          <span className="mr-3 text-sm text-gray-500">{suffix}</span>
+        )}
         {props.type === 'search' && (
-          <button className="m-[7px] outline-none" type="button">
+          <button
+            title="Rechercher"
+            className="m-[7px] outline-none"
+            type="button"
+          >
             <SearchWBg className="" />
           </button>
         )}
