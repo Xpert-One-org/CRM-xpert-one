@@ -3,6 +3,7 @@ import SelectComponent from '@/components/inputs/SelectComponent';
 import Input from '@/components/inputs/Input';
 import { useEditMissionStore } from '../../../editMissionStore';
 import type { DBMissionFinance } from '@/types/typesDb';
+import { InfoCircle } from '@/components/ui/info-circle';
 
 type CalculatedValues = {
   totalSalaryNoCharges: number;
@@ -36,11 +37,18 @@ export function MissionFinancials() {
     { value: 'CDI de mission', label: 'CDI de mission' },
   ];
 
-  const baseOptions = [
-    { value: 'TJM', label: 'TJM' },
-    { value: 'Prix Mensuel', label: 'Prix Mensuel' },
-    { value: 'Brut Mensuel', label: 'Brut Mensuel' },
-  ];
+  const getBaseOptions = (status: string) => {
+    if (status === 'CDI de mission') {
+      return [
+        { value: 'TJM', label: 'TJM' },
+        { value: 'Brut Mensuel', label: 'Brut Mensuel' },
+      ];
+    }
+    return [
+      { value: 'TJM', label: 'TJM' },
+      { value: 'Prix Mensuel', label: 'Prix Mensuel' },
+    ];
+  };
 
   const handleFinanceUpdate = (key: keyof DBMissionFinance, value: any) => {
     if (!mission?.finance) return;
@@ -115,6 +123,37 @@ export function MissionFinancials() {
     }
   };
 
+  const getSalaryLabel = () => {
+    if (mission?.finance?.xpert_status === 'CDI de mission') {
+      return mission?.finance?.base_tarifaire === 'TJM' ? 'Salaire' : 'Salaire';
+    }
+    return mission?.finance?.base_tarifaire === 'TJM' ? 'TJM' : 'Prix Mensuel';
+  };
+
+  const getSalarySuffix = () => {
+    if (mission?.finance?.base_tarifaire === 'TJM') {
+      return '€ / jour';
+    }
+    return '€ / mois';
+  };
+
+  const getWorkPeriodLabel = () => {
+    if (mission?.finance?.base_tarifaire === 'TJM') {
+      return 'Nb de jour travaillé';
+    }
+    return 'Nb de mois travaillé';
+  };
+
+  const getTotalSalaryLabel = () => {
+    if (mission?.finance?.xpert_status === 'CDI de mission') {
+      return 'Total salaire (hors charge)';
+    }
+    if (mission?.finance?.base_tarifaire === 'TJM') {
+      return 'Total TJM';
+    }
+    return 'Total Prix';
+  };
+
   useEffect(() => {
     console.log('mission?.finance', mission?.finance);
     if (mission?.finance) {
@@ -133,18 +172,18 @@ export function MissionFinancials() {
     fieldName,
     suffix = '€',
     disabled = false,
+    helpText,
   }: {
     label: string;
     value: number | null | undefined;
     fieldName?: keyof DBMissionFinance;
     suffix?: string;
     disabled?: boolean;
+    helpText?: string;
   }) => {
     const formatValue = (val: number | null | undefined): string => {
       if (val === null || val === undefined || isNaN(val)) return '';
-      // Convert to string with 2 decimals and replace point with comma
       const withDecimals = val.toFixed(2).replace('.', ',');
-      // Remove trailing zeros and comma if no significant decimals
       return withDecimals.replace(/,?0+$/, '');
     };
 
@@ -161,12 +200,10 @@ export function MissionFinancials() {
 
     const handleBlur = () => {
       if (fieldName) {
-        // Convert comma to point for parsing
         const valueForParsing = localValue.replace(',', '.');
         const parsedValue =
           valueForParsing === '' ? null : parseFloat(valueForParsing);
         handleFinanceUpdate(fieldName, parsedValue);
-        // Update local value to ensure proper formatting
         setLocalValue(formatValue(parsedValue));
       }
     };
@@ -179,7 +216,9 @@ export function MissionFinancials() {
         onBlur={handleBlur}
         disabled={disabled}
         suffix={suffix}
+        explain={helpText}
         numbersOnly
+        className="w-fit"
       />
     );
   };
@@ -196,43 +235,46 @@ export function MissionFinancials() {
           defaultSelectedKeys={finance.xpert_status}
           onValueChange={(value) => handleFinanceUpdate('xpert_status', value)}
           name="xpert_status"
+          className="!max-w-[150px]"
         />
 
         <SelectComponent
           label="Base tarifaire"
-          options={baseOptions}
+          options={getBaseOptions(finance.xpert_status ?? '')}
           defaultSelectedKeys={finance.base_tarifaire}
           onValueChange={(value) =>
             handleFinanceUpdate('base_tarifaire', value)
           }
           name="base_tarifaire"
+          className="!w-full !max-w-[150px]"
         />
       </div>
 
       {/* Taux et période */}
       <div className="flex w-fit flex-row gap-4">
         <MonetaryInput
-          label={isTJM ? 'TJM' : 'Prix Mensuel'}
+          label={getSalaryLabel()}
           value={isTJM ? finance.daily_rate : finance.monthly_rate}
           fieldName={isTJM ? 'daily_rate' : 'monthly_rate'}
+          suffix={getSalarySuffix()}
         />
 
         <MonetaryInput
-          label={isTJM ? 'Nb de jours travaillés' : 'Nb de mois travaillés'}
+          label={getWorkPeriodLabel()}
           value={isTJM ? finance.days_worked : finance.months_worked}
           fieldName={isTJM ? 'days_worked' : 'months_worked'}
-          suffix=""
+          suffix={isTJM ? 'jours' : 'mois'}
         />
 
         <MonetaryInput
-          label="Total"
+          label={getTotalSalaryLabel()}
           value={calculated.totalSalaryNoCharges}
           disabled
         />
 
         {finance.xpert_status === 'CDI de mission' && (
           <MonetaryInput
-            label="Total avec charges"
+            label="Total salaire (avec charge)"
             value={calculated.totalSalaryWithCharges}
             disabled
           />
@@ -245,16 +287,24 @@ export function MissionFinancials() {
           label="Grand Déplacement"
           value={finance.gd_rate}
           fieldName="gd_rate"
-          suffix="€/jour"
+          suffix="€ / jour"
         />
 
         <MonetaryInput label="Total GD" value={calculated.totalGD} disabled />
 
-        <MonetaryInput
-          label="Frais Annexes"
-          value={finance.annex_costs}
-          fieldName="annex_costs"
-        />
+        <div className="relative">
+          <MonetaryInput
+            label="Frais Annexes"
+            value={finance.annex_costs}
+            fieldName="annex_costs"
+            helpText="Total frais supplémentaire pour toute la durée du contrat"
+          />
+          {/* <div className="absolute right-[-20px] top-[38px]">
+            <InfoCircle
+              title="Total frais supplémentaire pour toute la durée du contrat"
+            />
+          </div> */}
+        </div>
 
         <MonetaryInput
           label="Total coût de l'XPERT"
