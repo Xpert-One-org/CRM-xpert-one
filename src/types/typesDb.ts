@@ -126,6 +126,9 @@ export type DBMissionCheckpoint =
 export type DBMissionCheckpoints =
   Database['public']['Tables']['mission_checkpoints']['Row'][];
 
+export type DBMissionFinance =
+  Database['public']['Tables']['mission_finance']['Row'];
+
 // MISSIONS
 export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   company_name?: string | null;
@@ -138,6 +141,7 @@ export type DBMission = Database['public']['Tables']['mission']['Row'] & {
   generated_id?: string | null;
   mission_application?: Database['public']['Tables']['mission_application']['Row'][];
   checkpoints?: DBMissionCheckpoints;
+  finance?: DBMissionFinance | null;
 };
 
 // CUSTOM TYPES
