@@ -31,6 +31,5 @@ export function generateMonthsRange(startDate: string, endDate?: string) {
 
     current.setMonth(current.getMonth() + 1, 1);
   }
-
   return months;
 }

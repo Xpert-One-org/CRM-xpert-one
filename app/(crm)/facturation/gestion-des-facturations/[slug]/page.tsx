@@ -21,7 +21,7 @@ export default function GestionDesFacturationsPage(props: {
   const params = use(props.params);
   const missionNumber = params.slug.replaceAll('-', ' ');
   const router = useRouter();
-  const { missions, fetchMissions } = useMissionStore();
+  const { missions, fetchUniqueMission } = useMissionStore();
   const { fileStatusesByMission, checkAllFiles } =
     useFileStatusFacturationStore();
 
@@ -152,8 +152,8 @@ export default function GestionDesFacturationsPage(props: {
   };
 
   useEffect(() => {
-    fetchMissions();
-  }, [fetchMissions]);
+    fetchUniqueMission(missionNumber);
+  }, [fetchUniqueMission]);
 
   useEffect(() => {
     if (missionData) {
@@ -177,7 +177,7 @@ export default function GestionDesFacturationsPage(props: {
           fileStatuses={fileStatuses}
           missionData={missionData}
         />
-        <div className="flex w-1/2">
+        <div className="flex">
           <MissionGestionFacturationTable
             missionData={missionData}
             selectedYear={selectedYear}

@@ -4,7 +4,12 @@ import { checkFileStatusForDate } from '../../_utils/checkFileStatusForDate';
 import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import type { FileStatuses, PaymentType } from '@/types/mission';
 import { useState, useEffect } from 'react';
-import { useIsProjectManager, useIsHr, useIsAdv } from '@/hooks/useRoles';
+import {
+  useIsProjectManager,
+  useIsHr,
+  useIsAdv,
+  useIsAdmin,
+} from '@/hooks/useRoles';
 
 type XpertStatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -31,6 +36,7 @@ export default function XpertStatusBox({
   const isProjectManager = useIsProjectManager();
   const isHr = useIsHr();
   const isAdv = useIsAdv();
+  const isAdmin = useIsAdmin();
 
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
@@ -51,7 +57,7 @@ export default function XpertStatusBox({
   );
 
   const handleClick = () => {
-    if ((!isHr && isProjectManager) || isAdv) return;
+    if (((!isHr && isProjectManager) || isAdv) && !isAdmin) return;
 
     setLocalIsSelected(!localIsSelected);
     if (!localIsSelected) {

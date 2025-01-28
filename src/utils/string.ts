@@ -11,14 +11,25 @@ export const getYears = ({ data, max }: { data: number; max: number }) => {
 };
 
 export const getTimeBeforeMission = (date: string) => {
-  const dateMinusDays = new Date(date);
+  const missionDate = new Date(date);
   const currentDate = new Date();
-  const diffTime = Math.abs(currentDate.getTime() - dateMinusDays.getTime());
+
+  // Vérifier si la mission est déjà passée
+  if (missionDate == currentDate) {
+    return 'Jour J';
+  }
+
+  if (missionDate < currentDate) {
+    return 'Dépassé';
+  }
+
+  // Calculer la différence en jours
+  const diffTime = missionDate.getTime() - currentDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays > 30) {
     return `J-${diffDays}`;
   }
 
-  return diffDays > 0 ? `J-${diffDays}` : 'Jour J';
+  return `J-${diffDays}`;
 };

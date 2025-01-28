@@ -22,7 +22,11 @@ export default function Sidebar() {
   const [openSubMenus, setOpenSubMenus] = useState<string[]>(menuCrmIds);
   const sidebarOpenWidth = 'min-w-[260px]';
   const pathname = usePathname();
-  const { lastMissionNumber, fetchLastMissionNumber } = useMissionStore();
+  const {
+    lastMissionNumber,
+    fetchLastMissionNumber,
+    lastMissionNumberFacturation,
+  } = useMissionStore();
 
   const toggleSubMenu = (id: string, open?: boolean) => {
     open
@@ -147,8 +151,13 @@ export default function Sidebar() {
                                     ? pathanmeWithoutParams.includes(
                                         subWithoutParams
                                       )
-                                    : subWithoutParams ===
-                                      pathanmeWithoutParams;
+                                    : sub.url ===
+                                        '/facturation/gestion-des-facturations'
+                                      ? pathanmeWithoutParams.includes(
+                                          subWithoutParams
+                                        )
+                                      : subWithoutParams ===
+                                        pathanmeWithoutParams;
                           return (
                             <Link
                               key={sub.url}
@@ -162,7 +171,10 @@ export default function Sidebar() {
                                       : sub.url ===
                                           '/mission/activation-des-missions'
                                         ? `/mission/activation-des-missions/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
-                                        : sub.url
+                                        : sub.url ===
+                                            '/facturation/gestion-des-facturations'
+                                          ? `/facturation/gestion-des-facturations/${lastMissionNumberFacturation.split(' ').join('-').toUpperCase()}`
+                                          : sub.url
                               }
                               className={cn('w-fit px-[10px] py-1 font-light', {
                                 'bg-dark_hard text-white': isSubActive,

@@ -214,21 +214,26 @@ export const searchMission = async (missionId: string) => {
   return { data };
 };
 
-export const getLastMissionNumber = async () => {
+export const getLastMissionNumber = async (isFacturation?: boolean) => {
   const supabase = await createSupabaseAppServerClient();
 
-  const { data, error } = await supabase
-    .from('mission')
-    .select('mission_number')
+  let query = supabase.from('mission').select('mission_number');
+  if (isFacturation) {
+    query = query
+      .in('state', ['open', 'open_all', 'in_progress'])
+      .gte('start_date', new Date().toISOString())
+      .lte('end_date', new Date().toISOString());
+  }
+  const { data, error } = await query
     .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+    .limit(1);
 
   if (error) {
+    console.error('Query error:', error);
     throw new Error(error.message);
   }
 
-  return { data: data.mission_number };
+  return { data: data[0]?.mission_number };
 };
 export const updateMissionState = async (
   missionId: string,
