@@ -144,7 +144,14 @@ export default function FournisseurActivationMissionRow({
         />
         <Button
           className="size-full text-white"
-          onClick={() => handleDownloadFile({ type: 'devis_signed' })}
+          onClick={() =>
+            handleDownloadFile({
+              type: getFileTypeByStatus(
+                'devis_signed',
+                missionXpertStatus ?? ''
+              ),
+            })
+          }
           disabled={
             !fileStatuses[
               getFileTypeByStatus('devis_signed', missionXpertStatus ?? '')
@@ -219,7 +226,14 @@ export default function FournisseurActivationMissionRow({
         />
         <Button
           className="size-full text-white"
-          onClick={() => handleDownloadFile({ type: 'contrat_commande' })}
+          onClick={() =>
+            handleDownloadFile({
+              type: getFileTypeByStatus(
+                'contrat_commande',
+                missionXpertStatus ?? ''
+              ),
+            })
+          }
           disabled={
             !fileStatuses[
               getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')

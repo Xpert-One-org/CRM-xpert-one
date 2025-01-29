@@ -25,6 +25,7 @@ export function MissionReferentSupplier() {
           className="w-1/3"
           placeholder={empty}
           value={mission.referent_mobile ?? ''}
+          onValueChange={(value) => handleUpdateField('referent_mobile', value)}
           defaultSelectedKeys={mission.referent_mobile ?? ''}
         />
         <PhoneInputComponent
@@ -32,7 +33,8 @@ export function MissionReferentSupplier() {
           name="mobile"
           className="w-1/3"
           placeholder={empty}
-          value={mission.referent?.fix ?? ''}
+          value={mission.referent_fix ?? ''}
+          onValueChange={(value) => handleUpdateField('referent_fix', value)}
           defaultSelectedKeys={mission.referent_fix ?? ''}
         />
       </div>
