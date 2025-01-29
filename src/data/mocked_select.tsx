@@ -673,6 +673,53 @@ export const revenusSalarialSelect: { label: string; value: DBRevenuType }[] = [
   },
 ];
 
+export const companyRoleSelect = [
+  {
+    label: 'Achat',
+    value: 'achat',
+  },
+  {
+    label: 'Administrative',
+    value: 'administrative',
+  },
+  {
+    label: 'Commerciale',
+    value: 'commerciale',
+  },
+  {
+    label: 'Comptabilité',
+    value: 'comptabilite',
+  },
+  {
+    label: 'Direction',
+    value: 'direction',
+  },
+  {
+    label: 'Directeur de site',
+    value: 'directeur_de_site',
+  },
+  {
+    label: 'Finance',
+    value: 'finance',
+  },
+  {
+    label: 'Production',
+    value: 'production',
+  },
+  {
+    label: 'RH',
+    value: 'rh',
+  },
+  {
+    label: 'Sécurité',
+    value: 'securite',
+  },
+  {
+    label: 'Technique',
+    value: 'technique',
+  },
+];
+
 export const jobTitleSelect = [
   {
     label: 'Assistant Dessinateur',

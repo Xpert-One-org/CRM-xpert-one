@@ -1,4 +1,5 @@
 import { Box } from '@/components/ui/box';
+import { jobTitleSelect } from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
@@ -20,12 +21,6 @@ export default function FournisseurMissionRow({
     router.push(`/mission/fiche/${missionNumber}`);
   };
 
-  const { jobTitles, fetchJobTitles } = useSelect();
-
-  useEffect(() => {
-    fetchJobTitles();
-  }, []);
-
   return (
     <>
       <div className="flex flex-row gap-2">
@@ -43,7 +38,7 @@ export default function FournisseurMissionRow({
         {mission.mission_number}
       </Box>
       <Box className="col-span-1 bg-lightgray-secondary">
-        {getLabel({ value: mission.job_title ?? '', select: jobTitles })}
+        {getLabel({ value: mission.job_title ?? '', select: jobTitleSelect })}
       </Box>
       <Box className="col-span-1 bg-lightgray-secondary">
         {mission.state === 'open'
