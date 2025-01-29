@@ -337,8 +337,7 @@ export default function XpertTable() {
               <button className="font-[600] text-primary" onClick={resetXperts}>
                 Réinitialiser
               </button>
-
-              {/* Affichage des filtres actifs */}
+              {/* Affichage des filtres actifs
               <div className="flex flex-wrap items-center gap-2">
                 {activeFilters.jobTitles && (
                   <Badge
@@ -391,8 +390,7 @@ export default function XpertTable() {
                     />
                   </Badge>
                 )}
-                {/* Ajoutez d'autres filtres selon vos besoins */}
-              </div>
+              </div> */}
             </>
           ) : (
             <Skeleton className="h-6 w-40" />

@@ -10,7 +10,6 @@ type SearchComponentFilterProps = {
   value?: string;
   showSelectedOption?: boolean;
   onValueChange: (value: string) => void;
-  onClear?: () => void;
 };
 
 export const SearchComponentFilter = ({
@@ -20,21 +19,11 @@ export const SearchComponentFilter = ({
   filterKey,
   value: externalValue,
   onValueChange,
-  onClear,
 }: SearchComponentFilterProps) => {
   const [searchTerm, setSearchTerm] = useState(externalValue || '');
   const [debouncedValue] = useDebounce(searchTerm, 300);
 
-  const handleClear = () => {
-    setSearchTerm('');
-    onClear?.();
-  };
-
   const handleSearch = (value: string) => {
-    if (value === '') {
-      handleClear();
-      return;
-    }
     setSearchTerm(value);
   };
 
@@ -63,7 +52,7 @@ export const SearchComponentFilter = ({
       placeholderSearch={placeholderSearch}
       className="border-none"
       icon={<FilterSvg className="size-4" />}
-      onClear={handleClear}
+      onClear={() => handleSearch('')}
     />
   );
 };
