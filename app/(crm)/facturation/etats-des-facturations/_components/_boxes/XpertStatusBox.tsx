@@ -117,7 +117,7 @@ export default function XpertStatusBox({
       className={`size-full ${
         isAdv
           ? 'cursor-not-allowed'
-          : fileType === 'salary_sheet'
+          : fileType !== 'salary_sheet'
             ? 'cursor-default'
             : isHr || !isProjectManager
               ? 'cursor-pointer'

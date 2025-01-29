@@ -41,6 +41,7 @@ export async function updateMissionFacturationPayment(
     .eq('id', missionId);
 
   if (error) {
+    console.error(error);
     throw new Error(`Failed to update ${paymentType} status`);
   }
 
