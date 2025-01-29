@@ -943,6 +943,7 @@ export type Database = {
           address: string | null;
           admin_opinion: Database['public']['Enums']['admin_opinion'] | null;
           affected_referent_id: string | null;
+          allow_documents_notifications: boolean;
           area: string[] | null;
           avatar_url: string | null;
           birthdate: string | null;
@@ -1005,6 +1006,7 @@ export type Database = {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
           affected_referent_id?: string | null;
+          allow_documents_notifications?: boolean;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -1067,6 +1069,7 @@ export type Database = {
           address?: string | null;
           admin_opinion?: Database['public']['Enums']['admin_opinion'] | null;
           affected_referent_id?: string | null;
+          allow_documents_notifications?: boolean;
           area?: string[] | null;
           avatar_url?: string | null;
           birthdate?: string | null;
@@ -1911,6 +1914,14 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
+      check_mission_documents: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      check_mission_documents_bis: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       create_notification: {
         Args: {
           user_id: string;
@@ -1980,6 +1991,16 @@ export type Database = {
       get_profile_other_languages: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
+      };
+      parse_file_path: {
+        Args: {
+          file_path: string;
+        };
+        Returns: {
+          mission_number: string;
+          xpert_id: string;
+          document_type: string;
+        }[];
       };
       unaccent: {
         Args: {
