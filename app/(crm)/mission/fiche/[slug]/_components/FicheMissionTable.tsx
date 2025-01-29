@@ -116,12 +116,9 @@ export default function FicheMissionTable() {
               <h3 className="text-sm font-bold text-black">
                 RÉFÉRENTS FOURNISSEUR
               </h3>
-              <p>
-                Nom :{' '}
-                {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
-              </p>
-              <p>Mail : {mission.referent?.email}</p>
-              <p>Téléphone : {formatPhoneNumber(mission.referent?.mobile)}</p>
+              <p>Nom : {mission.referent_name}</p>
+              <p>Mail : {mission.referent_mail}</p>
+              <p>Téléphone : {formatPhoneNumber(mission.referent_mobile)}</p>
             </div>
             <div>
               <h3 className="text-sm font-bold text-black">
