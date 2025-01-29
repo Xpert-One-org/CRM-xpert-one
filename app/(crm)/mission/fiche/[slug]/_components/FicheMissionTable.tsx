@@ -1,6 +1,7 @@
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { convertStateValue } from '@/utils/stateMissionConverter';
+import { formatPhoneNumber } from '@/utils/formatPhoneNumber';
 import React from 'react';
 import RightSideFicheMission from './RightSideFicheMission';
 import ComboboxMission from '@/components/combobox/ComboboxMission';
@@ -32,7 +33,7 @@ type MissionState =
 export default function FicheMissionTable() {
   const { openedMissionNotSaved: mission, handleUpdateField } =
     useEditMissionStore();
-
+  console.log(mission);
   if (!mission) return null;
 
   return (
@@ -115,9 +116,12 @@ export default function FicheMissionTable() {
               <h3 className="text-sm font-bold text-black">
                 RÉFÉRENTS FOURNISSEUR
               </h3>
-              <p>Nom : {`${mission.referent_name ?? ''}`}</p>
-              <p>Mail : {mission.referent_mail}</p>
-              <p>Téléphone : {mission.referent_mobile}</p>
+              <p>
+                Nom :{' '}
+                {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
+              </p>
+              <p>Mail : {mission.referent?.email}</p>
+              <p>Téléphone : {formatPhoneNumber(mission.referent?.mobile)}</p>
             </div>
             <div>
               <h3 className="text-sm font-bold text-black">

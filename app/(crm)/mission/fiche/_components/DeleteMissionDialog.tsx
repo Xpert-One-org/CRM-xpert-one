@@ -25,12 +25,16 @@ export default function DeleteMissionDialog({
   const [popupOpen, setPopupOpen] = useState(false);
   const isIntern = useIsIntern();
 
-  const [reasonDelete, setReasonDelete] = useState<ReasonMissionDeletion>(
-    'status_candidate_not_found'
-  );
+  const [reasonDelete, setReasonDelete] =
+    useState<ReasonMissionDeletion | null>(null);
   const router = useRouter();
 
   const handleSendDeleteMission = async () => {
+    if (!reasonDelete) {
+      toast.error('Veuillez sélectionner un motif de suppression');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await deleteMission(missionId, reasonDelete);
@@ -69,7 +73,7 @@ export default function DeleteMissionDialog({
               className="xl:max-w-[300px]"
               label="Motif de suppression"
               placeholder="Choississez un motif"
-              name={reasonDelete}
+              name={reasonDelete ?? ''}
               options={reasonDeleteMissionSelect}
               defaultSelectedKeys={reasonDelete}
               onValueChange={(value) =>
