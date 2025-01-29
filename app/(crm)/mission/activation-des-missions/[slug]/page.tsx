@@ -63,6 +63,7 @@ export default function MissionActivationPage(props: {
         'contrat_commande',
         missionData.xpert_associated_status
       ),
+      getFileTypeByStatus('devis', missionData.xpert_associated_status),
     ];
 
     const newFileStatuses: Record<
