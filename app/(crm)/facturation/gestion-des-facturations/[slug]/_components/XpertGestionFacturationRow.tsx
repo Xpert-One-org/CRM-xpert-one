@@ -56,7 +56,14 @@ export default function XpertGestionFacturationRow({
     try {
       const basePath = isTemplate
         ? `modeles_facturation/${type}`
-        : `${missionData.mission_number}/${missionData.xpert?.generated_id}/facturation/${type}`;
+        : `${missionData.mission_number}/${missionData.xpert?.generated_id}/facturation/${selectedYear}/${(
+            selectedMonth + 1
+          )
+            .toString()
+            .padStart(
+              2,
+              '0'
+            )}/${getFileTypeByStatusFacturation(type, missionData?.xpert_associated_status || '')}`;
 
       const { data: files, error: listError } = await supabase.storage
         .from('mission_files')
