@@ -43,7 +43,7 @@ export default function MissionActivationPage(props: {
           ? 'contrat'
           : missionData.xpert_associated_status === 'freelance'
             ? 'commande_societe'
-            : 'devis',
+            : 'devis_portage',
         missionData.xpert_associated_status
       ),
       getFileTypeByStatus(
@@ -63,6 +63,7 @@ export default function MissionActivationPage(props: {
         'contrat_commande',
         missionData.xpert_associated_status
       ),
+      getFileTypeByStatus('devis', missionData.xpert_associated_status),
     ];
 
     const newFileStatuses: Record<

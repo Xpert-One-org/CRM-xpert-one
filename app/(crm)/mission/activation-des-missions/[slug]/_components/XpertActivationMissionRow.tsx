@@ -259,7 +259,7 @@ export default function XpertActivationMissionRow({
               ? 'contrat'
               : missionXpertStatus === 'freelance'
                 ? 'commande_societe'
-                : 'devis',
+                : 'devis_portage',
             missionXpertStatus ?? ''
           )}
           title={getDocumentLabel('contrat', missionXpertStatus ?? '')}
@@ -271,7 +271,7 @@ export default function XpertActivationMissionRow({
                   ? 'contrat'
                   : missionXpertStatus === 'freelance'
                     ? 'commande_societe'
-                    : 'devis',
+                    : 'devis_portage',
                 missionXpertStatus ?? ''
               )
             ]?.exists
@@ -284,7 +284,7 @@ export default function XpertActivationMissionRow({
                 ? 'contrat'
                 : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis',
+                  : 'devis_portage',
               missionXpertStatus ?? ''
             )}
             title={getDocumentLabel('contrat', missionXpertStatus ?? '')}
@@ -297,17 +297,20 @@ export default function XpertActivationMissionRow({
             className="size-full text-white"
             onClick={() =>
               handleDownloadFile({
-                type: getFileTypeByStatus('devis', missionXpertStatus ?? ''),
+                type: getFileTypeByStatus(
+                  'devis_portage',
+                  missionXpertStatus ?? ''
+                ),
               })
             }
             disabled={
               !fileStatuses[
-                getFileTypeByStatus('devis', missionXpertStatus ?? '')
+                getFileTypeByStatus('devis_portage', missionXpertStatus ?? '')
               ]?.exists
             }
           >
             {fileStatuses[
-              getFileTypeByStatus('devis', missionXpertStatus ?? '')
+              getFileTypeByStatus('devis_portage', missionXpertStatus ?? '')
             ]?.exists ? (
               <Download className="size-6" />
             ) : (
@@ -335,7 +338,7 @@ export default function XpertActivationMissionRow({
       </Button>
       {missionXpertStatus === 'portage' ? (
         <UploadFileDialog
-          type={getFileTypeByStatus('devis', missionXpertStatus ?? '')}
+          type={getFileTypeByStatus('devis_portage', missionXpertStatus ?? '')}
           title="Devis de portage"
           buttonText="Loader devis portage"
           missionData={missionData}
@@ -353,7 +356,7 @@ export default function XpertActivationMissionRow({
                 ? 'contrat'
                 : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis',
+                  : 'devis_portage',
               missionXpertStatus ?? ''
             )
           ]?.exists
@@ -368,16 +371,16 @@ export default function XpertActivationMissionRow({
                 ? 'contrat'
                 : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis',
+                  : 'devis_portage',
               missionXpertStatus ?? ''
             )
           ]?.exists
             ? getFileStatus(
-                missionXpertStatus === 'portage' ? 'devis' : 'contrat',
+                missionXpertStatus === 'portage' ? 'devis_portage' : 'contrat',
                 missionXpertStatus ?? ''
               ).sentLabel
             : getFileStatus(
-                missionXpertStatus === 'portage' ? 'devis' : 'contrat',
+                missionXpertStatus === 'portage' ? 'devis_portage' : 'contrat',
                 missionXpertStatus ?? ''
               ).notSentLabel}
         </p>
@@ -388,7 +391,7 @@ export default function XpertActivationMissionRow({
                 ? 'contrat'
                 : missionXpertStatus === 'freelance'
                   ? 'commande_societe'
-                  : 'devis',
+                  : 'devis_portage',
               missionXpertStatus ?? ''
             )
           ]?.exists
@@ -399,7 +402,7 @@ export default function XpertActivationMissionRow({
                       ? 'contrat'
                       : missionXpertStatus === 'freelance'
                         ? 'commande_societe'
-                        : 'devis',
+                        : 'devis_portage',
                     missionXpertStatus ?? ''
                   )
                 ]?.createdAt ?? ''
