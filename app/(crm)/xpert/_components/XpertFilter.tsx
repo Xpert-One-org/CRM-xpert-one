@@ -75,6 +75,33 @@ export default function XpertFilter({
     }
   };
 
+  const handleJobTitlesChange = (value: string) => {
+    const newActiveFilter = { ...activeFilters, jobTitles: value };
+    setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
+  };
+
+  const handleFirstNameChange = (value: string) => {
+    const newActiveFilter = { ...activeFilters, firstname: value };
+    setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
+  };
+
+  const handleLastNameChange = (value: string) => {
+    const newActiveFilter = { ...activeFilters, lastname: value };
+    setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
+  };
+
   useEffect(() => {
     if (isFilterNotEmpty) {
       fetchXpertOptimizedFiltered(true);
@@ -103,10 +130,6 @@ export default function XpertFilter({
             const newActiveFilter = { ...activeFilters, lastname: value };
             setActiveFilters(newActiveFilter);
           }}
-          onClear={() => {
-            const newActiveFilter = { ...activeFilters, lastname: '' };
-            setActiveFilters(newActiveFilter);
-          }}
         />
       </div>
       <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
@@ -116,14 +139,7 @@ export default function XpertFilter({
           filterKey="firstname"
           placeholderSearch="Rechercher un prénom"
           value={activeFilters.firstname}
-          onValueChange={(value) => {
-            const newActiveFilter = { ...activeFilters, firstname: value };
-            setActiveFilters(newActiveFilter);
-          }}
-          onClear={() => {
-            const newActiveFilter = { ...activeFilters, firstname: '' };
-            setActiveFilters(newActiveFilter);
-          }}
+          onValueChange={handleFirstNameChange}
         />
       </div>
       <div className="col-span-2 flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
@@ -135,10 +151,6 @@ export default function XpertFilter({
           value={activeFilters.jobTitles}
           onValueChange={(value) => {
             const newActiveFilter = { ...activeFilters, jobTitles: value };
-            setActiveFilters(newActiveFilter);
-          }}
-          onClear={() => {
-            const newActiveFilter = { ...activeFilters, jobTitles: '' };
             setActiveFilters(newActiveFilter);
           }}
         />
@@ -160,10 +172,6 @@ export default function XpertFilter({
           value={activeFilters.generated_id}
           onValueChange={(value) => {
             const newActiveFilter = { ...activeFilters, generated_id: value };
-            setActiveFilters(newActiveFilter);
-          }}
-          onClear={() => {
-            const newActiveFilter = { ...activeFilters, generated_id: '' };
             setActiveFilters(newActiveFilter);
           }}
         />
