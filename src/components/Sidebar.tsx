@@ -55,6 +55,7 @@ export default function Sidebar() {
   return (
     <div className="relative hidden lg:block">
       <button
+        title="Ouvrir/fermer la barre latérale"
         onClick={toggleSidebar}
         className="group absolute -right-spaceMediumContainer top-[15%] z-40 hidden cursor-pointer rounded-[5px] border border-white bg-dark p-spaceXXSmall lg:flex"
       >
