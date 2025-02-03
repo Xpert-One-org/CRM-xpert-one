@@ -176,7 +176,15 @@ export const getXpertsOptimized = async ({
     let query = supabase
       .from('profile')
       .select(
-        'firstname, lastname, id, country, generated_id, created_at, admin_opinion, cv_name, profile_mission(availability, job_titles), profile_experience(post, post_other), mission!mission_xpert_associated_id_fkey(xpert_associated_id), affected_referent_id',
+        `
+        firstname, lastname, id, country, generated_id, created_at, 
+        admin_opinion, cv_name, 
+        profile_mission(availability, job_titles, sector), 
+        profile_status(iam),
+        profile_experience(post, post_other), 
+        mission!mission_xpert_associated_id_fkey(xpert_associated_id), 
+        affected_referent_id
+        `,
         { count: 'exact' }
       )
       .eq('role', 'xpert');
@@ -247,6 +255,16 @@ export const getXpertsOptimized = async ({
 
     if (filters?.generated_id) {
       query = query.ilike('generated_id', `%${filters.generated_id}%`);
+    }
+
+    if (filters?.iam) {
+      query = query.not('profile_status', 'is', null);
+      query = query.eq('profile_status.iam', filters.iam);
+    }
+
+    if (filters?.sectors && filters.sectors.length > 0) {
+      query = query.not('profile_mission', 'is', null);
+      query = query.contains('profile_mission.sector', filters.sectors);
     }
 
     const { data, error, count } = await query.range(

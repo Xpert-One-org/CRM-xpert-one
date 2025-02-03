@@ -214,8 +214,12 @@ export type DBXpertOptimized = Pick<
   | 'affected_referent_id'
 > & {
   mission: Pick<DBMission, 'xpert_associated_id'>[];
-  profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+  profile_mission: Pick<
+    DBProfileMission,
+    'job_titles' | 'availability' | 'sector'
+  > | null;
   profile_experience: Pick<DBProfileExperience, 'post' | 'post_other'> | null;
+  profile_status: Pick<DBProfileStatus, 'iam'> | null;
 };
 
 export type DBReferentType =
