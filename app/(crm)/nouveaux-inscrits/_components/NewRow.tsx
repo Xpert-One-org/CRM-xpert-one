@@ -47,7 +47,7 @@ export default function NewRow({
 
   const handleTaskClick = () => {
     setInitialTaskData({
-      subjectType: user.role as 'xpert' | 'supplier',
+      subjectType: user.role === 'company' ? 'supplier' : 'xpert',
       subjectId: user.id,
     });
     setCreateTaskDialogOpen(true);
@@ -55,25 +55,27 @@ export default function NewRow({
   };
 
   const toggleUserCall = () => {
-    setIsUserCalled(!isUserCalled);
-    const existingData = newUserCalledNotSaved.find(
+    const newValue = !isUserCalled;
+    setIsUserCalled(newValue);
+
+    const existingIndex = newUserCalledNotSaved.findIndex(
       (item) => item.user_id === user.id
     );
-    if (existingData) {
-      if (isUserCalled === user.get_welcome_call) {
+
+    if (existingIndex >= 0) {
+      if (newValue === user.get_welcome_call) {
         setNewUserCalledNotSaved(
           newUserCalledNotSaved.filter((item) => item.user_id !== user.id)
         );
-        return;
+      } else {
+        const updatedData = [...newUserCalledNotSaved];
+        updatedData[existingIndex] = { user_id: user.id, value: newValue };
+        setNewUserCalledNotSaved(updatedData);
       }
-      const newData = newUserCalledNotSaved.map((data) =>
-        data.user_id === user.id ? { ...data, value: isUserCalled } : data
-      );
-      setNewUserCalledNotSaved(newData);
     } else {
       setNewUserCalledNotSaved([
         ...newUserCalledNotSaved,
-        { user_id: user.id, value: isUserCalled },
+        { user_id: user.id, value: newValue },
       ]);
     }
   };
@@ -90,7 +92,7 @@ export default function NewRow({
   return (
     <>
       <div className="grid w-full grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_50px_50px] gap-4">
-        <Box isSelected={isOpen} className="">
+        <Box isSelected={isOpen}>
           <p>{formatDate(user.created_at) ?? 'Non renseigné'}</p>
         </Box>
         <Box
