@@ -260,14 +260,15 @@ export default function XpertTable() {
   }, [openedXpertNotSaved, openedXpert]);
 
   const renderMissions = (xpert: DBXpert) => {
-    const canShowMissions =
-      xpert.totale_progression >= 80 && Boolean(xpert.cv_name);
-
+    const canShowMissions = Boolean(xpert.cv_name);
+    const hasMissions = xpert.mission && xpert.mission.length > 0;
+    console.log(xpert);
+    console.log(canShowMissions);
+    console.log(hasMissions);
     const tooltipContent = (
-      <TooltipContent className="max-w-[300px] bg-white p-2">
+      <TooltipContent className="whitespace-nowrap bg-white p-2">
         <p>Pour voir les missions, il faut :</p>
         <ul className="list-disc pl-4">
-          <li>Un profil complété à 80% minimum</li>
           <li>Un CV téléchargé</li>
         </ul>
       </TooltipContent>
@@ -284,7 +285,7 @@ export default function XpertTable() {
 
     if (!canShowMissions) {
       return (
-        <div className="flex items-center justify-center gap-2">
+        <div className="col-span-4 flex items-center justify-start gap-2">
           <p className="text-gray-secondary text-center text-sm">
             Les conditions ne sont pas remplies
           </p>
@@ -293,13 +294,12 @@ export default function XpertTable() {
       );
     }
 
-    if (xpert.mission.length === 0) {
+    if (!hasMissions) {
       return (
-        <div className="col-span-4 ml-5 flex items-center justify-center gap-2">
+        <div className="col-span-4 flex items-center justify-start gap-2">
           <p className="text-gray-secondary whitespace-nowrap text-center text-sm">
             Aucune mission
           </p>
-          {infoTooltip}
         </div>
       );
     }
@@ -313,8 +313,6 @@ export default function XpertTable() {
     const xpertId = searchParams.get('id');
     xpertId && fetchSpecificXpert(xpertId);
   }, [searchParams]);
-
-  console.log(xpertsOptimized);
 
   return (
     <>
@@ -408,7 +406,7 @@ export default function XpertTable() {
               />
               <div
                 className={cn(
-                  'col-span-5 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
+                  'col-span-7 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
@@ -421,18 +419,14 @@ export default function XpertTable() {
               </div>
               <div
                 className={cn(
-                  'col-span-6 hidden h-full max-h-0 w-full overflow-hidden',
+                  'col-span-7 hidden h-full max-h-0 w-full overflow-hidden',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
                 <div className="grid grid-cols-5 gap-3 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
                   <XpertMissionFilter />
 
-                  {openedXpert && (
-                    <div className="flex flex-col">
-                      {renderMissions(openedXpert)}
-                    </div>
-                  )}
+                  {openedXpert && <>{renderMissions(openedXpert)}</>}
                 </div>
                 {xpertIdOpened === xpert.generated_id && (
                   <XpertRowContentBis
