@@ -59,6 +59,8 @@ export default function MissionActivationRow({
     setHasChanges(false);
   };
 
+  console.log(mission);
+
   return (
     <>
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
