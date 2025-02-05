@@ -314,6 +314,8 @@ export default function XpertTable() {
     xpertId && fetchSpecificXpert(xpertId);
   }, [searchParams]);
 
+  console.log(xpertsOptimized);
+
   return (
     <>
       {
@@ -322,13 +324,13 @@ export default function XpertTable() {
         </div>
       }
 
-      <div className="grid grid-cols-11 gap-3">
+      <div className="grid grid-cols-[repeat(14,_minmax(0,_1fr))] gap-3">
         <XpertFilter
           key={xpertFilterKey}
           xperts={xpertsOptimized || []}
           // onSortedDataChange={handleFilterChange}
         />
-        <div className="col-span-11 flex items-center gap-4">
+        <div className="col-[span_14_/_span_14] flex items-center gap-4">
           {!loading ? (
             <>
               <p className="whitespace-nowrap">

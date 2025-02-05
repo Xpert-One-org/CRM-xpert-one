@@ -12,9 +12,9 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 
-import { jobTitleSelect } from '@/data/mocked_select';
+import { iamSelect, jobTitleSelect, sectorSelect } from '@/data/mocked_select';
 import type { AdminOpinionValue } from '@/types/types';
-import { adminOpinionOptions } from '@/data/filter';
+import { adminOpinionOptions, iamStatusOptions } from '@/data/filter';
 import { updateAdminOpinion } from '../../xpert.action';
 import { useXpertStore } from '@/store/xpert';
 
@@ -74,6 +74,31 @@ export default function XpertRow({
       ? formatDate(xpert.profile_mission.availability ?? '')
       : empty
     : empty;
+
+  const getBadgeOfSector = (sectors: string[]) => {
+    return sectors.map((sector, i, arr) => {
+      const badge = (
+        <div key={`${xpert.generated_id}-sector-${i}`}>
+          <Badge
+            className="m-1 max-w-[95%] font-normal"
+            key={`${xpert.generated_id}-sector-${i}`}
+          >
+            {getLabel({ value: sector, select: sectorSelect }) ?? empty}
+          </Badge>
+          {i < arr.length - 1 && <span className="text-gray-400">|</span>}
+        </div>
+      );
+      return badge;
+    });
+  };
+
+  const iamStatus =
+    getLabel({
+      value: xpert.profile_status?.iam ?? '',
+      select: iamSelect,
+    }) ?? empty;
+
+  const sectorBadges = getBadgeOfSector(xpert.profile_mission?.sector ?? []);
 
   const availabilityStatus = (() => {
     if (xpert.profile_mission?.availability === undefined) {
@@ -191,6 +216,21 @@ export default function XpertRow({
           }
         />
       </Box>
+
+      <Box className="col-span-1 bg-[#E1E1E1]" isSelected={isOpen}>
+        {iamStatus}
+      </Box>
+
+      <Box className="col-span-2 flex flex-col p-2" isSelected={isOpen}>
+        <div
+          className={cn('flex size-full flex-row flex-wrap items-center', {
+            'border bg-white': sectorBadges.length > 0,
+          })}
+        >
+          {sectorBadges.length > 0 ? sectorBadges : empty}
+        </div>
+      </Box>
+
       <Button
         className="col-span-1 h-full gap-1 text-white"
         onClick={handleClick}
