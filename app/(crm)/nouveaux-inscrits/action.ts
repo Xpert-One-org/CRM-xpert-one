@@ -9,7 +9,7 @@ export const getNewUsersLastMonth = async (role: string) => {
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
-    const { data, error } = await supabase
+    const query = supabase
       .from('profile')
       .select('*')
       .eq('role', role)
@@ -22,8 +22,13 @@ export const getNewUsersLastMonth = async (role: string) => {
           }
         )
       )
-      .gt('totale_progression', 50)
       .order('created_at', { ascending: false });
+
+    if (role === 'xpert') {
+      query.gt('totale_progression', 50);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw error;

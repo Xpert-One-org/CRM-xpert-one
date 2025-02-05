@@ -1366,7 +1366,8 @@ ALTER FUNCTION "public"."get_profile_other_languages"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    AS $$DECLARE
+    AS $$
+DECLARE
     v_role text;
     v_generated_id TEXT;
 BEGIN
@@ -1408,9 +1409,35 @@ BEGIN
         v_generated_id
     );
 
-    RETURN NEW;
+    -- Insérer une ligne dans user_alerts avec les valeurs par défaut
+    INSERT INTO public.user_alerts (
+        user_id,
+        blog_alert,
+        fav_alert,
+        answer_message_mail,
+        new_mission_alert,
+        new_message_alert,
+        newsletter,
+        mission_state_change_alert,
+        show_on_website,
+        show_profile_picture
+    )
+    VALUES (
+        NEW.id,
+        false,  -- blog_alert
+        true,  -- fav_alert
+        true,  -- answer_message_mail
+        true,  -- new_mission_alert
+        true,  -- new_message_alert
+        false,  -- newsletter
+        true,  -- mission_state_change_alert
+        false,  -- show_on_website
+        true   -- show_profile_picture
+    );
 
-END;$$;
+    RETURN NEW;
+END;
+$$;
 
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
@@ -1771,6 +1798,45 @@ END;$$;
 ALTER FUNCTION "public"."notify_new_forum_message"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."notify_new_invoice_payment"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    old_payments jsonb[];
+    new_payments jsonb[];
+    payment jsonb;
+    period text;
+BEGIN
+    old_payments := COALESCE(OLD.facturation_invoice_paid::jsonb[], ARRAY[]::jsonb[]);
+    new_payments := NEW.facturation_invoice_paid::jsonb[];
+    
+    FOREACH payment IN ARRAY new_payments
+    LOOP
+        IF NOT (payment::text IN (SELECT unnest(old_payments)::text)) THEN
+            period := payment#>>'{period}';
+            INSERT INTO notification (
+                user_id,
+                link,
+                message,
+                subject
+            )
+            VALUES (
+                NEW.affected_referent_id,
+                'mission/fiche/'|| REPLACE(NEW.mission_number, ' ', '-'),
+                'La facture de la mission ' || REPLACE(NEW.mission_number, ' ', '-') || ' pour la période ' || period || ' a été payée.',
+                'Facture payée'
+            );
+        END IF;
+    END LOOP;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."notify_new_invoice_payment"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."notify_new_message"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$DECLARE
@@ -1848,6 +1914,84 @@ END;$$;
 ALTER FUNCTION "public"."notify_new_message"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."notify_new_payment"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    old_payments jsonb[];
+    new_payments jsonb[];
+    payment jsonb;
+    period text;
+BEGIN
+    old_payments := COALESCE(OLD.facturation_fournisseur_payment::jsonb[], ARRAY[]::jsonb[]);
+    new_payments := NEW.facturation_fournisseur_payment::jsonb[];
+    
+    FOREACH payment IN ARRAY new_payments
+    LOOP
+        IF NOT (payment::text IN (SELECT unnest(old_payments)::text)) THEN
+            period := payment#>>'{period}';
+            INSERT INTO notification (
+                user_id,
+                link,
+                message,
+                subject
+            )
+            VALUES (
+                NEW.affected_referent_id,
+                'mission/fiche/'|| REPLACE(NEW.mission_number, ' ', '-'),
+                'Le fournisseur de la mission ' || REPLACE(NEW.mission_number, ' ', '-') || ' pour la période ' || period || ' a payé une facture.',
+                'Paiement effectué'
+            );
+        END IF;
+    END LOOP;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."notify_new_payment"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_salary_payment"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    old_payments jsonb[];
+    new_payments jsonb[];
+    payment jsonb;
+    period text;
+BEGIN
+    old_payments := COALESCE(OLD.facturation_salary_payment::jsonb[], ARRAY[]::jsonb[]);
+    new_payments := NEW.facturation_salary_payment::jsonb[];
+    
+    FOREACH payment IN ARRAY new_payments
+    LOOP
+        IF NOT (payment::text IN (SELECT unnest(old_payments)::text)) THEN
+            period := payment#>>'{period}';
+            INSERT INTO notification (
+                user_id,
+                link,
+                message,
+                subject
+            )
+            VALUES (
+                NEW.affected_referent_id,
+                'mission/fiche/'|| REPLACE(NEW.mission_number, ' ', '-'),
+                'Le salaire de la mission ' || REPLACE(NEW.mission_number, ' ', '-') || ' pour la période ' || period || ' a été payé.',
+                'Paiement du salaire effectué'
+            );
+        END IF;
+    END LOOP;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."notify_new_salary_payment"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."notify_new_task"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$BEGIN
@@ -1918,6 +2062,122 @@ end;$$;
 
 
 ALTER FUNCTION "public"."parse_file_path"("file_path" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."process_document_upload"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    v_mission_number varchar;
+    v_xpert_id varchar;
+    v_affected_ref_id uuid;
+    v_xpert_firstname varchar;
+    v_xpert_lastname varchar;
+    v_year varchar;
+    v_month varchar;
+    v_period varchar;
+    v_is_invoice boolean; -- Variable pour savoir si c'est une facture ou une feuille de présence
+BEGIN
+    -- Vérifier si c'est le bon bucket et le bon type de document
+    IF NEW.bucket_id != 'mission_files' OR (
+   (NEW.name LIKE '%/invoice_received_freelance_cdi/%' 
+    OR NEW.name LIKE '%/invoice_received_freelance_freelance/%'
+    OR NEW.name LIKE '%/invoice_received_freelance_portage/%') 
+   AND NEW.name LIKE '%/invoice_received%'
+) THEN
+    -- Si le fichier est une facture
+    v_is_invoice := TRUE;
+ELSIF NEW.name LIKE '%/presence_sheet_signed_cdi/%' 
+   OR NEW.name LIKE '%/presence_sheet_signed_freelance/%'
+   OR NEW.name LIKE '%/presence_sheet_signed_portage/%' 
+   OR NEW.name LIKE '%/presence_sheet_signed_freelance_portage/%' THEN
+    -- Si le fichier est une feuille de présence
+    v_is_invoice := FALSE;
+ELSE
+    -- Si le fichier n'est ni une facture ni une feuille de présence
+    RETURN NEW;
+END IF;
+
+    -- Extraire le numéro de mission et l'ID de l'expert du chemin
+    v_mission_number := SUBSTRING(split_part(NEW.name, '/', 1) FROM '(M [0-9]+)');
+    v_xpert_id := SUBSTRING(split_part(NEW.name, '/', 2) FROM 'X ([0-9]+)');
+
+    -- Si on ne trouve pas les informations requises, on sort
+    IF v_mission_number IS NULL OR v_xpert_id IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    -- Extraire l'année et le mois du chemin
+    v_year := split_part(NEW.name, '/', 4);
+    v_month := split_part(NEW.name, '/', 5);
+
+    -- Formater la période
+    v_period := CASE v_month
+        WHEN '01' THEN 'Janvier'
+        WHEN '02' THEN 'Février'
+        WHEN '03' THEN 'Mars'
+        WHEN '04' THEN 'Avril'
+        WHEN '05' THEN 'Mai'
+        WHEN '06' THEN 'Juin'
+        WHEN '07' THEN 'Juillet'
+        WHEN '08' THEN 'Août'
+        WHEN '09' THEN 'Septembre'
+        WHEN '10' THEN 'Octobre'
+        WHEN '11' THEN 'Novembre'
+        WHEN '12' THEN 'Décembre'
+    END || ' ' || v_year;
+
+    -- Récupérer le affected_referent_id de la mission
+    SELECT affected_referent_id 
+    INTO v_affected_ref_id
+    FROM mission m
+    WHERE m.mission_number = v_mission_number;
+
+    -- Récupérer les informations de l'expert
+    SELECT firstname, lastname 
+    INTO v_xpert_firstname, v_xpert_lastname
+    FROM profile
+    WHERE generated_id = v_xpert_id;
+
+    -- Insérer la notification
+    IF v_is_invoice THEN
+        -- Notification pour facture
+        INSERT INTO notification (
+            user_id,
+            link,
+            message,
+            subject
+        )
+        VALUES (
+            v_affected_ref_id,
+            'mission/fiche/'|| REPLACE(v_mission_number, ' ', '-'),
+            'L''Xpert ' || v_xpert_id || ' a déposé sa facture pour la période de ' || v_period,
+            'Nouveau document reçu'
+        );
+    ELSE
+        -- Notification pour feuille de présence
+        INSERT INTO notification (
+            user_id,
+            link,
+            message,
+            subject
+        )
+        VALUES (
+            v_affected_ref_id,
+            'mission/fiche/'|| REPLACE(v_mission_number, ' ', '-'),
+            'L''Xpert ' || v_xpert_id || ' a publié sa feuille de présence pour la période de ' || v_period,
+            'Nouveau document reçu'
+        );
+    END IF;
+    
+    RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Erreur lors de la création de la notification: %', SQLERRM;
+        RETURN NEW;
+END;$$;
+
+
+ALTER FUNCTION "public"."process_document_upload"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."set_unique_slug"() RETURNS "trigger"
@@ -2732,7 +2992,8 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "collaborator_is_absent" boolean DEFAULT false,
     "collaborator_replacement_id" "uuid",
     "get_welcome_call" boolean DEFAULT false,
-    "is_authorized_referent" boolean DEFAULT true NOT NULL
+    "is_authorized_referent" boolean DEFAULT true NOT NULL,
+    "allow_documents_notifications" boolean DEFAULT true NOT NULL
 );
 
 
@@ -3561,6 +3822,10 @@ CREATE OR REPLACE TRIGGER "create_checkpoints_after_mission_insert" AFTER INSERT
 
 
 
+CREATE OR REPLACE TRIGGER "invoice_payment_notification_trigger" AFTER UPDATE OF "facturation_invoice_paid" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_invoice_payment"();
+
+
+
 CREATE OR REPLACE TRIGGER "mission_notification_trigger" AFTER UPDATE ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."create_mission_notifications"();
 
 
@@ -3582,6 +3847,14 @@ CREATE OR REPLACE TRIGGER "notify_new_forum_message_trigger" AFTER INSERT ON "pu
 
 
 CREATE OR REPLACE TRIGGER "notify_welcome_call_trigger" AFTER UPDATE OF "get_welcome_call" ON "public"."profile" FOR EACH ROW WHEN ((("new"."get_welcome_call" = true) AND ("old"."get_welcome_call" IS DISTINCT FROM true))) EXECUTE FUNCTION "public"."notify_welcome_call_done"();
+
+
+
+CREATE OR REPLACE TRIGGER "payment_notification_trigger" AFTER UPDATE OF "facturation_fournisseur_payment" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_payment"();
+
+
+
+CREATE OR REPLACE TRIGGER "salary_payment_notification_trigger" AFTER UPDATE OF "facturation_salary_payment" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_salary_payment"();
 
 
 
@@ -4412,6 +4685,7 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
+-- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";
@@ -4880,9 +5154,27 @@ GRANT ALL ON FUNCTION "public"."notify_new_forum_message"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."notify_new_invoice_payment"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_invoice_payment"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_invoice_payment"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."notify_new_message"() TO "anon";
 GRANT ALL ON FUNCTION "public"."notify_new_message"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notify_new_message"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_payment"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_payment"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_payment"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_salary_payment"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_salary_payment"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_salary_payment"() TO "service_role";
 
 
 
@@ -4907,6 +5199,12 @@ GRANT ALL ON FUNCTION "public"."notify_welcome_call_done"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."parse_file_path"("file_path" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."parse_file_path"("file_path" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."parse_file_path"("file_path" "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."process_document_upload"() TO "anon";
+GRANT ALL ON FUNCTION "public"."process_document_upload"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."process_document_upload"() TO "service_role";
 
 
 

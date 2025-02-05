@@ -183,8 +183,14 @@ export function MissionFinancials() {
   }) => {
     const formatValue = (val: number | null | undefined): string => {
       if (val === null || val === undefined || isNaN(val)) return '';
+      // Format with 2 decimals and replace dot with comma
       const withDecimals = val.toFixed(2).replace('.', ',');
-      return withDecimals.replace(/,?0+$/, '');
+      // Remove trailing zeros after comma
+      const withoutTrailingZeros = withDecimals.replace(/,?0+$/, '');
+      // Add spaces between thousands
+      const [integerPart, decimalPart] = withoutTrailingZeros.split(',');
+      const withSpaces = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      return decimalPart ? `${withSpaces},${decimalPart}` : withSpaces;
     };
 
     const [localValue, setLocalValue] = useState<string>(formatValue(value));
@@ -251,89 +257,96 @@ export function MissionFinancials() {
       </div>
 
       {/* Taux et période */}
-      <div className="flex w-fit flex-row gap-4">
-        <MonetaryInput
-          label={getSalaryLabel()}
-          value={isTJM ? finance.daily_rate : finance.monthly_rate}
-          fieldName={isTJM ? 'daily_rate' : 'monthly_rate'}
-          suffix={getSalarySuffix()}
-        />
+      {finance.xpert_status && finance.base_tarifaire && (
+        <>
+          {' '}
+          <div className="flex w-fit flex-row gap-4">
+            <MonetaryInput
+              label={getSalaryLabel()}
+              value={isTJM ? finance.daily_rate : finance.monthly_rate}
+              fieldName={isTJM ? 'daily_rate' : 'monthly_rate'}
+              suffix={getSalarySuffix()}
+            />
 
-        <MonetaryInput
-          label={getWorkPeriodLabel()}
-          value={isTJM ? finance.days_worked : finance.months_worked}
-          fieldName={isTJM ? 'days_worked' : 'months_worked'}
-          suffix={isTJM ? 'jours' : 'mois'}
-        />
+            <MonetaryInput
+              label={getWorkPeriodLabel()}
+              value={isTJM ? finance.days_worked : finance.months_worked}
+              fieldName={isTJM ? 'days_worked' : 'months_worked'}
+              suffix={isTJM ? 'jours' : 'mois'}
+            />
 
-        <MonetaryInput
-          label={getTotalSalaryLabel()}
-          value={calculated.totalSalaryNoCharges}
-          disabled
-        />
+            <MonetaryInput
+              label={getTotalSalaryLabel()}
+              value={calculated.totalSalaryNoCharges}
+              disabled
+            />
 
-        {finance.xpert_status === 'CDI de mission' && (
-          <MonetaryInput
-            label="Total salaire (avec charge)"
-            value={calculated.totalSalaryWithCharges}
-            disabled
-          />
-        )}
-      </div>
+            {finance.xpert_status === 'CDI de mission' && (
+              <MonetaryInput
+                label="Total salaire (avec charge)"
+                value={calculated.totalSalaryWithCharges}
+                disabled
+              />
+            )}
+          </div>
+          {/* Déplacements et frais */}
+          <div className="flex w-fit flex-row gap-4">
+            <MonetaryInput
+              label="Grand Déplacement"
+              value={finance.gd_rate}
+              fieldName="gd_rate"
+              suffix="€ / jour"
+            />
 
-      {/* Déplacements et frais */}
-      <div className="flex w-fit flex-row gap-4">
-        <MonetaryInput
-          label="Grand Déplacement"
-          value={finance.gd_rate}
-          fieldName="gd_rate"
-          suffix="€ / jour"
-        />
+            <MonetaryInput
+              label="Total GD"
+              value={calculated.totalGD}
+              disabled
+            />
 
-        <MonetaryInput label="Total GD" value={calculated.totalGD} disabled />
-
-        <div className="relative">
-          <MonetaryInput
-            label="Frais Annexes"
-            value={finance.annex_costs}
-            fieldName="annex_costs"
-            helpText="Total frais supplémentaire pour toute la durée du contrat"
-          />
-          {/* <div className="absolute right-[-20px] top-[38px]">
+            <div className="relative">
+              <MonetaryInput
+                label="Frais Annexes"
+                value={finance.annex_costs}
+                fieldName="annex_costs"
+                helpText="Total frais supplémentaire pour toute la durée du contrat"
+              />
+              {/* <div className="absolute right-[-20px] top-[38px]">
             <InfoCircle
               title="Total frais supplémentaire pour toute la durée du contrat"
             />
           </div> */}
-        </div>
+            </div>
 
-        <MonetaryInput
-          label="Total coût de l'XPERT"
-          value={calculated.totalXpertCost}
-          disabled
-        />
-      </div>
+            <MonetaryInput
+              label="Total coût de l'XPERT"
+              value={calculated.totalXpertCost}
+              disabled
+            />
+          </div>
+          {/* Marge et CA */}
+          <div className="flex w-fit flex-row gap-4">
+            <MonetaryInput
+              label="Marge XPERT ONE"
+              value={finance.margin}
+              fieldName="margin"
+              suffix="%"
+            />
 
-      {/* Marge et CA */}
-      <div className="flex w-fit flex-row gap-4">
-        <MonetaryInput
-          label="Marge XPERT ONE"
-          value={finance.margin}
-          fieldName="margin"
-          suffix="%"
-        />
+            <MonetaryInput
+              label="soit en euro"
+              value={calculated.marginEuros}
+              disabled
+            />
 
-        <MonetaryInput
-          label="soit en euro"
-          value={calculated.marginEuros}
-          disabled
-        />
-
-        <MonetaryInput
-          label="CA de la mission"
-          value={calculated.totalCA}
-          disabled
-        />
-      </div>
+            <MonetaryInput
+              label="CA de la mission"
+              value={calculated.totalCA}
+              disabled
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
