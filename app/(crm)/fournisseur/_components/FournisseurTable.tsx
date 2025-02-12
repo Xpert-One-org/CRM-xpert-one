@@ -491,6 +491,14 @@ export default function FournisseurTable() {
                         }
                         disabled={!openedFournisseurNotSaved}
                       />
+                      <Input
+                        label="Code postal"
+                        value={openedFournisseurNotSaved?.postal_code ?? ''}
+                        onChange={(e) =>
+                          handleInputChange('postal_code', e.target.value)
+                        }
+                        disabled={!openedFournisseurNotSaved}
+                      />
 
                       <CreatableSelect
                         label={'Pays'}

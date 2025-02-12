@@ -23,6 +23,12 @@ import {
 import { toast } from 'sonner';
 import type { FilterXpert } from '@/types/types';
 import { updateCollaboratorReferent } from '../../app/(crm)/admin/gestion-collaborateurs/gestion-collaborateurs.action';
+import { useDebouncedCallback } from 'use-debounce';
+
+type NestedTableKey =
+  | 'profile_expertise'
+  | 'profile_mission'
+  | 'profile_status';
 
 type XpertState = {
   loading: boolean;

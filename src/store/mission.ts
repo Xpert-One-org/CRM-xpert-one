@@ -13,6 +13,7 @@ import {
   getSpecificMission,
   searchMission,
   updateMissionState,
+  updateShowOnWebsite,
 } from '@functions/missions';
 import { updateSelectionMission } from '../../app/(crm)/mission/selection/selection.action';
 import { updateXpertAssociatedStatus } from '../../app/(crm)/mission/activation-des-missions/activation-mission.action';
@@ -46,6 +47,10 @@ type MissionState = {
     state: DBMissionState,
     reason_deletion?: ReasonMissionDeletion,
     detail_deletion?: string
+  ) => Promise<void>;
+  updateMissionWebsiteVisibility: (
+    missionId: number,
+    showOnWebsite: boolean
   ) => Promise<void>;
   updateSelectionMission: (
     selectionId: number,
@@ -81,11 +86,11 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   missions: [],
   lastMissionNumber: '',
   lastMissionNumberFacturation: '',
-  inProgressMissions: [],
   missionsNumbers: [],
   totalMissions: 0,
   isLoading: false,
   page: 1,
+  hasMore: true,
   setIsLoading: (loading: boolean) => set({ isLoading: loading }),
   activeFilters: {
     mission_number: [],
@@ -96,6 +101,31 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   },
   setActiveFilters: (filters) => set({ activeFilters: filters }),
   resetPagination: () => set({ page: 1, missions: [] }),
+
+  updateMissionWebsiteVisibility: async (
+    missionId: number,
+    showOnWebsite: boolean
+  ) => {
+    try {
+      const { error } = await updateShowOnWebsite(missionId, showOnWebsite);
+
+      if (error) {
+        throw new Error('Failed to update mission visibility');
+      }
+
+      set((state) => ({
+        missions: state.missions.map((mission) =>
+          mission.id === missionId
+            ? { ...mission, show_on_website: showOnWebsite }
+            : mission
+        ),
+      }));
+    } catch (error) {
+      console.error('Error updating mission visibility:', error);
+      throw error;
+    }
+  },
+
   fetchUniqueMission: async (missionNumber: string): Promise<DBMission> => {
     const formattedMissionNumber = missionNumber.replace('-', ' ');
     const missionsAlreadyFetched = get().missions;
@@ -116,6 +146,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     });
     return data;
   },
+
   fetchLastMissionNumber: async () => {
     const { data } = await getLastMissionNumber();
     const { data: dataFacturation } = await getLastMissionNumber(true);
@@ -124,6 +155,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       lastMissionNumberFacturation: dataFacturation ?? data ?? '',
     });
   },
+
   searchMissions: async (missionId: string) => {
     set({ isLoading: true });
     try {
@@ -136,7 +168,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       set({ isLoading: false });
     }
   },
-  hasMore: true,
+
   fetchMissions: async () => {
     const { page, totalMissions, missions, isLoading } = get();
 
@@ -201,12 +233,12 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       set({ isLoading: false });
     }
   },
+
   fetchMissionsState: async (selectedState: DBMissionState | null) => {
     if (selectedState) {
       set({ isLoading: true });
       try {
         const fetchedMissions = await getMissionState(selectedState);
-        console.log('fetchedMissions', fetchedMissions);
         set({ missions: fetchedMissions });
       } catch (error) {
         console.error('Error fetching missions state:', error);
@@ -216,6 +248,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       }
     }
   },
+
   updateMission: async (
     missionId: string,
     state: DBMissionState,
@@ -254,6 +287,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       throw error;
     }
   },
+
   updateSelectionMission: async (
     selectionId: number,
     columnStatus: ColumnStatus,
@@ -280,6 +314,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       });
     }
   },
+
   updateXpertAssociatedStatus: async (missionId: number, status: string) => {
     const { error } = await updateXpertAssociatedStatus(missionId, status);
 
@@ -298,6 +333,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       ),
     });
   },
+
   updateMissionCheckpoints: (missionId, newValues) => {
     set((state) => {
       const updatedMissions = state.missions.map((mission) => {

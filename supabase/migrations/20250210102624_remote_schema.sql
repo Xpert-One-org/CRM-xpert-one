@@ -944,6 +944,54 @@ END;$$;
 ALTER FUNCTION "public"."check_mission_documents_bis"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."create_forum_notifications"("message_content" "text", "chat_id" integer, "sender_id" "uuid", "exclude_user_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    chat_participant record;
+    chat_info record;
+BEGIN
+    -- Récupérer les informations du chat
+    SELECT type, title INTO chat_info 
+    FROM chat 
+    WHERE id = chat_id;
+
+    -- Pour chaque participant du chat
+    FOR chat_participant IN (
+        SELECT DISTINCT p.id, p.firstname, p.lastname
+        FROM chat_participants cp
+        JOIN profile p ON p.id = cp.user_id
+        WHERE cp.chat_id = chat_id
+        AND cp.user_id != exclude_user_id  -- Exclure l'expéditeur
+    ) LOOP
+        -- Créer une notification pour chaque participant
+        INSERT INTO notification (
+            user_id,
+            link,
+            message,
+            subject,
+            status
+        ) VALUES (
+            chat_participant.id,
+            CASE 
+                WHEN chat_info.type = 'forum' THEN 'communaute/forum/' || chat_id
+                WHEN chat_info.type = 'echo_community' THEN 'communaute/echo-de-la-communaute/' || chat_id
+            END,
+            CASE 
+                WHEN chat_info.type = 'forum' THEN 'Nouveau message dans la discussion : ' || chat_info.title
+                WHEN chat_info.type = 'echo_community' THEN 'Nouveau message dans l''écho : ' || chat_info.title
+            END,
+            'Communauté',
+            'info'
+        );
+    END LOOP;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_forum_notifications"("message_content" "text", "chat_id" integer, "sender_id" "uuid", "exclude_user_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."create_mission_checkpoints"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -1000,7 +1048,7 @@ CREATE OR REPLACE FUNCTION "public"."create_mission_notifications"() RETURNS "tr
         PERFORM create_notification(
             NEW.xpert_associated_id,
             'mission/' || REPLACE(NEW.mission_number, ' ', '-'),  -- Corrigé de mission_id à mission_number
-            'Une nouvelle mission est associée',
+            'Votre candidature pour la mission ' || NEW.mission_number || ' a été validée',
             'Mission affectée',
             'info'
           
@@ -1551,6 +1599,26 @@ end;$$;
 ALTER FUNCTION "public"."notify_email_confirmation"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."notify_forum_message"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    IF NEW.chat_id IN (SELECT id FROM chat WHERE type IN ('forum', 'echo_community')) THEN
+        PERFORM create_forum_notifications(
+            NEW.content,
+            NEW.chat_id,
+            NEW.send_by,
+            NEW.send_by  -- Exclure l'expéditeur de la notification
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."notify_forum_message"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."notify_mission_state"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$DECLARE
@@ -1572,8 +1640,10 @@ BEGIN
             m.xpert_associated_id
         )
         WHERE m.id = NEW.id
+        AND p.allodw_documents_notification = true
     )
     -- Insérer les notifications pour les destinataires
+    
     INSERT INTO notification (
         user_id,
         link,
@@ -1601,6 +1671,44 @@ END;$$;
 
 
 ALTER FUNCTION "public"."notify_mission_state"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_new_application"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$DECLARE
+    mission_record RECORD;
+    candidate_record RECORD;
+
+BEGIN
+
+    -- Récupérer l'ID généré du candidat
+    SELECT generated_id
+    INTO candidate_record
+    FROM public.profile
+    WHERE id = NEW.candidate_id;
+
+    -- Récupérer le numéro de mission et l'ID du référent affecté
+    SELECT mission_number, affected_referent_id
+    INTO mission_record
+    FROM public.mission
+    WHERE id = NEW.mission_id;
+
+    -- Créer la notification
+    PERFORM create_notification(
+        mission_record.affected_referent_id,
+        'Nouvelle candidature',
+        'mission/fiche/' || REPLACE(mission_record.mission_number, ' ', '-'),
+        'L''Xpert ' || candidate_record.generated_id || ' vient de postuler pour la mission ' || mission_record.mission_number,
+        'info'::notification_status
+    );
+
+    -- Retourner la nouvelle ligne (comme requis par les triggers)
+    RETURN NEW;
+
+END;$$;
+
+
+ALTER FUNCTION "public"."notify_new_application"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."notify_new_conversation"() RETURNS "trigger"
@@ -3822,6 +3930,10 @@ CREATE OR REPLACE TRIGGER "create_checkpoints_after_mission_insert" AFTER INSERT
 
 
 
+CREATE OR REPLACE TRIGGER "forum_message_notification_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_forum_message"();
+
+
+
 CREATE OR REPLACE TRIGGER "invoice_payment_notification_trigger" AFTER UPDATE OF "facturation_invoice_paid" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_invoice_payment"();
 
 
@@ -3891,6 +4003,10 @@ CREATE OR REPLACE TRIGGER "trigger_enforce_is_authorized_referent" BEFORE INSERT
 
 
 CREATE OR REPLACE TRIGGER "trigger_insert_mission_finance" AFTER INSERT ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."insert_mission_finance"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_notify_new_mission_application" AFTER INSERT ON "public"."mission_application" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_application"();
 
 
 
@@ -4167,6 +4283,10 @@ CREATE POLICY "Allow read for all" ON "public"."article" FOR SELECT USING (true)
 
 
 CREATE POLICY "CRUD FOR AUTH" ON "public"."chat" TO "authenticated" USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Enable CRUD for users based on xpert_id" ON "public"."selection_matching" USING ((( SELECT "auth"."uid"() AS "uid") = "xpert_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "xpert_id"));
 
 
 
@@ -4685,8 +4805,6 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
--- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
-
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";
 
@@ -5010,6 +5128,12 @@ GRANT ALL ON FUNCTION "public"."check_mission_documents_bis"() TO "service_role"
 
 
 
+GRANT ALL ON FUNCTION "public"."create_forum_notifications"("message_content" "text", "chat_id" integer, "sender_id" "uuid", "exclude_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."create_forum_notifications"("message_content" "text", "chat_id" integer, "sender_id" "uuid", "exclude_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_forum_notifications"("message_content" "text", "chat_id" integer, "sender_id" "uuid", "exclude_user_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."create_mission_checkpoints"() TO "anon";
 GRANT ALL ON FUNCTION "public"."create_mission_checkpoints"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_mission_checkpoints"() TO "service_role";
@@ -5130,9 +5254,21 @@ GRANT ALL ON FUNCTION "public"."notify_email_confirmation"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."notify_forum_message"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_forum_message"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_forum_message"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."notify_mission_state"() TO "anon";
 GRANT ALL ON FUNCTION "public"."notify_mission_state"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notify_mission_state"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."notify_new_application"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_new_application"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_new_application"() TO "service_role";
 
 
 
