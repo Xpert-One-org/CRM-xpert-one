@@ -38,7 +38,8 @@ type FournisseurState = {
   handleSaveUpdatedFournisseur: () => void;
   deleteFournisseur: (
     fournisseurId: string,
-    fournisseurGeneratedId: string
+    fournisseurGeneratedId: string,
+    reason: string
   ) => void;
   resetFournisseurs: () => void;
   hasReferentReassign: boolean;
@@ -184,11 +185,17 @@ export const useFournisseurStore = create<FournisseurState>((set, get) => ({
 
   deleteFournisseur: async (
     fournisseurId: string,
-    fournisseurGeneratedId: string
+    fournisseurGeneratedId: string,
+    reason: string
   ) => {
     set({ loading: true });
-    const { errorMessage } = await deleteFournisseur(fournisseurId);
+    const { errorMessage } = await deleteFournisseur(
+      fournisseurId,
+      fournisseurGeneratedId,
+      reason
+    );
     if (errorMessage) {
+      console.error(errorMessage);
       toast.error(
         'Une erreur est survenue lors de la suppression du fournisseur'
       );
