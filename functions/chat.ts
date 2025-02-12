@@ -274,3 +274,20 @@ export const getUniqueMsgChat = async (chat_id: number) => {
   }
   return { data, error: null };
 };
+
+export const deleteChat = async (chatId: number) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+
+  if (!user) {
+    return { error: 'User not found' };
+  }
+
+  const { error } = await supabase.from('chat').delete().eq('id', chatId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { error: null };
+};

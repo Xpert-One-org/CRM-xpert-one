@@ -1,6 +1,6 @@
 'use client';
 
-import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized, DBXpertNote } from '@/types/typesDb';
 import React, { useCallback, useEffect, useState } from 'react';
 import XpertRow from './row/XpertRow';
 import XpertMissionRow from './row/mission/XpertMissionRow';
@@ -30,6 +30,8 @@ import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import { XpertNotes } from './XpertNotes';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { getNotes } from '@functions/xperts-notes';
+import { toast } from 'sonner';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -65,6 +67,7 @@ export default function XpertTable() {
   useWarnIfUnsavedChanges(!areObjectsEqual(openedXpert, openedXpertNotSaved));
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');
+  const [xpertIdOpenedNotes, setXpertIdOpenedNotes] = useState('');
   const [cvInfo, setCvInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [urssafInfo, setUrssafInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [hasChanged, setHasChanged] = useState(false);
@@ -80,7 +83,8 @@ export default function XpertTable() {
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const xpertIdParams = searchParams.get('id');
-
+  const [newNote, setNewNote] = useState('');
+  const [notes, setNotes] = useState<DBXpertNote[]>([]);
   const hasMore =
     xpertsOptimized && totalXpertOptimized
       ? xpertsOptimized.length < totalXpertOptimized
@@ -97,12 +101,24 @@ export default function XpertTable() {
       setUrssafInfo({ publicUrl: '' });
       setKbisInfo({ publicUrl: '' });
 
+      fetchNotes(xpert.id);
       return prevId === xpert.generated_id.toString()
         ? '0'
         : xpert.generated_id.toString();
     });
     fetchXpertDocumentsUrl(xpert);
   }, []);
+
+  const fetchNotes = async (xpertId: string) => {
+    const { data, error } = await getNotes(xpertId);
+    if (error) {
+      toast.error('Erreur lors du chargement des notes');
+      return;
+    }
+    if (data) {
+      setNotes(data);
+    }
+  };
 
   const handleKeyChanges = (
     table: NestedTableKey | undefined,
@@ -262,9 +278,7 @@ export default function XpertTable() {
   const renderMissions = (xpert: DBXpert) => {
     const canShowMissions = Boolean(xpert.cv_name);
     const hasMissions = xpert.mission && xpert.mission.length > 0;
-    console.log(xpert);
-    console.log(canShowMissions);
-    console.log(hasMissions);
+
     const tooltipContent = (
       <TooltipContent className="whitespace-nowrap bg-white p-2">
         <p>Pour voir les missions, il faut :</p>
@@ -442,7 +456,12 @@ export default function XpertTable() {
                 )}
                 {/* Notes section */}
                 {xpertIdOpened === xpert.generated_id && (
-                  <XpertNotes xpertId={xpert.id} />
+                  <XpertNotes
+                    xpertId={xpert.id}
+                    xpertIdOpened={xpertIdOpened}
+                    notes={notes}
+                    setNotes={setNotes}
+                  />
                 )}
                 {/* task and redirection button here */}
                 <div className="flex w-full justify-between gap-2 py-2">
