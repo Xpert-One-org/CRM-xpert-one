@@ -8,9 +8,11 @@ import {
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import FakeInput from '@/components/inputs/FakeInput';
 import { useFournisseurStore } from '@/store/fournisseur';
 import { useAuth } from '@/hooks/useAuth';
+import TextArea from '@/components/inputs/TextArea';
 
 export default function DeleteFournisseurDialog({
   fournisseurId,
@@ -21,16 +23,18 @@ export default function DeleteFournisseurDialog({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
+  const [reasonDelete, setReasonDelete] = useState('');
   const { deleteFournisseur } = useFournisseurStore();
   const { user } = useAuth();
 
   const handleSendDeleteFournisseur = async () => {
     setIsLoading(true);
     try {
-      deleteFournisseur(fournisseurId, fournisseurGeneratedId);
+      deleteFournisseur(fournisseurId, fournisseurGeneratedId, reasonDelete);
       setPopupOpen(false);
     } catch (error) {
       console.error(error);
+      toast.error('Une erreur est survenue lors de la suppression');
     } finally {
       setIsLoading(false);
     }
@@ -38,14 +42,11 @@ export default function DeleteFournisseurDialog({
 
   return (
     <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
-      {/* TODO: add later logic for delete reason supplier with notification */}
-      {/* for the moment, i disable the button for restrictions access role */}
-      {user?.role === 'admin' ||
-        (user?.role === 'project_manager' && (
-          <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
-            Supprimer le fournisseur
-          </Button>
-        ))}
+      {user?.role === 'admin' && (
+        <Button variant={'destructive'} onClick={() => setPopupOpen(true)}>
+          Supprimer le fournisseur
+        </Button>
+      )}
 
       <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white bg-opacity-70 p-0 backdrop-blur-sm">
         <div className="relative h-[175px] w-full">
@@ -62,13 +63,21 @@ export default function DeleteFournisseurDialog({
             value={fournisseurGeneratedId}
           />
 
+          <TextArea
+            label="Motif de suppression"
+            placeholder="Veuillez indiquer le motif de suppression"
+            value={reasonDelete}
+            onChange={(e) => setReasonDelete(e.target.value)}
+            required
+          />
+
           <div className="flex gap-x-spaceSmall self-end">
             <CredenzaClose asChild>
-              <Button variant={'outline'}>Précedent</Button>
+              <Button variant={'outline'}>Précédent</Button>
             </CredenzaClose>
 
             <Button
-              disabled={isLoading}
+              disabled={isLoading || !reasonDelete.trim()}
               onClick={handleSendDeleteFournisseur}
               className="w-fit self-end px-spaceContainer"
               variant={'destructive'}
