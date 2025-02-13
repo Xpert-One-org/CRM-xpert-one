@@ -5,7 +5,8 @@ import type { DBXpert } from '@/types/typesDb';
 export type NestedTableKey =
   | 'profile_expertise'
   | 'profile_mission'
-  | 'profile_status';
+  | 'profile_status'
+  | 'user_alerts';
 
 export function useXpertDebounce() {
   const {

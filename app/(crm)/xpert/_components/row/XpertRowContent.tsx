@@ -30,11 +30,14 @@ import Button from '@/components/Button';
 import Plus from '@/components/svg/Plus';
 import { Minus } from 'lucide-react';
 import { useXpertDebounce } from '@/hooks/use-xpert-debounce';
+import XpertAlertSettings from '../XpertAlertSettings';
+import type { CheckedState } from '@radix-ui/react-checkbox';
 
 export type NestedTableKey =
   | 'profile_expertise'
   | 'profile_mission'
-  | 'profile_status';
+  | 'profile_status'
+  | 'user_alerts';
 
 export default function XpertRowContent({
   xpertOptimized,
@@ -52,7 +55,21 @@ export default function XpertRowContent({
       )
   );
 
-  const { countries, languages } = useSelect();
+  const {
+    countries,
+    languages,
+    subjects, // Ajout
+    sectors, // Ajout
+    loadingSubjects, // Ajout de l'état de chargement
+    loadingSectors, // Ajout de l'état de chargement
+    fetchSubjects, // Ajout pour charger les données
+    fetchSectors,
+  } = useSelect();
+
+  useEffect(() => {
+    fetchSubjects();
+    fetchSectors();
+  }, []);
 
   const {
     getXpertSelected,
@@ -213,6 +230,72 @@ export default function XpertRowContent({
       : null;
     handleKeyChanges('profile_expertise', 'other_language');
 
+    setXpert(newXpert);
+  };
+
+  const handleChangeAlertCheckbox = (checked: CheckedState, name: string) => {
+    handleKeyChanges('user_alerts', name);
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          user_alerts: {
+            id: xpert.user_alerts?.id ?? 0,
+            created_at:
+              xpert.user_alerts?.created_at ?? new Date().toISOString(),
+            user_id: xpert.user_alerts?.user_id ?? xpert.id,
+            blog_alert: xpert.user_alerts?.blog_alert ?? false,
+            fav_alert: xpert.user_alerts?.fav_alert ?? false,
+            answer_message_mail:
+              xpert.user_alerts?.answer_message_mail ?? false,
+            new_mission_alert: xpert.user_alerts?.new_mission_alert ?? false,
+            new_message_alert: xpert.user_alerts?.new_message_alert ?? false,
+            newsletter: xpert.user_alerts?.newsletter ?? false,
+            mission_state_change_alert:
+              xpert.user_alerts?.mission_state_change_alert ?? false,
+            show_on_website: xpert.user_alerts?.show_on_website ?? false,
+            show_profile_picture:
+              xpert.user_alerts?.show_profile_picture ?? false,
+            categories: xpert.user_alerts?.categories ?? null,
+            topics: xpert.user_alerts?.topics ?? null,
+            center_of_interest: xpert.user_alerts?.center_of_interest ?? null,
+            new_test: xpert.user_alerts?.new_test ?? null,
+            [name]: checked,
+          },
+        }
+      : null;
+    setXpert(newXpert);
+  };
+
+  const handleChangeAlertSelect = (value: string[] | string, name: string) => {
+    handleKeyChanges('user_alerts', name);
+    const newXpert = xpert
+      ? {
+          ...xpert,
+          user_alerts: {
+            id: xpert.user_alerts?.id ?? 0,
+            created_at:
+              xpert.user_alerts?.created_at ?? new Date().toISOString(),
+            user_id: xpert.user_alerts?.user_id ?? xpert.id,
+            blog_alert: xpert.user_alerts?.blog_alert ?? false,
+            fav_alert: xpert.user_alerts?.fav_alert ?? false,
+            answer_message_mail:
+              xpert.user_alerts?.answer_message_mail ?? false,
+            new_mission_alert: xpert.user_alerts?.new_mission_alert ?? false,
+            new_message_alert: xpert.user_alerts?.new_message_alert ?? false,
+            newsletter: xpert.user_alerts?.newsletter ?? false,
+            mission_state_change_alert:
+              xpert.user_alerts?.mission_state_change_alert ?? false,
+            show_on_website: xpert.user_alerts?.show_on_website ?? false,
+            show_profile_picture:
+              xpert.user_alerts?.show_profile_picture ?? false,
+            categories: xpert.user_alerts?.categories ?? null,
+            topics: xpert.user_alerts?.topics ?? null,
+            center_of_interest: xpert.user_alerts?.center_of_interest ?? null,
+            new_test: xpert.user_alerts?.new_test ?? null,
+            [name]: value,
+          },
+        }
+      : null;
     setXpert(newXpert);
   };
 
@@ -761,6 +844,18 @@ export default function XpertRowContent({
           disabled={true}
         />
       </div>
+      <XpertAlertSettings
+        userAlerts={xpert.user_alerts}
+        onChangeCheckbox={handleChangeAlertCheckbox}
+        onChangeSelect={handleChangeAlertSelect}
+        subjects={subjects}
+        sectors={sectors}
+        loadingSubjects={loadingSubjects}
+        loadingSectors={loadingSectors}
+        categories={xpert.user_alerts?.categories ?? []}
+        topics={xpert.user_alerts?.topics ?? []}
+        center_of_interest={xpert.user_alerts?.center_of_interest ?? []}
+      />
     </div>
   );
 }
