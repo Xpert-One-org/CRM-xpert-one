@@ -201,6 +201,21 @@ export type DBMissionXpertsSelection =
     creator: Pick<DBProfile, 'firstname' | 'lastname'>;
   };
 
+export type DBMissionOptimized = {
+  id: number;
+  mission_number: string | null;
+  job_title: string | null;
+  job_title_other: string | null;
+  state: DBMissionState;
+  description: string | null;
+  created_at: string;
+  start_date: string | null;
+  end_date: string | null;
+  xpert_associated_status: string | null;
+  created_by: string;
+  xpert_associated_id: string | null;
+};
+
 export type DBXpertOptimized = Pick<
   DBXpert,
   | 'id'
@@ -213,9 +228,27 @@ export type DBXpertOptimized = Pick<
   | 'admin_opinion'
   | 'affected_referent_id'
 > & {
-  mission: Pick<DBMission, 'xpert_associated_id'>[];
-  profile_mission: Pick<DBProfileMission, 'job_titles' | 'availability'> | null;
+  mission: Pick<
+    DBMissionOptimized,
+    | 'xpert_associated_id'
+    | 'id'
+    | 'mission_number'
+    | 'job_title'
+    | 'job_title_other'
+    | 'state'
+    | 'description'
+    | 'created_at'
+    | 'start_date'
+    | 'end_date'
+    | 'xpert_associated_status'
+    | 'created_by'
+  >[];
+  profile_mission: Pick<
+    DBProfileMission,
+    'job_titles' | 'availability' | 'sector'
+  > | null;
   profile_experience: Pick<DBProfileExperience, 'post' | 'post_other'> | null;
+  profile_status: Pick<DBProfileStatus, 'iam'> | null;
 };
 
 export type DBReferentType =

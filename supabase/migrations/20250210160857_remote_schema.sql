@@ -111,4 +111,6 @@ to public
 using ((bucket_id = 'mission_files'::text));
 
 
+CREATE TRIGGER trigger_facturation_xpert_document_upload AFTER INSERT ON storage.objects FOR EACH ROW EXECUTE FUNCTION process_document_upload();
+
 

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
+import ComboboxFournisseur from '@/components/combobox/ComboboxFournisseur-2';
 
 export type NewUserCalledNotSaved = {
   user_id: string;
@@ -32,6 +33,7 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const getLastMonthNewUsers = async (role: string) => {
     setLoading(true);
     const { newUsersLastMonth } = await getNewUsersLastMonth(role);
+    console.log(newUsersLastMonth);
     setFilteredUsers(newUsersLastMonth);
     setLoading(false);
   };
@@ -39,8 +41,9 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const handleRoleChange = (value: string) => {
     setSelectedRole(value);
     if (value === 'Fournisseur') {
-      router.push('/nouveaux-inscrits?role=company');
+      getLastMonthNewUsers('company');
     } else {
+      getLastMonthNewUsers('xpert');
       router.push('/nouveaux-inscrits?role=xpert');
     }
   };
@@ -76,10 +79,12 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   useEffect(() => {
     if (selectedRole === 'Fournisseur') {
       getLastMonthNewUsers('company');
+      console.log(filteredUsers);
     } else {
       getLastMonthNewUsers('xpert');
+      console.log(filteredUsers);
     }
-  }, [selectedRole]);
+  }, []);
 
   useEffect(() => {
     if (role) {
@@ -108,7 +113,11 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
             onSort={setFilteredUsers}
           />
           <div className="flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
-            <ComboBoxXpert />
+            {selectedRole === 'Fournisseur' ? (
+              <ComboboxFournisseur />
+            ) : (
+              <ComboBoxXpert />
+            )}
           </div>
           <FilterButton
             options={[
@@ -165,7 +174,13 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
                 key={user.id}
                 user={user}
                 isOpen={false}
-                onClick={() => router.push(`/xpert?id=${user.generated_id}`)}
+                onClick={() => {
+                  if (selectedRole === 'Xpert') {
+                    router.push(`/xpert?id=${user.generated_id}`);
+                  } else {
+                    router.push(`/fournisseur?id=${user.generated_id}`);
+                  }
+                }}
               />
             ))
           ) : (

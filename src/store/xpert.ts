@@ -23,6 +23,12 @@ import {
 import { toast } from 'sonner';
 import type { FilterXpert } from '@/types/types';
 import { updateCollaboratorReferent } from '../../app/(crm)/admin/gestion-collaborateurs/gestion-collaborateurs.action';
+import { useDebouncedCallback } from 'use-debounce';
+
+type NestedTableKey =
+  | 'profile_expertise'
+  | 'profile_mission'
+  | 'profile_status';
 
 type XpertState = {
   loading: boolean;
@@ -54,7 +60,11 @@ type XpertState = {
     affected_referent: DBReferentType | null
   ) => Promise<void>;
   fetchSpecificXpert: (xpertId: string) => void;
-  deleteXpert: (xpertId: string, xpertGeneratedId: string) => void;
+  deleteXpert: (
+    xpertId: string,
+    xpertGeneratedId: string,
+    reason: string
+  ) => void;
   keyDBProfileChanged: [keyof DBProfile][] | [];
   keyDBProfileMissionChanged: [keyof DBProfileMission][] | [];
   keyDBProfileStatusChanged: [keyof DBProfileStatus][] | [];
@@ -106,6 +116,8 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     firstname: '',
     generated_id: '',
     lastname: '',
+    iam: '',
+    sectors: [],
   },
   setActiveFilters: (filter: Partial<FilterXpert>) => {
     console.log('Setting filters:', filter);
@@ -149,6 +161,8 @@ export const useXpertStore = create<XpertState>((set, get) => ({
         firstname: '',
         generated_id: '',
         lastname: '',
+        iam: '',
+        sectors: [],
       },
       xpertFilterKey: new Date().getTime(),
     });
@@ -200,6 +214,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
           lastname: xpert.lastname,
           mission: xpert.mission,
           affected_referent_id: xpert.affected_referent_id,
+          profile_status: xpert.profile_status,
         }
       : null;
     if (!xpert) {
@@ -280,9 +295,17 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     return { xpert: xpertSelected };
   },
 
-  deleteXpert: async (xpertId: string, xpertGeneratedId: string) => {
+  deleteXpert: async (
+    xpertId: string,
+    xpertGeneratedId: string,
+    reason: string
+  ) => {
     set({ loading: true });
-    const { errorMessage } = await deleteXpert(xpertId);
+    const { errorMessage } = await deleteXpert(
+      xpertId,
+      xpertGeneratedId,
+      reason
+    );
     if (errorMessage) {
       toast.error("Une erreur est survenue lors de la suppression de l'XPERT");
     } else {

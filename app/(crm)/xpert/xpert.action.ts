@@ -34,8 +34,9 @@ export const getSpecificXpert = async (
         `
         *,
         profile_mission(*),
-        experiences:profile_experience(*), educations:profile_education(*),
-        mission!mission_created_by_fkey(*),
+        experiences:profile_experience(*), 
+        educations:profile_education(*),
+        mission!xpert_associated_id(*),
         profile_status(*),
         profile_expertise(*)
       `,
@@ -176,15 +177,36 @@ export const getXpertsOptimized = async ({
     let query = supabase
       .from('profile')
       .select(
-        'firstname, lastname, id, country, generated_id, created_at, admin_opinion, cv_name, profile_mission(availability, job_titles), profile_experience(post, post_other), mission!mission_xpert_associated_id_fkey(xpert_associated_id), affected_referent_id',
+        `
+        firstname, lastname, id, country, generated_id, created_at, 
+        admin_opinion, cv_name, 
+        profile_mission(availability, job_titles, sector), 
+        profile_status(iam),
+        profile_experience(post, post_other), 
+        mission!xpert_associated_id(
+          id,
+          mission_number,
+          job_title,
+          job_title_other,
+          state,
+          description,
+          created_at,
+          start_date,
+          end_date,
+          xpert_associated_status,
+          created_by,
+          xpert_associated_id
+        ),
+        affected_referent_id
+        `,
         { count: 'exact' }
       )
       .eq('role', 'xpert');
 
+    // Filtre disponibilité
     if (filters?.availability) {
       if (filters.availability === 'unavailable') {
         const date = new Date();
-
         query = query.or(
           `availability.eq.${null},availability.gt.${date.toISOString()}`,
           { referencedTable: 'profile_mission' }
@@ -202,6 +224,7 @@ export const getXpertsOptimized = async ({
       }
     }
 
+    // Filtre titre du poste
     if (filters?.jobTitles) {
       const jobTitles = filters.jobTitles.replace(/ /g, '_');
       query = query.not('profile_mission', 'is', null);
@@ -211,10 +234,12 @@ export const getXpertsOptimized = async ({
       );
     }
 
+    // Filtre pays
     if (filters?.countries && filters.countries.length > 0) {
       query = query.in('country', filters.countries);
     }
 
+    // Filtre date
     if (filters?.sortDate) {
       query = query.order('created_at', {
         ascending: filters.sortDate === 'asc',
@@ -225,18 +250,22 @@ export const getXpertsOptimized = async ({
       });
     }
 
+    // Filtre prénom
     if (filters?.firstname) {
       query = query.ilike('firstname', `%${filters.firstname}%`);
     }
 
+    // Filtre opinion admin
     if (filters?.adminOpinion) {
       query = query.eq('admin_opinion', filters.adminOpinion);
     }
 
+    // Filtre nom
     if (filters?.lastname) {
       query = query.ilike('lastname', `%${filters.lastname}%`);
     }
 
+    // Filtre CV
     if (filters?.cv) {
       if (filters.cv === 'yes') {
         query = query.not('cv_name', 'is', null);
@@ -245,8 +274,21 @@ export const getXpertsOptimized = async ({
       }
     }
 
+    // Filtre ID généré
     if (filters?.generated_id) {
       query = query.ilike('generated_id', `%${filters.generated_id}%`);
+    }
+
+    // Filtre IAM
+    if (filters?.iam) {
+      query = query.not('profile_status', 'is', null);
+      query = query.eq('profile_status.iam', filters.iam);
+    }
+
+    // Filtre secteurs
+    if (filters?.sectors && filters.sectors.length > 0) {
+      query = query.not('profile_mission', 'is', null);
+      query = query.contains('profile_mission.sector', filters.sectors);
     }
 
     const { data, error, count } = await query.range(
@@ -264,16 +306,19 @@ export const getXpertsOptimized = async ({
       throw new Error('No data returned');
     }
 
-    // first experience
-    const dataWithFirstExp = data.map((xpert) => {
+    const transformedData: DBXpertOptimized[] = data.map((xpert) => {
+      const { profile_experience, mission, ...rest } = xpert;
       return {
-        ...xpert,
-        profile_experience: xpert.profile_experience?.[0],
+        ...rest,
+        profile_experience: profile_experience?.[0] || null,
+        mission: mission?.filter(Boolean) || [],
+        profile_mission: xpert.profile_mission || null,
+        profile_status: xpert.profile_status || null,
       };
     });
 
     return {
-      data: dataWithFirstExp,
+      data: transformedData,
       count: count || 0,
     };
   }
@@ -417,16 +462,37 @@ export const createUser = async ({
   return { error: null };
 };
 
-export const deleteXpert = async (xpertId: string) => {
+export const deleteXpert = async (
+  xpertId: string,
+  xpertGeneratedId: string,
+  reason: string
+) => {
   try {
     const supabase = await createSupabaseAppServerClient('admin');
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Vous n'êtes pas connecté");
+
+    const { error: insertError } = await supabase
+      .from('profile_deleted')
+      .insert({
+        deleted_profile_generated_id: xpertGeneratedId,
+        deleted_by: user.id,
+        reason: reason,
+        deleted_at: new Date().toISOString(),
+      });
+
+    if (insertError) throw insertError;
 
     const { error: deleteError } =
       await supabase.auth.admin.deleteUser(xpertId);
     if (deleteError) throw deleteError;
 
-    return { errorMessage: null };
+    return { data: null };
   } catch (error) {
+    console.error('Error in deleteXpert:', error);
     return {
       errorMessage: {
         message: "Erreur lors de la suppression de l'Xpert",

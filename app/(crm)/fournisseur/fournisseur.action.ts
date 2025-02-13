@@ -72,16 +72,37 @@ export const getAllFournisseurs = async ({
   return { data: [], count: null };
 };
 
-export const deleteFournisseur = async (fournisseurId: string) => {
+export const deleteFournisseur = async (
+  fournisseurId: string,
+  fournisseurGeneratedId: string,
+  reason: string
+) => {
   try {
     const supabase = await createSupabaseAppServerClient('admin');
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Vous n'êtes pas connecté");
+
+    const { error: insertError } = await supabase
+      .from('profile_deleted')
+      .insert({
+        deleted_profile_generated_id: fournisseurGeneratedId,
+        deleted_by: user.id,
+        reason: reason,
+        deleted_at: new Date().toISOString(),
+      });
+
+    if (insertError) throw insertError;
 
     const { error: deleteError } =
       await supabase.auth.admin.deleteUser(fournisseurId);
     if (deleteError) throw deleteError;
 
-    return { errorMessage: null };
+    return { data: null };
   } catch (error) {
+    console.error('Error in deleteFournisseur:', error);
     return {
       errorMessage: {
         message: 'Erreur lors de la suppression du fournisseur',

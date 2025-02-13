@@ -6,16 +6,18 @@ import { useRouter } from 'next/navigation';
 import { getTimeBeforeMission } from '@/utils/string';
 import { empty } from '@/data/constant';
 import { getLabel } from '@/utils/getLabel';
-import { useSelect } from '@/store/select';
+import { jobTitleSelect } from '@/data/mocked_select';
 import Matching from '@/components/svg/Matching';
 import Selection from '@/components/svg/Selection';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { useMissionStore } from '@/store/mission';
+import { toast } from 'sonner';
 import {
   getCountMatchedXperts,
   getMissionSelectionXperts,
 } from '../../mission-etat-open.action';
-import { Skeleton } from '@/components/ui/skeleton';
-import { jobTitleSelect } from '@/data/mocked_select';
 
 export default function MissionEtatOpenRow({
   mission,
@@ -23,9 +25,11 @@ export default function MissionEtatOpenRow({
   mission: DBMission;
 }) {
   const router = useRouter();
-
+  const { updateMissionWebsiteVisibility } = useMissionStore();
   const [matchingCount, setMatchingCount] = useState<number>(0);
   const [isLoadingMatching, setIsLoadingMatching] = useState<boolean>(false);
+  const [isLoadingWebsiteVisibility, setIsLoadingWebsiteVisibility] =
+    useState<boolean>(false);
   const [selectionCounts, setSelectionCounts] = useState<{
     discussions: number;
     proposes: number;
@@ -78,6 +82,20 @@ export default function MissionEtatOpenRow({
     router.push(
       `/mission/selection/${mission.mission_number?.replaceAll(' ', '-')}`
     );
+  };
+
+  const handleWebsiteVisibilityChange = async (checked: boolean) => {
+    try {
+      setIsLoadingWebsiteVisibility(true);
+      await updateMissionWebsiteVisibility(mission.id, checked);
+      toast.success(
+        checked ? 'Mission visible sur le site' : 'Mission masquée du site'
+      );
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour de la visibilité');
+    } finally {
+      setIsLoadingWebsiteVisibility(false);
+    }
   };
 
   useEffect(() => {
@@ -149,7 +167,8 @@ export default function MissionEtatOpenRow({
       >
         {mission.mission_number}
       </Box>
-      <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
+      <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
+      <Box className="col-span-1">{formatDate(mission.end_date ?? '')}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>
       <Box className={`col-span-1 ${getBackgroundClass}`}>
         {timeBeforeDeadlineApplication}
@@ -185,8 +204,18 @@ export default function MissionEtatOpenRow({
           selectionCounts.refuses
         )}
       </Box>
-      <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
-      <Box className="col-span-1">{formatDate(mission.end_date ?? '')}</Box>
+      <Box className="col-span-1 flex items-center justify-center">
+        {isLoadingWebsiteVisibility ? (
+          <Skeleton className="size-6" />
+        ) : (
+          <Switch
+            checked={mission.show_on_website ?? false}
+            onCheckedChange={handleWebsiteVisibilityChange}
+            disabled={isLoadingWebsiteVisibility}
+            className="data-[state=checked]:bg-primary"
+          />
+        )}
+      </Box>
       <Button
         className="col-span-1 h-full"
         onClick={handleRedirectMatching}

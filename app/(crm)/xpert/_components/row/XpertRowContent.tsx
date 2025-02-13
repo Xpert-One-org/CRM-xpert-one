@@ -29,6 +29,7 @@ import MultiCreatableSelect from '@/components/MultiCreatableSelect';
 import Button from '@/components/Button';
 import Plus from '@/components/svg/Plus';
 import { Minus } from 'lucide-react';
+import { useXpertDebounce } from '@/hooks/use-xpert-debounce';
 
 export type NestedTableKey =
   | 'profile_expertise'
@@ -59,6 +60,7 @@ export default function XpertRowContent({
     openedXpertNotSaved: xpert,
     setOpenedXpertNotSaved: setXpert,
   } = useXpertStore();
+  const { handleKeyChangesDebounced, handleUIChange } = useXpertDebounce();
 
   const handleGetSpecificXpert = async () => {
     try {
@@ -73,7 +75,6 @@ export default function XpertRowContent({
       console.error('Error fetching xpert:', error);
     }
   };
-
   const handleChangeInput = (
     e: React.ChangeEvent<HTMLInputElement>,
     table?: NestedTableKey
@@ -81,8 +82,7 @@ export default function XpertRowContent({
     const name = e.target.name;
     const value = e.target.value;
 
-    handleKeyChanges(table, name);
-
+    // Mise à jour immédiate de l'UI
     const newXpert = xpert
       ? {
           ...xpert,
@@ -91,7 +91,11 @@ export default function XpertRowContent({
             : value,
         }
       : null;
-    setXpert(newXpert);
+
+    handleUIChange(newXpert);
+
+    // Version debouncée de handleKeyChanges
+    handleKeyChangesDebounced(table, name);
   };
 
   const handleChangeValueInput = (
@@ -251,8 +255,10 @@ export default function XpertRowContent({
   };
 
   useEffect(() => {
-    handleGetSpecificXpert();
-  }, [xpertOptimized]);
+    if (!xpert) {
+      handleGetSpecificXpert();
+    }
+  }, [xpertOptimized.generated_id]);
 
   if (!xpert) {
     return null;

@@ -304,3 +304,22 @@ export const deleteMission = async (
 
   return { error: null };
 };
+
+export async function updateShowOnWebsite(
+  missionId: number,
+  showOnWebsite: boolean
+) {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data, error } = await supabase
+    .from('mission')
+    .update({ show_on_website: showOnWebsite })
+    .eq('id', missionId)
+    .select();
+
+  if (error) {
+    return { error };
+  }
+
+  return { data: data[0] };
+}
