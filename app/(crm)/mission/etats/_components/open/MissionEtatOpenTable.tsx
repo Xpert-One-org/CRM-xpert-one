@@ -15,11 +15,8 @@ export default function MissionEtatOpenTable() {
       />
       <FilterButton placeholder="N° de fournisseur" filter={false} />
       <FilterButton placeholder="N° de mission" filter={false} />
-      <FilterButton
-        className="col-span-1"
-        placeholder="Référent Xpert One"
-        filter={false}
-      />
+      <FilterButton placeholder="Date de début" filter={false} />
+      <FilterButton placeholder="Date de fin" filter={false} />
       <FilterButton placeholder="Temps avant début de mission" filter={false} />
       <FilterButton
         options={[]}
@@ -32,8 +29,7 @@ export default function MissionEtatOpenTable() {
       <FilterButton placeholder="Discussion" filter={false} />
       <FilterButton placeholder="Proposés" filter={false} />
       <FilterButton placeholder="Refusés" filter={false} />
-      <FilterButton placeholder="Date de début" filter={false} />
-      <FilterButton placeholder="Date de fin" filter={false} />
+      <FilterButton placeholder="Site vitrine" filter={false} />
       <FilterButton placeholder="Matching" filter={false} />
       <FilterButton placeholder="Selection" filter={false} />
 

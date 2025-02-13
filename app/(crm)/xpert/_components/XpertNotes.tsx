@@ -28,10 +28,17 @@ import {
 
 type XpertNotesProps = {
   xpertId: string;
+  xpertIdOpened: string;
+  notes: DBXpertNote[];
+  setNotes: (notes: DBXpertNote[]) => void;
 };
 
-export function XpertNotes({ xpertId }: XpertNotesProps) {
-  const [notes, setNotes] = useState<DBXpertNote[]>([]);
+export function XpertNotes({
+  xpertId,
+  xpertIdOpened,
+  notes,
+  setNotes,
+}: XpertNotesProps) {
   const [newNote, setNewNote] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [editingNote, setEditingNote] = useState<{
@@ -40,7 +47,6 @@ export function XpertNotes({ xpertId }: XpertNotesProps) {
   } | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<number | null>(null);
 
-  // Charger les notes
   const fetchNotes = async () => {
     const { data, error } = await getNotes(xpertId);
     if (error) {
@@ -52,9 +58,9 @@ export function XpertNotes({ xpertId }: XpertNotesProps) {
     }
   };
 
-  useEffect(() => {
-    !notes && fetchNotes();
-  }, [xpertId]);
+  // useEffect(() => {
+  //   !notes && fetchNotes();
+  // }, [xpertId]);
 
   // Ajouter une note
   const handleSubmit = async (e: React.FormEvent) => {

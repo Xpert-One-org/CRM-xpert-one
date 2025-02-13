@@ -242,6 +242,8 @@ export type FilterXpert = {
   lastname: string;
   generated_id: string;
   adminOpinion: AdminOpinionValue;
+  iam: string;
+  sectors: string[];
 };
 
 export type FilterTasks = {

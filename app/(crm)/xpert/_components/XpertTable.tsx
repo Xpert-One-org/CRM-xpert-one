@@ -1,6 +1,6 @@
 'use client';
 
-import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized, DBXpertNote } from '@/types/typesDb';
 import React, { useCallback, useEffect, useState } from 'react';
 import XpertRow from './row/XpertRow';
 import XpertMissionRow from './row/mission/XpertMissionRow';
@@ -30,6 +30,8 @@ import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import { XpertNotes } from './XpertNotes';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { getNotes } from '@functions/xperts-notes';
+import { toast } from 'sonner';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -65,6 +67,7 @@ export default function XpertTable() {
   useWarnIfUnsavedChanges(!areObjectsEqual(openedXpert, openedXpertNotSaved));
 
   const [xpertIdOpened, setXpertIdOpened] = useState('');
+  const [xpertIdOpenedNotes, setXpertIdOpenedNotes] = useState('');
   const [cvInfo, setCvInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [urssafInfo, setUrssafInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [hasChanged, setHasChanged] = useState(false);
@@ -80,7 +83,8 @@ export default function XpertTable() {
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
   const xpertIdParams = searchParams.get('id');
-
+  const [newNote, setNewNote] = useState('');
+  const [notes, setNotes] = useState<DBXpertNote[]>([]);
   const hasMore =
     xpertsOptimized && totalXpertOptimized
       ? xpertsOptimized.length < totalXpertOptimized
@@ -97,12 +101,24 @@ export default function XpertTable() {
       setUrssafInfo({ publicUrl: '' });
       setKbisInfo({ publicUrl: '' });
 
+      fetchNotes(xpert.id);
       return prevId === xpert.generated_id.toString()
         ? '0'
         : xpert.generated_id.toString();
     });
     fetchXpertDocumentsUrl(xpert);
   }, []);
+
+  const fetchNotes = async (xpertId: string) => {
+    const { data, error } = await getNotes(xpertId);
+    if (error) {
+      toast.error('Erreur lors du chargement des notes');
+      return;
+    }
+    if (data) {
+      setNotes(data);
+    }
+  };
 
   const handleKeyChanges = (
     table: NestedTableKey | undefined,
@@ -260,14 +276,13 @@ export default function XpertTable() {
   }, [openedXpertNotSaved, openedXpert]);
 
   const renderMissions = (xpert: DBXpert) => {
-    const canShowMissions =
-      xpert.totale_progression >= 80 && Boolean(xpert.cv_name);
+    const canShowMissions = Boolean(xpert.cv_name);
+    const hasMissions = xpert.mission && xpert.mission.length > 0;
 
     const tooltipContent = (
-      <TooltipContent className="max-w-[300px] bg-white p-2">
+      <TooltipContent className="whitespace-nowrap bg-white p-2">
         <p>Pour voir les missions, il faut :</p>
         <ul className="list-disc pl-4">
-          <li>Un profil complété à 80% minimum</li>
           <li>Un CV téléchargé</li>
         </ul>
       </TooltipContent>
@@ -284,7 +299,7 @@ export default function XpertTable() {
 
     if (!canShowMissions) {
       return (
-        <div className="flex items-center justify-center gap-2">
+        <div className="col-span-4 flex items-center justify-start gap-2">
           <p className="text-gray-secondary text-center text-sm">
             Les conditions ne sont pas remplies
           </p>
@@ -293,13 +308,12 @@ export default function XpertTable() {
       );
     }
 
-    if (xpert.mission.length === 0) {
+    if (!hasMissions) {
       return (
-        <div className="col-span-4 ml-5 flex items-center justify-center gap-2">
+        <div className="col-span-4 flex items-center justify-start gap-2">
           <p className="text-gray-secondary whitespace-nowrap text-center text-sm">
             Aucune mission
           </p>
-          {infoTooltip}
         </div>
       );
     }
@@ -322,13 +336,13 @@ export default function XpertTable() {
         </div>
       }
 
-      <div className="grid grid-cols-11 gap-3">
+      <div className="grid grid-cols-[repeat(14,_minmax(0,_1fr))] gap-3">
         <XpertFilter
           key={xpertFilterKey}
           xperts={xpertsOptimized || []}
           // onSortedDataChange={handleFilterChange}
         />
-        <div className="col-span-11 flex items-center gap-4">
+        <div className="col-[span_14_/_span_14] flex items-center gap-4">
           {!loading ? (
             <>
               <p className="whitespace-nowrap">
@@ -406,7 +420,7 @@ export default function XpertTable() {
               />
               <div
                 className={cn(
-                  'col-span-5 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
+                  'col-span-7 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
@@ -419,18 +433,14 @@ export default function XpertTable() {
               </div>
               <div
                 className={cn(
-                  'col-span-6 hidden h-full max-h-0 w-full overflow-hidden',
+                  'col-span-7 hidden h-full max-h-0 w-full overflow-hidden',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
                 <div className="grid grid-cols-5 gap-3 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
                   <XpertMissionFilter />
 
-                  {openedXpert && (
-                    <div className="flex flex-col">
-                      {renderMissions(openedXpert)}
-                    </div>
-                  )}
+                  {openedXpert && <>{renderMissions(openedXpert)}</>}
                 </div>
                 {xpertIdOpened === xpert.generated_id && (
                   <XpertRowContentBis
@@ -446,7 +456,12 @@ export default function XpertTable() {
                 )}
                 {/* Notes section */}
                 {xpertIdOpened === xpert.generated_id && (
-                  <XpertNotes xpertId={xpert.id} />
+                  <XpertNotes
+                    xpertId={xpert.id}
+                    xpertIdOpened={xpertIdOpened}
+                    notes={notes}
+                    setNotes={setNotes}
+                  />
                 )}
                 {/* task and redirection button here */}
                 <div className="flex w-full justify-between gap-2 py-2">

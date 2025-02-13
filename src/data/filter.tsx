@@ -28,3 +28,9 @@ export const adminOpinionOptions: {
   { label: 'Négatif', value: 'negative', color: '#D64242' },
   { label: 'Aucun filtre', value: '', color: 'transparent' },
 ];
+
+export const iamStatusOptions = [
+  { label: 'Freelance', value: 'freelance' },
+  { label: 'Société', value: 'company' },
+  { label: 'Portage', value: 'portage' },
+];

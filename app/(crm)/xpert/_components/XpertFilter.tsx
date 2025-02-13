@@ -5,12 +5,15 @@ import CountryFilterButton from '@/components/CountryFilterButton';
 import { useXpertStore } from '@/store/xpert';
 import { SearchComponentFilter } from '@/components/SearchComponentFilter';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
+import { iamSelect, sectorSelect } from '@/data/mocked_select';
 import {
   adminOpinionOptions,
   availabilityOptions,
   cvOptions,
   sortDateOptions,
+  iamStatusOptions,
 } from '@/data/filter';
+import { getLabel } from '@/utils/getLabel';
 
 export default function XpertFilter({
   xperts,
@@ -35,6 +38,24 @@ export default function XpertFilter({
     const newActiveFilter = { ...activeFilters, availability: value };
     setActiveFilters(newActiveFilter);
     if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
+  };
+
+  const handleIamStatusChange = (value: string) => {
+    const newActiveFilter = { ...activeFilters, iam: value };
+    setActiveFilters(newActiveFilter);
+    if (value === '') {
+      fetchXpertOptimizedFiltered(true);
+      return;
+    }
+  };
+
+  const handleSectorsChange = (sectors: string[]) => {
+    const newActiveFilter = { ...activeFilters, sectors };
+    setActiveFilters(newActiveFilter);
+    if (sectors.length === 0) {
       fetchXpertOptimizedFiltered(true);
       return;
     }
@@ -100,6 +121,23 @@ export default function XpertFilter({
       fetchXpertOptimizedFiltered(true);
       return;
     }
+  };
+
+  const handleSectorChange = (value: string) => {
+    const sectors = value
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s);
+    const newActiveFilter = { ...activeFilters, sectors };
+    setActiveFilters(newActiveFilter);
+  };
+
+  const getSectorValue = () => {
+    return activeFilters.sectors
+      .map(
+        (sector) => getLabel({ value: sector, select: sectorSelect }) ?? sector
+      )
+      .join(', ');
   };
 
   useEffect(() => {
@@ -197,6 +235,29 @@ export default function XpertFilter({
         coloredOptions
         showSelectedOption={true}
       />
+      <FilterButton
+        options={iamSelect.map((option) => ({
+          label:
+            getLabel({ value: option.value, select: iamSelect }) ??
+            option.value,
+          value: option.value,
+          color: '#92C6B0',
+        }))}
+        onValueChange={handleIamStatusChange}
+        placeholder="Statut IAM"
+        showSelectedOption={true}
+      />
+
+      <div className="col-span-2 flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
+        <SearchComponentFilter
+          showSelectedOption={true}
+          placeholder="Secteurs"
+          filterKey="sectors"
+          placeholderSearch="Rechercher des secteurs"
+          value={getSectorValue()}
+          onValueChange={handleSectorChange}
+        />
+      </div>
       <FilterButton
         className="font-bold"
         placeholder="Fiche détaillée"

@@ -97,11 +97,11 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/mission/etats?etat=in_process',
+    url: '/mission/etats?etat=open',
     sub: [
       {
         title: 'État des mission',
-        url: '/mission/etats?etat=in_process',
+        url: '/mission/etats?etat=open',
       },
       {
         title: 'Fiche mission',

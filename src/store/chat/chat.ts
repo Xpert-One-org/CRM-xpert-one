@@ -1,5 +1,10 @@
 import type { ChatType, DBChat, DBMessage } from '@/types/typesDb';
-import { getUserChats, handleReadNewMessage, postChat } from '@functions/chat';
+import {
+  deleteChat,
+  getUserChats,
+  handleReadNewMessage,
+  postChat,
+} from '@functions/chat';
 import { toast } from 'sonner';
 import { create } from 'zustand';
 import useUser from '../useUser';
@@ -25,6 +30,7 @@ type ChatState = {
   chatForumSelected: DBChat | null;
   chatEchoSelected: DBChat | null;
   fetchChats: (type: ChatType) => void;
+  deleteChat: (chatId: number) => Promise<void>;
   setChatSelected: (chat: DBChat | null) => void;
   setCurrentChatSelected: (chat: DBChat | null) => void;
   setCurrentMessages: (
@@ -64,7 +70,6 @@ type ChatState = {
   }) => void;
   errorMsg: string | null;
   messages: DBMessage[];
-
   forumMessages: DBMessage[];
   echoMessages: DBMessage[];
   xpertMessages: DBMessage[];
@@ -118,6 +123,59 @@ const useChat = create<ChatState>((set, get) => ({
         get().setChats(chats);
         break;
     }
+  },
+  deleteChat: async (chatId: number) => {
+    const { error } = await deleteChat(chatId);
+
+    if (error) {
+      toast.error('Erreur lors de la suppression du chat');
+      return;
+    }
+
+    // Mise à jour du state selon le type de chat
+    const chatToDelete = [
+      ...get().chats,
+      ...get().echoChats,
+      ...get().forumChats,
+      ...get().xpertChats,
+    ].find((chat) => chat.id === chatId);
+
+    if (!chatToDelete) return;
+
+    switch (chatToDelete.type) {
+      case 'chat':
+        set({ chats: get().chats.filter((chat) => chat.id !== chatId) });
+        if (get().chatSelected?.id === chatId) {
+          set({ chatSelected: null });
+        }
+        break;
+      case 'echo_community':
+        set({
+          echoChats: get().echoChats.filter((chat) => chat.id !== chatId),
+        });
+        if (get().chatEchoSelected?.id === chatId) {
+          set({ chatEchoSelected: null });
+        }
+        break;
+      case 'forum':
+        set({
+          forumChats: get().forumChats.filter((chat) => chat.id !== chatId),
+        });
+        if (get().chatForumSelected?.id === chatId) {
+          set({ chatForumSelected: null });
+        }
+        break;
+      case 'xpert_to_xpert':
+        set({
+          xpertChats: get().xpertChats.filter((chat) => chat.id !== chatId),
+        });
+        if (get().chatXpertSelected?.id === chatId) {
+          set({ chatXpertSelected: null });
+        }
+        break;
+    }
+
+    toast.success('Chat supprimé avec succès');
   },
   setCurrentMessages: (
     type: string,
