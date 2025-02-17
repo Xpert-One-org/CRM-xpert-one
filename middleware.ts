@@ -14,7 +14,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  if (!user && pathname.startsWith('/dashboard')) {
+  if (!user && 
+    (pathname != '/connexion' && pathname != '/auth/callback')) {
     return NextResponse.redirect(new URL('/connexion', request.url));
   }
 

@@ -654,17 +654,22 @@ export default function Page() {
             onChange={handleChange}
           />
 
-          <CreatableSelect
-            hasError={checkIfRequiredAndNotMissing(
-              creationMissionData.country?.name as keyof UserType
-            )}
-            options={countries}
-            className="w-fit"
-            label={creationMissionData.country?.label}
-            name={creationMissionData.country?.name ?? ''}
-            required
-            onChange={(e) => handleChangeSelect(e.value, 'country')}
-          />
+          {countries.length && (
+            <CreatableSelect
+              hasError={
+                countries.length > 0 &&
+                checkIfRequiredAndNotMissing(
+                  creationMissionData.country?.name as keyof UserType
+                )
+              }
+              options={countries}
+              className="w-fit"
+              label={creationMissionData.country?.label}
+              name={creationMissionData.country?.name ?? ''}
+              required={countries.length > 0}
+              onChange={(e) => handleChangeSelect(e.value, 'country')}
+            />
+          )}
         </div>
 
         {/* Line 1 */}
