@@ -13,6 +13,7 @@ import type {
   DBProfileExpertise,
   DBProfileMission,
   DBProfileStatus,
+  DBUserAlerts,
   DBXpert,
   DBXpertLastPost,
   DBXpertOptimized,
@@ -28,27 +29,24 @@ export const getSpecificXpert = async (
   const isAdmin = await checkAuthRole();
 
   if (isAdmin) {
+    // D'abord récupérer le profile de base
     const { data, error } = await supabase
       .from('profile')
       .select(
         `
         *,
         profile_mission(*),
-        experiences:profile_experience(*), 
-        educations:profile_education(*),
         mission!xpert_associated_id(*),
         profile_status(*),
-        profile_expertise(*)
-      `,
-        { count: 'exact' }
+        profile_expertise(*),
+        user_alerts(*)
+      `
       )
       .eq('role', 'xpert')
       .eq('generated_id', xpertId)
-      .order('created_at', { ascending: false })
       .single();
 
     if (error) {
-      console.log('ICI');
       console.error(error);
       throw new Error(error.message);
     }
@@ -58,26 +56,53 @@ export const getSpecificXpert = async (
       return null;
     }
 
-    const { experiences, educations, profile_expertise, ...rest } = data;
+    // Requête séparée pour les expériences
+    const { data: experiences, error: expError } = await supabase
+      .from('profile_experience')
+      .select('*')
+      .eq('profile_id', data.id);
 
-    const { data: referent, error: errorReferent } = await supabase
+    if (expError) {
+      console.error(expError);
+      throw new Error(expError.message);
+    }
+
+    // Requête séparée pour les formations
+    const { data: educations, error: eduError } = await supabase
+      .from('profile_education')
+      .select('*')
+      .eq('profile_id', data.id);
+
+    if (eduError) {
+      console.error(eduError);
+      throw new Error(eduError.message);
+    }
+
+    // Requête pour le référent
+    const { data: referent, error: refError } = await supabase
       .from('profile')
       .select('firstname, id, lastname')
       .eq('id', data.affected_referent_id ?? '')
       .single();
 
-    if (error) {
-      console.error(error);
+    if (refError) {
+      console.error(refError);
+      // On ne throw pas d'erreur ici car le référent n'est pas critique
     }
+
+    const { profile_expertise, ...rest } = data;
 
     return {
       ...rest,
-      referent: referent,
-      profile_expertise: {
-        ...profile_expertise,
-        experiences,
-        educations,
-      } as DBXpert['profile_expertise'],
+      referent: referent ?? null,
+      profile_expertise: profile_expertise
+        ? {
+            ...profile_expertise,
+            experiences: experiences ?? [],
+            educations: educations ?? [],
+          }
+        : null,
+      user_alerts: data.user_alerts?.[0] || null,
     };
   }
 
@@ -755,4 +780,41 @@ export const updateProfileMission = async ({
       return { error: null };
     }
   }
+};
+
+export const updateUserAlerts = async ({
+  xpert_id,
+  newData,
+}: {
+  xpert_id: string;
+  newData: Partial<Record<keyof DBUserAlerts, any>>[];
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+  const transformedData = transformArray(newData);
+
+  const { data, error } = await supabase
+    .from('user_alerts')
+    .select('id')
+    .eq('user_id', xpert_id);
+
+  if (data?.length === 0) {
+    const { error } = await supabase
+      .from('user_alerts')
+      .insert({ ...transformedData, user_id: xpert_id });
+
+    if (error) {
+      return { error: error.message };
+    }
+    return { error: null };
+  }
+
+  const { error: errorUpdate } = await supabase
+    .from('user_alerts')
+    .update(transformedData)
+    .eq('user_id', xpert_id);
+
+  if (errorUpdate) {
+    return { error: errorUpdate.message };
+  }
+  return { error: null };
 };
