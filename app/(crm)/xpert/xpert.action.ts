@@ -487,16 +487,37 @@ export const createUser = async ({
   return { error: null };
 };
 
-export const deleteXpert = async (xpertId: string) => {
+export const deleteXpert = async (
+  xpertId: string,
+  xpertGeneratedId: string,
+  reason: string
+) => {
   try {
     const supabase = await createSupabaseAppServerClient('admin');
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Vous n'êtes pas connecté");
+
+    const { error: insertError } = await supabase
+      .from('profile_deleted')
+      .insert({
+        deleted_profile_generated_id: xpertGeneratedId,
+        deleted_by: user.id,
+        reason: reason,
+        deleted_at: new Date().toISOString(),
+      });
+
+    if (insertError) throw insertError;
 
     const { error: deleteError } =
       await supabase.auth.admin.deleteUser(xpertId);
     if (deleteError) throw deleteError;
 
-    return { errorMessage: null };
+    return { data: null };
   } catch (error) {
+    console.error('Error in deleteXpert:', error);
     return {
       errorMessage: {
         message: "Erreur lors de la suppression de l'Xpert",

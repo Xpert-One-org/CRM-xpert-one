@@ -6026,3 +6026,71 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 RESET ALL;
+
+CREATE OR REPLACE FUNCTION public.create_forum_notifications(
+    message_content text,
+    chat_id integer,
+    sender_id uuid,
+    exclude_user_id uuid
+) RETURNS void AS $$
+DECLARE
+    chat_participant record;
+    chat_info record;
+BEGIN
+    -- Récupérer les informations du chat
+    SELECT type, title INTO chat_info 
+    FROM chat 
+    WHERE id = chat_id;
+
+    -- Pour chaque participant du chat
+    FOR chat_participant IN (
+        SELECT DISTINCT p.id, p.firstname, p.lastname
+        FROM chat_participants cp
+        JOIN profile p ON p.id = cp.user_id
+        WHERE cp.chat_id = chat_id
+        AND cp.user_id != exclude_user_id  -- Exclure l'expéditeur
+    ) LOOP
+        -- Créer une notification pour chaque participant
+        INSERT INTO notification (
+            user_id,
+            link,
+            message,
+            subject,
+            status
+        ) VALUES (
+            chat_participant.id,
+            CASE 
+                WHEN chat_info.type = 'forum' THEN 'communaute/forum/' || chat_id
+                WHEN chat_info.type = 'echo_community' THEN 'communaute/echo-de-la-communaute/' || chat_id
+            END,
+            CASE 
+                WHEN chat_info.type = 'forum' THEN 'Nouveau message dans la discussion : ' || chat_info.title
+                WHEN chat_info.type = 'echo_community' THEN 'Nouveau message dans l''écho : ' || chat_info.title
+            END,
+            'Communauté',
+            'info'
+        );
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger pour les nouveaux messages dans le forum/echo
+CREATE OR REPLACE FUNCTION public.notify_forum_message() 
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.chat_id IN (SELECT id FROM chat WHERE type IN ('forum', 'echo_community')) THEN
+        PERFORM create_forum_notifications(
+            NEW.content,
+            NEW.chat_id,
+            NEW.send_by,
+            NEW.send_by  -- Exclure l'expéditeur de la notification
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER forum_message_notification_trigger
+AFTER INSERT ON message
+FOR EACH ROW
+EXECUTE FUNCTION notify_forum_message();

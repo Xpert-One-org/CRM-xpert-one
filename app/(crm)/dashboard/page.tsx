@@ -21,7 +21,7 @@ import {
 import { getCountTasksToTreatAndUrgent } from '@functions/tasks';
 import OutlookButton from '@/components/OutlookButton';
 import { getLoggedUser } from '@functions/auth/getLoggedUser';
-import FacturationLogo from '@/components/svg/Facturation';
+import FacturationCard from './_components/FacturationCard';
 
 export default async function DashboardPage() {
   const user = await getLoggedUser();
@@ -72,6 +72,9 @@ export default async function DashboardPage() {
               link="/mission/etats?etat=in_progress"
             />
           </>
+        )}
+        {user?.role !== 'hr' && user?.role !== 'adv' && (
+          <FacturationCard missions={missionInProgress} />
         )}
         {/* <DashBoardCards
           count={newUsers.length}

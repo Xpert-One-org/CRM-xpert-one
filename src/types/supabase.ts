@@ -1152,6 +1152,30 @@ export type Database = {
           },
         ];
       };
+      profile_deleted: {
+        Row: {
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deleted_profile_generated_id: string;
+          id: string;
+          reason: string;
+        };
+        Insert: {
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deleted_profile_generated_id: string;
+          id?: string;
+          reason: string;
+        };
+        Update: {
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deleted_profile_generated_id?: string;
+          id?: string;
+          reason?: string;
+        };
+        Relationships: [];
+      };
       profile_education: {
         Row: {
           department: string | null;

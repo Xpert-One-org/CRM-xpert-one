@@ -35,7 +35,17 @@ export const getNotifications = async ({
 
 export const deleteNotification = async (id: number) => {
   const supabase = await createSupabaseAppServerClient();
-  const { error } = await supabase.from('notification').delete().eq('id', id);
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const { error } = await supabase
+    .from('notification')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
   if (error) {
     throw new Error(error.message);
   }
