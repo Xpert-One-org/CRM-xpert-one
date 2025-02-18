@@ -4,10 +4,10 @@ import type {
   DBProfileMission,
   DBProfileStatus,
   DBReferentType,
+  DBUserAlerts,
   DBXpert,
   DBXpertLastPost,
   DBXpertOptimized,
-  DBUserAlerts,
 } from '@/types/typesDb';
 import { create } from 'zustand';
 import {
@@ -432,9 +432,17 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     }
 
     if (newDataUserAlerts.length > 0) {
+      const transformedUserAlerts = newDataUserAlerts.reduce(
+        (acc, item) => ({
+          ...acc,
+          ...item,
+        }),
+        {}
+      );
+
       const { error } = await updateUserAlerts({
         xpert_id: xpertNotSaved.id,
-        newData: newDataUserAlerts,
+        userAlerts: transformedUserAlerts, // Change newData to userAlerts
       });
       if (error) {
         toast.error('Erreur lors de la sauvegarde');

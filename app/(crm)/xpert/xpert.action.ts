@@ -784,37 +784,28 @@ export const updateProfileMission = async ({
 
 export const updateUserAlerts = async ({
   xpert_id,
-  newData,
+  userAlerts,
 }: {
   xpert_id: string;
-  newData: Partial<Record<keyof DBUserAlerts, any>>[];
+  userAlerts: Partial<DBUserAlerts>;
 }) => {
   const supabase = await createSupabaseAppServerClient();
-  const transformedData = transformArray(newData);
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('user_alerts')
-    .select('id')
-    .eq('user_id', xpert_id);
+    .select('*')
+    .eq('user_id', xpert_id)
+    .single();
 
-  if (data?.length === 0) {
-    const { error } = await supabase
+  if (data) {
+    return supabase
       .from('user_alerts')
-      .insert({ ...transformedData, user_id: xpert_id });
-
-    if (error) {
-      return { error: error.message };
-    }
-    return { error: null };
+      .update(userAlerts) // On utilise userAlerts ici
+      .eq('user_id', xpert_id);
+  } else {
+    return supabase.from('user_alerts').insert({
+      ...userAlerts, // Et ici
+      user_id: xpert_id,
+    });
   }
-
-  const { error: errorUpdate } = await supabase
-    .from('user_alerts')
-    .update(transformedData)
-    .eq('user_id', xpert_id);
-
-  if (errorUpdate) {
-    return { error: errorUpdate.message };
-  }
-  return { error: null };
 };
