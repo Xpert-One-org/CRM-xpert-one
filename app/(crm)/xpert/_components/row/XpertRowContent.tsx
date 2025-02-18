@@ -1,7 +1,7 @@
 import Input from '@/components/inputs/Input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSelect } from '@/store/select';
-import type { DBXpertOptimized } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import { getLabel } from '@/utils/getLabel';
 import React, { useEffect, useState } from 'react';
 import {
@@ -32,6 +32,8 @@ import { Minus } from 'lucide-react';
 import { useXpertDebounce } from '@/hooks/use-xpert-debounce';
 import XpertAlertSettings from '../XpertAlertSettings';
 import type { CheckedState } from '@radix-ui/react-checkbox';
+import { updateUserAlerts } from '../../xpert.action';
+import { toast } from 'sonner';
 
 export type NestedTableKey =
   | 'profile_expertise'
@@ -233,70 +235,63 @@ export default function XpertRowContent({
     setXpert(newXpert);
   };
 
-  const handleChangeAlertCheckbox = (checked: CheckedState, name: string) => {
-    handleKeyChanges('user_alerts', name);
-    const newXpert = xpert
-      ? {
-          ...xpert,
-          user_alerts: {
-            id: xpert.user_alerts?.id ?? 0,
-            created_at:
-              xpert.user_alerts?.created_at ?? new Date().toISOString(),
-            user_id: xpert.user_alerts?.user_id ?? xpert.id,
-            blog_alert: xpert.user_alerts?.blog_alert ?? false,
-            fav_alert: xpert.user_alerts?.fav_alert ?? false,
-            answer_message_mail:
-              xpert.user_alerts?.answer_message_mail ?? false,
-            new_mission_alert: xpert.user_alerts?.new_mission_alert ?? false,
-            new_message_alert: xpert.user_alerts?.new_message_alert ?? false,
-            newsletter: xpert.user_alerts?.newsletter ?? false,
-            mission_state_change_alert:
-              xpert.user_alerts?.mission_state_change_alert ?? false,
-            show_on_website: xpert.user_alerts?.show_on_website ?? false,
-            show_profile_picture:
-              xpert.user_alerts?.show_profile_picture ?? false,
-            categories: xpert.user_alerts?.categories ?? null,
-            topics: xpert.user_alerts?.topics ?? null,
-            center_of_interest: xpert.user_alerts?.center_of_interest ?? null,
-            new_test: xpert.user_alerts?.new_test ?? null,
-            [name]: checked,
-          },
-        }
-      : null;
-    setXpert(newXpert);
+  const handleChangeAlertCheckbox = async (
+    checked: CheckedState,
+    name: string
+  ) => {
+    if (!xpert?.user_alerts) return;
+
+    const updatedAlerts = {
+      ...xpert.user_alerts,
+      [name]: checked,
+    };
+
+    const { error } = await updateUserAlerts({
+      xpert_id: xpert.id,
+      userAlerts: updatedAlerts,
+    });
+
+    if (error) {
+      toast.error('Erreur lors de la mise à jour des préférences');
+      return;
+    }
+
+    // Crée un nouvel objet xpert complet pour satisfaire le type DBXpert
+    const updatedXpert: DBXpert = {
+      ...xpert,
+      user_alerts: updatedAlerts,
+    };
+
+    setXpert(updatedXpert);
   };
 
-  const handleChangeAlertSelect = (value: string[] | string, name: string) => {
-    handleKeyChanges('user_alerts', name);
-    const newXpert = xpert
-      ? {
-          ...xpert,
-          user_alerts: {
-            id: xpert.user_alerts?.id ?? 0,
-            created_at:
-              xpert.user_alerts?.created_at ?? new Date().toISOString(),
-            user_id: xpert.user_alerts?.user_id ?? xpert.id,
-            blog_alert: xpert.user_alerts?.blog_alert ?? false,
-            fav_alert: xpert.user_alerts?.fav_alert ?? false,
-            answer_message_mail:
-              xpert.user_alerts?.answer_message_mail ?? false,
-            new_mission_alert: xpert.user_alerts?.new_mission_alert ?? false,
-            new_message_alert: xpert.user_alerts?.new_message_alert ?? false,
-            newsletter: xpert.user_alerts?.newsletter ?? false,
-            mission_state_change_alert:
-              xpert.user_alerts?.mission_state_change_alert ?? false,
-            show_on_website: xpert.user_alerts?.show_on_website ?? false,
-            show_profile_picture:
-              xpert.user_alerts?.show_profile_picture ?? false,
-            categories: xpert.user_alerts?.categories ?? null,
-            topics: xpert.user_alerts?.topics ?? null,
-            center_of_interest: xpert.user_alerts?.center_of_interest ?? null,
-            new_test: xpert.user_alerts?.new_test ?? null,
-            [name]: value,
-          },
-        }
-      : null;
-    setXpert(newXpert);
+  const handleChangeAlertSelect = async (
+    value: string[] | string,
+    name: string
+  ) => {
+    if (!xpert?.user_alerts) return;
+
+    const updatedAlerts = {
+      ...xpert.user_alerts,
+      [name]: value,
+    };
+
+    const { error } = await updateUserAlerts({
+      xpert_id: xpert.id,
+      userAlerts: updatedAlerts,
+    });
+
+    if (error) {
+      toast.error('Erreur lors de la mise à jour des préférences');
+      return;
+    }
+
+    const updatedXpert: DBXpert = {
+      ...xpert,
+      user_alerts: updatedAlerts,
+    };
+
+    setXpert(updatedXpert);
   };
 
   const [specialtiesOther, setSpecialtiesOther] = useState<string>('');

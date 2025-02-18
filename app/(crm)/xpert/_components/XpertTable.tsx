@@ -420,7 +420,7 @@ export default function XpertTable() {
               />
               <div
                 className={cn(
-                  'col-span-7 hidden h-full max-h-0 w-full overflow-hidden rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
+                  'col-span-7 hidden h-full max-h-0 w-full overflow-visible rounded-lg rounded-b-xs bg-[#D0DDE1] shadow-container transition-all md:bg-background',
                   { 'block max-h-full': xpertIdOpened === xpert.generated_id }
                 )}
               >
