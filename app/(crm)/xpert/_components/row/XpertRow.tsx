@@ -101,18 +101,20 @@ export default function XpertRow({
   const sectorBadges = getBadgeOfSector(xpert.profile_mission?.sector ?? []);
 
   const availabilityStatus = (() => {
+    if (
+      xpert.mission
+        .map((mission) => mission.xpert_associated_id)
+        .some((xpertId) => xpertId === xpert.id)
+    ) {
+      return 'bg-accent';
+    }
+
     if (xpert.profile_mission?.availability === undefined) {
       return 'bg-[#D64242]';
     } else if (
       new Date(xpert.profile_mission.availability ?? '') > new Date()
     ) {
       return 'bg-[#D64242]';
-    } else if (
-      xpert.mission
-        .map((mission) => mission.xpert_associated_id)
-        .some((xpertId) => xpertId === xpert.id)
-    ) {
-      return 'bg-accent';
     } else {
       return 'bg-[#92C6B0]';
     }
