@@ -1,7 +1,7 @@
 import Input from '@/components/inputs/Input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSelect } from '@/store/select';
-import type { DBXpertOptimized } from '@/types/typesDb';
+import type { DBXpert, DBXpertOptimized } from '@/types/typesDb';
 import { getLabel } from '@/utils/getLabel';
 import React, { useEffect, useState } from 'react';
 import {
@@ -30,11 +30,16 @@ import Button from '@/components/Button';
 import Plus from '@/components/svg/Plus';
 import { Minus } from 'lucide-react';
 import { useXpertDebounce } from '@/hooks/use-xpert-debounce';
+import XpertAlertSettings from '../XpertAlertSettings';
+import type { CheckedState } from '@radix-ui/react-checkbox';
+import { updateUserAlerts } from '../../xpert.action';
+import { toast } from 'sonner';
 
 export type NestedTableKey =
   | 'profile_expertise'
   | 'profile_mission'
-  | 'profile_status';
+  | 'profile_status'
+  | 'user_alerts';
 
 export default function XpertRowContent({
   xpertOptimized,
@@ -52,7 +57,21 @@ export default function XpertRowContent({
       )
   );
 
-  const { countries, languages } = useSelect();
+  const {
+    countries,
+    languages,
+    subjects, // Ajout
+    sectors, // Ajout
+    loadingSubjects, // Ajout de l'état de chargement
+    loadingSectors, // Ajout de l'état de chargement
+    fetchSubjects, // Ajout pour charger les données
+    fetchSectors,
+  } = useSelect();
+
+  useEffect(() => {
+    fetchSubjects();
+    fetchSectors();
+  }, []);
 
   const {
     getXpertSelected,
@@ -214,6 +233,65 @@ export default function XpertRowContent({
     handleKeyChanges('profile_expertise', 'other_language');
 
     setXpert(newXpert);
+  };
+
+  const handleChangeAlertCheckbox = async (
+    checked: CheckedState,
+    name: string
+  ) => {
+    if (!xpert?.user_alerts) return;
+
+    const updatedAlerts = {
+      ...xpert.user_alerts,
+      [name]: checked,
+    };
+
+    const { error } = await updateUserAlerts({
+      xpert_id: xpert.id,
+      userAlerts: updatedAlerts,
+    });
+
+    if (error) {
+      toast.error('Erreur lors de la mise à jour des préférences');
+      return;
+    }
+
+    // Crée un nouvel objet xpert complet pour satisfaire le type DBXpert
+    const updatedXpert: DBXpert = {
+      ...xpert,
+      user_alerts: updatedAlerts,
+    };
+
+    setXpert(updatedXpert);
+  };
+
+  const handleChangeAlertSelect = async (
+    value: string[] | string,
+    name: string
+  ) => {
+    if (!xpert?.user_alerts) return;
+
+    const updatedAlerts = {
+      ...xpert.user_alerts,
+      [name]: value,
+    };
+
+    const { error } = await updateUserAlerts({
+      xpert_id: xpert.id,
+      userAlerts: updatedAlerts,
+    });
+
+    if (error) {
+      toast.error('Erreur lors de la mise à jour des préférences');
+      return;
+    }
+
+    const updatedXpert: DBXpert = {
+      ...xpert,
+      user_alerts: updatedAlerts,
+    };
+
+    setXpert(updatedXpert);
   };
 
   const [specialtiesOther, setSpecialtiesOther] = useState<string>('');
@@ -761,6 +839,18 @@ export default function XpertRowContent({
           disabled={true}
         />
       </div>
+      <XpertAlertSettings
+        userAlerts={xpert.user_alerts}
+        onChangeCheckbox={handleChangeAlertCheckbox}
+        onChangeSelect={handleChangeAlertSelect}
+        subjects={subjects}
+        sectors={sectors}
+        loadingSubjects={loadingSubjects}
+        loadingSectors={loadingSectors}
+        categories={xpert.user_alerts?.categories ?? []}
+        topics={xpert.user_alerts?.topics ?? []}
+        center_of_interest={xpert.user_alerts?.center_of_interest ?? []}
+      />
     </div>
   );
 }

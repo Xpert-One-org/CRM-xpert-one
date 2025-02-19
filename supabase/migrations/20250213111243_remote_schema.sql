@@ -1640,7 +1640,7 @@ BEGIN
             m.xpert_associated_id
         )
         WHERE m.id = NEW.id
-        AND p.allodw_documents_notification = true
+        AND p.allow_documents_notifications = true
     )
     -- Insérer les notifications pour les destinataires
     
@@ -2118,6 +2118,56 @@ END;$$;
 
 
 ALTER FUNCTION "public"."notify_new_task"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."notify_profile_deletion"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  INSERT INTO notification (
+    user_id,
+    message,
+    subject,
+    category,
+    status,
+    created_at,
+    is_global
+  )
+  SELECT 
+    p.id as user_id,
+    CASE 
+      WHEN p2.role = 'xpert' THEN format('L''Xpert %s a été supprimé par %s. Motif: %s', NEW.deleted_profile_generated_id, p3.email, NEW.reason)
+      WHEN p2.role = 'company' THEN format('Le fournisseur %s a été supprimé par %s. Motif: %s', NEW.deleted_profile_generated_id, p3.email, NEW.reason)
+    END as message,
+    CASE 
+      WHEN p2.role = 'xpert' THEN 'Suppression d''un Xpert'
+      WHEN p2.role = 'company' THEN 'Suppression d''un fournisseur'
+    END as subject,
+    CASE 
+      WHEN p2.role = 'xpert' THEN 'xpert_deletion'
+      WHEN p2.role = 'company' THEN 'fournisseur_deletion'
+    END as category,
+    'standard'::notification_status as status,
+    NEW.deleted_at as created_at,
+    false as is_global
+  FROM profile p
+  -- Joindre pour obtenir le rôle du profil supprimé
+  CROSS JOIN (
+    SELECT role 
+    FROM profile 
+    WHERE generated_id = NEW.deleted_profile_generated_id
+  ) p2
+  -- Joindre pour obtenir l'email de la personne qui supprime
+  LEFT JOIN profile p3 ON p3.id = NEW.deleted_by
+  WHERE p.role = 'admin' 
+  AND p.id != NEW.deleted_by;
+
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."notify_profile_deletion"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."notify_task_done"() RETURNS "trigger"
@@ -3112,6 +3162,18 @@ COMMENT ON COLUMN "public"."profile"."role" IS 'Xpert or Company';
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."profile_deleted" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "deleted_by" "uuid",
+    "reason" "text" NOT NULL,
+    "deleted_at" timestamp with time zone DEFAULT "now"(),
+    "deleted_profile_generated_id" "text" NOT NULL
+);
+
+
+ALTER TABLE "public"."profile_deleted" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."profile_education" (
     "id" integer NOT NULL,
     "education_diploma" "text",
@@ -3722,6 +3784,11 @@ ALTER TABLE ONLY "public"."posts"
 
 
 
+ALTER TABLE ONLY "public"."profile_deleted"
+    ADD CONSTRAINT "profile_deleted_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."profile_education"
     ADD CONSTRAINT "profile_education_pkey" PRIMARY KEY ("id");
 
@@ -3846,6 +3913,10 @@ CREATE INDEX "idx_mission_notes_mission_id" ON "public"."mission_notes" USING "b
 
 
 
+CREATE INDEX "idx_profile_deleted_generated_id" ON "public"."profile_deleted" USING "btree" ("deleted_profile_generated_id");
+
+
+
 CREATE INDEX "idx_supplier_notes_created_by" ON "public"."supplier_notes" USING "btree" ("created_by");
 
 
@@ -3963,6 +4034,10 @@ CREATE OR REPLACE TRIGGER "notify_welcome_call_trigger" AFTER UPDATE OF "get_wel
 
 
 CREATE OR REPLACE TRIGGER "payment_notification_trigger" AFTER UPDATE OF "facturation_fournisseur_payment" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_payment"();
+
+
+
+CREATE OR REPLACE TRIGGER "profile_deleted_trigger" AFTER INSERT ON "public"."profile_deleted" FOR EACH ROW EXECUTE FUNCTION "public"."notify_profile_deletion"();
 
 
 
@@ -4146,6 +4221,11 @@ ALTER TABLE ONLY "public"."profile"
 
 
 
+ALTER TABLE ONLY "public"."profile_deleted"
+    ADD CONSTRAINT "profile_deleted_deleted_by_fkey" FOREIGN KEY ("deleted_by") REFERENCES "auth"."users"("id");
+
+
+
 ALTER TABLE ONLY "public"."profile_education"
     ADD CONSTRAINT "profile_education_profile_id_fkey" FOREIGN KEY ("profile_id") REFERENCES "public"."profile"("id") ON UPDATE CASCADE ON DELETE CASCADE;
 
@@ -4287,6 +4367,10 @@ CREATE POLICY "CRUD FOR AUTH" ON "public"."chat" TO "authenticated" USING (true)
 
 
 CREATE POLICY "Enable CRUD for users based on xpert_id" ON "public"."selection_matching" USING ((( SELECT "auth"."uid"() AS "uid") = "xpert_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "xpert_id"));
+
+
+
+CREATE POLICY "Enable all access for admins" ON "public"."profile_deleted" USING ((("auth"."jwt"() ->> 'role'::"text") = 'admin'::"text"));
 
 
 
@@ -4805,6 +4889,8 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
+-- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
+
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";
 
@@ -5320,6 +5406,12 @@ GRANT ALL ON FUNCTION "public"."notify_new_task"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."notify_profile_deletion"() TO "anon";
+GRANT ALL ON FUNCTION "public"."notify_profile_deletion"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."notify_profile_deletion"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "anon";
 GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notify_task_done"() TO "service_role";
@@ -5702,6 +5794,12 @@ GRANT ALL ON SEQUENCE "public"."posts_id_seq" TO "service_role";
 GRANT ALL ON TABLE "public"."profile" TO "anon";
 GRANT ALL ON TABLE "public"."profile" TO "authenticated";
 GRANT ALL ON TABLE "public"."profile" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."profile_deleted" TO "anon";
+GRANT ALL ON TABLE "public"."profile_deleted" TO "authenticated";
+GRANT ALL ON TABLE "public"."profile_deleted" TO "service_role";
 
 
 

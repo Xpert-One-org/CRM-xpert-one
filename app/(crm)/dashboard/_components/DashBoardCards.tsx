@@ -31,7 +31,9 @@ export default function DashBoardCards(props: DashBoardCardsProps) {
         <h2 className="font-[400] text-black">
           {title} : {count}
         </h2>
-        <h2 className="font-[500] text-red-500">
+        <h2
+          className={`font-[500] ${urgentCount >= 1 ? 'text-red-500' : 'text-black'}`}
+        >
           {urgentTitle} : {urgentCount}
         </h2>
       </div>
