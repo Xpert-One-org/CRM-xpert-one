@@ -33,7 +33,12 @@ export default function FacturationCard({
     months.forEach(({ year, month }) => {
       const monthDate = new Date(year, month);
 
-      if (monthDate > today) return;
+      // Ne vérifier que les mois passés (pas les mois en cours ou futurs)
+      if (monthDate >= today) return;
+
+      // Ajouter un délai de grâce (15 jours après la fin du mois)
+      const graceDeadline = new Date(year, month + 1, 15);
+      const isOverdue = today > graceDeadline;
 
       const monthKey = `${year}-${(month + 1).toString().padStart(2, '0')}`;
       const fileStatuses =
@@ -83,15 +88,20 @@ export default function FacturationCard({
           (payment) => (payment as { period: string })?.period === monthKey
         );
 
-      if (
+      const hasIncompleteDocuments =
         !presenceStatus.exists ||
         !invoiceStatus.exists ||
         !fournisseurInvoiceStatus.exists ||
         !xpertPaymentStatus ||
-        !fournisseurPaymentStatus
-      ) {
+        !fournisseurPaymentStatus;
+
+      // Compter comme en retard seulement si date dépassée ET documents manquants
+      if (hasIncompleteDocuments) {
         totalCount++;
-        delayedCount++;
+
+        if (isOverdue) {
+          delayedCount++;
+        }
       }
     });
   });
