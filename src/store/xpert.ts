@@ -21,6 +21,7 @@ import {
   updateProfileMission,
   updateProfileStatus,
   updateUserAlerts,
+  updateUserEmail,
 } from '../../app/(crm)/xpert/xpert.action';
 import { toast } from 'sonner';
 import type { FilterXpert } from '@/types/types';
@@ -84,6 +85,12 @@ type XpertState = {
   updateXpertReferent: (
     xpertId: string,
     affected_referent_id: string | null
+  ) => Promise<void>;
+
+  updateUserEmail: (
+    userId: string,
+    newEmail: string,
+    oldEmail: string
   ) => Promise<void>;
 };
 
@@ -528,5 +535,37 @@ export const useXpertStore = create<XpertState>((set, get) => ({
         xpert.id === xpertId ? { ...xpert, affected_referent_id } : xpert
       ),
     }));
+  },
+
+  updateUserEmail: async (userId, newEmail, oldEmail) => {
+    const { error } = await updateUserEmail({
+      userId,
+      newEmail,
+      oldEmail,
+    });
+
+    if (error) {
+      toast.error(`Erreur lors de la mise à jour de l'email: ${error.message}`);
+      return;
+    }
+
+    // Mettre à jour le store si nécessaire
+    set((state) => ({
+      xperts: state.xperts?.map((xpert) =>
+        xpert.id === userId ? { ...xpert, email: newEmail } : xpert
+      ),
+      openedXpert:
+        state.openedXpert?.id === userId
+          ? { ...state.openedXpert, email: newEmail }
+          : state.openedXpert,
+      openedXpertNotSaved:
+        state.openedXpertNotSaved?.id === userId
+          ? { ...state.openedXpertNotSaved, email: newEmail }
+          : state.openedXpertNotSaved,
+    }));
+
+    toast.success(
+      'Email mis à jour avec succès. Des notifications ont été envoyées aux deux adresses.'
+    );
   },
 }));

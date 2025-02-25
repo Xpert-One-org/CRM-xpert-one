@@ -428,6 +428,7 @@ export default function XpertTable() {
                   <XpertRowContent
                     xpertOptimized={xpert}
                     handleKeyChanges={handleKeyChanges}
+                    enableEmailEdit={true}
                   />
                 )}
               </div>

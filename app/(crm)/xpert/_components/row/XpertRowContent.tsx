@@ -44,9 +44,11 @@ export type NestedTableKey =
 export default function XpertRowContent({
   xpertOptimized,
   handleKeyChanges,
+  enableEmailEdit,
 }: {
   xpertOptimized: DBXpertOptimized;
   handleKeyChanges: (table: NestedTableKey | undefined, name: string) => void;
+  enableEmailEdit: boolean;
 }) {
   // remove duplicate status
   const selectStatus = [...statusSelectEmployee, ...statusSelectInde].filter(
@@ -372,10 +374,10 @@ export default function XpertRowContent({
             />
           </div>
           <Input
-            hasPreIcon
-            label="Adresse mail"
-            value={xpert.email ?? ''}
-            disabled
+            label="Email"
+            name="email"
+            value={xpert?.email || ''}
+            onChange={(e) => handleChangeInput(e)}
           />
         </div>
         <div className="flex items-center justify-end">
@@ -697,7 +699,7 @@ export default function XpertRowContent({
       <div className="grid w-full grid-cols-2 gap-4">
         <CreatableSelect
           creatable
-          label="Niveau d’étude"
+          label="Niveau d'étude"
           defaultValue={{
             label:
               getLabel({
