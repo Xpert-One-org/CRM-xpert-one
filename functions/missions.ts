@@ -7,17 +7,137 @@ import type {
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 
+// Fonction utilitaire pour vérifier l'accès aux missions
+const checkMissionAccess = async (supabase: any) => {
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  if (!authUser) return { isAuthorized: false };
+
+  const { data: userProfile } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('id', authUser.id)
+    .single();
+
+  if (!userProfile) return { isAuthorized: false };
+
+  // Vérifier si l'utilisateur est un remplaçant
+  const { data: isReplacement } = await supabase
+    .from('profile')
+    .select('id')
+    .eq('collaborator_is_absent', true)
+    .eq('collaborator_replacement_id', authUser.id);
+
+  const isReplaceForSomeone = isReplacement && isReplacement.length > 0;
+  console.log("L'utilisateur est-il remplaçant:", isReplaceForSomeone);
+
+  // D'après l'image, admin et chargé d'affaires ont accès complet
+  const isAdmin = userProfile.role === 'admin';
+  const isChargeAffaires = userProfile.role === 'business';
+  const isStagiaire = userProfile.role === 'intern';
+
+  const hasWriteAccess = isAdmin || isChargeAffaires || isReplaceForSomeone;
+  const hasReadAccess =
+    isAdmin || isChargeAffaires || isStagiaire || isReplaceForSomeone;
+
+  return {
+    isAuthorized: true,
+    isAdmin,
+    isChargeAffaires,
+    hasWriteAccess,
+    hasReadAccess,
+    userId: authUser.id,
+    userProfile,
+    role: userProfile.role,
+    isReplaceForSomeone,
+  };
+};
+
+// Fonction utilitaire pour récupérer les IDs des missions accessibles par un remplaçant
+const getMissionsForReplacement = async (supabase: any, userId: string) => {
+  console.log('getMissionsForReplacement appelé pour userId:', userId);
+
+  // D'abord, trouver tous les référents pour lesquels l'utilisateur est remplaçant
+  const { data: referentsReplaced } = await supabase
+    .from('profile')
+    .select('id')
+    .eq('collaborator_is_absent', true)
+    .eq('collaborator_replacement_id', userId);
+
+  console.log('Référents remplacés:', referentsReplaced);
+
+  if (!referentsReplaced || referentsReplaced.length === 0) {
+    console.log('Aucun référent remplacé trouvé');
+    return [];
+  }
+
+  // Récupérer les missions où ces référents sont assignés
+  const referentIds = referentsReplaced.map((ref: { id: string }) => ref.id);
+  console.log('IDs des référents remplacés:', referentIds);
+
+  const { data: replacementMissions } = await supabase
+    .from('mission')
+    .select('id')
+    .in('affected_referent_id', referentIds);
+
+  console.log('Missions de remplacement trouvées:', replacementMissions);
+
+  const missionIds =
+    replacementMissions?.map((m: { id: number }) => m.id.toString()) || [];
+  console.log('IDs des missions de remplacement:', missionIds);
+
+  return missionIds;
+};
+
+// Fonction utilitaire pour vérifier si un utilisateur est remplaçant
+const checkReplacementAccess = async (
+  supabase: any,
+  userId: string,
+  referentId: string | null
+) => {
+  console.log(
+    'checkReplacementAccess appelé pour userId:',
+    userId,
+    'referentId:',
+    referentId
+  );
+
+  if (!referentId) return false;
+
+  const { data: referent } = await supabase
+    .from('profile')
+    .select('collaborator_is_absent, collaborator_replacement_id')
+    .eq('id', referentId)
+    .single();
+
+  console.log('Données du référent:', referent);
+
+  const hasAccess =
+    referent?.collaborator_is_absent &&
+    referent?.collaborator_replacement_id === userId;
+  console.log('A-t-il accès:', hasAccess);
+
+  return hasAccess;
+};
+
 export const getSpecificMission = async (
   missionNumber: string
 ): Promise<{ data: DBMission }> => {
   const supabase = await createSupabaseAppServerClient();
 
-  const { data, error } = await supabase
+  const { isAuthorized, hasReadAccess, userId } =
+    await checkMissionAccess(supabase);
+  if (!isAuthorized || !hasReadAccess) {
+    throw new Error("Vous n'avez pas les droits nécessaires");
+  }
+
+  let query = supabase
     .from('mission')
     .select(
       `
       *,
-      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email, collaborator_is_absent, collaborator_replacement_id),
       xpert:profile!mission_xpert_associated_id_fkey(
         *,
         profile_status (
@@ -31,6 +151,31 @@ export const getSpecificMission = async (
     )
     .eq('mission_number', missionNumber);
 
+  // Pour un non-admin, vérifier les droits d'accès
+  if (!hasReadAccess) {
+    // Récupérer les IDs des missions où l'utilisateur est remplaçant
+    const replacementMissionIds = await getMissionsForReplacement(
+      supabase,
+      userId
+    );
+
+    if (replacementMissionIds.length > 0) {
+      // Construire une condition OR qui inclut:
+      // 1. L'utilisateur est le référent
+      // 2. L'utilisateur est remplaçant d'un référent absent et la mission appartient à ce référent
+      query = query.or(
+        `affected_referent_id.eq.${userId},id.in.(${replacementMissionIds.join(
+          ','
+        )})`
+      );
+    } else {
+      // Uniquement les missions où l'utilisateur est référent
+      query = query.eq('affected_referent_id', userId);
+    }
+  }
+
+  const { data, error } = await query;
+
   if (error) {
     throw new Error(error.message);
   }
@@ -39,13 +184,29 @@ export const getSpecificMission = async (
     throw new Error('Mission not found');
   }
 
-  const missionsWithCheckpoints = data?.map((mission) => ({
+  // Vérifier si l'utilisateur a accès à cette mission spécifique
+  if (!hasReadAccess) {
+    const missionData = data[0];
+    const isReferent = missionData.affected_referent_id === userId;
+    const isReplacement = await checkReplacementAccess(
+      supabase,
+      userId,
+      missionData.affected_referent_id
+    );
+
+    if (!isReferent && !isReplacement) {
+      throw new Error("Vous n'avez pas accès à cette mission");
+    }
+  }
+
+  const mission = data[0];
+  const processedMission = {
     ...mission,
     checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
     finance: mission.finance ? mission.finance[0] : null,
-  }));
+  };
 
-  return { data: missionsWithCheckpoints[0] };
+  return { data: processedMission };
 };
 
 export const getAllMissions = async (
@@ -62,83 +223,128 @@ export const getAllMissions = async (
 ): Promise<{ missions: DBMission[]; total: number }> => {
   const supabase = await createSupabaseAppServerClient();
 
-  const { user } = (await supabase.auth.getUser()).data;
+  const {
+    isAuthorized,
+    hasReadAccess,
+    userId,
+    isAdmin,
+    isChargeAffaires,
+    isReplaceForSomeone,
+  } = await checkMissionAccess(supabase);
 
-  if (!user) {
-    throw new Error('User not found');
+  console.log(
+    'getAllMissions - userId:',
+    userId,
+    'isAuthorized:',
+    isAuthorized,
+    'hasReadAccess:',
+    hasReadAccess,
+    'isRemplaçant:',
+    isReplaceForSomeone
+  );
+
+  if (!isAuthorized) return { missions: [], total: 0 };
+
+  let query = supabase.from('mission').select(
+    `
+      *,
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email, collaborator_is_absent, collaborator_replacement_id),
+      xpert:profile!mission_xpert_associated_id_fkey(
+        *,
+        profile_status (
+          status
+        )
+      ),
+      supplier:profile!mission_created_by_fkey(*),
+      checkpoints:mission_checkpoints(*),
+      finance:mission_finance(*)
+    `,
+    { count: 'exact' }
+  );
+
+  // Seuls les admin et chargés d'affaires voient toutes les missions
+  // Les autres (référents et remplaçants) doivent être filtrés
+  if (!isAdmin && !isChargeAffaires) {
+    console.log('Filtrage des missions pour utilisateur:', userId);
+
+    // Récupérer les IDs des référents que l'utilisateur remplace
+    const { data: referentsReplaced } = await supabase
+      .from('profile')
+      .select('id')
+      .eq('collaborator_is_absent', true)
+      .eq('collaborator_replacement_id', userId);
+
+    console.log('Référents remplacés:', referentsReplaced);
+
+    if (referentsReplaced && referentsReplaced.length > 0) {
+      // Construire une condition OR pour:
+      // 1. Missions où l'utilisateur est référent
+      // 2. Missions où l'utilisateur remplace le référent
+      const referentIds = referentsReplaced.map((r: any) => r.id);
+      console.log('IDs des référents remplacés:', referentIds);
+
+      // Si l'utilisateur est référent OU s'il remplace un référent qui est assigné à la mission
+      query = query.or(
+        `affected_referent_id.eq.${userId},affected_referent_id.in.(${referentIds.join(
+          ','
+        )})`
+      );
+    } else {
+      // Si l'utilisateur n'est pas remplaçant, uniquement ses missions
+      query = query.eq('affected_referent_id', userId);
+    }
   }
-
-  const offset = (page - 1) * limit;
-
-  let query = supabase.from('mission').select('*', {
-    count: 'exact',
-    head: true,
-  });
 
   // Appliquer le filtre d'état si spécifié
   if (options?.states) {
     query = query.in('state', options.states);
   }
 
-  const { count: total } = await query;
-
-  // Construire la requête principale
-  let mainQuery = supabase.from('mission').select(`
-    *,
-    referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
-    xpert:profile!mission_xpert_associated_id_fkey(
-      *,
-      profile_status (
-        status
-      )
-    ),
-    supplier:profile!mission_created_by_fkey(*),
-    checkpoints:mission_checkpoints(*),
-    finance:mission_finance(*)
-  `);
-
-  const { data: userData } = await supabase
-    .from('profile')
-    .select('*')
-    .eq('id', user?.id ?? '')
-    .single();
-
-  if (userData && userData.role !== 'admin') {
-    mainQuery = mainQuery.eq('affected_referent_id', userData.id);
-  }
-
-  // Appliquer le filtre d'état si spécifié
-  if (options?.states) {
-    mainQuery = mainQuery.in('state', options.states);
-  }
+  // Récupérer le nombre total pour la pagination
+  const { count } = await query;
 
   // Appliquer le tri si spécifié
   if (options?.sortBy) {
-    mainQuery = mainQuery.order(options.sortBy.column, {
+    query = query.order(options.sortBy.column, {
       ascending: options.sortBy.ascending,
       nullsFirst: !options.sortBy.nullsLast,
     });
   }
 
-  // Appliquer la pagination
-  mainQuery = mainQuery.range(offset, offset + limit - 1);
+  // Calculer l'offset de pagination
+  const offset = (page - 1) * limit;
 
-  const { data, error } = await mainQuery;
+  // Appliquer la pagination
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Query error:', error);
     throw new Error(error.message);
   }
 
-  const missionsWithCheckpoints = data?.map((mission) => ({
-    ...mission,
-    checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
-    finance: mission.finance ? mission.finance[0] : null,
-  }));
+  const missionsWithCheckpoints = data
+    ?.map((mission) => {
+      if (typeof mission !== 'object' || mission === null) {
+        return null;
+      }
+
+      return {
+        ...mission,
+        checkpoints:
+          'checkpoints' in mission && mission.checkpoints
+            ? [mission.checkpoints]
+            : [],
+        finance:
+          'finance' in mission && mission.finance ? mission.finance[0] : null,
+      };
+    })
+    .filter(Boolean) as DBMission[];
 
   return {
     missions: missionsWithCheckpoints || [],
-    total: total || 0,
+    total: count || 0,
   };
 };
 
@@ -146,71 +352,179 @@ export const getMissionState = async (
   state: DBMissionState
 ): Promise<DBMission[]> => {
   const supabase = await createSupabaseAppServerClient();
-  const isAdmin = await checkAuthRole();
 
-  if (isAdmin) {
-    let query = supabase.from('mission').select(`
+  const {
+    isAuthorized,
+    hasReadAccess,
+    userId,
+    isAdmin,
+    isChargeAffaires,
+    isReplaceForSomeone,
+  } = await checkMissionAccess(supabase);
+
+  console.log(
+    'getMissionState - userId:',
+    userId,
+    'isAuthorized:',
+    isAuthorized,
+    'hasReadAccess:',
+    hasReadAccess,
+    'isRemplaçant:',
+    isReplaceForSomeone
+  );
+
+  if (!isAuthorized) return [];
+
+  // Si l'utilisateur n'a pas les droits de lecture mais est remplaçant, continuer
+  const shouldAccessMissions = hasReadAccess || isReplaceForSomeone;
+
+  if (!shouldAccessMissions) return [];
+
+  let query = supabase.from('mission').select(
+    `
       *,
-      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email),
+      referent:profile!mission_affected_referent_id_fkey(id, firstname, lastname, mobile, fix, email, collaborator_is_absent, collaborator_replacement_id),
       xpert:profile!mission_xpert_associated_id_fkey(
-        *
-      ), 
+        *,
+        profile_status (
+          status
+        )
+      ),
       supplier:profile!mission_created_by_fkey(*),
       checkpoints:mission_checkpoints(*),
       finance:mission_finance(*)
-    `);
+    `
+  );
 
-    if (state === 'open') {
-      query = query.in('state', ['open', 'open_all']);
-    } else if (state === 'in_process') {
-      query = query.in('state', [
-        'in_process',
-        'open_all_to_validate',
-        'to_validate',
-      ]);
-    } else if (state === 'deleted') {
-      query = query.in('state', ['refused', 'deleted']);
+  // Seuls les admin et chargés d'affaires voient toutes les missions
+  // Les autres (référents et remplaçants) doivent être filtrés
+  if (!isAdmin && !isChargeAffaires) {
+    console.log('Filtrage des missions pour utilisateur:', userId);
+
+    // Récupérer les IDs des référents que l'utilisateur remplace
+    const { data: referentsReplaced } = await supabase
+      .from('profile')
+      .select('id')
+      .eq('collaborator_is_absent', true)
+      .eq('collaborator_replacement_id', userId);
+
+    console.log('Référents remplacés:', referentsReplaced);
+
+    if (referentsReplaced && referentsReplaced.length > 0) {
+      // Construire une condition OR pour:
+      // 1. Missions où l'utilisateur est référent
+      // 2. Missions où l'utilisateur remplace le référent
+      const referentIds = referentsReplaced.map((r: any) => r.id);
+      console.log('IDs des référents remplacés:', referentIds);
+
+      // Si l'utilisateur est référent OU s'il remplace un référent qui est assigné à la mission
+      query = query.or(
+        `affected_referent_id.eq.${userId},affected_referent_id.in.(${referentIds.join(
+          ','
+        )})`
+      );
     } else {
-      query = query.eq('state', state);
+      // Si l'utilisateur n'est pas remplaçant, uniquement ses missions
+      query = query.eq('affected_referent_id', userId);
     }
-
-    const { data, error } = await query.order('start_date', {
-      ascending: true,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // Transforme les checkpoints en tableau
-    const missionsWithCheckpoints = data?.map((mission) => ({
-      ...mission,
-      checkpoints: mission.checkpoints ? [mission.checkpoints] : [],
-      finance: mission.finance ? mission.finance[0] : null,
-    }));
-
-    return missionsWithCheckpoints;
-  }
-  return [];
-};
-
-export const searchMission = async (missionId: string) => {
-  const supabase = await createSupabaseAppServerClient();
-
-  let query = supabase.from('mission').select('mission_number');
-
-  // // Filtrer par état open ou open_all
-  // query = query.in('state', ['open', 'open_all']);
-
-  if (missionId) {
-    query = query.ilike('mission_number', `%${missionId}%`);
   }
 
-  const { data, error } = await query;
+  if (state === 'open') {
+    query = query.in('state', ['open', 'open_all']);
+  } else if (state === 'in_process') {
+    query = query.in('state', [
+      'in_process',
+      'open_all_to_validate',
+      'to_validate',
+    ]);
+  } else if (state === 'deleted') {
+    query = query.in('state', ['refused', 'deleted']);
+  } else {
+    query = query.eq('state', state);
+  }
+
+  const { data, error } = await query.order('start_date', {
+    ascending: true,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
+
+  const missionsWithCheckpoints = data
+    ?.map((mission) => {
+      if (typeof mission !== 'object' || mission === null) {
+        return null;
+      }
+
+      return {
+        ...mission,
+        checkpoints:
+          'checkpoints' in mission && mission.checkpoints
+            ? [mission.checkpoints]
+            : [],
+        finance:
+          'finance' in mission && mission.finance ? mission.finance[0] : null,
+      };
+    })
+    .filter(Boolean) as DBMission[];
+
+  return missionsWithCheckpoints;
+};
+
+export const searchMission = async (
+  missionId: string
+): Promise<{ data: { mission_number: string | null }[] }> => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { isAuthorized, hasReadAccess, userId, isAdmin, isChargeAffaires } =
+    await checkMissionAccess(supabase);
+
+  if (!isAuthorized) return { data: [] };
+
+  let query = supabase
+    .from('mission')
+    .select('mission_number')
+    .ilike('mission_number', `%${missionId}%`);
+
+  // Appliquer le même filtrage que dans getAllMissions et getMissionState
+  if (!isAdmin && !isChargeAffaires) {
+    console.log('Filtrage des missions pour utilisateur:', userId);
+
+    // Récupérer les IDs des référents que l'utilisateur remplace
+    const { data: referentsReplaced } = await supabase
+      .from('profile')
+      .select('id')
+      .eq('collaborator_is_absent', true)
+      .eq('collaborator_replacement_id', userId);
+
+    console.log('Référents remplacés:', referentsReplaced);
+
+    if (referentsReplaced && referentsReplaced.length > 0) {
+      const referentIds = referentsReplaced.map((r: any) => r.id);
+      console.log('IDs des référents remplacés:', referentIds);
+
+      // Si l'utilisateur est référent OU s'il remplace un référent qui est assigné à la mission
+      query = query.or(
+        `affected_referent_id.eq.${userId},affected_referent_id.in.(${referentIds.join(
+          ','
+        )})`
+      );
+    } else {
+      // Si l'utilisateur n'est pas remplaçant, uniquement ses missions
+      query = query.eq('affected_referent_id', userId);
+    }
+  }
+
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error('Query error:', error);
+    throw new Error(error.message);
+  }
+
   return { data };
 };
 
@@ -235,6 +549,7 @@ export const getLastMissionNumber = async (isFacturation?: boolean) => {
 
   return { data: data[0]?.mission_number };
 };
+
 export const updateMissionState = async (
   missionId: string,
   state: DBMissionState,
@@ -243,6 +558,35 @@ export const updateMissionState = async (
 ) => {
   const supabase = await createSupabaseAppServerClient();
 
+  const { isAuthorized, hasWriteAccess, userId } =
+    await checkMissionAccess(supabase);
+  if (!isAuthorized || !hasWriteAccess) {
+    return { error: 'Non autorisé à modifier des missions' };
+  }
+
+  // Vérifier l'accès si non-admin
+  if (!hasWriteAccess) {
+    const { data } = await supabase
+      .from('mission')
+      .select(
+        'affected_referent_id, referent:profile!mission_affected_referent_id_fkey(collaborator_is_absent, collaborator_replacement_id)'
+      )
+      .eq('id', missionId)
+      .single();
+
+    // Vérifier si l'utilisateur est le référent ou le remplaçant d'un référent absent
+    const isReferent = data?.affected_referent_id === userId;
+    const isReplacement = await checkReplacementAccess(
+      supabase,
+      userId,
+      data?.affected_referent_id ?? null
+    );
+
+    if (!isReferent && !isReplacement) {
+      return { error: 'Non autorisé à modifier cette mission' };
+    }
+  }
+
   const { data, error } = await supabase
     .from('mission')
     .update({ state, reason_deletion, detail_deletion })
@@ -250,14 +594,19 @@ export const updateMissionState = async (
     .select('*');
 
   if (error) {
-    throw new Error(error.message);
+    return { error: error.message };
   }
 
-  return { data: data![0], error: error };
+  return { data: data![0], error: null };
 };
 
 export const insertMission = async ({ mission }: { mission: any }) => {
   const supabase = await createSupabaseAppServerClient();
+
+  const { isAuthorized, hasWriteAccess } = await checkMissionAccess(supabase);
+  if (!isAuthorized || !hasWriteAccess) {
+    return { error: 'Non autorisé à créer des missions' };
+  }
 
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
@@ -278,6 +627,11 @@ export const deleteMission = async (
 ) => {
   const supabase = await createSupabaseAppServerClient();
 
+  const { isAuthorized, hasWriteAccess } = await checkMissionAccess(supabase);
+  if (!isAuthorized || !hasWriteAccess) {
+    return { error: 'Non autorisé à supprimer des missions' };
+  }
+
   //! maybe later we will add table called history_mission
   //! to keep history queries of the mission
 
@@ -289,18 +643,18 @@ export const deleteMission = async (
   //     created_at: new Date().toISOString(),
   //   });
 
-  const { error: errorMission } = await supabase
-    .from('mission')
-    .update({
-      state: 'deleted',
-      reason_deletion: reason,
-      deleted_at: new Date().toISOString(),
-    })
-    .eq('id', missionId);
+  // const { error: errorMission } = await supabase
+  //   .from("mission")
+  //   .update({
+  //     state: "deleted",
+  //     reason_deletion: reason,
+  //     deleted_at: new Date().toISOString(),
+  //   })
+  //   .eq("id", missionId);
 
-  if (errorMission) {
-    return { errorMission };
-  }
+  // if (errorMission) {
+  //   return { errorMission };
+  // }
 
   return { error: null };
 };

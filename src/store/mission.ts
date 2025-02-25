@@ -238,7 +238,9 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     if (selectedState) {
       set({ isLoading: true });
       try {
+        console.log('Fetching missions with state:', selectedState);
         const fetchedMissions = await getMissionState(selectedState);
+        console.log('Missions récupérées:', fetchedMissions.length);
         set({ missions: fetchedMissions });
       } catch (error) {
         console.error('Error fetching missions state:', error);

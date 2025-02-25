@@ -8,7 +8,6 @@ import type {
   DBProfileStatus,
 } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
-import { checkAuthRole } from '@functions/auth/checkRole';
 import { transformArray } from '@/lib/utils';
 
 export const getSpecificFournisseur = async (
@@ -16,33 +15,46 @@ export const getSpecificFournisseur = async (
 ): Promise<DBFournisseur | null> => {
   const supabase = await createSupabaseAppServerClient();
 
-  const isAdmin = await checkAuthRole();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  if (!authUser) return null;
 
-  if (isAdmin) {
-    const { data, error } = await supabase
-      .from('profile')
-      .select('*, mission!mission_created_by_fkey(*), profile_status(*)')
-      .eq('generated_id', fournisseurId)
-      .eq('role', 'company')
-      .order('created_at', { ascending: false })
-      .single();
+  const { data: userProfile } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('id', authUser.id)
+    .single();
 
-    if (error) {
-      console.error(error);
-      throw new Error(error.message);
-    }
+  if (!userProfile) return null;
 
-    if (!data) {
-      console.error('No data returned');
-      return null;
-    }
+  const isAdmin = userProfile.role === 'admin';
 
-    return data;
+  let query = supabase
+    .from('profile')
+    .select('*, mission!mission_created_by_fkey(*), profile_status(*)')
+    .eq('generated_id', fournisseurId)
+    .eq('role', 'company');
+
+  if (!isAdmin) {
+    query = query.or(
+      `affected_referent_id.eq.${authUser.id},affected_referent_id.in.(${supabase
+        .from('profile')
+        .select('id')
+        .eq('collaborator_is_absent', true)
+        .eq('collaborator_replacement_id', authUser.id)})`
+    );
   }
 
-  return null;
-};
+  const { data, error } = await query.single();
 
+  if (error || !data) {
+    console.error('Error fetching specific Fournisseur:', error);
+    return null;
+  }
+
+  return data;
+};
 export const getAllFournisseurs = async ({
   offset,
 }: {
@@ -50,26 +62,65 @@ export const getAllFournisseurs = async ({
 }): Promise<{ data: DBFournisseur[]; count: number | null }> => {
   const supabase = await createSupabaseAppServerClient();
 
-  const isAdmin = await checkAuthRole();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  if (!authUser) return { data: [], count: null };
 
-  if (isAdmin) {
-    const { data, count, error } = await supabase
+  const { data: userProfile } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('id', authUser.id)
+    .single();
+
+  if (!userProfile) return { data: [], count: null };
+
+  const isAdmin = userProfile.role === 'admin';
+
+  // Si non admin, on récupère d'abord les IDs des référents absents
+  let referentsAbsentsIds: string[] = [];
+  if (!isAdmin) {
+    const { data: referentsAbsents } = await supabase
       .from('profile')
-      .select('*, mission!mission_created_by_fkey(*), profile_status(*)', {
-        count: 'exact',
-      })
-      .eq('role', 'company')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limitFournisseur - 1);
-    if (error) {
-      console.error(error);
-      throw new Error(error.message);
-    }
+      .select('id')
+      .eq('collaborator_is_absent', true)
+      .eq('collaborator_replacement_id', authUser.id);
 
-    return { data, count };
+    referentsAbsentsIds = referentsAbsents?.map((ref) => ref.id) || [];
   }
 
-  return { data: [], count: null };
+  let query = supabase
+    .from('profile')
+    .select('*, mission!mission_created_by_fkey(*), profile_status(*)', {
+      count: 'exact',
+    })
+    .eq('role', 'company');
+
+  if (!isAdmin) {
+    if (referentsAbsentsIds.length > 0) {
+      query = query.or(
+        `affected_referent_id.eq.${authUser.id},affected_referent_id.in.(${referentsAbsentsIds.join(
+          ','
+        )})`
+      );
+    } else {
+      query = query.eq('affected_referent_id', authUser.id);
+    }
+  }
+
+  query = query.order('created_at', { ascending: false });
+
+  const { data, count, error } = await query.range(
+    offset,
+    offset + limitFournisseur - 1
+  );
+
+  if (error) {
+    console.error('Error fetching Fournisseurs:', error);
+    return { data: [], count: null };
+  }
+
+  return { data, count };
 };
 
 export const deleteFournisseur = async (

@@ -196,161 +196,165 @@ export const getXpertsOptimized = async ({
 }): Promise<{ data: DBXpertOptimized[]; count: number | null }> => {
   const supabase = await createSupabaseAppServerClient();
 
-  const isAdmin = await checkAuthRole();
-
-  if (isAdmin) {
-    let query = supabase
-      .from('profile')
-      .select(
-        `
-        firstname, lastname, id, country, generated_id, created_at, 
-        admin_opinion, cv_name, 
-        profile_mission(availability, job_titles, sector), 
-        profile_status(iam),
-        profile_experience(post, post_other), 
-        mission!xpert_associated_id(
-          id,
-          mission_number,
-          job_title,
-          job_title_other,
-          state,
-          description,
-          created_at,
-          start_date,
-          end_date,
-          xpert_associated_status,
-          created_by,
-          xpert_associated_id
-        ),
-        affected_referent_id
-        `,
-        { count: 'exact' }
-      )
-      .eq('role', 'xpert');
-
-    // Filtre disponibilité
-    if (filters?.availability) {
-      if (filters.availability === 'unavailable') {
-        const date = new Date();
-        query = query.or(
-          `availability.eq.${null},availability.gt.${date.toISOString()}`,
-          { referencedTable: 'profile_mission' }
-        );
-      }
-      if (filters.availability === 'in_mission') {
-        query = query.not(`mission`, 'is', null);
-      }
-      if (filters.availability === 'available') {
-        query = query.is('mission', null);
-        query = query.not(`profile_mission`, 'is', null);
-        query = query.or(`availability.lt.${new Date().toISOString()}`, {
-          referencedTable: 'profile_mission',
-        });
-      }
-    }
-
-    // Filtre titre du poste
-    if (filters?.jobTitles) {
-      const jobTitles = filters.jobTitles.replace(/ /g, '_');
-      query = query.not('profile_mission', 'is', null);
-      query = query.ilike(
-        'profile_mission.job_titles_search',
-        `%${jobTitles}%`
-      );
-    }
-
-    // Filtre pays
-    if (filters?.countries && filters.countries.length > 0) {
-      query = query.in('country', filters.countries);
-    }
-
-    // Filtre date
-    if (filters?.sortDate) {
-      query = query.order('created_at', {
-        ascending: filters.sortDate === 'asc',
-      });
-    } else {
-      query = query.order('created_at', {
-        ascending: false,
-      });
-    }
-
-    // Filtre prénom
-    if (filters?.firstname) {
-      query = query.ilike('firstname', `%${filters.firstname}%`);
-    }
-
-    // Filtre opinion admin
-    if (filters?.adminOpinion) {
-      query = query.eq('admin_opinion', filters.adminOpinion);
-    }
-
-    // Filtre nom
-    if (filters?.lastname) {
-      query = query.ilike('lastname', `%${filters.lastname}%`);
-    }
-
-    // Filtre CV
-    if (filters?.cv) {
-      if (filters.cv === 'yes') {
-        query = query.not('cv_name', 'is', null);
-      } else {
-        query = query.is('cv_name', null);
-      }
-    }
-
-    // Filtre ID généré
-    if (filters?.generated_id) {
-      query = query.ilike('generated_id', `%${filters.generated_id}%`);
-    }
-
-    // Filtre IAM
-    if (filters?.iam) {
-      query = query.not('profile_status', 'is', null);
-      query = query.eq('profile_status.iam', filters.iam);
-    }
-
-    // Filtre secteurs
-    if (filters?.sectors && filters.sectors.length > 0) {
-      query = query.not('profile_mission', 'is', null);
-      query = query.contains('profile_mission.sector', filters.sectors);
-    }
-
-    const { data, error, count } = await query.range(
-      offset,
-      offset + limitXpert - 1
-    );
-
-    if (error) {
-      console.error(error);
-      throw new Error(error.message);
-    }
-
-    if (!data) {
-      console.error('No data returned');
-      throw new Error('No data returned');
-    }
-
-    const transformedData: DBXpertOptimized[] = data.map((xpert) => {
-      const { profile_experience, mission, ...rest } = xpert;
-      return {
-        ...rest,
-        profile_experience: profile_experience?.[0] || null,
-        mission: mission?.filter(Boolean) || [],
-        profile_mission: xpert.profile_mission || null,
-        profile_status: xpert.profile_status || null,
-      };
-    });
-
-    return {
-      data: transformedData,
-      count: count || 0,
-    };
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  if (!authUser) {
+    throw new Error("Vous n'êtes pas connecté");
   }
 
+  const { data: userProfile } = await supabase
+    .from('profile')
+    .select('*')
+    .eq('id', authUser.id)
+    .single();
+
+  if (!userProfile) {
+    throw new Error('Profil utilisateur non trouvé');
+  }
+
+  const isAdmin = userProfile.role === 'admin';
+
+  // Récupération des IDs des XPERTs accessibles pour non-admin
+  let allowedXpertIds: string[] = [];
+  if (!isAdmin) {
+    // XPERTs avec référent direct
+    const { data: directXperts } = await supabase
+      .from('profile')
+      .select('id')
+      .eq('affected_referent_id', authUser.id);
+
+    // XPERTs avec utilisateur comme remplaçant
+    const { data: replacementXperts } = await supabase
+      .from('profile')
+      .select('id, affected_referent_id')
+      .eq('role', 'xpert')
+      .in(
+        'affected_referent_id',
+        (
+          await supabase
+            .from('profile')
+            .select('id')
+            .eq('collaborator_is_absent', true)
+            .eq('collaborator_replacement_id', authUser.id)
+        ).data?.map((p) => p.id) || []
+      );
+
+    allowedXpertIds = [
+      ...(directXperts?.map((x) => x.id) || []),
+      ...(replacementXperts?.map((x) => x.id) || []),
+    ];
+
+    if (allowedXpertIds.length === 0) {
+      return { data: [], count: 0 };
+    }
+  }
+
+  let query = supabase
+    .from('profile')
+    .select(
+      `
+      firstname, lastname, id, country, generated_id, created_at, 
+      admin_opinion, cv_name, 
+      profile_mission(availability, job_titles, sector), 
+      profile_status(iam),
+      profile_experience(post, post_other), 
+      mission!xpert_associated_id(
+        id,
+        mission_number,
+        job_title,
+        job_title_other,
+        state,
+        description,
+        created_at,
+        start_date,
+        end_date,
+        xpert_associated_status,
+        created_by,
+        xpert_associated_id
+      ),
+      affected_referent_id,
+      referent:profile!affected_referent_id(
+        id,
+        collaborator_is_absent,
+        collaborator_replacement_id
+      )
+      `,
+      { count: 'exact' }
+    )
+    .eq('role', 'xpert');
+
+  // Restriction aux IDs autorisés pour non-admin
+  if (!isAdmin) {
+    query = query.in('id', allowedXpertIds);
+  }
+
+  // Filtres existants
+  if (filters?.availability) {
+    if (filters.availability === 'unavailable') {
+      const date = new Date();
+      query = query.or(
+        `availability.eq.${null},availability.gt.${date.toISOString()}`,
+        { referencedTable: 'profile_mission' }
+      );
+    }
+    if (filters.availability === 'in_mission') {
+      query = query.not(`mission`, 'is', null);
+    }
+    if (filters.availability === 'available') {
+      query = query.is('mission', null);
+      query = query.not(`profile_mission`, 'is', null);
+      query = query.or(`availability.lt.${new Date().toISOString()}`, {
+        referencedTable: 'profile_mission',
+      });
+    }
+  }
+
+  // Autres filtres existants...
+  if (filters?.jobTitles) {
+    const jobTitles = filters.jobTitles.replace(/ /g, '_');
+    query = query.not('profile_mission', 'is', null);
+    query = query.ilike('profile_mission.job_titles_search', `%${jobTitles}%`);
+  }
+
+  if (filters?.countries && filters.countries.length > 0) {
+    query = query.in('country', filters.countries);
+  }
+
+  if (filters?.sortDate) {
+    query = query.order('created_at', {
+      ascending: filters.sortDate === 'asc',
+    });
+  } else {
+    query = query.order('created_at', {
+      ascending: false,
+    });
+  }
+
+  const { data, error, count } = await query.range(
+    offset,
+    offset + limitXpert - 1
+  );
+
+  if (error) {
+    console.error(error);
+    throw new Error(error.message);
+  }
+
+  const transformedData: DBXpertOptimized[] = data.map((xpert) => {
+    const { profile_experience, mission, ...rest } = xpert;
+    return {
+      ...rest,
+      profile_experience: profile_experience?.[0] || null,
+      mission: mission?.filter(Boolean) || [],
+      profile_mission: xpert.profile_mission || null,
+      profile_status: xpert.profile_status || null,
+    };
+  });
+
   return {
-    data: [],
-    count: null,
+    data: transformedData,
+    count: count || 0,
   };
 };
 
