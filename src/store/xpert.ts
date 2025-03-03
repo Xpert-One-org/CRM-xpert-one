@@ -146,7 +146,6 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     set({ activeFilters: newFilters });
 
     console.log('Updated filters:', get().activeFilters);
-    get().fetchXpertOptimizedFiltered(true);
   },
   openedXpert: null,
   openedXpertNotSaved: null,

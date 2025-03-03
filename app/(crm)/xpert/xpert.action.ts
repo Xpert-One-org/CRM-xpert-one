@@ -310,7 +310,6 @@ export const getXpertsOptimized = async ({
     }
   }
 
-  // Autres filtres existants...
   if (filters?.jobTitles) {
     const jobTitles = filters.jobTitles.replace(/ /g, '_');
     query = query.not('profile_mission', 'is', null);
@@ -319,6 +318,57 @@ export const getXpertsOptimized = async ({
 
   if (filters?.countries && filters.countries.length > 0) {
     query = query.in('country', filters.countries);
+  }
+
+  // Ajout des filtres manquants
+  if (filters?.firstname) {
+    query = query.ilike('firstname', `%${filters.firstname}%`);
+  }
+
+  if (filters?.lastname) {
+    query = query.ilike('lastname', `%${filters.lastname}%`);
+  }
+
+  if (filters?.generated_id) {
+    query = query.ilike('generated_id', `%${filters.generated_id}%`);
+  }
+
+  if (filters?.iam) {
+    // S'assurer que profile_status existe avant de filtrer dessus
+    query = query.not('profile_status', 'is', null);
+    // Utiliser filter au lieu de eq pour le champ relationnel
+    query = query.filter('profile_status.iam', 'eq', filters.iam);
+  }
+
+  if (filters?.adminOpinion) {
+    query = query.eq('admin_opinion', filters.adminOpinion);
+  }
+
+  if (filters?.cv) {
+    console.log('Applying CV filter:', filters.cv);
+    if (filters.cv === 'with_cv') {
+      // Utilisation de l'API raw pour être explicite
+      console.log('Recherche des profils AVEC CV');
+      // On évite not is null pour utiliser une syntaxe plus directe
+      query = query.filter('cv_name', 'not.is', null);
+    } else if (filters.cv === 'without_cv') {
+      // Utilisation de l'API raw pour être explicite
+      console.log('Recherche des profils SANS CV');
+      // On utilise l'opérateur is null directement
+      query = query.filter('cv_name', 'is', null);
+    }
+  }
+
+  if (filters?.sectors && filters.sectors.length > 0) {
+    console.log('Applying sectors filter:', filters.sectors);
+    // S'assurer que profile_mission n'est pas null
+    query = query.not('profile_mission', 'is', null);
+
+    // Corriger l'erreur en utilisant la méthode .contains sur le tableau de secteurs
+    if (filters.sectors[0] && filters.sectors[0].trim() !== '') {
+      // Utilisation de l'opérateur @> qui vérifie si un tableau contient un élément
+      query = query.contains('profile_mission.sector', [filters.sectors[0]]);
+    }
   }
 
   if (filters?.sortDate) {
