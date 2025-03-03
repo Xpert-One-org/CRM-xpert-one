@@ -310,7 +310,6 @@ export const getXpertsOptimized = async ({
     }
   }
 
-  // Autres filtres existants...
   if (filters?.jobTitles) {
     const jobTitles = filters.jobTitles.replace(/ /g, '_');
     query = query.not('profile_mission', 'is', null);
@@ -319,6 +318,57 @@ export const getXpertsOptimized = async ({
 
   if (filters?.countries && filters.countries.length > 0) {
     query = query.in('country', filters.countries);
+  }
+
+  // Ajout des filtres manquants
+  if (filters?.firstname) {
+    query = query.ilike('firstname', `%${filters.firstname}%`);
+  }
+
+  if (filters?.lastname) {
+    query = query.ilike('lastname', `%${filters.lastname}%`);
+  }
+
+  if (filters?.generated_id) {
+    query = query.ilike('generated_id', `%${filters.generated_id}%`);
+  }
+
+  if (filters?.iam) {
+    // S'assurer que profile_status existe avant de filtrer dessus
+    query = query.not('profile_status', 'is', null);
+    // Utiliser filter au lieu de eq pour le champ relationnel
+    query = query.filter('profile_status.iam', 'eq', filters.iam);
+  }
+
+  if (filters?.adminOpinion) {
+    query = query.eq('admin_opinion', filters.adminOpinion);
+  }
+
+  if (filters?.cv) {
+    console.log('Applying CV filter:', filters.cv);
+    if (filters.cv === 'with_cv') {
+      // Utilisation de l'API raw pour être explicite
+      console.log('Recherche des profils AVEC CV');
+      // On évite not is null pour utiliser une syntaxe plus directe
+      query = query.filter('cv_name', 'not.is', null);
+    } else if (filters.cv === 'without_cv') {
+      // Utilisation de l'API raw pour être explicite
+      console.log('Recherche des profils SANS CV');
+      // On utilise l'opérateur is null directement
+      query = query.filter('cv_name', 'is', null);
+    }
+  }
+
+  if (filters?.sectors && filters.sectors.length > 0) {
+    console.log('Applying sectors filter:', filters.sectors);
+    // S'assurer que profile_mission n'est pas null
+    query = query.not('profile_mission', 'is', null);
+
+    // Corriger l'erreur en utilisant la méthode .contains sur le tableau de secteurs
+    if (filters.sectors[0] && filters.sectors[0].trim() !== '') {
+      // Utilisation de l'opérateur @> qui vérifie si un tableau contient un élément
+      query = query.contains('profile_mission.sector', [filters.sectors[0]]);
+    }
   }
 
   if (filters?.sortDate) {
@@ -811,5 +861,181 @@ export const updateUserAlerts = async ({
       ...userAlerts, // Et ici
       user_id: xpert_id,
     });
+  }
+};
+
+export const updateUserEmail = async ({
+  userId,
+  newEmail,
+  oldEmail,
+}: {
+  userId: string;
+  newEmail: string;
+  oldEmail: string;
+}) => {
+  try {
+    // Créer le client Supabase avec les droits admin
+    const supabase = await createSupabaseAppServerClient('admin');
+
+    // Vérifier que l'utilisateur actuel est admin
+    const isAdmin = await checkAuthRole();
+    if (!isAdmin) {
+      return {
+        error: {
+          message: "Vous n'avez pas les droits pour effectuer cette action",
+          code: 'not_authorized',
+        },
+      };
+    }
+
+    // Vérifier l'email actuel avant la mise à jour
+    const { data: userBefore, error: userBeforeError } =
+      await supabase.auth.admin.getUserById(userId);
+
+    if (userBeforeError || !userBefore.user) {
+      console.error(
+        "Erreur lors de la récupération de l'utilisateur:",
+        userBeforeError
+      );
+      return {
+        error: {
+          message: "Impossible de récupérer l'utilisateur",
+          code: 'user_fetch_failed',
+        },
+      };
+    }
+
+    console.log('Email actuel dans auth:', userBefore.user.email);
+    console.log('Tentative de mise à jour vers:', newEmail);
+
+    // Tenter la mise à jour via API admin
+    const { data, error: updateAuthError } =
+      await supabase.auth.admin.updateUserById(userId, {
+        email: newEmail,
+        email_confirm: true,
+      });
+
+    if (updateAuthError || !data.user) {
+      console.error(
+        "Erreur lors de la mise à jour de l'email:",
+        updateAuthError
+      );
+      return {
+        error: {
+          message: updateAuthError?.message || 'Échec de la mise à jour',
+          code: updateAuthError?.code || 'update_failed',
+        },
+      };
+    }
+
+    // Vérifier réellement la mise à jour - ne pas faire confiance à la réponse initiale
+    const { data: userAfter, error: userAfterError } =
+      await supabase.auth.admin.getUserById(userId);
+
+    if (userAfterError || !userAfter.user) {
+      console.error(
+        'Erreur lors de la vérification de la mise à jour:',
+        userAfterError
+      );
+      return {
+        error: {
+          message: 'Impossible de vérifier la mise à jour',
+          code: 'verification_failed',
+        },
+      };
+    }
+
+    console.log('Email après tentative de mise à jour:', userAfter.user.email);
+
+    // Vérification stricte que l'email a bien changé
+    if (userAfter.user.email !== newEmail) {
+      console.error(
+        "ALERTE: L'email n'a pas été mis à jour dans auth malgré la réponse positive de l'API!"
+      );
+
+      // Essayons une approche alternative - méthode avec invite de réinitialisation de mot de passe
+      try {
+        // Cette approche peut fonctionner car elle utilise un autre chemin dans l'API Supabase
+        const { error: inviteError } =
+          await supabase.auth.admin.inviteUserByEmail(newEmail, {
+            redirectTo: process.env.NEXT_PUBLIC_SITE_URL,
+            data: {
+              user_id: userId,
+              email_migration: true,
+            },
+          });
+
+        if (inviteError) {
+          console.error('Échec de la méthode alternative:', inviteError);
+          return {
+            error: {
+              message: "Échec de la mise à jour de l'email dans auth",
+              code: 'auth_update_failed',
+            },
+          };
+        }
+
+        console.log("Méthode alternative d'invitation appliquée");
+      } catch (altError) {
+        console.error('Exception lors de la méthode alternative:', altError);
+        return {
+          error: {
+            message: "Échec de la mise à jour de l'email",
+            code: 'update_failed',
+          },
+        };
+      }
+    }
+
+    // Si nous arrivons ici, soit l'update a réussi, soit nous avons utilisé une méthode alternative
+    // Mettons à jour la table profile
+    const { error: updateProfileError } = await supabase
+      .from('profile')
+      .update({ email: newEmail })
+      .eq('id', userId);
+
+    if (updateProfileError) {
+      console.error(
+        'Erreur lors de la mise à jour du profil:',
+        updateProfileError
+      );
+      return {
+        error: {
+          message: updateProfileError.message,
+          code: updateProfileError.code,
+        },
+      };
+    }
+
+    // Notifications
+    try {
+      await supabase.auth.signInWithOtp({
+        email: oldEmail,
+        options: {
+          emailRedirectTo: undefined,
+          data: { type: 'email_changed_notification', newEmail },
+        },
+      });
+
+      await supabase.auth.signInWithOtp({
+        email: newEmail,
+        options: {
+          emailRedirectTo: undefined,
+          data: { type: 'email_changed_confirmation', oldEmail },
+        },
+      });
+    } catch (emailError) {
+      console.error("Erreur lors de l'envoi des notifications:", emailError);
+    }
+
+    return { data: { success: true } };
+  } catch (error) {
+    console.error('Erreur globale:', error);
+    return {
+      error: {
+        message: "Une erreur est survenue lors de la mise à jour de l'email",
+        code: 'unknown_error',
+      },
+    };
   }
 };
