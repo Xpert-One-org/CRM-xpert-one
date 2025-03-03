@@ -44,30 +44,31 @@ export default function XpertFilter({
   };
 
   const handleIamStatusChange = (value: string) => {
+    console.log('Changing IAM status to:', value);
     const newActiveFilter = { ...activeFilters, iam: value };
     setActiveFilters(newActiveFilter);
-    if (value === '') {
-      fetchXpertOptimizedFiltered(true);
-      return;
-    }
+    // Ne pas appeler fetchXpertOptimizedFiltered ici car c'est géré par useEffect
   };
 
-  const handleSectorsChange = (sectors: string[]) => {
-    const newActiveFilter = { ...activeFilters, sectors };
+  const handleSectorsChange = (value: string | string[]) => {
+    console.log('Changing sectors to:', value);
+    // S'assurer que les secteurs sont bien traités comme un tableau
+    const validSectors = Array.isArray(value)
+      ? value
+      : value
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+    console.log('Secteurs validés:', validSectors);
+    const newActiveFilter = { ...activeFilters, sectors: validSectors };
     setActiveFilters(newActiveFilter);
-    if (sectors.length === 0) {
-      fetchXpertOptimizedFiltered(true);
-      return;
-    }
   };
 
   const handleCvChange = (value: string) => {
+    console.log('Changing CV filter to:', value);
     const newActiveFilter = { ...activeFilters, cv: value };
     setActiveFilters(newActiveFilter);
-    if (value === '') {
-      fetchXpertOptimizedFiltered(true);
-      return;
-    }
+    // Ne pas appeler fetchXpertOptimizedFiltered ici car c'est géré par useEffect
   };
 
   const handleAdminOpinionChange = (value: string) => {
@@ -123,15 +124,6 @@ export default function XpertFilter({
     }
   };
 
-  const handleSectorChange = (value: string) => {
-    const sectors = value
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s);
-    const newActiveFilter = { ...activeFilters, sectors };
-    setActiveFilters(newActiveFilter);
-  };
-
   const getSectorValue = () => {
     return activeFilters.sectors
       .map(
@@ -141,10 +133,15 @@ export default function XpertFilter({
   };
 
   useEffect(() => {
-    if (isFilterNotEmpty) {
-      fetchXpertOptimizedFiltered(true);
-    }
-  }, [activeFilters]);
+    // Utiliser un délai pour éviter les appels trop fréquents
+    const timer = setTimeout(() => {
+      if (isFilterNotEmpty) {
+        fetchXpertOptimizedFiltered(true);
+      }
+    }, 300); // 300ms de délai pour éviter les appels trop fréquents
+
+    return () => clearTimeout(timer);
+  }, [activeFilters, fetchXpertOptimizedFiltered]);
 
   return (
     <>
@@ -255,7 +252,7 @@ export default function XpertFilter({
           filterKey="sectors"
           placeholderSearch="Rechercher des secteurs"
           value={getSectorValue()}
-          onValueChange={handleSectorChange}
+          onValueChange={handleSectorsChange}
         />
       </div>
       <FilterButton
