@@ -51,15 +51,21 @@ export default function MissionEtatOpenRow({
     const submissionDate = new Date(mission.deadline_application ?? '');
     const currentDate = new Date();
 
-    const diffTime = Math.abs(currentDate.getTime() - submissionDate.getTime());
+    // Calculer si la date est dépassée et le nombre de jours restants
+    const isPast = currentDate > submissionDate;
+    const diffTime = submissionDate.getTime() - currentDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays >= 10) {
+    // Si la date est dépassée, afficher en rouge
+    if (isPast) {
       return 'bg-[#D64242] text-white';
-    } else if (diffDays >= 30) {
+    }
+    // Si on est à 10 jours ou moins de la deadline, afficher en orange
+    else if (diffDays <= 10) {
       return 'bg-accent text-white';
     }
 
+    // Par défaut, pas de couleur particulière (gris)
     return '';
   })();
 
