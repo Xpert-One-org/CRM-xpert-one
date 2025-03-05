@@ -281,9 +281,7 @@ export default function XpertGestionFacturationRow({
             isPendingDeletion && 'border-4 border-accent'
           }`}
           onClick={handleDeletePresenceSheet}
-          disabled={
-            !presenceSheetStatus.exists || presenceSheetValidatedStatus.exists
-          }
+          disabled={!presenceSheetStatus.exists}
         >
           <X className="size-6" />
         </Button>
@@ -386,9 +384,7 @@ export default function XpertGestionFacturationRow({
               isInvoicePendingDeletion && 'border-4 border-accent'
             }`}
             onClick={handleDeleteInvoice}
-            disabled={
-              !salaryOrInvoiceStatus.exists || invoiceValidatedStatus.exists
-            }
+            disabled={!salaryOrInvoiceStatus.exists}
           >
             <X className="size-6" />
           </Button>

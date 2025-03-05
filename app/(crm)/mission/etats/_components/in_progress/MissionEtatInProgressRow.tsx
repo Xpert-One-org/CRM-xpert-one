@@ -117,7 +117,11 @@ export default function MissionEtatInProgressRow({
     router.push(`/xpert?id=${xpertId}`);
   };
 
-  const getBackgroundClass = (() => {
+  const getBackgroundClass = (fileExists: boolean) => {
+    if (fileExists) {
+      return 'bg-[#e1e1e1] text-black';
+    }
+
     const endDate = new Date(mission.end_date ?? '');
     const currentDate = new Date();
     const diffTime = Math.abs(currentDate.getTime() - endDate.getTime());
@@ -131,7 +135,7 @@ export default function MissionEtatInProgressRow({
     }
 
     return '';
-  })();
+  };
 
   const handleRedirectionActivation = () => {
     router.push(
@@ -175,7 +179,16 @@ export default function MissionEtatInProgressRow({
       >
         {mission.xpert?.generated_id ?? empty}
       </Box>
-      <Box className={`col-span-2`}>
+      <Box
+        className={`col-span-2 ${getBackgroundClass(
+          fileStatuses[
+            getFileTypeByStatus(
+              'recap_mission_signed',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists || false
+        )}`}
+      >
         {fileStatuses[
           getFileTypeByStatus('recap_mission_signed', missionXpertStatus ?? '')
         ]?.exists
@@ -189,7 +202,20 @@ export default function MissionEtatInProgressRow({
             )}`
           : 'Non reçu'}
       </Box>
-      <Box className={`col-span-1 ${getBackgroundClass}`}>
+      <Box
+        className={`col-span-1 ${getBackgroundClass(
+          fileStatuses[
+            getFileTypeByStatus(
+              missionXpertStatus === 'cdi'
+                ? 'contrat_signed'
+                : missionXpertStatus === 'freelance'
+                  ? 'commande_societe_signed'
+                  : 'devis',
+              missionXpertStatus ?? ''
+            )
+          ]?.exists || false
+        )}`}
+      >
         {fileStatuses[
           getFileTypeByStatus(
             missionXpertStatus === 'cdi'
@@ -214,7 +240,13 @@ export default function MissionEtatInProgressRow({
             )}`
           : 'Non reçu'}
       </Box>
-      <Box className={`col-span-1 ${getBackgroundClass}`}>
+      <Box
+        className={`col-span-1 ${getBackgroundClass(
+          fileStatuses[
+            getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
+          ]?.exists || false
+        )}`}
+      >
         {fileStatuses[
           getFileTypeByStatus('contrat_commande', missionXpertStatus ?? '')
         ]?.exists
