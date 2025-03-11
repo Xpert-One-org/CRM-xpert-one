@@ -4690,7 +4690,7 @@ CREATE POLICY "Enable update for users based on email" ON "public"."profile_stat
 
 CREATE POLICY "Enable update for users based on email or admin" ON "public"."profile" FOR UPDATE TO "authenticated" USING ((("auth"."uid"() = "id") OR (EXISTS ( SELECT 1
    FROM "public"."profile" "profile_1"
-  WHERE (("profile_1"."id" = "auth"."uid"()) AND ("profile_1"."role" = 'admin'::"public"."profile_roles"))))));
+  WHERE (("profile_1"."id" = "auth"."uid"()) AND ("profile_1"."role" = ANY (ARRAY['admin'::"public"."profile_roles", 'project_manager'::"public"."profile_roles", 'intern'::"public"."profile_roles"])))))));
 
 
 
@@ -4889,7 +4889,6 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
--- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";

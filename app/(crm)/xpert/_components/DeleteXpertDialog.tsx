@@ -41,8 +41,6 @@ export default function DeleteXpertDialog({
     }
   };
 
-  console.log(user?.role);
-
   return (
     <Credenza open={popupOpen} onOpenChange={setPopupOpen}>
       {user?.role === 'admin' && (

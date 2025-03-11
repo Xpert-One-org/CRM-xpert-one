@@ -346,12 +346,12 @@ export const getXpertsOptimized = async ({
 
   if (filters?.cv) {
     console.log('Applying CV filter:', filters.cv);
-    if (filters.cv === 'with_cv') {
+    if (filters.cv === 'yes') {
       // Utilisation de l'API raw pour être explicite
       console.log('Recherche des profils AVEC CV');
       // On évite not is null pour utiliser une syntaxe plus directe
       query = query.filter('cv_name', 'not.is', null);
-    } else if (filters.cv === 'without_cv') {
+    } else if (filters.cv === 'no') {
       // Utilisation de l'API raw pour être explicite
       console.log('Recherche des profils SANS CV');
       // On utilise l'opérateur is null directement
