@@ -63,6 +63,10 @@ export default function TabContent({
           ) ||
           chat.messages[chat.messages.length - 1]?.send_by === user?.id ||
           !chat.messages.length;
+
+        if (chat.messages.length === 0) {
+          return;
+        }
         return (
           <TabChat
             key={chat.id}
