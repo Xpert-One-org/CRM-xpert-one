@@ -13,8 +13,6 @@ const StatistiquesContent: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="mb-6 text-2xl font-bold">Tableau de bord</h1>
-
       <div className="mb-6 flex space-x-4">
         <button
           className={cn(
