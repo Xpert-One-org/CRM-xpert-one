@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import {
   getXpertStats,
   getXpertEvolutionData,
+  type PieDataPoint,
+  type ChartDataPoint,
 } from '../functions/xperts.stats.action';
 import {
   getMissionStats,
@@ -13,16 +15,6 @@ import {
 } from '../functions/fournisseurs.stats.action';
 
 // Types pour les données statistiques
-export type ChartDataPoint = {
-  name: string;
-  [key: string]: string | number;
-};
-
-export type PieDataPoint = {
-  name: string;
-  value: number;
-};
-
 type XpertStats = {
   inscrits: number;
   places: number;
@@ -91,11 +83,20 @@ type StatistiquesState = {
   loadingFournisseur: boolean;
   loadingEvolution: boolean;
 
+  // Erreurs
+  errorXpert: string | null;
+  errorMission: string | null;
+  errorFournisseur: string | null;
+  errorEvolution: string | null;
+
   // Méthodes pour récupérer les statistiques
   fetchXpertStats: () => Promise<void>;
   fetchMissionStats: () => Promise<void>;
   fetchFournisseurStats: () => Promise<void>;
   fetchEvolutionData: () => Promise<void>;
+
+  // Méthode pour réinitialiser les erreurs
+  resetErrors: () => void;
 };
 
 export const useStatistiquesStore = create<StatistiquesState>((set) => ({
@@ -111,9 +112,24 @@ export const useStatistiquesStore = create<StatistiquesState>((set) => ({
   loadingFournisseur: false,
   loadingEvolution: false,
 
+  // États d'erreur
+  errorXpert: null,
+  errorMission: null,
+  errorFournisseur: null,
+  errorEvolution: null,
+
+  // Réinitialisation des erreurs
+  resetErrors: () =>
+    set({
+      errorXpert: null,
+      errorMission: null,
+      errorFournisseur: null,
+      errorEvolution: null,
+    }),
+
   // Méthodes pour récupérer les statistiques
   fetchXpertStats: async () => {
-    set({ loadingXpert: true });
+    set({ loadingXpert: true, errorXpert: null });
 
     try {
       // Appel à la fonction serveur réelle
@@ -124,12 +140,16 @@ export const useStatistiquesStore = create<StatistiquesState>((set) => ({
         'Erreur lors de la récupération des statistiques XPERT:',
         error
       );
-      set({ loadingXpert: false });
+      set({
+        loadingXpert: false,
+        errorXpert:
+          error instanceof Error ? error.message : "Une erreur s'est produite",
+      });
     }
   },
 
   fetchMissionStats: async () => {
-    set({ loadingMission: true });
+    set({ loadingMission: true, errorMission: null });
 
     try {
       // Appel à la fonction serveur réelle
@@ -140,12 +160,16 @@ export const useStatistiquesStore = create<StatistiquesState>((set) => ({
         'Erreur lors de la récupération des statistiques de mission:',
         error
       );
-      set({ loadingMission: false });
+      set({
+        loadingMission: false,
+        errorMission:
+          error instanceof Error ? error.message : "Une erreur s'est produite",
+      });
     }
   },
 
   fetchFournisseurStats: async () => {
-    set({ loadingFournisseur: true });
+    set({ loadingFournisseur: true, errorFournisseur: null });
 
     try {
       // Appel à la fonction serveur réelle
@@ -156,12 +180,16 @@ export const useStatistiquesStore = create<StatistiquesState>((set) => ({
         'Erreur lors de la récupération des statistiques fournisseur:',
         error
       );
-      set({ loadingFournisseur: false });
+      set({
+        loadingFournisseur: false,
+        errorFournisseur:
+          error instanceof Error ? error.message : "Une erreur s'est produite",
+      });
     }
   },
 
   fetchEvolutionData: async () => {
-    set({ loadingEvolution: true });
+    set({ loadingEvolution: true, errorEvolution: null });
 
     try {
       // Récupérer toutes les données d'évolution
@@ -188,7 +216,11 @@ export const useStatistiquesStore = create<StatistiquesState>((set) => ({
         "Erreur lors de la récupération des données d'évolution:",
         error
       );
-      set({ loadingEvolution: false });
+      set({
+        loadingEvolution: false,
+        errorEvolution:
+          error instanceof Error ? error.message : "Une erreur s'est produite",
+      });
     }
   },
 }));

@@ -7,12 +7,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import type { PieDataPoint } from '../store/stats';
+
+type PieDataPoint = {
+  name: string;
+  value: number;
+};
 
 type PieChartStatProps = {
   data: PieDataPoint[];
   colors?: string[];
-}
+};
 
 const COLORS = [
   '#0088FE',

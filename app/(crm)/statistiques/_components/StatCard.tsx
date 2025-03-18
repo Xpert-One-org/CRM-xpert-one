@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import {
@@ -5,7 +7,6 @@ import {
   CredenzaContent,
   CredenzaTitle,
 } from '@/components/ui/credenza';
-import { Button } from '@/components/ui/button';
 
 type StatCardProps = {
   title: string;
@@ -14,6 +15,7 @@ type StatCardProps = {
   modalContent?: React.ReactNode;
   disabled?: boolean;
   className?: string;
+  chartType?: string;
 };
 
 export default function StatCard({
@@ -23,8 +25,17 @@ export default function StatCard({
   modalContent,
   disabled = false,
   className,
+  chartType,
 }: StatCardProps) {
   const [open, setOpen] = React.useState(false);
+
+  // Détermine la taille du modal en fonction du type de graphique
+  const getModalClasses = () => {
+    if (chartType === 'map') {
+      return 'max-w-5xl w-full';
+    }
+    return 'max-w-4xl';
+  };
 
   return (
     <>
@@ -44,13 +55,25 @@ export default function StatCard({
 
       {modalContent && (
         <Credenza open={open} onOpenChange={setOpen}>
-          <CredenzaContent className="max-w-3xl p-6">
-            <CredenzaTitle className="mb-6 text-2xl font-bold">
-              {modalTitle || title}
-            </CredenzaTitle>
-            <div className="max-h-[70vh] overflow-auto">{modalContent}</div>
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => setOpen(false)}>Fermer</Button>
+          <CredenzaContent
+            className={cn(
+              'max-h-[95vh] overflow-scroll p-6',
+              getModalClasses()
+            )}
+          >
+            <div className="mb-6 flex items-center justify-between">
+              <CredenzaTitle className="text-2xl font-bold">
+                {modalTitle || title}
+              </CredenzaTitle>
+            </div>
+
+            <div
+              className={cn(
+                'overflow-auto',
+                chartType === 'map' ? 'max-h-[80vh]' : 'max-h-[70vh]'
+              )}
+            >
+              {modalContent}
             </div>
           </CredenzaContent>
         </Credenza>

@@ -9,7 +9,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import type { ChartDataPoint } from '../store/stats';
+
+type ChartDataPoint = {
+  name: string;
+  [key: string]: string | number;
+};
 
 type AreaChartStatProps = {
   data: ChartDataPoint[];
@@ -17,7 +21,7 @@ type AreaChartStatProps = {
   color?: string;
   yAxisFormatter?: (value: number) => string;
   tooltipFormatter?: (value: number) => string;
-}
+};
 
 const AreaChartStat: React.FC<AreaChartStatProps> = ({
   data,

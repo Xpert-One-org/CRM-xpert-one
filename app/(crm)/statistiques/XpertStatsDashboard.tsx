@@ -8,6 +8,9 @@ import PieChartStat from './_components/PieChartStats';
 import AreaChartStat from './_components/AreaChartStats';
 import { useStatistiquesStore } from './store/stats';
 import Loader from '@/components/Loader';
+import { Button } from '@/components/ui/button';
+import { AlertCircle } from 'lucide-react';
+import XpertsCountryDistribution from './_components/XpertsCountryDistribution';
 
 const XpertStatsDashboard: React.FC = () => {
   const {
@@ -15,19 +18,55 @@ const XpertStatsDashboard: React.FC = () => {
     evolutionData,
     loadingXpert,
     loadingEvolution,
+    errorXpert,
+    errorEvolution,
     fetchXpertStats,
     fetchEvolutionData,
+    resetErrors,
   } = useStatistiquesStore();
 
   useEffect(() => {
-    if (!xpertStats) fetchXpertStats();
-    if (!evolutionData) fetchEvolutionData();
+    const fetchData = async () => {
+      if (!xpertStats) await fetchXpertStats();
+      if (!evolutionData) await fetchEvolutionData();
+    };
+
+    fetchData();
   }, [xpertStats, evolutionData, fetchXpertStats, fetchEvolutionData]);
 
+  // Gestion des erreurs
+  if (errorXpert || errorEvolution) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-red-200 bg-red-50 p-8 text-center">
+        <AlertCircle className="size-12 text-red-500" />
+        <h2 className="text-xl font-semibold text-red-800">
+          Erreur de chargement des données
+        </h2>
+        <p className="text-red-600">
+          {errorXpert ||
+            errorEvolution ||
+            "Une erreur s'est produite lors du chargement des statistiques."}
+        </p>
+        <Button
+          onClick={() => {
+            resetErrors();
+            fetchXpertStats();
+            fetchEvolutionData();
+          }}
+          className="mt-2"
+        >
+          Réessayer
+        </Button>
+      </div>
+    );
+  }
+
+  // Affichage du chargement
   if (loadingXpert || loadingEvolution || !xpertStats || !evolutionData) {
     return (
-      <div className="flex h-60 w-full items-center justify-center">
+      <div className="flex h-60 w-full flex-col items-center justify-center gap-4">
         <Loader />
+        <p className="text-gray-500">Chargement des statistiques...</p>
       </div>
     );
   }
@@ -85,10 +124,9 @@ const XpertStatsDashboard: React.FC = () => {
       <StatCard
         title="Vue géographique"
         value="Voir détails"
-        modalTitle="Répartition géographique des XPERT"
-        modalContent={
-          <PieChartStat data={xpertStats.repartitionGeographique} />
-        }
+        modalTitle="Distribution géographique des XPERT"
+        modalContent={<XpertsCountryDistribution />}
+        chartType="map" // Utilisation correcte de la propriété chartType
       />
 
       <StatCard
@@ -119,7 +157,11 @@ const XpertStatsDashboard: React.FC = () => {
 
       <StatCard
         title="TJM moyen"
-        value={`${xpertStats.tjmMoyen} €`}
+        value={
+          xpertStats.tjmMoyen > 0
+            ? `${xpertStats.tjmMoyen} €`
+            : 'Aucune donnée disponible'
+        }
         modalTitle="Évolution du TJM moyen"
         modalContent={
           <LineChartStat

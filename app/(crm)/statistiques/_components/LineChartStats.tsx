@@ -9,7 +9,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import type { ChartDataPoint } from '../store/stats';
+
+type ChartDataPoint = {
+  name: string;
+  [key: string]: string | number;
+};
 
 type LineChartStatProps = {
   data: ChartDataPoint[];
@@ -17,7 +21,7 @@ type LineChartStatProps = {
   color?: string;
   yAxisFormatter?: (value: number) => string;
   tooltipFormatter?: (value: number) => string;
-}
+};
 
 const LineChartStat: React.FC<LineChartStatProps> = ({
   data,
