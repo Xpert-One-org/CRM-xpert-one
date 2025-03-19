@@ -3999,49 +3999,73 @@ CREATE OR REPLACE TRIGGER "assign_referent_trigger" BEFORE INSERT ON "public"."p
 
 CREATE OR REPLACE TRIGGER "create_checkpoints_after_mission_insert" AFTER INSERT ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."create_mission_checkpoints"();
 
+ALTER TABLE "public"."mission" DISABLE TRIGGER "create_checkpoints_after_mission_insert";
+
 
 
 CREATE OR REPLACE TRIGGER "forum_message_notification_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_forum_message"();
+
+ALTER TABLE "public"."message" DISABLE TRIGGER "forum_message_notification_trigger";
 
 
 
 CREATE OR REPLACE TRIGGER "invoice_payment_notification_trigger" AFTER UPDATE OF "facturation_invoice_paid" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_invoice_payment"();
 
+ALTER TABLE "public"."mission" DISABLE TRIGGER "invoice_payment_notification_trigger";
+
 
 
 CREATE OR REPLACE TRIGGER "mission_notification_trigger" AFTER UPDATE ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."create_mission_notifications"();
+
+ALTER TABLE "public"."mission" DISABLE TRIGGER "mission_notification_trigger";
 
 
 
 CREATE OR REPLACE TRIGGER "mission_state_change_trigger" AFTER UPDATE OF "state" ON "public"."mission" FOR EACH ROW WHEN (("old"."state" IS DISTINCT FROM "new"."state")) EXECUTE FUNCTION "public"."notify_mission_state"();
 
+ALTER TABLE "public"."mission" DISABLE TRIGGER "mission_state_change_trigger";
+
 
 
 CREATE OR REPLACE TRIGGER "notify_new_chat_trigger" AFTER INSERT ON "public"."chat" FOR EACH ROW WHEN (("new"."type" = 'chat'::"public"."chat_type")) EXECUTE FUNCTION "public"."notify_new_conversation"();
+
+ALTER TABLE "public"."chat" DISABLE TRIGGER "notify_new_chat_trigger";
 
 
 
 CREATE OR REPLACE TRIGGER "notify_new_echo_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_echo_message"();
 
+ALTER TABLE "public"."message" DISABLE TRIGGER "notify_new_echo_message_trigger";
+
 
 
 CREATE OR REPLACE TRIGGER "notify_new_forum_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_forum_message"();
+
+ALTER TABLE "public"."message" DISABLE TRIGGER "notify_new_forum_message_trigger";
 
 
 
 CREATE OR REPLACE TRIGGER "notify_welcome_call_trigger" AFTER UPDATE OF "get_welcome_call" ON "public"."profile" FOR EACH ROW WHEN ((("new"."get_welcome_call" = true) AND ("old"."get_welcome_call" IS DISTINCT FROM true))) EXECUTE FUNCTION "public"."notify_welcome_call_done"();
 
+ALTER TABLE "public"."profile" DISABLE TRIGGER "notify_welcome_call_trigger";
+
 
 
 CREATE OR REPLACE TRIGGER "payment_notification_trigger" AFTER UPDATE OF "facturation_fournisseur_payment" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_payment"();
+
+ALTER TABLE "public"."mission" DISABLE TRIGGER "payment_notification_trigger";
 
 
 
 CREATE OR REPLACE TRIGGER "profile_deleted_trigger" AFTER INSERT ON "public"."profile_deleted" FOR EACH ROW EXECUTE FUNCTION "public"."notify_profile_deletion"();
 
+ALTER TABLE "public"."profile_deleted" DISABLE TRIGGER "profile_deleted_trigger";
+
 
 
 CREATE OR REPLACE TRIGGER "salary_payment_notification_trigger" AFTER UPDATE OF "facturation_salary_payment" ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_salary_payment"();
+
+ALTER TABLE "public"."mission" DISABLE TRIGGER "salary_payment_notification_trigger";
 
 
 
@@ -4067,9 +4091,13 @@ CREATE OR REPLACE TRIGGER "slugify_title_unique" BEFORE INSERT OR UPDATE ON "pub
 
 CREATE OR REPLACE TRIGGER "task_insert_trigger" AFTER INSERT ON "public"."tasks" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_task"();
 
+ALTER TABLE "public"."tasks" DISABLE TRIGGER "task_insert_trigger";
+
 
 
 CREATE OR REPLACE TRIGGER "task_status_update_notify" AFTER UPDATE ON "public"."tasks" FOR EACH ROW WHEN ((("new"."status" = 'done'::"public"."task_status") AND ("old"."status" <> 'done'::"public"."task_status"))) EXECUTE FUNCTION "public"."notify_task_done"();
+
+ALTER TABLE "public"."tasks" DISABLE TRIGGER "task_status_update_notify";
 
 
 
@@ -4082,6 +4110,8 @@ CREATE OR REPLACE TRIGGER "trigger_insert_mission_finance" AFTER INSERT ON "publ
 
 
 CREATE OR REPLACE TRIGGER "trigger_notify_new_mission_application" AFTER INSERT ON "public"."mission_application" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_application"();
+
+ALTER TABLE "public"."mission_application" DISABLE TRIGGER "trigger_notify_new_mission_application";
 
 
 
@@ -4889,6 +4919,7 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
+-- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";
