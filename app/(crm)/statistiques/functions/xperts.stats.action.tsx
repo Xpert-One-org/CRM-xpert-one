@@ -3,6 +3,11 @@
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import {
+  how,
+  statusSelectInde,
+  statusSelectEmployee,
+} from '@/data/mocked_select';
 
 /**
  * Types pour les données de statistiques des Xperts
@@ -247,7 +252,7 @@ export const getXpertsFichesCompletees = async (): Promise<number> => {
       .from('profile')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'xpert')
-      .eq('totale_progression', 100);
+      .gte('totale_progression', 80); // Modifié pour utiliser le même seuil de 80% que dans getFichesCompletionEvolution
 
     if (error) throw error;
 
@@ -311,13 +316,25 @@ export const getXpertsStatutsRepartition = async (): Promise<
 
     if (!data || data.length === 0) return [];
 
+    // Créer un mapping des valeurs aux libellés
+    const statusMapping: Record<string, string> = {};
+
+    // Combiner les statuts des indépendants et salariés
+    [...statusSelectInde, ...statusSelectEmployee].forEach((status) => {
+      statusMapping[status.value] = status.label;
+    });
+
     // Groupe les statuts en JavaScript avec normalisation
     const statusCounts: Record<string, number> = {};
 
     data.forEach((item: ProfileStatusData) => {
-      const normalizedStatus = normalizeStatusString(item.status);
-      statusCounts[normalizedStatus] =
-        (statusCounts[normalizedStatus] || 0) + 1;
+      // D'abord normaliser le statut
+      const statusValue = normalizeStatusString(item.status);
+
+      // Utiliser le label du mapping s'il existe, sinon utiliser la valeur normalisée
+      const statusName = statusMapping[statusValue] || statusValue;
+
+      statusCounts[statusName] = (statusCounts[statusName] || 0) + 1;
     });
 
     // Trier par nombre décroissant et limiter à 10 catégories maximum pour la lisibilité
@@ -389,15 +406,23 @@ export const getXpertsSourceContact = async (): Promise<PieDataPoint[]> => {
 
     if (!data || data.length === 0) return [];
 
+    // Créer un mapping des valeurs aux libellés
+    const sourceMapping: Record<string, string> = {};
+    how.forEach((source) => {
+      sourceMapping[source.value] = source.label;
+    });
+
     // Groupe les sources en JavaScript avec normalisation
     const sourceCounts: Record<string, number> = {};
 
     data.forEach((item: ProfileSourceData) => {
-      const normalizedSource = normalizeSourceString(
-        item.how_did_you_hear_about_us
-      );
-      sourceCounts[normalizedSource] =
-        (sourceCounts[normalizedSource] || 0) + 1;
+      // D'abord normaliser la source
+      const sourceValue = normalizeSourceString(item.how_did_you_hear_about_us);
+
+      // Utiliser le label du mapping s'il existe, sinon utiliser la valeur normalisée
+      const sourceName = sourceMapping[sourceValue] || sourceValue;
+
+      sourceCounts[sourceName] = (sourceCounts[sourceName] || 0) + 1;
     });
 
     // Trier par nombre décroissant et limiter à 8 catégories maximum pour la lisibilité
@@ -771,7 +796,7 @@ export const getFichesCompletionEvolution = async (): Promise<
         .from('profile')
         .select('*', { count: 'exact', head: true })
         .eq('role', 'xpert')
-        .eq('totale_progression', 100)
+        .gte('totale_progression', 80)
         .lte('created_at', monthEnd.toISOString());
 
       if (error) throw error;
@@ -916,6 +941,7 @@ export const getTjmEvolution = async (): Promise<ChartDataPoint[]> => {
     return [];
   }
 };
+
 /**
  * Récupère toutes les statistiques des Xperts en une seule fonction
  */

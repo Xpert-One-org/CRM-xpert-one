@@ -126,7 +126,7 @@ const XpertStatsDashboard: React.FC = () => {
         value="Voir détails"
         modalTitle="Distribution géographique des XPERT"
         modalContent={<XpertsCountryDistribution />}
-        chartType="map" // Utilisation correcte de la propriété chartType
+        chartType="map"
       />
 
       <StatCard
@@ -152,7 +152,6 @@ const XpertStatsDashboard: React.FC = () => {
             color="#a9a9a9"
           />
         }
-        className="bg-gray-400"
       />
 
       <StatCard

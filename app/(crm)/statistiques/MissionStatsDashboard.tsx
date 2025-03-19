@@ -38,7 +38,12 @@ const MissionStatsDashboard: React.FC = () => {
         title="Vue des missions par métiers"
         value="Voir détails"
         modalTitle="Répartition des missions par métier"
-        modalContent={<PieChartStat data={missionStats.missionsParMetier} />}
+        modalContent={
+          <PieChartStat
+            data={missionStats.missionsParMetier}
+            title="Répartition des missions par métier"
+          />
+        }
       />
 
       <StatCard

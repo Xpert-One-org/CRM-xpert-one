@@ -42,7 +42,7 @@ const FournisseurStatsDashboard: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2">
-      <StatCard
+      {/* <StatCard
         title="Nb de sociétés fournisseur"
         value={fournisseurStats.nombreSocietes}
         modalTitle="Évolution du nombre de sociétés fournisseur"
@@ -52,7 +52,7 @@ const FournisseurStatsDashboard: React.FC = () => {
             dataKey="societes"
           />
         }
-      />
+      /> */}
 
       <StatCard
         title="Nb de F total"
@@ -100,7 +100,6 @@ const FournisseurStatsDashboard: React.FC = () => {
             color="#a9a9a9"
           />
         }
-        className="bg-gray-400"
       />
     </div>
   );

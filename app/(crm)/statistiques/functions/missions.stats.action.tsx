@@ -3,6 +3,7 @@
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 import { format, subMonths } from 'date-fns';
+import { jobTitleSelect } from '@/data/mocked_select';
 
 /**
  * Types pour les données de statistiques des Missions
@@ -149,15 +150,23 @@ export const getDureeMoyenneMissionsPlacees = async (): Promise<number> => {
 
 /**
  * Récupère le taux de marge moyen des missions
+ * @param period - Période en mois pour laquelle calculer la marge (optionnel)
  */
-export const getTauxMargeMoyen = async (): Promise<number> => {
+export const getTauxMargeMoyen = async (period?: number): Promise<number> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    const { data, error } = await supabase
-      .from('mission_finance')
-      .select('margin');
+    let query = supabase.from('mission_finance').select('margin, created_at');
+
+    // Filtrer par période si spécifiée (par défaut: 12 derniers mois)
+    if (period !== undefined) {
+      const dateLimit = new Date();
+      dateLimit.setMonth(dateLimit.getMonth() - (period || 12));
+      query = query.gte('created_at', dateLimit.toISOString());
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -182,27 +191,48 @@ export const getTauxMargeMoyen = async (): Promise<number> => {
 
 /**
  * Calcule le chiffre d'affaires total des missions
+ * @param period - Période en mois pour laquelle calculer le CA (optionnel)
  */
-export const getCATotal = async (): Promise<number> => {
+export const getCATotal = async (period?: number): Promise<number> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    const { data: missionData, error: missionError } = await supabase
+    // Date limite pour le filtrage par période
+    let dateLimit;
+    if (period !== undefined) {
+      dateLimit = new Date();
+      dateLimit.setMonth(dateLimit.getMonth() - (period || 12));
+    }
+
+    // Requête des missions avec filtrage par période si spécifiée
+    let missionQuery = supabase
       .from('mission')
-      .select('id, tjm, start_date, end_date')
+      .select('id, tjm, start_date, end_date, created_at')
       .filter('state', 'in', '(open,open_all,in_progress,finished)');
+
+    if (dateLimit) {
+      missionQuery = missionQuery.gte('created_at', dateLimit.toISOString());
+    }
+
+    const { data: missionData, error: missionError } = await missionQuery;
 
     if (missionError) throw missionError;
 
     if (!missionData || missionData.length === 0) return 0;
 
-    // Récupérer les données financières
-    const { data: financeData, error: financeError } = await supabase
+    // Requête des données financières avec filtrage par période si spécifiée
+    let financeQuery = supabase
       .from('mission_finance')
       .select(
-        'mission_id, daily_rate, days_worked, monthly_rate, months_worked'
+        'mission_id, daily_rate, days_worked, monthly_rate, months_worked, created_at'
       );
+
+    if (dateLimit) {
+      financeQuery = financeQuery.gte('created_at', dateLimit.toISOString());
+    }
+
+    const { data: financeData, error: financeError } = await financeQuery;
 
     if (financeError) throw financeError;
 
@@ -257,18 +287,28 @@ export const getMissionsParMetier = async (): Promise<PieDataPoint[]> => {
 
     if (!data || data.length === 0) return [];
 
+    // Créer un mapping des valeurs aux libellés à partir de jobTitleSelect
+    const jobTitleMapping: Record<string, string> = {};
+    jobTitleSelect.forEach((job) => {
+      jobTitleMapping[job.value] = job.label;
+    });
+
     // Compter les occurrences de chaque métier
     const jobTitleCounts: Record<string, number> = {};
 
     data.forEach((mission) => {
-      let jobTitle = mission.job_title || 'Non spécifié';
+      const jobTitleValue = mission.job_title || 'Non spécifié';
+      let jobTitleName;
 
       // Si "other" est spécifié et que job_title_other existe, utiliser ce dernier
-      if (jobTitle === 'other' && mission.job_title_other) {
-        jobTitle = mission.job_title_other;
+      if (jobTitleValue === 'other' && mission.job_title_other) {
+        jobTitleName = mission.job_title_other;
+      } else {
+        // Sinon, utiliser le mapping pour obtenir le nom lisible
+        jobTitleName = jobTitleMapping[jobTitleValue] || jobTitleValue;
       }
 
-      jobTitleCounts[jobTitle] = (jobTitleCounts[jobTitle] || 0) + 1;
+      jobTitleCounts[jobTitleName] = (jobTitleCounts[jobTitleName] || 0) + 1;
     });
 
     // Convertir en format requis pour le graphique
@@ -653,8 +693,11 @@ export const getCAEvolution = async (): Promise<ChartDataPoint[]> => {
 
 /**
  * Récupère toutes les statistiques des missions en une seule fonction
+ * @param period - Période en mois pour les statistiques (par défaut: 12 mois)
  */
-export const getMissionStats = async (): Promise<MissionStatData> => {
+export const getMissionStats = async (
+  period: number = 12
+): Promise<MissionStatData> => {
   try {
     await checkAuthRole();
 
@@ -669,8 +712,8 @@ export const getMissionStats = async (): Promise<MissionStatData> => {
       getTotalMissions(),
       getDureeMoyenneMissions(),
       getDureeMoyenneMissionsPlacees(),
-      getTauxMargeMoyen(),
-      getCATotal(),
+      getTauxMargeMoyen(period),
+      getCATotal(period),
       getMissionsParMetier(),
     ]);
 

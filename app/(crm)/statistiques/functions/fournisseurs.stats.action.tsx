@@ -3,6 +3,7 @@
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from '@functions/auth/checkRole';
 import { format, subMonths } from 'date-fns';
+import { how, sectorSelect } from '@/data/mocked_select';
 
 /**
  * Types pour les données de statistiques des Fournisseurs
@@ -85,11 +86,24 @@ export const getFournisseursNewsletter = async (): Promise<number> => {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
+    // Récupérer d'abord les IDs des profils de type 'company'
+    const { data: companyProfiles, error: profileError } = await supabase
+      .from('profile')
+      .select('id')
+      .eq('role', 'company');
+
+    if (profileError) throw profileError;
+
+    if (!companyProfiles || companyProfiles.length === 0) return 0;
+
+    const companyIds = companyProfiles.map((profile) => profile.id);
+
+    // Ensuite, compter les alertes utilisateur avec newsletter=true pour ces IDs
     const { count, error } = await supabase
       .from('user_alerts')
       .select('*', { count: 'exact', head: true })
       .eq('newsletter', true)
-      .eq('role', 'company');
+      .in('user_id', companyIds);
 
     if (error) throw error;
 
@@ -106,7 +120,9 @@ export const getFournisseursNewsletter = async (): Promise<number> => {
 /**
  * Récupère la répartition des missions par fournisseur (top fournisseurs)
  */
-export const getMissionsParFournisseur = async (): Promise<PieDataPoint[]> => {
+export const getMissionsParFournisseur = async (): Promise<
+  { name: string; value: number }[]
+> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
@@ -148,7 +164,9 @@ export const getMissionsParFournisseur = async (): Promise<PieDataPoint[]> => {
 /**
  * Récupère la répartition des secteurs d'activité des fournisseurs
  */
-export const getSecteursActivite = async (): Promise<PieDataPoint[]> => {
+export const getSecteursActivite = async (): Promise<
+  { name: string; value: number }[]
+> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
@@ -165,6 +183,12 @@ export const getSecteursActivite = async (): Promise<PieDataPoint[]> => {
 
     if (!data || data.length === 0) return [];
 
+    // Créer un mapping des valeurs aux libellés
+    const sectorMapping: Record<string, string> = {};
+    sectorSelect.forEach((sector) => {
+      sectorMapping[sector.value] = sector.label;
+    });
+
     // Structure pour compter les secteurs
     const secteurCounts: Record<string, number> = {};
 
@@ -179,35 +203,46 @@ export const getSecteursActivite = async (): Promise<PieDataPoint[]> => {
       }) => {
         // Vérifiez chaque secteur et incrémentez le compteur correspondant
         if (item.sector) {
-          const sectorName = item.sector;
+          // Utiliser le label du mapping s'il existe, sinon utiliser la valeur brute
+          const sectorName = sectorMapping[item.sector] || item.sector;
           secteurCounts[sectorName] = (secteurCounts[sectorName] || 0) + 1;
         }
 
         // Comptez aussi les secteurs spécifiques s'ils sont définis
         const specificSectors = [
-          { name: 'Énergie', value: item.sector_energy },
+          { key: 'energy', value: item.sector_energy },
           {
-            name: 'Énergies renouvelables',
+            key: 'renewable_energy',
             value: item.sector_renewable_energy,
           },
           {
-            name: 'Traitement des déchets',
+            key: 'waste_treatment',
             value: item.sector_waste_treatment,
           },
-          { name: 'Infrastructure', value: item.sector_infrastructure },
+          { key: 'infrastructure', value: item.sector_infrastructure },
         ];
 
-        specificSectors.forEach(({ name, value }) => {
+        specificSectors.forEach(({ key, value }) => {
           if (value) {
-            secteurCounts[name] = (secteurCounts[name] || 0) + 1;
+            const sectorName = sectorMapping[key] || key;
+            secteurCounts[sectorName] = (secteurCounts[sectorName] || 0) + 1;
           }
         });
       }
     );
 
+    // Gérer le cas spécial pour "others" -> "Autres"
+    if (secteurCounts['others']) {
+      secteurCounts['Autres'] = secteurCounts['others'];
+      delete secteurCounts['others'];
+    }
+
     // Convertit au format requis
     return Object.entries(secteurCounts).map(
-      ([name, value]: [string, number]): PieDataPoint => ({ name, value })
+      ([name, value]: [string, number]): { name: string; value: number } => ({
+        name,
+        value,
+      })
     );
   } catch (error) {
     console.error(
@@ -222,7 +257,7 @@ export const getSecteursActivite = async (): Promise<PieDataPoint[]> => {
  * Récupère la répartition des sources de contact des fournisseurs
  */
 export const getFournisseursSourceContact = async (): Promise<
-  PieDataPoint[]
+  { name: string; value: number }[]
 > => {
   try {
     await checkAuthRole();
@@ -239,6 +274,12 @@ export const getFournisseursSourceContact = async (): Promise<
 
     if (!data || data.length === 0) return [];
 
+    // Créer un mapping des valeurs aux libellés
+    const sourceMapping: Record<string, string> = {};
+    how.forEach((source) => {
+      sourceMapping[source.value] = source.label;
+    });
+
     // Groupe les sources en JavaScript
     const sourceCounts: Record<string, number> = {};
 
@@ -247,20 +288,27 @@ export const getFournisseursSourceContact = async (): Promise<
         how_did_you_hear_about_us: string | null;
         how_did_you_hear_about_us_other: string | null;
       }) => {
-        let source = item.how_did_you_hear_about_us || 'Non spécifié';
+        const sourceValue = item.how_did_you_hear_about_us || 'Non spécifié';
+        let sourceName;
 
         // Si la source est "Autre", utilisez la valeur spécifiée dans le champ "other"
-        if (source === 'other' && item.how_did_you_hear_about_us_other) {
-          source = item.how_did_you_hear_about_us_other;
+        if (sourceValue === 'other' && item.how_did_you_hear_about_us_other) {
+          sourceName = item.how_did_you_hear_about_us_other;
+        } else {
+          // Sinon, utiliser le label du mapping s'il existe, sinon utiliser la valeur brute
+          sourceName = sourceMapping[sourceValue] || sourceValue;
         }
 
-        sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+        sourceCounts[sourceName] = (sourceCounts[sourceName] || 0) + 1;
       }
     );
 
     // Convertit au format requis
     return Object.entries(sourceCounts).map(
-      ([name, value]: [string, number]): PieDataPoint => ({ name, value })
+      ([name, value]: [string, number]): { name: string; value: number } => ({
+        name,
+        value,
+      })
     );
   } catch (error) {
     console.error(
@@ -382,11 +430,31 @@ export const getNewsletterEvolution = async (): Promise<ChartDataPoint[]> => {
         0
       );
 
+      // Récupérer d'abord les IDs des profils de type 'company'
+      const { data: companyProfiles, error: profileError } = await supabase
+        .from('profile')
+        .select('id')
+        .eq('role', 'company')
+        .lte('created_at', monthEnd.toISOString());
+
+      if (profileError) throw profileError;
+
+      if (!companyProfiles || companyProfiles.length === 0) {
+        result.push({
+          name: format(monthDate, 'MMM'),
+          inscrits: 0,
+        });
+        continue;
+      }
+
+      const companyIds = companyProfiles.map((profile) => profile.id);
+
+      // Ensuite, compter les alertes utilisateur avec newsletter=true pour ces IDs
       const { count, error } = await supabase
         .from('user_alerts')
         .select('*', { count: 'exact', head: true })
         .eq('newsletter', true)
-        .eq('role', 'company')
+        .in('user_id', companyIds)
         .lte('created_at', monthEnd.toISOString());
 
       if (error) throw error;
