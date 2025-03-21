@@ -73,9 +73,9 @@ export default async function DashboardPage() {
             />
           </>
         )}
-        {user?.role !== 'hr' && user?.role !== 'adv' && (
+        {/* {user?.role !== 'hr' && user?.role !== 'adv' && (
           <FacturationCard missions={missionInProgress} />
-        )}
+        )} */}
         {/* <DashBoardCards
           count={newUsers.length}
           title="Gestion de facturations"

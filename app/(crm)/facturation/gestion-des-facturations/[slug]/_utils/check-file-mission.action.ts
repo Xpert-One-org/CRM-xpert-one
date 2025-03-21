@@ -76,21 +76,21 @@ export async function checkFileExistsFacturations(
   missionData: DBMission
 ): Promise<FileExistsResult> {
   try {
-    // Check XPERT files
-    const xpertPath = `${missionData.mission_number}/${missionData.xpert?.generated_id}/facturation`;
-    const xpertFiles = await listFilesInPath(xpertPath, type);
-
-    // Check Fournisseur files
-    const fournisseurPath = `${missionData.mission_number}/${missionData.supplier?.generated_id}/facturation`;
-    const fournisseurFiles = await listFilesInPath(fournisseurPath, type);
-
-    const noFilesFound =
-      xpertFiles.length === 0 && fournisseurFiles.length === 0;
+    const [xpertFiles, fournisseurFiles] = await Promise.all([
+      listFilesInPath(
+        `${missionData.mission_number}/${missionData.xpert?.generated_id}/facturation`,
+        type
+      ),
+      listFilesInPath(
+        `${missionData.mission_number}/${missionData.supplier?.generated_id}/facturation`,
+        type
+      ),
+    ]);
 
     return {
       xpertFiles,
       fournisseurFiles,
-      noFilesFound,
+      noFilesFound: xpertFiles.length === 0 && fournisseurFiles.length === 0,
       disabled: false,
     };
   } catch (error) {
