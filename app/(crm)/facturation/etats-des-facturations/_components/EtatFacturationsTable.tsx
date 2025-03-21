@@ -1,6 +1,6 @@
 import { FilterButton } from '@/components/FilterButton';
 import type { DBMission } from '@/types/typesDb';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import EtatFacturationsRow from './EtatFacturationsRow';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getUniqueBillingMonths } from '../_utils/getUniqueBillingMonths';
@@ -196,6 +196,10 @@ export default function EtatFacturationsTable({
     }));
   };
 
+  useEffect(() => {
+    console.log('fileStatusesByMission changed', fileStatusesByMission);
+  }, [fileStatusesByMission]);
+
   const filterRows = useCallback(
     (rows: typeof baseRows) => {
       return rows.filter(({ mission, monthYear }) => {
@@ -280,6 +284,7 @@ export default function EtatFacturationsTable({
   );
 
   const displayRows = useMemo(() => {
+    console.log('Display rows');
     const rows = sortedRows.length > 0 ? sortedRows : baseRows;
     return filterRows(rows);
   }, [sortedRows, baseRows, filterRows]);
@@ -397,14 +402,19 @@ export default function EtatFacturationsTable({
 
       <div className="overflow-y-auto">
         <div className="grid grid-cols-10 gap-3">
-          {displayRows.map(({ mission, monthYear }) => (
-            <EtatFacturationsRow
-              key={`${mission.id}-${monthYear.year}-${monthYear.month}`}
-              missionData={mission}
-              selectedMonthYear={monthYear}
-              onSalaryPaymentChange={handleSalaryPaymentChange}
-            />
-          ))}
+          {displayRows.map(
+            ({ mission, monthYear }) => (
+              console.log('Etat facturation table'),
+              (
+                <EtatFacturationsRow
+                  key={`${mission.id}-${monthYear.year}-${monthYear.month}`}
+                  missionData={mission}
+                  selectedMonthYear={monthYear}
+                  onSalaryPaymentChange={handleSalaryPaymentChange}
+                />
+              )
+            )
+          )}
         </div>
       </div>
 

@@ -10,6 +10,8 @@ import {
   useIsAdv,
   useIsAdmin,
 } from '@/hooks/useRoles';
+import Loader from '@/components/Loader';
+import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 
 type XpertStatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -40,7 +42,7 @@ export default function XpertStatusBox({
 
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
-
+  const { isLoadingFiles } = useFileStatusFacturationStore();
   useEffect(() => {
     if (isSelected && !currentDate) {
       setCurrentDate(new Date().toISOString());
@@ -57,8 +59,9 @@ export default function XpertStatusBox({
   );
 
   const handleClick = () => {
+    alert('click');
     if (((!isHr && isProjectManager) || isAdv) && !isAdmin) return;
-
+    alert('click2');
     setLocalIsSelected(!localIsSelected);
     if (!localIsSelected) {
       setCurrentDate(new Date().toISOString());
@@ -68,6 +71,14 @@ export default function XpertStatusBox({
       onInvoicePaidClick?.(true, 'facturation_invoice_paid');
     }
   };
+
+  if (isLoadingFiles) {
+    return (
+      <Box className="size-full animate-pulse bg-gray-200">
+        <></>
+      </Box>
+    );
+  }
 
   if (isFreelancePortageSide && fileStatus.noFilesFound) {
     if (xpertAssociatedStatus === 'cdi') {
