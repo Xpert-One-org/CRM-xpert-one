@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Loader from '@/components/Loader';
 
 type DashBoardCardsProps = {
   count: number;
@@ -12,6 +13,7 @@ type DashBoardCardsProps = {
   buttonTitle: string;
   iconButton: React.ReactNode;
   link: string;
+  isLoading?: boolean;
 };
 
 export default function DashBoardCards(props: DashBoardCardsProps) {
@@ -23,6 +25,7 @@ export default function DashBoardCards(props: DashBoardCardsProps) {
     buttonTitle,
     iconButton,
     link,
+    isLoading = false,
   } = props;
 
   return (
@@ -31,11 +34,15 @@ export default function DashBoardCards(props: DashBoardCardsProps) {
         <h2 className="font-[400] text-black">
           {title} : {count}
         </h2>
-        <h2
-          className={`font-[500] ${urgentCount >= 1 ? 'text-red-500' : 'text-black'}`}
-        >
-          {urgentTitle} : {urgentCount}
-        </h2>
+        {isLoading ? (
+          <Loader className="size-4 animate-spin" />
+        ) : (
+          <h2
+            className={`font-[500] ${urgentCount >= 1 ? 'text-red-500' : 'text-black'}`}
+          >
+            {urgentTitle} : {urgentCount}
+          </h2>
+        )}
       </div>
       <div className="flex w-full items-center justify-center">
         <Link href={link} className="flex w-full justify-center">

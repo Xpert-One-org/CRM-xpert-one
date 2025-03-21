@@ -5,6 +5,9 @@ import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturation
 import type { FileStatuses, PaymentType } from '@/types/mission';
 import { useState, useEffect } from 'react';
 import { useIsProjectManager, useIsAdv, useIsAdmin } from '@/hooks/useRoles';
+import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
+import { Loader2 } from 'lucide-react';
+import Loader from '@/components/Loader';
 
 type StatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -33,6 +36,7 @@ export default function StatusBox({
 
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
+  const { isLoadingFiles } = useFileStatusFacturationStore();
 
   useEffect(() => {
     if (isSelected && !currentDate) {
@@ -78,6 +82,14 @@ export default function StatusBox({
           : localIsSelected && currentDate
             ? formatDate(currentDate)
             : 'NON REÇU'}
+      </Box>
+    );
+  }
+
+  if (isLoadingFiles) {
+    return (
+      <Box className="size-full animate-pulse bg-gray-200">
+        <></>
       </Box>
     );
   }

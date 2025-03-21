@@ -155,6 +155,7 @@ export default function EtatFacturationsRow({
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
         fileType="presence_sheet_validated"
+        isSelected={true}
         xpertAssociatedStatus={missionStatus || ''}
       />
       {/* Paiement de salaire */}
