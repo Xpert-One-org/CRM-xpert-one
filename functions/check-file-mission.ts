@@ -9,8 +9,12 @@ export async function checkFileExists(
 ) {
   const supabase = createSupabaseFrontendClient();
   const filePath = isFournisseur
-    ? `${missionData.mission_number}/${missionData.supplier?.generated_id}/${isFacturation ? 'facturation' : 'activation'}/${type}`
-    : `${missionData.mission_number}/${missionData.xpert?.generated_id}/${isFacturation ? 'facturation' : 'activation'}/${type}`;
+    ? `${missionData.mission_number}/${missionData.supplier?.generated_id}/${
+        isFacturation ? 'facturation' : 'activation'
+      }/${type}`
+    : `${missionData.mission_number}/${missionData.xpert?.generated_id}/${
+        isFacturation ? 'facturation' : 'activation'
+      }/${type}`;
 
   try {
     console.log('Checking file existence:', filePath);
