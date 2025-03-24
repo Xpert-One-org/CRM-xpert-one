@@ -29,6 +29,7 @@ export default function MissionActivationPage(props: {
   );
 
   const checkAllFilesStatus = useCallback(async () => {
+    console.log('Checking all files status');
     if (!missionData?.xpert_associated_status) return;
 
     // Check XPERT files

@@ -2,6 +2,7 @@
 
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import type { DBMission } from '@/types/typesDb';
+import { checkAuthRole } from '@functions/auth/checkRole';
 
 export const getMissionDetails = async (missionId: string) => {
   const supabase = await createSupabaseAppServerClient();
@@ -101,4 +102,77 @@ export const updateMission = async ({
   }
 
   return { error: null };
+};
+
+/**
+ * Met à jour le fournisseur (created_by) d'une mission
+ * @param missionId L'ID de la mission à mettre à jour
+ * @param supplierId L'ID du nouveau fournisseur
+ */
+export const updateMissionSupplier = async (
+  missionId: number,
+  supplierId: string
+) => {
+  try {
+    const supabase = await createSupabaseAppServerClient();
+
+    // Vérifier les permissions de l'utilisateur
+    const isAdmin = await checkAuthRole();
+    if (!isAdmin) {
+      return {
+        success: false,
+        error:
+          "Vous n'avez pas les permissions nécessaires pour effectuer cette action.",
+      };
+    }
+
+    // Vérifier que le fournisseur existe et a le rôle 'company'
+    const { data: supplierData, error: supplierError } = await supabase
+      .from('profile')
+      .select('id, role')
+      .eq('id', supplierId)
+      .single();
+
+    if (supplierError || !supplierData) {
+      return {
+        success: false,
+        error: "Le fournisseur spécifié n'existe pas.",
+      };
+    }
+
+    if (supplierData.role !== 'company') {
+      return {
+        success: false,
+        error: "Le profil sélectionné n'est pas un fournisseur.",
+      };
+    }
+
+    // Mettre à jour la mission
+    const { error: updateError } = await supabase
+      .from('mission')
+      .update({ created_by: supplierId })
+      .eq('id', missionId);
+
+    if (updateError) {
+      console.error(
+        'Erreur lors de la mise à jour du fournisseur:',
+        updateError
+      );
+      return {
+        success: false,
+        error: 'Une erreur est survenue lors de la mise à jour de la mission.',
+      };
+    }
+
+    return {
+      success: true,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Erreur inattendue:', error);
+    return {
+      success: false,
+      error: 'Une erreur inattendue est survenue.',
+    };
+  }
 };

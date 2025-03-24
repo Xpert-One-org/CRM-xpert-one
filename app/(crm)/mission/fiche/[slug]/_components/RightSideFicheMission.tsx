@@ -13,12 +13,12 @@ import { useEditMissionStore } from '../../editMissionStore';
 import { MissionReferentXpertOne } from './sections/MissionReferentXpertOne';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import { MissionNotes } from './MissionNotes';
+import { MissionSupplier } from './sections/MissionSupplier';
 
 export default function RightSideFicheMission() {
   const {
     openedMissionNotSaved: mission,
     handleSaveUpdatedMission,
-
     hasChanges,
     loading,
   } = useEditMissionStore();
@@ -38,6 +38,9 @@ export default function RightSideFicheMission() {
       <MissionDetails />
       <MissionLocation />
       <MissionDescription />
+
+      {/* Nouveau composant pour gérer le fournisseur */}
+      <MissionSupplier />
 
       {/* Référent FOURNISSEUR != Référent XPERT ONE (admin) */}
       <MissionReferentSupplier />

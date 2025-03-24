@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import type { DBMission } from '@/types/typesDb';
 import { toast } from 'sonner';
-import { updateMission } from './mission.action';
+import { getMissionDetails, updateMission } from './mission.action';
+import { updateMissionSupplier } from './mission.action';
 
 type UpdateMissionData = Omit<Partial<DBMission>, 'id'> & {
   id?: never;
@@ -19,6 +20,7 @@ type EditMissionState = {
   setOpenedMissionNotSaved: (mission: DBMission | null) => void;
   handleUpdateField: (field: keyof DBMission, value: any) => void;
   handleSaveUpdatedMission: () => Promise<void>;
+  handleUpdateSupplier: (supplierId: string) => Promise<void>;
   resetEditMission: () => void;
 };
 
@@ -112,6 +114,56 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
     });
 
     toast.success('Modifications enregistrées');
+  },
+
+  // Nouvelle fonction pour mettre à jour le fournisseur
+  handleUpdateSupplier: async (supplierId: string) => {
+    const mission = get().openedMissionNotSaved;
+    if (!mission) return;
+
+    set({ loading: true });
+
+    const result = await updateMissionSupplier(mission.id, supplierId);
+
+    if (!result.success) {
+      toast.error(
+        result.error || 'Erreur lors de la mise à jour du fournisseur'
+      );
+      set({ loading: false });
+      return;
+    }
+
+    // Recharger les données complètes de la mission pour obtenir toutes les informations à jour
+    try {
+      // Récupération du numéro de mission pour appeler getMissionDetails
+      const missionNumber = mission.mission_number;
+
+      if (!missionNumber) {
+        throw new Error('Numéro de mission manquant');
+      }
+
+      const updatedMission = await getMissionDetails(missionNumber);
+
+      // Mettre à jour l'état avec les données complètes et actualisées
+      set({
+        openedMission: updatedMission,
+        openedMissionNotSaved: updatedMission,
+        keyDBMissionChanged: [],
+        hasChanges: false,
+        loading: false,
+      });
+
+      toast.success('Fournisseur de la mission mis à jour avec succès');
+    } catch (error) {
+      console.error(
+        'Erreur lors du rechargement des données de la mission:',
+        error
+      );
+      toast.error(
+        'Le fournisseur a été mis à jour mais le rechargement des données a échoué'
+      );
+      set({ loading: false });
+    }
   },
 
   resetEditMission: () => {
