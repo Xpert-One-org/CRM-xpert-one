@@ -518,6 +518,7 @@ export default function XpertRowContentBis({
             />
           )}
           <MultiCreatableSelect
+            creatable
             label="Types de postes"
             defaultValue={xpert.profile_mission?.job_titles?.map((title) => ({
               label: getLabel({ value: title, select: jobTitleSelect }) ?? '',
@@ -530,7 +531,18 @@ export default function XpertRowContentBis({
                 'profile_mission'
               )
             }
-            options={jobTitleSelect}
+            optionsOther={xpert.profile_mission?.job_titles_other ?? ''}
+            options={
+              xpert.profile_mission?.job_titles_other
+                ? [
+                    ...jobTitleSelect,
+                    {
+                      label: xpert.profile_mission.job_titles_other ?? '',
+                      value: xpert.profile_mission.job_titles_other ?? '',
+                    },
+                  ]
+                : jobTitleSelect
+            }
           />
           {xpert.profile_mission?.job_titles?.includes('others') && (
             <Input
@@ -725,7 +737,7 @@ export default function XpertRowContentBis({
         <p className="text-lg font-medium text-black">Aménagement de poste</p>
         <div className="grid w-full grid-cols-2 gap-4">
           {/* <Input
-            label="Avez-vous besoin d’un amménagement de poste"
+            label="Avez-vous besoin d'un amménagement de poste"
             disabled
             value={
               (xpert.profile_mission &&
@@ -749,7 +761,7 @@ export default function XpertRowContentBis({
                 'profile_mission'
               )
             }
-            label={'A besoin d’un amménagement de poste ?'}
+            label={"A besoin d'un amménagement de poste ?"}
           />
         </div>
         {xpert.profile_mission?.workstation_needed === 'true' && (

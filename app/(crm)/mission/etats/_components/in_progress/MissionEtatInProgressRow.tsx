@@ -22,7 +22,7 @@ export default function MissionEtatInProgressRow({
   >({});
   const router = useRouter();
   const missionXpertStatus = mission.xpert_associated_status;
-
+  console.log(missionXpertStatus);
   useEffect(() => {
     const fetchFileStatuses = async () => {
       const supabase = createSupabaseFrontendClient();
@@ -34,7 +34,7 @@ export default function MissionEtatInProgressRow({
           'commande_societe_signed',
           missionXpertStatus ?? ''
         ),
-        getFileTypeByStatus('devis', missionXpertStatus ?? ''),
+        getFileTypeByStatus('commande', missionXpertStatus ?? ''),
       ];
 
       const statuses: Record<string, { exists: boolean; createdAt?: string }> =
@@ -210,7 +210,7 @@ export default function MissionEtatInProgressRow({
                 ? 'contrat_signed'
                 : missionXpertStatus === 'freelance'
                   ? 'commande_societe_signed'
-                  : 'devis',
+                  : 'commande',
               missionXpertStatus ?? ''
             )
           ]?.exists || false
@@ -222,7 +222,7 @@ export default function MissionEtatInProgressRow({
               ? 'contrat_signed'
               : missionXpertStatus === 'freelance'
                 ? 'commande_societe_signed'
-                : 'devis',
+                : 'commande',
             missionXpertStatus ?? ''
           )
         ]?.exists
@@ -233,7 +233,7 @@ export default function MissionEtatInProgressRow({
                     ? 'contrat_signed'
                     : missionXpertStatus === 'freelance'
                       ? 'commande_societe_signed'
-                      : 'devis',
+                      : 'commande',
                   missionXpertStatus ?? ''
                 )
               ].createdAt ?? ''
