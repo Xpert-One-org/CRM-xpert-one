@@ -65,3 +65,8 @@ export type PaymentType =
 export type BaseSectionProps = {
   onUpdate: (field: keyof DBMission, value: any) => void;
 };
+
+export type ProfileFields = {
+  evaluation_score?: number | null;
+  self_evaluation_score?: number | null;
+}

@@ -49,12 +49,13 @@ export default function RightSideFicheMission() {
       <MissionReferentXpertOne />
 
       <MissionEvaluation />
-      {/* <MissionNotes missionId={mission.id} /> */}
-      <div className="flex w-full flex-row justify-between gap-4">
-        <div className="flex gap-3">
+
+      <MissionNotes missionId={mission.id} />
+      <div className="flex w-full flex-col gap-4 sm:flex-row sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <Button
             onClick={handleSaveUpdatedMission}
-            className="self-end px-12 py-3 text-white"
+            className="self-start px-6 py-3 text-white sm:px-12"
             disabled={!hasChanges || loading}
             variant={!hasChanges ? 'outline' : 'default'}
           >
@@ -62,14 +63,18 @@ export default function RightSideFicheMission() {
           </Button>
           <Link
             href={`/mission/matching/${mission.mission_number?.replace(' ', '-')}`}
+            className="w-full sm:w-auto"
           >
-            <Button className="px-12 py-3 text-white">Vers le matching</Button>
+            <Button className="w-full px-6 py-3 text-white sm:px-12">
+              Vers le matching
+            </Button>
           </Link>
           {mission.xpert_associated_id && (
             <Link
               href={`/mission/activation-des-missions/${mission.mission_number?.replace(' ', '-')}`}
+              className="w-full sm:w-auto"
             >
-              <Button className="px-12 py-3 text-white">
+              <Button className="w-full px-6 py-3 text-white sm:px-12">
                 Vers activation de mission
               </Button>
             </Link>

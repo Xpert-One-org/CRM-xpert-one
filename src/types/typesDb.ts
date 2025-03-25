@@ -33,6 +33,10 @@ export type DBUser = DBProfile & {
 export type DBFournisseur = DBProfile & {
   mission: DBMission[];
   profile_status: DBProfileStatus | null;
+  referent?: {
+    firstname: string | null;
+    lastname: string | null;
+  } | null;
 };
 
 export type DBMatchedXpert = DBProfileMission & {

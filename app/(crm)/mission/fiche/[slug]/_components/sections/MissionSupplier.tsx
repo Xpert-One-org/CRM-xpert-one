@@ -104,10 +104,10 @@ export function MissionSupplier() {
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               {currentSupplier && (
                 <Link href={`/fournisseur?id=${currentSupplier.generated_id}`}>
-                  <Button variant="outline" className="w-fit">
+                  <Button variant="outline" className="w-full sm:w-fit">
                     Voir la fiche
                   </Button>
                 </Link>
@@ -115,7 +115,7 @@ export function MissionSupplier() {
               <Button
                 onClick={toggleChangeSupplier}
                 variant={'primary'}
-                className="w-fit"
+                className="w-full sm:w-fit"
               >
                 Changer de fournisseur
               </Button>

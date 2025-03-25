@@ -35,6 +35,7 @@ export function MissionFinancials() {
   const statusOptions = [
     { value: 'Entreprise', label: 'Entreprise' },
     { value: 'CDI de mission', label: 'CDI de mission' },
+    { value: 'Portage', label: 'Portage' },
   ];
 
   const getBaseOptions = (status: string) => {
@@ -96,7 +97,7 @@ export function MissionFinancials() {
         totalGD = (gd_rate ?? 0) * totalDays;
       }
 
-      // Calcul du salaire avec charges pour CDI de mission
+      // Calcul du salaire avec charges pour CDI de mission uniquement
       const totalSalaryWithCharges =
         xpert_status === 'CDI de mission'
           ? totalSalaryNoCharges * CHARGES_SOCIALES
@@ -234,14 +235,14 @@ export function MissionFinancials() {
       <h3 className="text-lg font-medium">Information monétaire</h3>
 
       {/* Statut et Base tarifaire */}
-      <div className="flex w-full flex-row gap-4">
+      <div className="flex w-full flex-col gap-4 sm:flex-row">
         <SelectComponent
           label="Statut XPERT"
           options={statusOptions}
           defaultSelectedKeys={finance.xpert_status}
           onValueChange={(value) => handleFinanceUpdate('xpert_status', value)}
           name="xpert_status"
-          className="!max-w-[150px]"
+          className="w-full sm:!max-w-[150px]"
         />
 
         <SelectComponent
@@ -252,7 +253,7 @@ export function MissionFinancials() {
             handleFinanceUpdate('base_tarifaire', value)
           }
           name="base_tarifaire"
-          className="!w-full !max-w-[150px]"
+          className="w-full sm:!max-w-[150px]"
         />
       </div>
 
@@ -260,7 +261,7 @@ export function MissionFinancials() {
       {finance.xpert_status && finance.base_tarifaire && (
         <>
           {' '}
-          <div className="flex w-fit flex-row gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MonetaryInput
               label={getSalaryLabel()}
               value={isTJM ? finance.daily_rate : finance.monthly_rate}
@@ -290,7 +291,7 @@ export function MissionFinancials() {
             )}
           </div>
           {/* Déplacements et frais */}
-          <div className="flex w-fit flex-row gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MonetaryInput
               label="Grand Déplacement"
               value={finance.gd_rate}
@@ -311,11 +312,6 @@ export function MissionFinancials() {
                 fieldName="annex_costs"
                 helpText="Total frais supplémentaire pour toute la durée du contrat"
               />
-              {/* <div className="absolute right-[-20px] top-[38px]">
-            <InfoCircle
-              title="Total frais supplémentaire pour toute la durée du contrat"
-            />
-          </div> */}
             </div>
 
             <MonetaryInput
@@ -325,7 +321,7 @@ export function MissionFinancials() {
             />
           </div>
           {/* Marge et CA */}
-          <div className="flex w-fit flex-row gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <MonetaryInput
               label="Marge XPERT ONE"
               value={finance.margin}

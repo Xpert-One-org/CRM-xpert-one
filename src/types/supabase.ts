@@ -959,6 +959,7 @@ export type Database = {
           created_at: string;
           cv_name: string | null;
           email: string | null;
+          evaluation_score: number | null;
           expertise_progression: number;
           firstname: string | null;
           fix: string | null;
@@ -995,6 +996,7 @@ export type Database = {
           sector_renewable_energy: string | null;
           sector_renewable_energy_other: string | null;
           sector_waste_treatment: string | null;
+          self_evaluation_score: number | null;
           service_dependance: string | null;
           siret: string | null;
           status_progression: number;
@@ -1022,6 +1024,7 @@ export type Database = {
           created_at?: string;
           cv_name?: string | null;
           email?: string | null;
+          evaluation_score?: number | null;
           expertise_progression?: number;
           firstname?: string | null;
           fix?: string | null;
@@ -1058,6 +1061,7 @@ export type Database = {
           sector_renewable_energy?: string | null;
           sector_renewable_energy_other?: string | null;
           sector_waste_treatment?: string | null;
+          self_evaluation_score?: number | null;
           service_dependance?: string | null;
           siret?: string | null;
           status_progression?: number;
@@ -1085,6 +1089,7 @@ export type Database = {
           created_at?: string;
           cv_name?: string | null;
           email?: string | null;
+          evaluation_score?: number | null;
           expertise_progression?: number;
           firstname?: string | null;
           fix?: string | null;
@@ -1121,6 +1126,7 @@ export type Database = {
           sector_renewable_energy?: string | null;
           sector_renewable_energy_other?: string | null;
           sector_waste_treatment?: string | null;
+          self_evaluation_score?: number | null;
           service_dependance?: string | null;
           siret?: string | null;
           status_progression?: number;
@@ -1944,6 +1950,15 @@ export type Database = {
       };
       check_mission_documents_bis: {
         Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      create_forum_notifications: {
+        Args: {
+          message_content: string;
+          chat_id: number;
+          sender_id: string;
+          exclude_user_id: string;
+        };
         Returns: undefined;
       };
       create_notification: {
