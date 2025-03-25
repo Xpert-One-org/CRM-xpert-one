@@ -10,7 +10,7 @@ import type { DBMissionState, DBNotification } from '@/types/typesDb';
 import Bell from './svg/Bell';
 import useUser from '@/store/useUser';
 import { Button } from './ui/button';
-import { AlertTriangle, Check, Info } from 'lucide-react';
+import { AlertTriangle, Check, Info, Trash2 } from 'lucide-react';
 import InfiniteScroll from './ui/infinite-scroll';
 import Loader from './Loader';
 import type { User } from '@supabase/supabase-js';
@@ -18,6 +18,7 @@ import type { User } from '@supabase/supabase-js';
 function NotificationBell({ user }: { user: User }) {
   const [isOpen, setIsOpen] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   const pathname = usePathname();
 
   const {
@@ -27,6 +28,7 @@ function NotificationBell({ user }: { user: User }) {
     setNotifications,
     loading,
     removeNotification,
+    removeAllNotifications,
   } = useNotifications();
   const supabase = createSupabaseFrontendClient();
 
@@ -120,6 +122,12 @@ function NotificationBell({ user }: { user: User }) {
     setDeletingIds((prev) => prev.filter((id) => id !== notificationId));
   };
 
+  const handleDeleteAllClick = async () => {
+    setIsDeletingAll(true);
+    await removeAllNotifications();
+    setIsDeletingAll(false);
+  };
+
   const convertMissionState = (text: string) => {
     text = text.replace(/\bto_validate\b/, 'à valider');
     text = text.replace(
@@ -172,7 +180,23 @@ function NotificationBell({ user }: { user: User }) {
               <BubbleNotif className="size-full" />
             </div>
             <div className="px-4 pb-4 pt-8">
-              <h3 className="mb-2 pb-2 text-sm font-semibold">Notifications</h3>
+              <div className="flex items-center justify-between py-2">
+                <h3 className="mb-2 pb-2 text-sm font-semibold">
+                  Notifications
+                </h3>
+                {notifications && notifications.length > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={handleDeleteAllClick}
+                    disabled={isDeletingAll}
+                  >
+                    <Trash2 className="size-4" />
+                    Tout effacer
+                  </Button>
+                )}
+              </div>
               {notifications && notifications.length > 0 ? (
                 <ul className="max-h-[500px] space-y-2 overflow-y-auto pb-4">
                   {notifications.map((notification) => (
