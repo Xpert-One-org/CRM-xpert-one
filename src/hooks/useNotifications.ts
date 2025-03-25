@@ -1,5 +1,9 @@
 import { notifPerPage } from '@/data/constant';
-import { deleteNotification, getNotifications } from '@functions/notification';
+import {
+  deleteAllNotifications,
+  deleteNotification,
+  getNotifications,
+} from '@functions/notification';
 import type { DBNotification } from '@/types/typesDb';
 import { create } from 'zustand';
 
@@ -10,6 +14,7 @@ type State = {
   setNotifications: (notifications: DBNotification[]) => void;
   fetchNotifications: () => Promise<void>;
   removeNotification: (id: number) => void;
+  removeAllNotifications: () => void;
   to: number;
 };
 
@@ -40,6 +45,10 @@ const useNotifications = create<State>((set) => ({
       notifications:
         state.notifications?.filter((notif) => notif.id !== id) ?? [],
     }));
+  },
+  removeAllNotifications: async () => {
+    await deleteAllNotifications();
+    set({ notifications: [], totalNotifications: 0 });
   },
 }));
 
