@@ -2011,9 +2011,10 @@ BEGIN
         notification_receiver_id,
         'messagerie',
         display_name || ' vous a envoyé un message',
-        'Messagerie'
-        'info'::notification_status
+        'Messagerie',
+        'info'
     );
+    
     
     RETURN NEW;
 END;$$;
@@ -3151,7 +3152,11 @@ CREATE TABLE IF NOT EXISTS "public"."profile" (
     "collaborator_replacement_id" "uuid",
     "get_welcome_call" boolean DEFAULT false,
     "is_authorized_referent" boolean DEFAULT true NOT NULL,
-    "allow_documents_notifications" boolean DEFAULT true NOT NULL
+    "allow_documents_notifications" boolean DEFAULT true NOT NULL,
+    "evaluation_score" smallint,
+    "self_evaluation_score" smallint,
+    CONSTRAINT "profile_evaluation_score_check" CHECK ((("evaluation_score" >= 1) AND ("evaluation_score" <= 10))),
+    CONSTRAINT "profile_self_evaluation_score_check" CHECK ((("self_evaluation_score" >= 1) AND ("self_evaluation_score" <= 10)))
 );
 
 
@@ -4045,6 +4050,10 @@ ALTER TABLE "public"."message" DISABLE TRIGGER "notify_new_forum_message_trigger
 
 
 
+CREATE OR REPLACE TRIGGER "notify_new_message_trigger" AFTER INSERT ON "public"."message" FOR EACH ROW EXECUTE FUNCTION "public"."notify_new_message"();
+
+
+
 CREATE OR REPLACE TRIGGER "notify_welcome_call_trigger" AFTER UPDATE OF "get_welcome_call" ON "public"."profile" FOR EACH ROW WHEN ((("new"."get_welcome_call" = true) AND ("old"."get_welcome_call" IS DISTINCT FROM true))) EXECUTE FUNCTION "public"."notify_welcome_call_done"();
 
 ALTER TABLE "public"."profile" DISABLE TRIGGER "notify_welcome_call_trigger";
@@ -4919,6 +4928,7 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
+-- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";

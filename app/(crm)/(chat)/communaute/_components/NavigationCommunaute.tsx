@@ -40,7 +40,6 @@ export default function NavigationCommunaute() {
           {el?.sub?.[1].title}
         </Button>
         <Button
-          disabled
           isLink
           href={el?.sub?.[2].url}
           className="w-full max-w-[200px] rounded-br-full"
