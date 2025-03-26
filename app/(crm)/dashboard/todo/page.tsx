@@ -101,6 +101,9 @@ export default function TaskTable() {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  const [selectedTasks, setSelectedTasks] = useState<TaskWithRelations[]>([]);
+  const [isSelecting, setIsSelecting] = useState(false);
+
   const [adminOptions, setAdminOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -111,6 +114,30 @@ export default function TaskTable() {
     newStatusNotSaved.length > 0 || newAssignedToNotSaved.length > 0;
 
   useWarnIfUnsavedChanges(hasSomethingNotSaved);
+
+  const handleSelectTasks = () => {
+    if (isSelecting) {
+      setSelectedTasks([]);
+    }
+    setIsSelecting((prev) => !prev);
+  };
+
+  const handleTaskSelection = (task: TaskWithRelations) => {
+    setSelectedTasks((prev) => {
+      const isSelected = prev.some((t) => t.id === task.id);
+      if (isSelected) {
+        return prev.filter((t) => t.id !== task.id);
+      } else {
+        return [...prev, task];
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (!isSelecting) {
+      setSelectedTasks([]);
+    }
+  }, [isSelecting]);
 
   useEffect(() => {
     if (collaborators.length === 0) {
@@ -257,6 +284,31 @@ export default function TaskTable() {
       <div className="relative flex flex-col gap-4">
         <div className="flex w-full justify-between">
           <CreateTaskDialog onTaskCreate={() => loadTasks(true)} />
+          {isSelecting && selectedTasks.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">
+                {selectedTasks.length} tâches sélectionnées
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectTasks}
+                className="text-xs"
+              >
+                Désélectionner tout
+              </Button>
+
+              <DeleteTaskDialog
+                text="Supprimer les tâches sélectionnées"
+                taskIds={selectedTasks.map((task) => task.id)}
+                onDelete={() => loadTasks(true)}
+                className="h-fit bg-[#D75D5D] py-2.5 text-xs"
+              />
+            </div>
+          )}
+          <Button className="bg-primary text-white" onClick={handleSelectTasks}>
+            {isSelecting ? 'Annuler' : 'Sélectionner des tâches'}
+          </Button>
         </div>
 
         <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_2fr_1fr_50px_50px] gap-3">
@@ -307,20 +359,22 @@ export default function TaskTable() {
           <div />
           <div className="col-span-9">
             {!loading ? (
-              <div className="flex w-fit items-center gap-x-4">
-                <p className="whitespace-nowrap">{totalTasks} résultats</p>
-                {/* RESET */}
-                {(activeFilters.createdBy ||
-                  activeFilters.assignedTo ||
-                  activeFilters.status ||
-                  activeFilters.subjectType) && (
-                  <button
-                    className="font-[600] text-primary"
-                    onClick={resetTasks}
-                  >
-                    Réinitialiser
-                  </button>
-                )}
+              <div className="flex w-full items-center justify-between">
+                <div className="flex w-fit items-center gap-x-4">
+                  <p className="whitespace-nowrap">{totalTasks} résultats</p>
+                  {/* RESET */}
+                  {(activeFilters.createdBy ||
+                    activeFilters.assignedTo ||
+                    activeFilters.status ||
+                    activeFilters.subjectType) && (
+                    <button
+                      className="font-[600] text-primary"
+                      onClick={resetTasks}
+                    >
+                      Réinitialiser
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <Skeleton className="h-6 w-40" />
@@ -336,10 +390,23 @@ export default function TaskTable() {
               </div>
             ) : (
               tasks?.map((task) => {
+                const isSelected = selectedTasks.some((t) => t.id === task.id);
                 return (
                   <React.Fragment key={task.id}>
                     <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
-                      {task.id}
+                      {isSelecting ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleTaskSelection(task)}
+                            className="size-4 rounded border-gray-300"
+                          />
+                          <span>{task.id}</span>
+                        </div>
+                      ) : (
+                        task.id
+                      )}
                     </Box>
                     <Box className="flex h-[70px] items-center bg-[#E6E6E6] px-4">
                       {formatDate(task.created_at)}
@@ -374,7 +441,7 @@ export default function TaskTable() {
                     </Box>
                     <Box className="flex h-[70px] items-center justify-center bg-[#D75D5D]">
                       <DeleteTaskDialog
-                        taskId={task.id}
+                        taskIds={[task.id]}
                         onDelete={() => loadTasks(true)}
                       />
                     </Box>

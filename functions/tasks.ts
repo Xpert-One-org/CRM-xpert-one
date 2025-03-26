@@ -239,10 +239,10 @@ export const getCountTasksToTreatAndUrgent = async () => {
   return { count: { pending, urgent }, error: null };
 };
 
-export async function deleteTask(id: number) {
+export async function deleteTask(ids: number[]) {
   const supabase = await createSupabaseAppServerClient();
 
-  const { error } = await supabase.from('tasks').delete().eq('id', id);
+  const { error } = await supabase.from('tasks').delete().in('id', ids);
 
   if (error) {
     return { error };
