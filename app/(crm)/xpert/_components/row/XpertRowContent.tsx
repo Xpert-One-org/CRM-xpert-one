@@ -34,6 +34,23 @@ import XpertAlertSettings from '../XpertAlertSettings';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { updateUserAlerts } from '../../xpert.action';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+
+// Statuts juridiques pour les indépendants/freelances
+const juridicStatusOptions = [
+  { label: 'Auto-entrepreneur', value: 'auto-entrepreneur' },
+  { label: 'EURL', value: 'eurl' },
+  { label: 'SARL', value: 'sarl' },
+  { label: 'SASU', value: 'sasu' },
+  { label: 'SAS', value: 'sas' },
+  { label: 'EI', value: 'ei' },
+  { label: 'EIRL', value: 'eirl' },
+  { label: 'SA', value: 'sa' },
+  { label: 'SCI', value: 'sci' },
+  { label: 'SNC', value: 'snc' },
+  { label: 'Autre', value: 'other' },
+];
 
 export type NestedTableKey =
   | 'profile_expertise'
@@ -537,31 +554,121 @@ export default function XpertRowContent({
           onChange={(e) => handleChangeSelect(e.value, 'iam', 'profile_status')}
         />
 
-        <CreatableSelect
-          label={'Statut'}
-          options={selectStatus}
-          defaultValue={{
-            label:
-              getLabel({
-                value: xpert.profile_status?.status ?? '',
-                select: selectStatus,
-              }) ?? '',
-            value: xpert.profile_status?.status ?? '',
-          }}
-          onChange={(e) =>
-            handleChangeSelect(e.value, 'status', 'profile_status')
-          }
-        />
+        {['inde_freelance', 'employee'].includes(
+          xpert.profile_status?.iam || ''
+        ) && (
+          <CreatableSelect
+            label={'Statut'}
+            options={selectStatus}
+            defaultValue={{
+              label:
+                getLabel({
+                  value: xpert.profile_status?.status ?? '',
+                  select: selectStatus,
+                }) ?? '',
+              value: xpert.profile_status?.status ?? '',
+            }}
+            onChange={(e) =>
+              handleChangeSelect(e.value, 'status', 'profile_status')
+            }
+          />
+        )}
       </div>
       <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
-      <div className="grid w-full grid-cols-2 gap-4">
-        <Input
-          label="N° de SIRET"
-          value={xpert.profile_status?.siret ?? empty}
-          name="siret"
-          onChange={(e) => handleChangeInput(e, 'profile_status')}
-        />
-      </div>
+
+      {/* Ne pas afficher la section statut pour les étudiants et "Je ne sais pas encore" */}
+      {['inde_freelance', 'employee'].includes(
+        xpert.profile_status?.iam || ''
+      ) && (
+        <div className="grid w-full grid-cols-2 gap-4">
+          <Input
+            label="N° de SIRET"
+            value={xpert.profile_status?.siret ?? empty}
+            name="siret"
+            onChange={(e) => handleChangeInput(e, 'profile_status')}
+          />
+
+          {/* Champs pour indépendant/freelance
+          {(xpert.profile_status?.iam === 'inde_freelance' ||
+            xpert.profile_status?.status === 'auto-entrepreneur') && (
+            <div className="flex items-center gap-2 self-end">
+              <Checkbox
+                id="has-portage"
+                checked={xpert.profile_status?.has_portage || false}
+                onCheckedChange={(checked: CheckedState) => {
+                  handleKeyChanges('profile_status', 'has_portage');
+                  const newXpert = xpert
+                    ? {
+                        ...xpert,
+                        profile_status: {
+                          ...xpert.profile_status!,
+                          has_portage: checked === true,
+                        },
+                      }
+                    : null;
+                  setXpert(newXpert);
+                }}
+              />
+              <Label htmlFor="has-portage" className="font-normal">
+                En société de portage
+              </Label>
+            </div>
+          )} */}
+
+          {/* Champs pour société de portage */}
+          {xpert.profile_status?.has_portage === true && (
+            <Input
+              label="Nom de l'entreprise de portage"
+              value={xpert.profile_status?.portage_name ?? ''}
+              name="portage_name"
+              onChange={(e) => handleChangeInput(e, 'profile_status')}
+            />
+          )}
+
+          {/* Champs conditionnels basés sur le statut */}
+          {xpert.profile_status?.status === 'portage' && (
+            <Input
+              label="Nom de l'entreprise de portage"
+              value={xpert.profile_status?.portage_name ?? ''}
+              name="portage_name"
+              onChange={(e) => handleChangeInput(e, 'profile_status')}
+            />
+          )}
+
+          {/* Informations d'entreprise pour freelance */}
+          {(xpert.profile_status?.status === 'auto-entrepreneur' ||
+            xpert.profile_status?.status === 'company' ||
+            xpert.profile_status?.iam === 'inde_freelance') && (
+            <>
+              <Input
+                label="Nom de votre entreprise"
+                value={xpert.profile_status?.company_name ?? ''}
+                name="company_name"
+                onChange={(e) => handleChangeInput(e, 'profile_status')}
+              />
+
+              <Input
+                hasPreIcon
+                label="Statut juridique"
+                value="Micro-entreprise"
+                disabled
+              />
+            </>
+          )}
+
+          {/* Informations pour salariés */}
+          {(xpert.profile_status?.status === 'cdi' ||
+            xpert.profile_status?.status === 'cdd') && (
+            <Input
+              label="Nom de l'entreprise"
+              value={xpert.profile_status?.company_name ?? ''}
+              name="company_name"
+              onChange={(e) => handleChangeInput(e, 'profile_status')}
+            />
+          )}
+        </div>
+      )}
+      {/* Toujours afficher le séparateur */}
       <div className="mb-spaceMediumContainer mt-spaceContainer h-px w-full bg-[#BEBEC0]" />
       <p className="pt-spaceContainer text-lg font-medium text-black">
         Mon expertise

@@ -207,11 +207,12 @@ export default function FournisseurTable() {
                       <div className="flex flex-col gap-4">
                         <Input
                           label="Référant XPERT ONE"
-                          value={openedFournisseurNotSaved?.firstname ?? ''}
-                          onChange={(e) =>
-                            handleInputChange('firstname', e.target.value)
+                          value={
+                            openedFournisseurNotSaved?.referent
+                              ? `${openedFournisseurNotSaved.referent.firstname || ''} ${openedFournisseurNotSaved.referent.lastname || ''}`
+                              : 'Non assigné'
                           }
-                          disabled={!openedFournisseurNotSaved}
+                          disabled={true}
                         />
                         <div className="flex items-center gap-2">
                           <Checkbox

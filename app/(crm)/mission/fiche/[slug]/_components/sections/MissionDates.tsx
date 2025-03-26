@@ -66,7 +66,7 @@ export function MissionDates() {
   return (
     <div className="flex flex-col gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
       <h3 className="text-lg font-medium text-black">Date de mission</h3>
-      <div className="flex w-full flex-row gap-4">
+      <div className="flex w-full flex-col gap-4 md:flex-row">
         <Input
           type="date"
           label={renderDateWithIndicator(
@@ -75,6 +75,7 @@ export function MissionDates() {
           )}
           value={mission.start_date ? mission.start_date.split('T')[0] : ''}
           onChange={(e) => handleUpdateField('start_date', e.target.value)}
+          className="w-full"
         />
         <Input
           type="date"
@@ -84,6 +85,7 @@ export function MissionDates() {
           )}
           value={mission.end_date ? mission.end_date.split('T')[0] : ''}
           onChange={(e) => handleUpdateField('end_date', e.target.value)}
+          className="w-full"
         />
         <Input
           type="date"
@@ -99,35 +101,40 @@ export function MissionDates() {
           onChange={(e) =>
             handleUpdateField('deadline_application', e.target.value)
           }
+          className="w-full"
         />
       </div>
-      <div className="flex w-full flex-row gap-4">
-        <div className="flex w-2/3 flex-row gap-4">
+      <div className="flex w-full flex-col gap-4 md:flex-row">
+        <div className="flex w-full flex-col gap-4 md:w-2/3 md:flex-row">
           <Input
             type="date"
             label="Début de mission définitif"
             value={mission.start_date ? mission.start_date.split('T')[0] : ''}
             onChange={(e) => handleUpdateField('start_date', e.target.value)}
+            className="w-full"
           />
           <Input
             type="date"
             label="Fin de mission définitif"
             value={mission.end_date ? mission.end_date.split('T')[0] : ''}
             onChange={(e) => handleUpdateField('end_date', e.target.value)}
+            className="w-full"
           />
         </div>
-        <div className="flex w-1/3 flex-row gap-4">
+        <div className="flex w-full flex-col gap-4 md:w-1/3 md:flex-row">
           <Input
             type="text"
             label="Durée de la mission"
             value={`${days} jours`}
             disabled
+            className="w-full"
           />
           <Input
             type="text"
             label="soit en mois"
             value={`${months} mois`}
             disabled
+            className="w-full"
           />
         </div>
       </div>

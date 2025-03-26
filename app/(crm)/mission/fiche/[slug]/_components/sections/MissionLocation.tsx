@@ -37,9 +37,9 @@ export function MissionLocation() {
   return (
     <div className="flex flex-col gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
       <h3 className="text-lg font-medium text-black">Lieu de la mission</h3>
-      <div className="gap flex w-full flex-row gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Input
-          className="w-full max-w-[120px]"
+          className="w-full"
           label="N° de rue"
           value={mission.address?.split(' ')[0] ?? ''}
           onChange={(e) => {
@@ -48,7 +48,7 @@ export function MissionLocation() {
           }}
         />
         <Input
-          className="w-full max-w-[280px]"
+          className="w-full sm:col-span-2"
           label="Adresse postale"
           value={mission.address?.split(' ').slice(1).join(' ') ?? ''}
           onChange={(e) => {
@@ -57,34 +57,36 @@ export function MissionLocation() {
           }}
         />
         <Input
-          className="w-[170px]"
+          className="w-full"
           label="Ville"
           value={mission.city ?? ''}
           onChange={(e) => handleUpdateField('city', e.target.value)}
         />
         <Input
-          className="w-full max-w-[120px]"
+          className="w-full"
           label="Code postal"
           value={mission.postal_code ?? ''}
           onChange={(e) => handleUpdateField('postal_code', e.target.value)}
         />
         {countries.length > 0 && (
-          <CreatableSelect
-            label="Pays"
-            className="w-fit"
-            options={countries}
-            defaultValue={{
-              label:
-                getLabel({
-                  value: mission.country ?? '',
-                  select: countries,
-                }) ?? '',
-              value: mission.country ?? '',
-            }}
-            onChange={(selectedOption) =>
-              handleUpdateField('country', selectedOption.value)
-            }
-          />
+          <div className="sm:col-span-2 lg:col-span-1">
+            <CreatableSelect
+              label="Pays"
+              className="w-full"
+              options={countries}
+              defaultValue={{
+                label:
+                  getLabel({
+                    value: mission.country ?? '',
+                    select: countries,
+                  }) ?? '',
+                value: mission.country ?? '',
+              }}
+              onChange={(selectedOption) =>
+                handleUpdateField('country', selectedOption.value)
+              }
+            />
+          </div>
         )}
       </div>
     </div>
