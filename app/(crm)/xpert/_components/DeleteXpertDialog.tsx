@@ -18,9 +18,15 @@ import TextArea from '@/components/inputs/TextArea';
 export default function DeleteXpertDialog({
   xpertId,
   xpertGeneratedId,
+  xpertEmail,
+  xpertFirstName,
+  xpertLastName,
 }: {
   xpertId: string;
   xpertGeneratedId: string;
+  xpertEmail: string | null;
+  xpertFirstName: string | null;
+  xpertLastName: string | null;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
@@ -31,7 +37,14 @@ export default function DeleteXpertDialog({
   const handleSendDeleteXpert = async () => {
     setIsLoading(true);
     try {
-      deleteXpert(xpertId, xpertGeneratedId, reasonDelete);
+      deleteXpert({
+        xpertId,
+        xpertGeneratedId,
+        reason: reasonDelete,
+        xpertEmail,
+        xpertFirstName,
+        xpertLastName,
+      });
       setPopupOpen(false);
     } catch (error) {
       console.error(error);

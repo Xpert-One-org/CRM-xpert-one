@@ -36,11 +36,21 @@ type FournisseurState = {
   fetchFournisseurs: () => void;
   fetchSpecificFournisseur: (id: string) => void;
   handleSaveUpdatedFournisseur: () => void;
-  deleteFournisseur: (
-    fournisseurId: string,
-    fournisseurGeneratedId: string,
-    reason: string
-  ) => void;
+  deleteFournisseur: ({
+    fournisseurId,
+    fournisseurGeneratedId,
+    reason,
+    fournisseurEmail,
+    fournisseurFirstName,
+    fournisseurLastName,
+  }: {
+    fournisseurId: string;
+    fournisseurGeneratedId: string;
+    reason: string;
+    fournisseurEmail: string | null;
+    fournisseurFirstName: string | null;
+    fournisseurLastName: string | null;
+  }) => void;
   resetFournisseurs: () => void;
   hasReferentReassign: boolean;
   setHasReferentReassign: (value: boolean) => void;
@@ -183,17 +193,30 @@ export const useFournisseurStore = create<FournisseurState>((set, get) => ({
     toast.success('Modifications enregistrées');
   },
 
-  deleteFournisseur: async (
-    fournisseurId: string,
-    fournisseurGeneratedId: string,
-    reason: string
-  ) => {
+  deleteFournisseur: async ({
+    fournisseurId,
+    fournisseurGeneratedId,
+    reason,
+    fournisseurEmail,
+    fournisseurFirstName,
+    fournisseurLastName,
+  }: {
+    fournisseurId: string;
+    fournisseurGeneratedId: string;
+    reason: string;
+    fournisseurEmail: string | null;
+    fournisseurFirstName: string | null;
+    fournisseurLastName: string | null;
+  }) => {
     set({ loading: true });
-    const { errorMessage } = await deleteFournisseur(
+    const { errorMessage } = await deleteFournisseur({
       fournisseurId,
       fournisseurGeneratedId,
-      reason
-    );
+      reason,
+      fournisseurEmail,
+      fournisseurFirstName,
+      fournisseurLastName,
+    });
     if (errorMessage) {
       console.error(errorMessage);
       toast.error(
