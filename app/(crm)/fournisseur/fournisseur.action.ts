@@ -191,11 +191,21 @@ export const getAllFournisseurs = async ({
   return { data: typedData, count };
 };
 
-export const deleteFournisseur = async (
-  fournisseurId: string,
-  fournisseurGeneratedId: string,
-  reason: string
-) => {
+export const deleteFournisseur = async ({
+  fournisseurId,
+  fournisseurGeneratedId,
+  reason,
+  fournisseurEmail,
+  fournisseurFirstName,
+  fournisseurLastName,
+}: {
+  fournisseurId: string;
+  fournisseurGeneratedId: string;
+  reason: string;
+  fournisseurEmail: string | null;
+  fournisseurFirstName: string | null;
+  fournisseurLastName: string | null;
+}) => {
   try {
     const supabase = await createSupabaseAppServerClient('admin');
 
@@ -211,6 +221,9 @@ export const deleteFournisseur = async (
         deleted_by: user.id,
         reason: reason,
         deleted_at: new Date().toISOString(),
+        email: fournisseurEmail,
+        firstname: fournisseurFirstName,
+        lastname: fournisseurLastName,
       });
 
     if (insertError) throw insertError;

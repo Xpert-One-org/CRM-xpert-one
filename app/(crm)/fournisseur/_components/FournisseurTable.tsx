@@ -595,6 +595,9 @@ export default function FournisseurTable() {
                       <DeleteFournisseurDialog
                         fournisseurId={fournisseur.id}
                         fournisseurGeneratedId={fournisseur.generated_id}
+                        fournisseurEmail={fournisseur.email}
+                        fournisseurFirstName={fournisseur.firstname}
+                        fournisseurLastName={fournisseur.lastname}
                       />
                     </div>
                   </div>

@@ -478,6 +478,9 @@ export default function XpertTable() {
                     <DeleteXpertDialog
                       xpertId={xpert.id}
                       xpertGeneratedId={xpert.generated_id}
+                      xpertEmail={xpert.email}
+                      xpertFirstName={xpert.firstname}
+                      xpertLastName={xpert.lastname}
                     />
                   </div>
                 </div>

@@ -226,6 +226,7 @@ export type DBXpertOptimized = Pick<
   | 'id'
   | 'lastname'
   | 'firstname'
+  | 'email'
   | 'country'
   | 'generated_id'
   | 'cv_name'

@@ -17,9 +17,15 @@ import TextArea from '@/components/inputs/TextArea';
 export default function DeleteFournisseurDialog({
   fournisseurId,
   fournisseurGeneratedId,
+  fournisseurEmail,
+  fournisseurFirstName,
+  fournisseurLastName,
 }: {
   fournisseurId: string;
   fournisseurGeneratedId: string;
+  fournisseurEmail: string | null;
+  fournisseurFirstName: string | null;
+  fournisseurLastName: string | null;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
@@ -30,7 +36,14 @@ export default function DeleteFournisseurDialog({
   const handleSendDeleteFournisseur = async () => {
     setIsLoading(true);
     try {
-      deleteFournisseur(fournisseurId, fournisseurGeneratedId, reasonDelete);
+      deleteFournisseur({
+        fournisseurId,
+        fournisseurGeneratedId,
+        reason: reasonDelete,
+        fournisseurEmail,
+        fournisseurFirstName,
+        fournisseurLastName,
+      });
       setPopupOpen(false);
     } catch (error) {
       console.error(error);

@@ -1163,21 +1163,30 @@ export type Database = {
           deleted_at: string | null;
           deleted_by: string | null;
           deleted_profile_generated_id: string;
+          email: string | null;
+          firstname: string | null;
           id: string;
+          lastname: string | null;
           reason: string;
         };
         Insert: {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deleted_profile_generated_id: string;
+          email?: string | null;
+          firstname?: string | null;
           id?: string;
+          lastname?: string | null;
           reason: string;
         };
         Update: {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deleted_profile_generated_id?: string;
+          email?: string | null;
+          firstname?: string | null;
           id?: string;
+          lastname?: string | null;
           reason?: string;
         };
         Relationships: [];

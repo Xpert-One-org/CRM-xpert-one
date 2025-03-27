@@ -62,11 +62,21 @@ type XpertState = {
     affected_referent: DBReferentType | null
   ) => Promise<void>;
   fetchSpecificXpert: (xpertId: string) => void;
-  deleteXpert: (
-    xpertId: string,
-    xpertGeneratedId: string,
-    reason: string
-  ) => void;
+  deleteXpert: ({
+    xpertId,
+    xpertGeneratedId,
+    reason,
+    xpertEmail,
+    xpertFirstName,
+    xpertLastName,
+  }: {
+    xpertId: string;
+    xpertGeneratedId: string;
+    reason: string;
+    xpertEmail: string | null;
+    xpertFirstName: string | null;
+    xpertLastName: string | null;
+  }) => void;
   keyDBProfileChanged: [keyof DBProfile][] | [];
   keyDBProfileMissionChanged: [keyof DBProfileMission][] | [];
   keyDBProfileStatusChanged: [keyof DBProfileStatus][] | [];
@@ -212,6 +222,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
       ? {
           country: xpert.country,
           firstname: xpert.firstname,
+          email: xpert.email,
           admin_opinion: xpert.admin_opinion,
           profile_experience: xpert.profile_expertise?.experiences[0]?.post
             ? {
@@ -293,17 +304,30 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     return { xpert: xpertSelected };
   },
 
-  deleteXpert: async (
-    xpertId: string,
-    xpertGeneratedId: string,
-    reason: string
-  ) => {
+  deleteXpert: async ({
+    xpertId,
+    xpertGeneratedId,
+    reason,
+    xpertEmail,
+    xpertFirstName,
+    xpertLastName,
+  }: {
+    xpertId: string;
+    xpertGeneratedId: string;
+    reason: string;
+    xpertEmail: string | null;
+    xpertFirstName: string | null;
+    xpertLastName: string | null;
+  }) => {
     set({ loading: true });
-    const { errorMessage } = await deleteXpert(
+    const { errorMessage } = await deleteXpert({
       xpertId,
       xpertGeneratedId,
-      reason
-    );
+      reason,
+      xpertEmail,
+      xpertFirstName,
+      xpertLastName,
+    });
     if (errorMessage) {
       toast.error("Une erreur est survenue lors de la suppression de l'XPERT");
     } else {
