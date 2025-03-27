@@ -27,7 +27,7 @@ export function MissionReferentXpertOne() {
   return (
     <div className="flex flex-col gap-4 rounded-lg bg-[#D0DDE1] px-spaceMediumContainer py-[10px] text-black shadow-container">
       <h3 className="text-lg font-medium text-black">Référent de mission</h3>
-      <div className="gap flex max-w-[200px] flex-row gap-4">
+      <div className="w-full sm:max-w-[200px]">
         <Select
           value={mission.affected_referent_id ?? 'none'}
           onValueChange={(value) =>

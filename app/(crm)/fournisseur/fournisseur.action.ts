@@ -53,8 +53,32 @@ export const getSpecificFournisseur = async (
     return null;
   }
 
-  return data;
+  // Si le fournisseur a un référent, récupérons ses informations
+  let referent = null;
+  if (data.affected_referent_id) {
+    const { data: referentData } = await supabase
+      .from('profile')
+      .select('firstname, lastname')
+      .eq('id', data.affected_referent_id)
+      .single();
+
+    if (referentData) {
+      referent = {
+        firstname: referentData.firstname,
+        lastname: referentData.lastname,
+      };
+    }
+  }
+
+  // Transformation pour assurer la compatibilité des types
+  const typedData = {
+    ...data,
+    referent,
+  } as unknown as DBFournisseur;
+
+  return typedData;
 };
+
 export const getAllFournisseurs = async ({
   offset,
 }: {
@@ -120,14 +144,68 @@ export const getAllFournisseurs = async ({
     return { data: [], count: null };
   }
 
-  return { data, count };
+  // Récupérer tous les IDs des référents uniques
+  const referentIds = data
+    .map((item) => item.affected_referent_id)
+    .filter((id): id is string => id !== null && id !== undefined);
+
+  const uniqueReferentIds = Array.from(new Set(referentIds));
+
+  // Récupérer les informations de tous les référents en une seule requête
+  let referentsMap: Record<
+    string,
+    { firstname: string | null; lastname: string | null }
+  > = {};
+
+  if (uniqueReferentIds.length > 0) {
+    const { data: referentsData } = await supabase
+      .from('profile')
+      .select('id, firstname, lastname')
+      .in('id', uniqueReferentIds);
+
+    if (referentsData) {
+      referentsMap = referentsData.reduce(
+        (acc, ref) => {
+          acc[ref.id] = { firstname: ref.firstname, lastname: ref.lastname };
+          return acc;
+        },
+        {} as Record<
+          string,
+          { firstname: string | null; lastname: string | null }
+        >
+      );
+    }
+  }
+
+  // Transformation pour assurer la compatibilité des types
+  const typedData = data.map((item) => {
+    return {
+      ...item,
+      referent:
+        item.affected_referent_id && referentsMap[item.affected_referent_id]
+          ? referentsMap[item.affected_referent_id]
+          : null,
+    };
+  }) as unknown as DBFournisseur[];
+
+  return { data: typedData, count };
 };
 
-export const deleteFournisseur = async (
-  fournisseurId: string,
-  fournisseurGeneratedId: string,
-  reason: string
-) => {
+export const deleteFournisseur = async ({
+  fournisseurId,
+  fournisseurGeneratedId,
+  reason,
+  fournisseurEmail,
+  fournisseurFirstName,
+  fournisseurLastName,
+}: {
+  fournisseurId: string;
+  fournisseurGeneratedId: string;
+  reason: string;
+  fournisseurEmail: string | null;
+  fournisseurFirstName: string | null;
+  fournisseurLastName: string | null;
+}) => {
   try {
     const supabase = await createSupabaseAppServerClient('admin');
 
@@ -143,6 +221,9 @@ export const deleteFournisseur = async (
         deleted_by: user.id,
         reason: reason,
         deleted_at: new Date().toISOString(),
+        email: fournisseurEmail,
+        firstname: fournisseurFirstName,
+        lastname: fournisseurLastName,
       });
 
     if (insertError) throw insertError;

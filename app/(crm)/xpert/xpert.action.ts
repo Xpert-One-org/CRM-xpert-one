@@ -254,7 +254,7 @@ export const getXpertsOptimized = async ({
     .from('profile')
     .select(
       `
-      firstname, lastname, id, country, generated_id, created_at, 
+      firstname, lastname, id, country, generated_id, created_at, email,
       admin_opinion, cv_name, 
       profile_mission(availability, job_titles, sector), 
       profile_status(iam),
@@ -541,11 +541,21 @@ export const createUser = async ({
   return { error: null };
 };
 
-export const deleteXpert = async (
-  xpertId: string,
-  xpertGeneratedId: string,
-  reason: string
-) => {
+export const deleteXpert = async ({
+  xpertId,
+  xpertGeneratedId,
+  reason,
+  xpertEmail,
+  xpertFirstName,
+  xpertLastName,
+}: {
+  xpertId: string;
+  xpertGeneratedId: string;
+  reason: string;
+  xpertEmail: string | null;
+  xpertFirstName: string | null;
+  xpertLastName: string | null;
+}) => {
   try {
     const supabase = await createSupabaseAppServerClient('admin');
 
@@ -561,6 +571,9 @@ export const deleteXpert = async (
         deleted_by: user.id,
         reason: reason,
         deleted_at: new Date().toISOString(),
+        email: xpertEmail,
+        firstname: xpertFirstName,
+        lastname: xpertLastName,
       });
 
     if (insertError) throw insertError;

@@ -128,8 +128,8 @@ export function MissionNotes({ missionId }: MissionNotesProps) {
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
+                <div className="flex flex-col items-center justify-between sm:flex-row">
+                  <div className="mb-2 flex flex-col sm:mb-0">
                     <span className="font-semibold">
                       {note.author?.firstname} {note.author?.lastname}
                     </span>
