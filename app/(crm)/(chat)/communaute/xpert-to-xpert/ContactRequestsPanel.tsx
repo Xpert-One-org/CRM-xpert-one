@@ -21,6 +21,7 @@ import {
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type ContactRequest = {
   id: number;
@@ -44,12 +45,7 @@ type ContactRequest = {
 };
 
 export default function ContactRequestsPanel() {
-  const [incomingRequests, setIncomingRequests] = useState<ContactRequest[]>(
-    []
-  );
-  const [outgoingRequests, setOutgoingRequests] = useState<ContactRequest[]>(
-    []
-  );
+  const [requests, setRequests] = useState<ContactRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<number[]>([]);
 
@@ -60,8 +56,12 @@ export default function ContactRequestsPanel() {
       if (result.error) {
         toast.error(`Erreur: ${result.error}`);
       } else {
-        setIncomingRequests(result.incomingData || []);
-        setOutgoingRequests(result.outgoingData || []);
+        // Combine all requests
+        const allRequests = [
+          ...(result.incomingData || []),
+          ...(result.outgoingData || []),
+        ];
+        setRequests(allRequests);
       }
     } catch (error) {
       toast.error('Erreur lors de la récupération des demandes');
@@ -111,9 +111,9 @@ export default function ContactRequestsPanel() {
     }
   };
 
-  const renderRequestCard = (request: ContactRequest, isIncoming: boolean) => {
+  const renderRequestCard = (request: ContactRequest) => {
     const isProcessing = processingIds.includes(request.id);
-    const isPending = request.state === 'pending';
+    const isPending = request.state === 'IN_REVIEW';
     const sender = request.sent_by || {
       id: '',
       firstname: 'Utilisateur',
@@ -133,11 +133,9 @@ export default function ContactRequestsPanel() {
       <Card key={request.id} className="mb-4">
         <CardHeader className="pb-2">
           <div className="flex justify-between">
-            <CardTitle className="text-lg">
-              Demande {isIncoming ? 'entrante' : 'sortante'}
-            </CardTitle>
+            <CardTitle className="text-lg">Demande de contact</CardTitle>
             <div className="flex items-center gap-2">
-              {request.state === 'pending' && (
+              {request.state === 'IN_REVIEW' && (
                 <Clock className="size-5 text-amber-500" />
               )}
               {request.state === 'approved' && (
@@ -149,14 +147,14 @@ export default function ContactRequestsPanel() {
               <span
                 className={cn(
                   'text-sm font-medium',
-                  request.state === 'pending'
+                  request.state === 'IN_REVIEW'
                     ? 'text-amber-500'
                     : request.state === 'approved'
                       ? 'text-green-500'
                       : 'text-red-500'
                 )}
               >
-                {request.state === 'pending'
+                {request.state === 'IN_REVIEW'
                   ? 'En attente'
                   : request.state === 'approved'
                     ? 'Approuvée'
@@ -224,7 +222,7 @@ export default function ContactRequestsPanel() {
               <p className="text-sm">{request.message || 'Aucun message'}</p>
             </div>
 
-            {isPending && isIncoming && (
+            {isPending && (
               <div className="mt-2 flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -255,24 +253,20 @@ export default function ContactRequestsPanel() {
     );
   }
 
-  const pendingIncoming = incomingRequests.filter((r) => r.state === 'pending');
-  const pendingOutgoing = outgoingRequests.filter((r) => r.state === 'pending');
-  const resolvedIncoming = incomingRequests.filter(
-    (r) => r.state !== 'pending' && r.state !== null
-  );
-  const resolvedOutgoing = outgoingRequests.filter(
-    (r) => r.state !== 'pending' && r.state !== null
+  const pendingRequests = requests.filter((r) => r.state === 'IN_REVIEW');
+  const resolvedRequests = requests.filter(
+    (r) => r.state !== 'IN_REVIEW' && r.state !== null
   );
 
   return (
-    <div className="w-full">
-      <Tabs defaultValue="pending" className="w-full">
+    <div className="size-full">
+      <Tabs defaultValue="pending" className="size-full">
         <TabsList className="mb-4">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="size-4" />
             En attente
             <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary p-1 text-xs text-white">
-              {pendingIncoming.length + pendingOutgoing.length}
+              {pendingRequests.length}
             </span>
           </TabsTrigger>
           <TabsTrigger value="resolved">Traitées</TabsTrigger>
@@ -280,102 +274,50 @@ export default function ContactRequestsPanel() {
         </TabsList>
 
         {/* Pending Requests Tab */}
-        <TabsContent value="pending" className="space-y-4">
-          {pendingIncoming.length === 0 && pendingOutgoing.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-muted-foreground">Aucune demande en attente</p>
-            </div>
-          ) : (
-            <>
-              {pendingIncoming.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="mb-4 text-lg font-medium">
-                    Demandes entrantes ({pendingIncoming.length})
-                  </h3>
-                  {pendingIncoming.map((request) =>
-                    renderRequestCard(request, true)
-                  )}
-                </div>
-              )}
-
-              {pendingOutgoing.length > 0 && (
-                <div>
-                  <h3 className="mb-4 text-lg font-medium">
-                    Demandes sortantes ({pendingOutgoing.length})
-                  </h3>
-                  {pendingOutgoing.map((request) =>
-                    renderRequestCard(request, false)
-                  )}
-                </div>
-              )}
-            </>
-          )}
+        <TabsContent value="pending" className="!overflow-scroll">
+          <div className="h-full !overflow-scroll pr-4">
+            {pendingRequests.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-muted-foreground">
+                  Aucune demande en attente
+                </p>
+              </div>
+            ) : (
+              <div className="pb-4">
+                {pendingRequests.map((request) => renderRequestCard(request))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* Resolved Requests Tab */}
-        <TabsContent value="resolved" className="space-y-4">
-          {resolvedIncoming.length === 0 && resolvedOutgoing.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-muted-foreground">Aucune demande traitée</p>
-            </div>
-          ) : (
-            <>
-              {resolvedIncoming.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="mb-4 text-lg font-medium">
-                    Demandes entrantes traitées ({resolvedIncoming.length})
-                  </h3>
-                  {resolvedIncoming.map((request) =>
-                    renderRequestCard(request, true)
-                  )}
-                </div>
-              )}
-
-              {resolvedOutgoing.length > 0 && (
-                <div>
-                  <h3 className="mb-4 text-lg font-medium">
-                    Demandes sortantes traitées ({resolvedOutgoing.length})
-                  </h3>
-                  {resolvedOutgoing.map((request) =>
-                    renderRequestCard(request, false)
-                  )}
-                </div>
-              )}
-            </>
-          )}
+        <TabsContent value="resolved" className="!overflow-scroll">
+          <div className="h-full !overflow-scroll pr-4">
+            {resolvedRequests.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-muted-foreground">Aucune demande traitée</p>
+              </div>
+            ) : (
+              <div className="pb-4">
+                {resolvedRequests.map((request) => renderRequestCard(request))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* All Requests Tab */}
-        <TabsContent value="all" className="space-y-4">
-          {incomingRequests.length === 0 && outgoingRequests.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-muted-foreground">Aucune demande trouvée</p>
-            </div>
-          ) : (
-            <>
-              {incomingRequests.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="mb-4 text-lg font-medium">
-                    Demandes entrantes ({incomingRequests.length})
-                  </h3>
-                  {incomingRequests.map((request) =>
-                    renderRequestCard(request, true)
-                  )}
-                </div>
-              )}
-
-              {outgoingRequests.length > 0 && (
-                <div>
-                  <h3 className="mb-4 text-lg font-medium">
-                    Demandes sortantes ({outgoingRequests.length})
-                  </h3>
-                  {outgoingRequests.map((request) =>
-                    renderRequestCard(request, false)
-                  )}
-                </div>
-              )}
-            </>
-          )}
+        <TabsContent value="all" className="!overflow-scroll">
+          <div className="h-full !overflow-scroll pr-4">
+            {requests.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-muted-foreground">Aucune demande trouvée</p>
+              </div>
+            ) : (
+              <div className="pb-4">
+                {requests.map((request) => renderRequestCard(request))}
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

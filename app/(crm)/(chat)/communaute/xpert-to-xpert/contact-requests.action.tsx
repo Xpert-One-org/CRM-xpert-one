@@ -133,8 +133,8 @@ export async function approveContactRequest(requestId: number) {
       return { success: false, error: requestError.message };
     }
 
-    // Check if request exists and is pending
-    if (!request || request.state !== 'pending') {
+    // Check if request exists and is pending (IN_REVIEW)
+    if (!request || request.state !== 'IN_REVIEW') {
       return {
         success: false,
         error: 'Request not found or already processed',
@@ -171,45 +171,78 @@ export async function approveContactRequest(requestId: number) {
       return { success: false, error: receiverError.message };
     }
 
-    // First update the request state to approved
-    const { error: updateError } = await supabase
+    // Check if a chat already exists between these users
+    const { data: existingChat, error: checkChatError } = await supabase
+      .from('chat')
+      .select('id')
+      .eq('type', 'xpert_to_xpert')
+      .or(
+        `and(created_by.eq.${senderProfile.id},receiver_id.eq.${receiverProfile.id}),and(created_by.eq.${receiverProfile.id},receiver_id.eq.${senderProfile.id})`
+      );
+
+    if (checkChatError) {
+      console.error('Error checking existing chat:', checkChatError);
+      return { success: false, error: checkChatError.message };
+    }
+
+    // First update the request state from IN_REVIEW
+    const { data: updateData, error: updateError } = await supabase
       .from('contact_xpert_demands')
       .update({ state: 'approved' })
-      .eq('id', requestId);
+      .eq('id', requestId)
+      .select();
 
     if (updateError) {
       console.error('Error updating request state:', updateError);
       return { success: false, error: updateError.message };
     }
 
-    // Create a new chat between the two users
-    const { data: chat, error: chatError } = await supabase
-      .from('chat')
-      .insert({
-        title: 'Conversation XPERT à XPERT',
-        topic: 'xpert_to_xpert',
-        type: 'xpert_to_xpert',
-        created_by: senderProfile.id,
-        receiver_id: receiverProfile.id,
-      })
-      .select('id')
-      .single();
+    console.log('Updated contact request state:', updateData);
 
-    if (chatError) {
-      console.error('Error creating chat:', chatError);
-      // Still return success because the request was approved
-      return {
-        success: true,
-        warning: 'Request approved but chat creation failed',
-      };
+    // Use existing chat or create new one
+    let chatId;
+
+    if (existingChat && existingChat.length > 0) {
+      chatId = existingChat[0].id;
+
+      // Update the chat's timestamp to make it appear at the top
+      await supabase
+        .from('chat')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', chatId);
+    } else {
+      // Create a new chat between the two users
+      const { data: chat, error: chatError } = await supabase
+        .from('chat')
+        .insert({
+          title: 'Conversation XPERT à XPERT',
+          topic: 'xpert_to_xpert',
+          type: 'xpert_to_xpert',
+          created_by: senderProfile.id,
+          receiver_id: receiverProfile.id,
+          updated_at: new Date().toISOString(), // Set updated_at to now
+        })
+        .select('id')
+        .single();
+
+      if (chatError) {
+        console.error('Error creating chat:', chatError);
+        // Still return success because the request was approved
+        return {
+          success: true,
+          warning: 'Request approved but chat creation failed',
+        };
+      }
+
+      chatId = chat.id;
     }
 
     // Create an initial message in the chat
     const { error: messageError } = await supabase.from('message').insert({
-      chat_id: chat.id,
+      chat_id: chatId,
       content: 'Demande de contact acceptée. Vous pouvez maintenant échanger.',
       send_by: user.user.id, // The message is sent by the admin who approved it
-      read_by: [user.user.id], // Initially read only by the sender
+      read_by: [user.user.id, senderProfile.id, receiverProfile.id], // Mark as read by all participants
     });
 
     if (messageError) {
@@ -221,7 +254,7 @@ export async function approveContactRequest(requestId: number) {
       };
     }
 
-    return { success: true, chatId: chat.id };
+    return { success: true, chatId: chatId };
   } catch (error) {
     console.error('Error in approveContactRequest:', error);
     return { success: false, error: 'An unexpected error occurred' };
@@ -257,7 +290,7 @@ export async function rejectContactRequest(requestId: number) {
       };
     }
 
-    // First check if the request exists and is pending
+    // First check if the request exists and is pending (IN_REVIEW)
     const { data: request, error: requestError } = await supabase
       .from('contact_xpert_demands')
       .select('id, state')
@@ -269,23 +302,26 @@ export async function rejectContactRequest(requestId: number) {
       return { success: false, error: requestError.message };
     }
 
-    if (!request || request.state !== 'pending') {
+    if (!request || request.state !== 'IN_REVIEW') {
       return {
         success: false,
         error: 'Request not found or already processed',
       };
     }
 
-    // Update the request state to rejected
-    const { error: updateError } = await supabase
+    // Update the request state from IN_REVIEW
+    const { data: updateData, error: updateError } = await supabase
       .from('contact_xpert_demands')
       .update({ state: 'rejected' })
-      .eq('id', requestId);
+      .eq('id', requestId)
+      .select();
 
     if (updateError) {
       console.error('Error updating request state:', updateError);
       return { success: false, error: updateError.message };
     }
+
+    console.log('Updated contact request state:', updateData);
 
     return { success: true };
   } catch (error) {
@@ -332,7 +368,7 @@ export async function createContactRequest(
       .select('id, state')
       .eq('sent_by', user.user.id)
       .eq('asked_xpert', askedXpertId)
-      .in('state', ['pending', 'approved']);
+      .in('state', ['IN_REVIEW', 'approved']);
 
     if (checkError) {
       console.error('Error checking existing requests:', checkError);
@@ -357,7 +393,7 @@ export async function createContactRequest(
       .insert({
         sent_by: user.user.id,
         asked_xpert: askedXpertId,
-        state: 'pending',
+        state: 'IN_REVIEW',
         message: message,
       })
       .select('id')
@@ -396,7 +432,7 @@ export async function cancelContactRequest(requestId: number) {
       return { success: false, error: requestError.message };
     }
 
-    if (!request || request.state !== 'pending') {
+    if (!request || request.state !== 'IN_REVIEW') {
       return {
         success: false,
         error: 'Request not found or already processed',
