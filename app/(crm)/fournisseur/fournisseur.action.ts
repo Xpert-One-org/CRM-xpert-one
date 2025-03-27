@@ -156,6 +156,7 @@ export const deleteFournisseur = async ({
         email: fournisseurEmail,
         firstname: fournisseurFirstName,
         lastname: fournisseurLastName,
+        role: 'company',
       });
 
     if (insertError) throw insertError;

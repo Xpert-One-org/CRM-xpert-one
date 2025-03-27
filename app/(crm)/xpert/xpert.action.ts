@@ -574,6 +574,7 @@ export const deleteXpert = async ({
         email: xpertEmail,
         firstname: xpertFirstName,
         lastname: xpertLastName,
+        role: 'xpert',
       });
 
     if (insertError) throw insertError;
