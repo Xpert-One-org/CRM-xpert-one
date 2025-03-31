@@ -32,7 +32,10 @@ export default function XpertToXpertPage() {
             <Button
               variant={showRequests ? 'default' : 'outline'}
               onClick={() => setShowRequests(!showRequests)}
-              className="transition-all"
+              className={cn(
+                'transition-all',
+                showRequests && 'bg-primary text-white'
+              )}
             >
               {showRequests
                 ? 'Retour aux conversations'

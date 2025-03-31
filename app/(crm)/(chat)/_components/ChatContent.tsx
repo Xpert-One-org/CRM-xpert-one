@@ -147,7 +147,7 @@ export default function ChatContent({
             style={{
               maxHeight: `calc(100vh - 400px - ${inputScrollHeight})`,
             }}
-            className="flex w-full flex-col items-center gap-y-[22px] overflow-auto pb-10 pt-spaceContainer"
+            className="flex w-full flex-col items-center gap-y-[22px] overflow-auto pb-[64px] pt-spaceContainer"
           >
             {isMoreDataLoading && <Loader />}
             {messages.map((m) => (

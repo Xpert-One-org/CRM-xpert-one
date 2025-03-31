@@ -116,7 +116,7 @@ export default function ReadOnlyChatContent({
   return (
     <div
       className={cn(
-        'relative w-[calc(100%_-_342px)] rounded-r-lg shadow-container lg:block lg:bg-background',
+        'relative w-[calc(100%_-_342px)] overflow-scroll rounded-r-lg shadow-container lg:block lg:bg-background',
         className,
         { hidden: !isDesktop && !chatSelected },
         { 'w-full': !isDesktop && chatSelected }
@@ -159,7 +159,7 @@ export default function ReadOnlyChatContent({
           <div
             ref={scrollRef}
             style={{
-              maxHeight: `calc(100vh - ${readOnly ? '310px' : `400px - ${inputScrollHeight}`})`,
+              maxHeight: `calc(100vh - 400px - ${inputScrollHeight})`,
             }}
             className="flex w-full flex-col items-center gap-y-[22px] overflow-auto pb-10 pt-spaceContainer"
           >

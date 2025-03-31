@@ -234,6 +234,7 @@ export default function ContactRequestsPanel() {
                 <Button
                   onClick={() => handleApprove(request.id)}
                   disabled={isProcessing}
+                  className="bg-primary text-white"
                 >
                   Approuver
                 </Button>
@@ -260,8 +261,8 @@ export default function ContactRequestsPanel() {
 
   return (
     <div className="size-full">
-      <Tabs defaultValue="pending" className="size-full">
-        <TabsList className="mb-4">
+      <Tabs defaultValue="pending" className="flex h-full flex-col">
+        <TabsList className="mb-4 w-fit">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="size-4" />
             En attente
@@ -274,8 +275,8 @@ export default function ContactRequestsPanel() {
         </TabsList>
 
         {/* Pending Requests Tab */}
-        <TabsContent value="pending" className="!overflow-scroll">
-          <div className="h-full !overflow-scroll pr-4">
+        <TabsContent value="pending" className="flex-1 overflow-auto">
+          <div className="max-h-[calc(100vh_-_290px)] overflow-auto pr-4">
             {pendingRequests.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-muted-foreground">
@@ -291,8 +292,8 @@ export default function ContactRequestsPanel() {
         </TabsContent>
 
         {/* Resolved Requests Tab */}
-        <TabsContent value="resolved" className="!overflow-scroll">
-          <div className="h-full !overflow-scroll pr-4">
+        <TabsContent value="resolved" className="flex-1 overflow-auto">
+          <div className="max-h-[calc(100vh_-_290px)] overflow-auto pr-4">
             {resolvedRequests.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-muted-foreground">Aucune demande traitée</p>
@@ -306,8 +307,8 @@ export default function ContactRequestsPanel() {
         </TabsContent>
 
         {/* All Requests Tab */}
-        <TabsContent value="all" className="!overflow-scroll">
-          <div className="h-full !overflow-scroll pr-4">
+        <TabsContent value="all" className="flex-1 overflow-auto">
+          <div className="max-h-[calc(100vh_-_290px)] overflow-auto pr-4">
             {requests.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-muted-foreground">Aucune demande trouvée</p>
