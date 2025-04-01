@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import type { ReasonMissionDeletion } from '@/types/typesDb';
 import { reasonDeleteMissionSelect } from '@/data/mocked_select';
 import { useIsIntern } from '@/hooks/useRoles';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function DeleteMissionDialog({
   missionId,
@@ -27,6 +28,7 @@ export default function DeleteMissionDialog({
 
   const [reasonDelete, setReasonDelete] =
     useState<ReasonMissionDeletion | null>(null);
+  const [detailDeletion, setDetailDeletion] = useState<string>('');
   const router = useRouter();
 
   const handleSendDeleteMission = async () => {
@@ -37,7 +39,11 @@ export default function DeleteMissionDialog({
 
     setIsLoading(true);
     try {
-      const { error } = await deleteMission(missionId, reasonDelete);
+      const { error } = await deleteMission(
+        missionId,
+        reasonDelete,
+        detailDeletion
+      );
       if (!error) {
         toast.success('Mission supprimée avec succès');
       }
@@ -81,11 +87,22 @@ export default function DeleteMissionDialog({
               }
               required
             />
+            <div className="col-span-1 md:col-span-3">
+              <label className="mb-2 block text-sm font-medium">
+                Commentaire sur la suppression
+              </label>
+              <Textarea
+                placeholder="Détaillez la raison de suppression de cette mission"
+                className="min-h-[100px] w-full resize-none bg-white"
+                value={detailDeletion}
+                onChange={(e) => setDetailDeletion(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="flex gap-x-spaceSmall self-end">
             <CredenzaClose asChild>
-              <Button variant={'outline'}>Annuler demande de suppresion</Button>
+              <Button variant={'outline'}>Annuler la suppresion</Button>
             </CredenzaClose>
 
             <Button

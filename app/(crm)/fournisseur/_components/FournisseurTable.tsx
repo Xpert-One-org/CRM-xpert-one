@@ -39,10 +39,14 @@ import { FournisseurNotes } from './FournisseurNotes';
 import CreatableSelect from '@/components/CreatableSelect';
 import MultiCreatableSelect from '@/components/MultiCreatableSelect';
 import { Checkbox } from '@/components/ui/checkbox';
+import { sortDateOptions } from '@/data/filter';
 
 export default function FournisseurTable() {
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
   const [hasChanged, setHasChanged] = useState(false);
+  const [sortedFournisseurs, setSortedFournisseurs] = useState<DBFournisseur[]>(
+    []
+  );
 
   const { regions, countries, fetchRegions, fetchCountries } = useSelect();
 
@@ -88,6 +92,11 @@ export default function FournisseurTable() {
     );
   }, [openedFournisseurNotSaved, openedFournisseur]);
 
+  useEffect(() => {
+    // Mettre à jour les fournisseurs triés lorsque les fournisseurs changent
+    setSortedFournisseurs(fournisseurs || []);
+  }, [fournisseurs]);
+
   type FournisseurTableKey = 'profile' | 'profile_status';
 
   const handleKeyChanges = (table: FournisseurTableKey, name: string) => {
@@ -129,6 +138,27 @@ export default function FournisseurTable() {
       handleKeyChanges('profile', name);
     }
   };
+
+  const handleSortDateChange = (value: string) => {
+    if (!fournisseurs) return;
+    if (value === '') {
+      setSortedFournisseurs([...fournisseurs]);
+      return;
+    }
+
+    const sorted = [...fournisseurs].sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return value === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+    setSortedFournisseurs(sorted);
+  };
+
+  // Utiliser sortedFournisseurs pour l'affichage
+  const displayFournisseurs =
+    sortedFournisseurs.length > 0 ? sortedFournisseurs : fournisseurs || [];
+
   return (
     <>
       <div className="mb-2 flex w-fit items-center justify-between gap-2">
@@ -146,9 +176,13 @@ export default function FournisseurTable() {
 
       <div className="grid grid-cols-8 gap-3">
         <FilterButton
-          options={[]}
-          onValueChange={() => {}}
+          options={sortDateOptions}
+          onValueChange={handleSortDateChange}
           placeholder="Date d'inscription"
+          showSelectedOption={true}
+          sortable
+          data={fournisseurs || []}
+          sortKey="created_at"
         />
         <FilterButton options={[]} onValueChange={() => {}} placeholder="Nom" />
         <FilterButton
@@ -182,7 +216,7 @@ export default function FournisseurTable() {
           filter={false}
         />
 
-        {fournisseurs?.map((fournisseur) => (
+        {displayFournisseurs?.map((fournisseur) => (
           <React.Fragment key={fournisseur.id}>
             <FournisseurRow
               fournisseur={fournisseur}

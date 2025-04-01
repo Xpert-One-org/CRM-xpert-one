@@ -7,9 +7,17 @@ import MissionEtatInProcessRow from './MissionEtatInProcessRow';
 import type { DBMissionState, ReasonMissionDeletion } from '@/types/typesDb';
 import { getLabel } from '@/utils/getLabel';
 import { reasonDeleteMissionSelect } from '@/data/mocked_select';
+import { sortDateOptions } from '@/data/filter';
+
+// Ajout d'un tableau local avec une option de réinitialisation
+const sortDateOptionsWithReset = [
+  ...sortDateOptions,
+  { label: 'Réinitialiser', value: '' },
+];
 
 export function MissionEtatInProcessTable() {
   const { missions, updateMission } = useMissionStore();
+  const [sortedMissions, setSortedMissions] = useState(missions);
 
   const [validatedOpenAll, setValidatedOpenAll] = useState<
     Record<string, boolean>
@@ -104,13 +112,49 @@ export function MissionEtatInProcessTable() {
     setValidatedMissions({});
   };
 
+  const handleSortDateChange = (value: string) => {
+    const filteredMissions = missions.filter(
+      (mission) =>
+        mission.state === 'in_process' ||
+        mission.state === 'open_all_to_validate' ||
+        mission.state === 'to_validate'
+    );
+    if (value === '') {
+      setSortedMissions(filteredMissions);
+      return;
+    }
+
+    const sorted = [...filteredMissions].sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return value === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+    setSortedMissions(sorted);
+  };
+
+  // Filtrer les missions initiales
+  const filteredMissions =
+    sortedMissions.length > 0
+      ? sortedMissions
+      : missions.filter(
+          (mission) =>
+            mission.state === 'in_process' ||
+            mission.state === 'open_all_to_validate' ||
+            mission.state === 'to_validate'
+        );
+
   return (
     <>
       <div className="grid grid-cols-8 gap-3">
         <FilterButton
-          options={[]}
-          onValueChange={() => {}}
+          options={sortDateOptionsWithReset}
+          onValueChange={handleSortDateChange}
           placeholder="Créer le"
+          showSelectedOption={true}
+          filter={true}
+          data={missions}
+          sortKey="created_at"
         />
         <FilterButton placeholder="N° de fournisseur" filter={false} />
         <FilterButton placeholder="N° de mission" filter={false} />
@@ -127,21 +171,14 @@ export function MissionEtatInProcessTable() {
         <FilterButton placeholder="Poste" filter={false} />
         <FilterButton placeholder="Ouverte à tous" filter={false} />
         <FilterButton placeholder="Valider la mission ?" filter={false} />
-        {missions
-          .filter(
-            (mission) =>
-              mission.state === 'in_process' ||
-              mission.state === 'open_all_to_validate' ||
-              mission.state === 'to_validate'
-          )
-          .map((mission) => (
-            <MissionEtatInProcessRow
-              key={mission.id}
-              mission={mission}
-              onValidationChange={handleValidationChange}
-              onValidationChangeAll={handleValidationChangeAll}
-            />
-          ))}
+        {filteredMissions.map((mission) => (
+          <MissionEtatInProcessRow
+            key={mission.id}
+            mission={mission}
+            onValidationChange={handleValidationChange}
+            onValidationChangeAll={handleValidationChangeAll}
+          />
+        ))}
       </div>
       {(Object.keys(validatedMissions).length > 0 ||
         Object.keys(validatedOpenAll).length > 0) && (
