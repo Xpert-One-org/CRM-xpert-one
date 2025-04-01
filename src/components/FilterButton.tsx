@@ -49,6 +49,15 @@ export const FilterButton = ({
   });
 
   const compareValues = (valueA: any, valueB: any) => {
+    if (
+      typeof valueA === 'string' &&
+      typeof valueB === 'string' &&
+      !isNaN(Date.parse(valueA)) &&
+      !isNaN(Date.parse(valueB))
+    ) {
+      return new Date(valueA).getTime() - new Date(valueB).getTime();
+    }
+
     if (!isNaN(Number(valueA)) && !isNaN(Number(valueB))) {
       return Number(valueA) - Number(valueB);
     }

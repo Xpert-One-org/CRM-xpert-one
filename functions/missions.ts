@@ -623,7 +623,8 @@ export const insertMission = async ({ mission }: { mission: any }) => {
 
 export const deleteMission = async (
   missionId: number,
-  reason: ReasonMissionDeletion
+  reason: ReasonMissionDeletion,
+  detail_deletion?: string
 ) => {
   const supabase = await createSupabaseAppServerClient();
 
@@ -632,29 +633,19 @@ export const deleteMission = async (
     return { error: 'Non autorisé à supprimer des missions' };
   }
 
-  //! maybe later we will add table called history_mission
-  //! to keep history queries of the mission
+  const { error: errorMission } = await supabase
+    .from('mission')
+    .update({
+      state: 'deleted',
+      reason_deletion: reason,
+      detail_deletion: detail_deletion,
+      deleted_at: new Date().toISOString(),
+    })
+    .eq('id', missionId);
 
-  // const { error: errorMissionsCanceled } =
-  //   await supabase.from('history_mission').insert({
-  //     mission_id: missionId,
-  //     reason,
-  //     comment,
-  //     created_at: new Date().toISOString(),
-  //   });
-
-  // const { error: errorMission } = await supabase
-  //   .from("mission")
-  //   .update({
-  //     state: "deleted",
-  //     reason_deletion: reason,
-  //     deleted_at: new Date().toISOString(),
-  //   })
-  //   .eq("id", missionId);
-
-  // if (errorMission) {
-  //   return { errorMission };
-  // }
+  if (errorMission) {
+    return { error: errorMission };
+  }
 
   return { error: null };
 };
