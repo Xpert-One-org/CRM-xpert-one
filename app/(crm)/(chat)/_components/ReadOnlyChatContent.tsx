@@ -1,9 +1,13 @@
 'use client';
+
+// Ce fichier est une modification du composant ChatContent qui suit la même structure que le fichier que vous avez montré,
+// mais ajoute la prise en charge du mode lecture seule pour les conversations entre experts.
+
 import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { DESKTOP } from '@/data/constant';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Lock } from 'lucide-react';
 import type { RealtimePresenceState } from '@supabase/supabase-js';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import useChat from '@/store/chat/chat';
@@ -15,17 +19,19 @@ import { handleReadNewMessage, getMessages } from '@functions/chat';
 import SkeletonChat from './skeletons/SkeletonChat';
 import Loader from '@/components/Loader';
 import { MsgCard } from './MsgCard';
-import InputSend from './InputSend';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function ChatContent({
+type ChatContentProps = {
+  type: ChatType;
+  className?: string;
+  readOnly?: boolean;
+};
+
+export default function ReadOnlyChatContent({
   className,
   type,
-}: Readonly<{
-  type: ChatType;
-  chat?: DBChat;
-  className?: string;
-}>) {
+  readOnly = false,
+}: Readonly<ChatContentProps>) {
   const {
     inputScrollHeight,
     getChatSelectedWithRightType,
@@ -110,7 +116,7 @@ export default function ChatContent({
   return (
     <div
       className={cn(
-        'relative w-[calc(100%_-_342px)] rounded-r-lg shadow-container lg:block lg:bg-background',
+        'relative w-[calc(100%_-_342px)] overflow-scroll rounded-r-lg shadow-container lg:block lg:bg-background',
         className,
         { hidden: !isDesktop && !chatSelected },
         { 'w-full': !isDesktop && chatSelected }
@@ -132,10 +138,18 @@ export default function ChatContent({
           <ChevronLeft color="white" />
         </button>
         <div className="absolute left-0 top-0 flex size-full flex-col items-center justify-center gap-spaceXSmall">
-          <p className="max-w-[75%] break-words text-lg font-[500] text-white">
-            {chatSelected?.title}
-            {mission_number && ` - ${mission_number}`}
-          </p>
+          <div className="flex items-center gap-2">
+            {readOnly && <Lock size={18} className="text-yellow-400" />}
+            <p className="max-w-[75%] break-words text-lg font-[500] text-white">
+              {chatSelected?.title}
+              {mission_number && ` - ${mission_number}`}
+            </p>
+          </div>
+          {readOnly && (
+            <span className="text-xs text-gray-200">
+              Vous consultez une conversation entre experts (lecture seule)
+            </span>
+          )}
         </div>
       </div>
       {isLoading ? (
@@ -147,26 +161,35 @@ export default function ChatContent({
             style={{
               maxHeight: `calc(100vh - 400px - ${inputScrollHeight})`,
             }}
-            className="flex w-full flex-col items-center gap-y-[22px] overflow-auto pb-[64px] pt-spaceContainer"
+            className="flex w-full flex-col items-center gap-y-[22px] overflow-auto pb-10 pt-spaceContainer"
           >
             {isMoreDataLoading && <Loader />}
-            {messages.map((m) => (
-              <MsgCard
-                user_id={user?.id ?? ''}
-                type={type}
-                key={m.id}
-                message={m}
-                onDelete={refreshMessages}
-              />
-            ))}
+            {messages.length === 0 ? (
+              <div className="mt-8 text-center text-gray-500">
+                <p>Aucun message dans cette conversation.</p>
+              </div>
+            ) : (
+              messages.map((m) => (
+                <MsgCard
+                  user_id={user?.id ?? ''}
+                  type={type}
+                  key={m.id}
+                  message={m}
+                  onDelete={refreshMessages}
+                  readOnly={readOnly}
+                />
+              ))
+            )}
           </div>
         </div>
       )}
-      <InputSend
-        user_id={user?.id ?? ''}
-        profile={minimal_profile}
-        type={type}
-      />
+
+      {readOnly && (
+        <div className="flex h-14 items-center justify-center border-t bg-gray-50 text-center text-sm text-gray-500">
+          <Lock size={16} className="mr-2" />
+          Cette conversation est en lecture seule
+        </div>
+      )}
     </div>
   );
 }

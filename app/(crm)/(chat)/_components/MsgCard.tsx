@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
-import { MessageSquareMore, Pin, X } from 'lucide-react';
+import { Lock, MessageSquareMore, Pin, X } from 'lucide-react';
 import { useState } from 'react';
 
 import Image from 'next/image';
@@ -41,6 +41,7 @@ type MsgCardProps = {
   user_id: string;
   type: ChatType;
   onDelete?: () => void;
+  readOnly?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MsgCard = ({
@@ -49,6 +50,7 @@ export const MsgCard = ({
   user_id,
   type,
   onDelete,
+  readOnly = false,
 }: MsgCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const {
@@ -71,18 +73,23 @@ export const MsgCard = ({
 
   const isCreatorMsgNotUser =
     chatSelected?.created_by === message.send_by &&
-    (chatSelected.type == 'echo_community' || chatSelected.type == 'forum') &&
+    (chatSelected.type == 'echo_community' ||
+      chatSelected.type == 'forum' ||
+      chatSelected.type == 'xpert_to_xpert') &&
     message.send_by != user_id;
   const isUserMsg = user_id === message.send_by;
   const isPinMsg = message.is_pinned;
 
   const isCreatorBaseMsg =
     chatSelected?.created_by === base_msg?.send_by &&
-    (chatSelected?.type == 'echo_community' || chatSelected?.type == 'forum') &&
+    (chatSelected?.type == 'echo_community' ||
+      chatSelected?.type == 'forum' ||
+      chatSelected?.type == 'xpert_to_xpert') &&
     base_msg?.send_by != user_id;
   const isUserBaseMsg = user_id === base_msg?.send_by;
 
   const handleDeleteRequest = () => {
+    if (readOnly) return; // Bloquer la suppression en mode lecture seule
     setShowDeleteDialog(true);
   };
 
@@ -139,12 +146,22 @@ export const MsgCard = ({
           { 'bg-primary text-white': isUserMsg }
         )}
       >
-        <button
-          onClick={handleDeleteRequest}
-          className="absolute right-2 top-2 rounded-full p-1 hover:bg-gray-100"
-        >
-          <X size={16} className={cn({ 'text-white': isUserMsg })} />
-        </button>
+        {/* Bouton de suppression - non affiché en mode lecture seule */}
+        {!readOnly && isUserMsg && (
+          <button
+            onClick={handleDeleteRequest}
+            className="absolute right-2 top-2 rounded-full p-1 hover:bg-gray-100"
+          >
+            <X size={16} className={cn({ 'text-white': isUserMsg })} />
+          </button>
+        )}
+
+        {/* Indicateur mode lecture seule */}
+        {readOnly && type === 'xpert_to_xpert' && (
+          <div className="absolute right-2 top-2 rounded-full p-1">
+            <Lock size={16} className={cn({ 'text-white': isUserMsg })} />
+          </div>
+        )}
 
         {isPinMsg && (
           <div className="absolute right-3 top-3 rotate-45">
@@ -186,48 +203,66 @@ export const MsgCard = ({
           {files?.map((f) => <File key={f.name} file={f} />)}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-spaceSmall gap-y-spaceXSmall">
-          <button
-            className="flex items-center gap-x-spaceXSmall"
-            onClick={() => setAnsweringMsg(message)}
-          >
-            <MessageSquareMore size={23} className="-mb-px mt-px" />
-            <p className="text-sm">Répondre</p>
-          </button>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger className="flex items-center gap-x-spaceXSmall text-sm">
-              <ReactionSvg
-                stroke={user_id === message.send_by ? 'white' : 'black'}
-              />{' '}
-              Ajouter une réaction
-            </PopoverTrigger>
-            <PopoverContent className="w-full border-none bg-transparent p-0">
-              <Picker
-                locale="fr"
-                autoFocus
-                noCountryFlags
-                data={data}
-                onEmojiSelect={addReaction}
-              />
-            </PopoverContent>
-          </Popover>
+        {!readOnly && (
+          <div className="flex flex-wrap items-center gap-x-spaceSmall gap-y-spaceXSmall">
+            <button
+              className="flex items-center gap-x-spaceXSmall"
+              onClick={() => setAnsweringMsg(message)}
+            >
+              <MessageSquareMore size={23} className="-mb-px mt-px" />
+              <p className="text-sm">Répondre</p>
+            </button>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger className="flex items-center gap-x-spaceXSmall text-sm">
+                <ReactionSvg
+                  stroke={user_id === message.send_by ? 'white' : 'black'}
+                />{' '}
+                Ajouter une réaction
+              </PopoverTrigger>
+              <PopoverContent className="w-full border-none bg-transparent p-0">
+                <Picker
+                  locale="fr"
+                  autoFocus
+                  noCountryFlags
+                  data={data}
+                  onEmojiSelect={addReaction}
+                />
+              </PopoverContent>
+            </Popover>
 
-          {(reaction_db as Reaction[] | undefined)?.map((r: any) => (
-            <div key={r?.emoji} className="relative">
-              <div className="z-10 flex items-center gap-x-spaceXXSmall">
-                <button
-                  className={cn(
-                    'flex h-[27px] w-[27px] items-center justify-center rounded-full transition-all hover:shadow-2xl'
-                  )}
-                  onClick={() => addReaction({ native: r.emoji })}
-                >
-                  {r.emoji}
-                </button>
-                <span>{r.count}</span>
+            {(reaction_db as Reaction[] | undefined)?.map((r: any) => (
+              <div key={r?.emoji} className="relative">
+                <div className="z-10 flex items-center gap-x-spaceXXSmall">
+                  <button
+                    className={cn(
+                      'flex h-[27px] w-[27px] items-center justify-center rounded-full transition-all hover:shadow-2xl'
+                    )}
+                    onClick={() => addReaction({ native: r.emoji })}
+                  >
+                    {r.emoji}
+                  </button>
+                  <span>{r.count}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {/* En mode lecture seule, afficher simplement les réactions sans pouvoir interagir */}
+        {readOnly && reaction_db && reaction_db.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-spaceSmall gap-y-spaceXSmall">
+            {(reaction_db as Reaction[] | undefined)?.map((r: any) => (
+              <div key={r?.emoji} className="relative">
+                <div className="z-10 flex items-center gap-x-spaceXXSmall">
+                  <span className="flex size-[27px] items-center justify-center rounded-full border border-gray-200 bg-gray-50">
+                    {r.emoji}
+                  </span>
+                  <span>{r.count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
@@ -265,7 +300,9 @@ const Card = ({
     avatar_url,
   } = user ?? {};
 
-  const useUsername = username && (type == 'forum' || type == 'echo_community');
+  const useUsername =
+    username &&
+    (type == 'forum' || type == 'echo_community' || type == 'xpert_to_xpert');
   const name = useUsername
     ? username
     : `${firstname ?? ''} ${lastname?.toUpperCase() ?? ''}`;

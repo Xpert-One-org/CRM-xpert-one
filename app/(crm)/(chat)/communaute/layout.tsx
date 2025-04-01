@@ -3,7 +3,7 @@ import NavigationCommunaute from './_components/NavigationCommunaute';
 
 export default function layout({ children }: { children: React.ReactNode }) {
   return (
-    <section className="flex h-full flex-col gap-spaceXSmall overflow-hidden lg:max-h-[calc(100vh_-_170px)]">
+    <section className="flex h-full flex-col gap-spaceXSmall overflow-scroll lg:max-h-[calc(100vh_-_170px)]">
       {/* <InformativePopup /> */}
       {/* <UnderDevelopmentOverlay
         message={
