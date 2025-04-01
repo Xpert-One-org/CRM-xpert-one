@@ -156,7 +156,6 @@ export function MissionFinancials() {
   };
 
   useEffect(() => {
-    console.log('mission?.finance', mission?.finance);
     if (mission?.finance) {
       calculateFinanceValues(mission.finance);
     }
@@ -225,7 +224,7 @@ export function MissionFinancials() {
         suffix={suffix}
         explain={helpText}
         numbersOnly
-        className="w-fit"
+        className="w-full"
       />
     );
   };
@@ -235,14 +234,14 @@ export function MissionFinancials() {
       <h3 className="text-lg font-medium">Information monétaire</h3>
 
       {/* Statut et Base tarifaire */}
-      <div className="flex w-full flex-col gap-4 sm:flex-row">
+      <div className="grid grid-cols-4 gap-4">
         <SelectComponent
           label="Statut XPERT"
           options={statusOptions}
           defaultSelectedKeys={finance.xpert_status}
           onValueChange={(value) => handleFinanceUpdate('xpert_status', value)}
           name="xpert_status"
-          className="w-full sm:!max-w-[150px]"
+          className="w-full"
         />
 
         <SelectComponent
@@ -253,14 +252,14 @@ export function MissionFinancials() {
             handleFinanceUpdate('base_tarifaire', value)
           }
           name="base_tarifaire"
-          className="w-full sm:!max-w-[150px]"
+          className="w-full"
         />
       </div>
 
       {/* Taux et période */}
       {finance.xpert_status && finance.base_tarifaire && (
         <>
-          {' '}
+          {/* Première ligne */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MonetaryInput
               label={getSalaryLabel()}
@@ -290,7 +289,8 @@ export function MissionFinancials() {
               />
             )}
           </div>
-          {/* Déplacements et frais */}
+
+          {/* Deuxième ligne - Déplacements et frais */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MonetaryInput
               label="Grand Déplacement"
@@ -305,14 +305,12 @@ export function MissionFinancials() {
               disabled
             />
 
-            <div className="relative">
-              <MonetaryInput
-                label="Frais Annexes"
-                value={finance.annex_costs}
-                fieldName="annex_costs"
-                helpText="Total frais supplémentaire pour toute la durée du contrat"
-              />
-            </div>
+            <MonetaryInput
+              label="Frais Annexes"
+              value={finance.annex_costs}
+              fieldName="annex_costs"
+              helpText="Total frais supplémentaire pour toute la durée du contrat"
+            />
 
             <MonetaryInput
               label="Total coût de l'XPERT"
@@ -320,8 +318,9 @@ export function MissionFinancials() {
               disabled
             />
           </div>
-          {/* Marge et CA */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+          {/* Troisième ligne - Marge et CA */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <MonetaryInput
               label="Marge XPERT ONE"
               value={finance.margin}
