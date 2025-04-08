@@ -11,11 +11,13 @@ import type {
 } from '@/types/typesDb';
 import { create } from 'zustand';
 import {
+  banXpert as banXpertAction,
   deleteXpert,
   getSpecificXpert,
   getXpertIdByJobName,
   getXpertLastJobs,
   getXpertsOptimized,
+  unbanXpert as unbanXpertAction,
   updateProfile,
   updateProfileExpertise,
   updateProfileMission,
@@ -102,6 +104,22 @@ type XpertState = {
     newEmail: string,
     oldEmail: string
   ) => Promise<void>;
+
+  banXpert: ({
+    xpertId,
+    reason,
+  }: {
+    xpertId: string;
+    reason: string;
+  }) => Promise<void>;
+
+  unbanXpert: ({
+    xpertId,
+    banId,
+  }: {
+    xpertId: string;
+    banId: string;
+  }) => Promise<void>;
 };
 
 export const useXpertStore = create<XpertState>((set, get) => ({
@@ -590,5 +608,57 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     toast.success(
       'Email mis à jour avec succès. Des notifications ont été envoyées aux deux adresses.'
     );
+  },
+
+  banXpert: async ({ xpertId, reason }) => {
+    set({ loading: true });
+    try {
+      const { error } = await banXpertAction({ xpertId, reason });
+      if (error) {
+        toast.error("Une erreur est survenue lors du bannissement de l'XPERT");
+        console.error('Erreur lors du bannissement:', error);
+        return;
+      }
+
+      // Mettre à jour le store avec le statut banni si nécessaire
+      set((state) => ({
+        xpertsOptimized: state.xpertsOptimized?.map((xpert) =>
+          xpert.id === xpertId ? { ...xpert } : xpert
+        ),
+      }));
+    } catch (error) {
+      console.error('Erreur lors du bannissement:', error);
+      toast.error("Une erreur est survenue lors du bannissement de l'XPERT");
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  unbanXpert: async ({ xpertId, banId }) => {
+    set({ loading: true });
+    try {
+      const { error } = await unbanXpertAction({ xpertId, banId });
+      if (error) {
+        toast.error(
+          "Une erreur est survenue lors du débannissement de l'XPERT"
+        );
+        console.error('Erreur lors du débannissement:', error);
+        return;
+      }
+
+      // Mettre à jour le store avec le statut débanni si nécessaire
+      set((state) => ({
+        xpertsOptimized: state.xpertsOptimized?.map((xpert) =>
+          xpert.id === xpertId ? { ...xpert } : xpert
+        ),
+      }));
+
+      toast.success("L'XPERT a été débanni avec succès");
+    } catch (error) {
+      console.error('Erreur lors du débannissement:', error);
+      toast.error("Une erreur est survenue lors du débannissement de l'XPERT");
+    } finally {
+      set({ loading: false });
+    }
   },
 }));
