@@ -8,6 +8,8 @@ import { limitXpert, limitXpertLastJobs } from '@/data/constant';
 import { transformArray } from '@/lib/utils';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
 import type {
+  DBMission,
+  DBMissionOptimized,
   DBProfile,
   DBProfileExperience,
   DBProfileExpertise,
@@ -36,7 +38,20 @@ export const getSpecificXpert = async (
         `
         *,
         profile_mission(*),
-        mission!xpert_associated_id(*),
+        mission:mission!xpert_associated_id(
+          id,
+          mission_number,
+          job_title,
+          job_title_other,
+          state,
+          description,
+          created_at,
+          start_date,
+          end_date,
+          xpert_associated_status,
+          created_by,
+          xpert_associated_id
+        ),
         profile_status(*),
         profile_expertise(*),
         user_alerts(*)
@@ -103,6 +118,7 @@ export const getSpecificXpert = async (
           }
         : null,
       user_alerts: data.user_alerts?.[0] || null,
+      mission: data.mission as unknown as DBMission[],
     };
   }
 
@@ -259,7 +275,7 @@ export const getXpertsOptimized = async ({
       profile_mission(availability, job_titles, sector), 
       profile_status(iam),
       profile_experience(post, post_other), 
-      mission!xpert_associated_id(
+      mission:mission!xpert_associated_id(
         id,
         mission_number,
         job_title,
@@ -396,7 +412,21 @@ export const getXpertsOptimized = async ({
     return {
       ...rest,
       profile_experience: profile_experience?.[0] || null,
-      mission: mission?.filter(Boolean) || [],
+      mission: (mission?.filter(Boolean) || []) as unknown as Pick<
+        DBMissionOptimized,
+        | 'xpert_associated_id'
+        | 'id'
+        | 'mission_number'
+        | 'job_title'
+        | 'job_title_other'
+        | 'state'
+        | 'description'
+        | 'created_at'
+        | 'start_date'
+        | 'end_date'
+        | 'xpert_associated_status'
+        | 'created_by'
+      >[],
       profile_mission: xpert.profile_mission || null,
       profile_status: xpert.profile_status || null,
     };
@@ -1048,6 +1078,183 @@ export const updateUserEmail = async ({
     return {
       error: {
         message: "Une erreur est survenue lors de la mise à jour de l'email",
+        code: 'unknown_error',
+      },
+    };
+  }
+};
+
+export const banXpert = async ({
+  xpertId,
+  reason,
+}: {
+  xpertId: string;
+  reason: string;
+}) => {
+  try {
+    const supabase = await createSupabaseAppServerClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return {
+        error: {
+          message: "Vous n'êtes pas connecté",
+          code: 'not_authenticated',
+        },
+      };
+    }
+
+    // Vérifier que l'utilisateur actuel est admin
+    const { data: adminUser } = await supabase
+      .from('profile')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!adminUser || adminUser.role !== 'admin') {
+      return {
+        error: {
+          message: "Vous n'avez pas les droits pour effectuer cette action",
+          code: 'not_authorized',
+        },
+      };
+    }
+
+    // Insérer l'entrée de bannissement
+    const { error: insertError } = await supabase.from('profile_bans').insert({
+      profile_id: xpertId,
+      banned_by: user.id,
+      reason,
+      banned_at: new Date().toISOString(),
+      is_active: true,
+    });
+
+    if (insertError) {
+      console.error("Erreur lors de l'insertion du bannissement:", insertError);
+      return {
+        error: { message: insertError.message, code: insertError.code },
+      };
+    }
+
+    // Mettre à jour le statut de profil pour indiquer que l'utilisateur est banni
+    const { error: updateError } = await supabase
+      .from('profile')
+      .update({
+        is_banned_from_community: true,
+        community_banning_explanations: reason,
+      })
+      .eq('id', xpertId);
+
+    if (updateError) {
+      console.error('Erreur lors de la mise à jour du profil:', updateError);
+      return {
+        error: { message: updateError.message, code: updateError.code },
+      };
+    }
+
+    return { data: { success: true } };
+  } catch (error: any) {
+    console.error('Erreur générale lors du bannissement:', error);
+    return {
+      error: {
+        message:
+          error.message || 'Une erreur est survenue lors du bannissement',
+        code: 'unknown_error',
+      },
+    };
+  }
+};
+
+export const unbanXpert = async ({
+  xpertId,
+  banId,
+}: {
+  xpertId: string;
+  banId: string;
+}) => {
+  try {
+    const supabase = await createSupabaseAppServerClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return {
+        error: {
+          message: "Vous n'êtes pas connecté",
+          code: 'not_authenticated',
+        },
+      };
+    }
+
+    // Vérifier que l'utilisateur actuel est admin
+    const { data: adminUser } = await supabase
+      .from('profile')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!adminUser || adminUser.role !== 'admin') {
+      return {
+        error: {
+          message: "Vous n'avez pas les droits pour effectuer cette action",
+          code: 'not_authorized',
+        },
+      };
+    }
+
+    // Mettre à jour l'entrée de bannissement
+    const { error: updateBanError } = await supabase
+      .from('profile_bans')
+      .update({
+        is_active: false,
+        unbanned_at: new Date().toISOString(),
+        unbanned_by: user.id,
+      })
+      .eq('id', banId)
+      .eq('profile_id', xpertId);
+
+    if (updateBanError) {
+      console.error(
+        'Erreur lors de la mise à jour du bannissement:',
+        updateBanError
+      );
+      return {
+        error: { message: updateBanError.message, code: updateBanError.code },
+      };
+    }
+
+    // Mettre à jour le statut de profil
+    const { error: updateProfileError } = await supabase
+      .from('profile')
+      .update({
+        is_banned_from_community: false,
+        community_banning_explanations: null,
+      })
+      .eq('id', xpertId);
+
+    if (updateProfileError) {
+      console.error(
+        'Erreur lors de la mise à jour du profil:',
+        updateProfileError
+      );
+      return {
+        error: {
+          message: updateProfileError.message,
+          code: updateProfileError.code,
+        },
+      };
+    }
+
+    return { data: { success: true } };
+  } catch (error: any) {
+    console.error('Erreur générale lors du débannissement:', error);
+    return {
+      error: {
+        message:
+          error.message || 'Une erreur est survenue lors du débannissement',
         code: 'unknown_error',
       },
     };

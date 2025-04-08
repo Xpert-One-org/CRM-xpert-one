@@ -1158,35 +1158,81 @@ export type Database = {
           },
         ];
       };
+      profile_bans: {
+        Row: {
+          banned_at: string;
+          banned_by: string;
+          id: string;
+          is_active: boolean;
+          profile_id: string;
+          reason: string;
+          unbanned_at: string | null;
+          unbanned_by: string | null;
+        };
+        Insert: {
+          banned_at?: string;
+          banned_by: string;
+          id?: string;
+          is_active?: boolean;
+          profile_id: string;
+          reason: string;
+          unbanned_at?: string | null;
+          unbanned_by?: string | null;
+        };
+        Update: {
+          banned_at?: string;
+          banned_by?: string;
+          id?: string;
+          is_active?: boolean;
+          profile_id?: string;
+          reason?: string;
+          unbanned_at?: string | null;
+          unbanned_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'profile_bans_banned_by_fkey';
+            columns: ['banned_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_bans_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'profile_bans_unbanned_by_fkey';
+            columns: ['unbanned_by'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profile_deleted: {
         Row: {
           deleted_at: string | null;
           deleted_by: string | null;
           deleted_profile_generated_id: string;
-          email: string | null;
-          firstname: string | null;
           id: string;
-          lastname: string | null;
           reason: string;
         };
         Insert: {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deleted_profile_generated_id: string;
-          email?: string | null;
-          firstname?: string | null;
           id?: string;
-          lastname?: string | null;
           reason: string;
         };
         Update: {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deleted_profile_generated_id?: string;
-          email?: string | null;
-          firstname?: string | null;
           id?: string;
-          lastname?: string | null;
           reason?: string;
         };
         Relationships: [];
