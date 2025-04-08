@@ -292,6 +292,23 @@ export type DBXpertNote = {
   } | null;
 };
 
+export type DBProfileBan = {
+  id: string;
+  profile_id: string;
+  banned_by: string;
+  reason: string;
+  banned_at: string;
+  is_active: boolean;
+  unbanned_at: string | null;
+  unbanned_by: string | null;
+  profile?: Pick<
+    DBProfile,
+    'firstname' | 'lastname' | 'email' | 'generated_id'
+  > | null;
+  banned_by_profile?: Pick<DBProfile, 'firstname' | 'lastname'> | null;
+  unbanned_by_profile?: Pick<DBProfile, 'firstname' | 'lastname'> | null;
+};
+
 export type DBFournisseurNote = {
   id: number;
   content: string;

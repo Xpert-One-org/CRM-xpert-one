@@ -4,6 +4,8 @@ import { formatDate } from '@/utils/date';
 import { uppercaseFirstLetter } from '@/utils/string';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { getLabel } from '@/utils/getLabel';
+import { jobTitleSelect, missionStates } from '@/data/mocked_select';
 
 export default function XpertMissionRow({ mission }: { mission: DBMission }) {
   const startDate = formatDate(mission.start_date ?? '');
@@ -13,6 +15,25 @@ export default function XpertMissionRow({ mission }: { mission: DBMission }) {
   const replaceMissionNumber = (missionNumber: string) => {
     return missionNumber.replace(/ /g, '-');
   };
+
+  const getMissionStateLabel = (state: string) => {
+    const stateOption = missionStates.find((option) => option.value === state);
+    return stateOption ? stateOption.label : 'État inconnu';
+  };
+
+  const getFormattedJobTitle = (jobTitle: string | null) => {
+    if (!jobTitle) return '';
+
+    if (mission.job_title_other) {
+      return uppercaseFirstLetter(mission.job_title_other);
+    }
+
+    return (
+      getLabel({ value: jobTitle, select: jobTitleSelect }) ||
+      uppercaseFirstLetter(jobTitle)
+    );
+  };
+
   return (
     <>
       <div className="flex flex-row gap-2">
@@ -31,14 +52,10 @@ export default function XpertMissionRow({ mission }: { mission: DBMission }) {
         {mission.mission_number}
       </Box>
       <Box className="col-span-1 bg-lightgray-secondary">
-        {uppercaseFirstLetter(mission.job_title ?? '')}
+        {getFormattedJobTitle(mission.job_title)}
       </Box>
       <Box className="col-span-1 bg-lightgray-secondary">
-        {mission.state === 'open'
-          ? 'Ouvert'
-          : mission.state === 'in_progress'
-            ? 'En attente de validation'
-            : 'Fermée'}
+        {getMissionStateLabel(mission.state)}
       </Box>
     </>
   );

@@ -32,6 +32,8 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { getNotes } from '@functions/xperts-notes';
 import { toast } from 'sonner';
+import BanXpertDialog from './BanXpertDialog';
+import { XpertBans } from './XpertBans';
 
 export type DocumentInfo = {
   publicUrl: string;
@@ -464,24 +466,64 @@ export default function XpertTable() {
                     setNotes={setNotes}
                   />
                 )}
+                {/* Bans section */}
+                {xpertIdOpened === xpert.generated_id && (
+                  <div id={`xpert-bans-${xpert.id}`}>
+                    <XpertBans
+                      xpertId={xpert.id}
+                      onUnbanSuccess={() => {
+                        // Mise à jour des données après débannissement
+                        fetchNotes(xpert.id);
+
+                        // L'événement xpert-unbanned est déjà émis par XpertBans,
+                        // mais nous pouvons mettre à jour l'état de l'interface ici aussi
+                        // si nécessaire
+                      }}
+                    />
+                  </div>
+                )}
                 {/* task and redirection button here */}
                 <div className="flex w-full justify-between gap-2 py-2">
                   <RedirectButtons user={xpert} />
                   <div className="flex gap-x-4">
                     <Button
-                      className="size-fit disabled:bg-gray-200"
+                      className="size-fit disabled:bg-gray-300"
                       onClick={handleSaveUpdatedXpert}
                       disabled={!hasChanged}
                     >
                       Enregistrer
                     </Button>
-                    <DeleteXpertDialog
-                      xpertId={xpert.id}
-                      xpertGeneratedId={xpert.generated_id}
-                      xpertEmail={xpert.email}
-                      xpertFirstName={xpert.firstname}
-                      xpertLastName={xpert.lastname}
-                    />
+                    <div className="flex gap-x-2">
+                      <BanXpertDialog
+                        xpertId={xpert.id}
+                        xpertGeneratedId={xpert.generated_id}
+                        xpertEmail={xpert.email}
+                        xpertFirstName={xpert.firstname}
+                        xpertLastName={xpert.lastname}
+                        onBanSuccess={() => {
+                          // Récupérer les notes à nouveau
+                          fetchNotes(xpert.id);
+                          // Forcer la mise à jour du composant XpertBans
+                          const bansSection = document.getElementById(
+                            `xpert-bans-${xpert.id}`
+                          );
+                          if (bansSection) {
+                            // Utiliser un événement personnalisé pour déclencher la mise à jour
+                            const refreshEvent = new CustomEvent(
+                              'refresh-bans'
+                            );
+                            bansSection.dispatchEvent(refreshEvent);
+                          }
+                        }}
+                      />
+                      <DeleteXpertDialog
+                        xpertId={xpert.id}
+                        xpertGeneratedId={xpert.generated_id}
+                        xpertEmail={xpert.email}
+                        xpertFirstName={xpert.firstname}
+                        xpertLastName={xpert.lastname}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
