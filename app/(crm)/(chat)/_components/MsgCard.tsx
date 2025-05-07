@@ -190,13 +190,13 @@ export const MsgCard = ({
               send_by={base_msg.send_by}
               user={base_msg.profile}
             />
-            <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-xs">
+            <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-[14px]">
               {base_msg.content}
             </p>
           </div>
         )}
 
-        <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-xs">
+        <p className="max-w-full overflow-hidden text-ellipsis whitespace-pre-wrap break-words text-[14px]">
           {content}
         </p>
         <div className="flex gap-x-spaceContainer">
