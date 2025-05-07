@@ -169,11 +169,11 @@ export const menuCrm = [
         className="fill-white transition group-hover:fill-accent"
       />
     ),
-    url: '/communaute/echo-de-la-communaute',
+    url: '/communaute/xpert-one-vous-informe',
     sub: [
       {
-        title: 'Écho',
-        url: '/communaute/echo-de-la-communaute',
+        title: 'Xpert one vous informe',
+        url: '/communaute/xpert-one-vous-informe',
       },
       {
         title: 'Forum',

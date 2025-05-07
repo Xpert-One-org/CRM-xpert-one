@@ -105,7 +105,7 @@ function InformativePopup() {
             {pathname === 'communaute' && (
               <div>
                 <p>
-                  <span className="font-bold">Echo de la communauté : </span>
+                  <span className="font-bold">XPERT One vous informe : </span>
                   Dans cet onglet, vous pouvez suivre les dernières informations
                   de communication transmises par Xpert One.
                 </p>
