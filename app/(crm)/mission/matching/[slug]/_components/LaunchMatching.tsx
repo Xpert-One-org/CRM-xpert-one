@@ -36,6 +36,8 @@ export default function LaunchMatching({
   const handleLaunchMatching = async () => {
     setIsLoading(true);
     setIsSubmitting(false);
+
+    console.log(additionalCriteria);
     const { data } = await getAllMatchedXperts(
       missionData,
       excludedCriteria,

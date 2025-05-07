@@ -35,7 +35,9 @@ export default function MatchingMissionRow({
           handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
         }
       >
-        {mission.supplier?.generated_id ?? ''}
+        {mission.supplier?.firstname && mission.supplier?.lastname
+          ? `${mission.supplier?.firstname} ${mission.supplier?.lastname}`
+          : ''}
       </Box>
       <Box className="col-span-1">
         {mission.supplier?.company_name?.toUpperCase() ?? ''}
