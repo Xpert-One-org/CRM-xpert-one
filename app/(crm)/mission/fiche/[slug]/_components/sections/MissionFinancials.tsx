@@ -11,6 +11,7 @@ type CalculatedValues = {
   totalGD: number;
   totalXpertCost: number;
   marginEuros: number;
+  marginPercent: number;
   totalCA: number;
 };
 
@@ -20,6 +21,7 @@ const initialCalculatedValues: CalculatedValues = {
   totalGD: 0,
   totalXpertCost: 0,
   marginEuros: 0,
+  marginPercent: 0,
   totalCA: 0,
 };
 
@@ -73,7 +75,7 @@ export function MissionFinancials() {
         months_worked = 0,
         gd_rate = 0,
         annex_costs = 0,
-        margin = 0,
+        total_ca = 0,
         xpert_status,
       } = finance;
 
@@ -106,9 +108,14 @@ export function MissionFinancials() {
       // Calcul des coûts totaux
       const totalXpertCost =
         totalSalaryWithCharges + totalGD + (annex_costs ?? 0);
-      const marginEuros =
-        totalXpertCost * (1 + (margin ?? 0) / 100) - totalXpertCost;
-      const totalCA = totalXpertCost + marginEuros;
+
+      // Calcul de la marge à partir du CA total
+      const totalCA = total_ca ?? 0;
+      const marginEuros = Math.max(0, totalCA - totalXpertCost);
+
+      // Calcul du pourcentage de marge
+      const marginPercent =
+        totalXpertCost > 0 ? (marginEuros / totalXpertCost) * 100 : 0;
 
       setCalculated({
         totalSalaryNoCharges,
@@ -116,6 +123,7 @@ export function MissionFinancials() {
         totalGD,
         totalXpertCost,
         marginEuros,
+        marginPercent,
         totalCA,
       });
     } catch (error) {
@@ -153,6 +161,14 @@ export function MissionFinancials() {
       return 'Total TJM';
     }
     return 'Total Prix';
+  };
+
+  // Fonction pour appliquer une marge au CA
+  const applyMargin = (marginPercent: number) => {
+    if (!mission?.finance) return;
+
+    const newCA = calculated.totalXpertCost * (1 + marginPercent / 100);
+    handleFinanceUpdate('total_ca', newCA);
   };
 
   useEffect(() => {
@@ -319,24 +335,81 @@ export function MissionFinancials() {
             />
           </div>
 
-          {/* Troisième ligne - Marge et CA */}
+          {/* Troisième ligne - CA et Marge */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="relative space-y-1">
+              <MonetaryInput
+                label="CA avant marge"
+                value={calculated.totalXpertCost}
+                disabled
+                helpText="Montant exact des coûts avant application de la marge"
+              />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => applyMargin(10)}
+                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
+                  title="Ajouter 10% de marge"
+                >
+                  +10%
+                </button>
+                <button
+                  onClick={() => applyMargin(15)}
+                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
+                  title="Ajouter 15% de marge"
+                >
+                  +15%
+                </button>
+                <button
+                  onClick={() => applyMargin(20)}
+                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
+                  title="Ajouter 20% de marge"
+                >
+                  +20%
+                </button>
+                <button
+                  onClick={() => applyMargin(25)}
+                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
+                  title="Ajouter 25% de marge"
+                >
+                  +25%
+                </button>
+                <button
+                  onClick={() => applyMargin(30)}
+                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
+                  title="Ajouter 30% de marge"
+                >
+                  +30%
+                </button>
+                <button
+                  onClick={() => applyMargin(40)}
+                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
+                  title="Ajouter 40% de marge"
+                >
+                  +40%
+                </button>
+              </div>
+            </div>
+
+            <MonetaryInput
+              label="CA de la mission"
+              value={finance.total_ca}
+              fieldName="total_ca"
+              helpText="Chiffre d'affaires total de la mission"
+            />
+          </div>
+
+          {/* Quatrième ligne - Marges calculées */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <MonetaryInput
               label="Marge XPERT ONE"
-              value={finance.margin}
-              fieldName="margin"
+              value={calculated.marginPercent}
+              disabled
               suffix="%"
             />
 
             <MonetaryInput
               label="soit en euro"
               value={calculated.marginEuros}
-              disabled
-            />
-
-            <MonetaryInput
-              label="CA de la mission"
-              value={calculated.totalCA}
               disabled
             />
           </div>
