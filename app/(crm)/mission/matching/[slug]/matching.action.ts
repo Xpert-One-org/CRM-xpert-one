@@ -42,6 +42,7 @@ export async function getAllMatchedXperts(
     handicap: [...(additionalCriteria?.handicap || [])],
     secondary_job_title: additionalCriteria?.secondary_job_title || [],
     secondary_sector: additionalCriteria?.secondary_sector || [],
+    secondary_country: [...(additionalCriteria?.secondary_country || [])],
     secondary_post_type: additionalCriteria?.secondary_post_type || [],
     secondary_specialties: additionalCriteria?.secondary_specialties || [],
     secondary_expertises: additionalCriteria?.secondary_expertises || [],
@@ -68,6 +69,11 @@ export async function getAllMatchedXperts(
       ? finalCriteria.secondary_lastname[0]
       : '';
 
+  const secondaryCountry =
+    finalCriteria.secondary_country.length > 0
+      ? finalCriteria.secondary_country
+      : '';
+
   let query = supabase
     .from('profile')
     .select(
@@ -75,6 +81,7 @@ export async function getAllMatchedXperts(
     id,
     firstname,
     lastname,
+    country,
     generated_id,
     profile_mission (
       job_titles,
@@ -111,6 +118,12 @@ export async function getAllMatchedXperts(
 
   if (lastname) {
     query = query.ilike('lastname', lastname);
+  }
+
+  if (secondaryCountry && secondaryCountry?.length > 0) {
+    console.log('secondaryCountry', secondaryCountry);
+
+    query = query.in('country', secondaryCountry);
   }
 
   const { data, count, error } = await query;
@@ -262,6 +275,12 @@ export async function getAllMatchedXperts(
         expertise?.expertises?.some((exp) =>
           finalCriteria.secondary_expertises.includes(exp)
         )
+      );
+    }
+
+    if (finalCriteria.secondary_country.length > 0) {
+      secondaryConditions.push(
+        finalCriteria.secondary_country.includes(xpert.country || '')
       );
     }
 

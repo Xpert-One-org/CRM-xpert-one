@@ -242,6 +242,8 @@ export const calculatePartialMatches = (
     }
   }
 
+  // Country
+
   // Sector
   if (nonMatchingCriteria.sector?.length && experience) {
     const requiredSectors = [

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@/components/ui/box';
 import AddIcon from '@/components/svg/AddIcon';
 import { Check, X } from 'lucide-react';
@@ -39,6 +39,7 @@ export default function MatchingLeftSideSecond({
     expertises: false,
     firstname: false,
     lastname: false,
+    country: false,
   });
 
   const [criteriaIconShow, setCriteriaIconShow] = useState({
@@ -49,11 +50,18 @@ export default function MatchingLeftSideSecond({
     expertises: false,
     firstname: false,
     lastname: false,
+    country: false,
   });
 
   const [hasChanges, setHasChanges] = useState(false);
   const [addingFirstname, setAddingFirstname] = useState('');
   const [addingLastname, setAddingLastname] = useState('');
+
+  const { countries, fetchCountries } = useSelect();
+
+  useEffect(() => {
+    fetchCountries();
+  }, [fetchCountries]);
 
   const handleAddClick = (criteriaType: keyof typeof showAdditionalSelects) => {
     if (isIntern) return;
@@ -360,7 +368,7 @@ export default function MatchingLeftSideSecond({
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
-              Secteur d’activité
+              Secteur d'activité
               {!criteriaIconShow.sector ? (
                 <AddIcon
                   width={20}
@@ -543,6 +551,68 @@ export default function MatchingLeftSideSecond({
               defaultSelectedKeys={
                 additionalCriteria.secondary_expertises || []
               }
+              className="w-full"
+            />
+          </div>
+        )}
+        <div className="flex w-full gap-6">
+          <div className="min-w-[300px]">
+            <Box className="justify-between bg-[#D0DDE1] p-3">
+              Pays
+              {!criteriaIconShow.country ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('country')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('country')}
+                />
+              )}
+            </Box>
+          </div>
+          <div className="flex flex-wrap gap-[10px]">
+            {additionalCriteria.secondary_country?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('country', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: countries,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
+          </div>
+        </div>
+        {showAdditionalSelects.country && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <MultiSelectComponent
+              options={countries}
+              onValueChange={(values) =>
+                handleAdditionalSelection(
+                  'country',
+                  values as unknown as string[]
+                )
+              }
+              name="secondary_country"
+              defaultSelectedKeys={additionalCriteria.secondary_country || []}
               className="w-full"
             />
           </div>
