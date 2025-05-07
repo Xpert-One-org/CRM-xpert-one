@@ -172,7 +172,7 @@ export const menuCrm = [
     url: '/communaute/xpert-one-vous-informe',
     sub: [
       {
-        title: 'Xpert one vous informe',
+        title: 'Xpert One vous informe',
         url: '/communaute/xpert-one-vous-informe',
       },
       {
