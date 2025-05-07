@@ -226,6 +226,13 @@ export type Database = {
             referencedColumns: ['generated_id'];
           },
           {
+            foreignKeyName: 'contact_xpert_demands_asked_xpert_fkey';
+            columns: ['asked_xpert'];
+            isOneToOne: false;
+            referencedRelation: 'view_kbis';
+            referencedColumns: ['id_utilisateur'];
+          },
+          {
             foreignKeyName: 'contact_xpert_demands_sent_by_fkey';
             columns: ['sent_by'];
             isOneToOne: false;
@@ -783,6 +790,7 @@ export type Database = {
           mission_id: number;
           monthly_rate: number | null;
           months_worked: number | null;
+          total_ca: number | null;
           xpert_status: Database['public']['Enums']['xpert_status_type'] | null;
         };
         Insert: {
@@ -799,6 +807,7 @@ export type Database = {
           mission_id: number;
           monthly_rate?: number | null;
           months_worked?: number | null;
+          total_ca?: number | null;
           xpert_status?:
             | Database['public']['Enums']['xpert_status_type']
             | null;
@@ -817,6 +826,7 @@ export type Database = {
           mission_id?: number;
           monthly_rate?: number | null;
           months_worked?: number | null;
+          total_ca?: number | null;
           xpert_status?:
             | Database['public']['Enums']['xpert_status_type']
             | null;
@@ -1156,6 +1166,13 @@ export type Database = {
             referencedRelation: 'profile';
             referencedColumns: ['generated_id'];
           },
+          {
+            foreignKeyName: 'profile_referent_id_fkey';
+            columns: ['referent_id'];
+            isOneToOne: false;
+            referencedRelation: 'view_kbis';
+            referencedColumns: ['id_utilisateur'];
+          },
         ];
       };
       profile_bans: {
@@ -1218,22 +1235,34 @@ export type Database = {
           deleted_at: string | null;
           deleted_by: string | null;
           deleted_profile_generated_id: string;
+          email: string | null;
+          firstname: string | null;
           id: string;
+          lastname: string | null;
           reason: string;
+          role: Database['public']['Enums']['profile_roles'] | null;
         };
         Insert: {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deleted_profile_generated_id: string;
+          email?: string | null;
+          firstname?: string | null;
           id?: string;
+          lastname?: string | null;
           reason: string;
+          role?: Database['public']['Enums']['profile_roles'] | null;
         };
         Update: {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deleted_profile_generated_id?: string;
+          email?: string | null;
+          firstname?: string | null;
           id?: string;
+          lastname?: string | null;
           reason?: string;
+          role?: Database['public']['Enums']['profile_roles'] | null;
         };
         Relationships: [];
       };
@@ -1979,6 +2008,14 @@ export type Database = {
           referents:
             | Database['public']['CompositeTypes']['referent_type'][]
             | null;
+        };
+        Relationships: [];
+      };
+      view_kbis: {
+        Row: {
+          id_utilisateur: string | null;
+          kbi_url: string | null;
+          upload_timestamp: string | null;
         };
         Relationships: [];
       };
