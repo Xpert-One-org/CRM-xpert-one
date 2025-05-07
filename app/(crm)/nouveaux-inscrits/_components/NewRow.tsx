@@ -101,7 +101,11 @@ export default function NewRow({
           className="cursor-pointer text-white"
           onClick={onClick}
         >
-          <p>{user.generated_id ?? 'Non renseigné'}</p>
+          <p>
+            {user.firstname && user.lastname
+              ? `${user.firstname} ${user.lastname}`
+              : 'Non renseigné'}
+          </p>
         </Box>
         <Box isSelected={isOpen}>
           <p>{user.role === 'company' ? 'F' : 'X'}</p>

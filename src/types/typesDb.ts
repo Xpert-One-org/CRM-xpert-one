@@ -42,6 +42,7 @@ export type DBFournisseur = DBProfile & {
 export type DBMatchedXpert = DBProfileMission & {
   id: string;
   firstname: string;
+  country: string;
   lastname: string;
   generated_id: string;
   profile_mission?: DBProfileMission;

@@ -107,9 +107,9 @@ export default function ComboBoxXpert({
       case 'lastname':
         return 'Nom';
       case 'generated_id':
-        return 'N° identification';
+        return 'Nom & Prénom';
       default:
-        return 'N° identification';
+        return 'Nom & Prénom';
     }
   };
 
