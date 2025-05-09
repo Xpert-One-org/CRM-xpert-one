@@ -152,6 +152,8 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
 
     set({ loading: true });
 
+    console.log('missionNotSaved', missionNotSaved);
+
     try {
       // 1. Mise à jour des données de la mission
       if (keyDBMissionChanged.length > 0) {
@@ -184,10 +186,7 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
       }
 
       // 2. Mise à jour de l'évaluation de l'expert si nécessaire
-      if (
-        xpertEvaluationChanged &&
-        missionNotSaved.xpert?.id
-      ) {
+      if (xpertEvaluationChanged && missionNotSaved.xpert?.id) {
         const result = await updateXpertEvaluation(
           missionNotSaved.xpert.id,
           xpertEvaluationChanged.evaluation_score,
