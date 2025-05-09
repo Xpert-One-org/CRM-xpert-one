@@ -132,6 +132,16 @@ export function MissionFinancials() {
     }
   };
 
+  // Fonction pour calculer le CA avant marge à partir du CA total
+  const calculatePreMarginCA = (totalCA: number) => {
+    if (!mission?.finance) return;
+
+    const totalXpertCost = calculated.totalXpertCost;
+    const marginPercent = ((totalCA - totalXpertCost) / totalXpertCost) * 100;
+
+    handleFinanceUpdate('total_ca', totalCA);
+  };
+
   const getSalaryLabel = () => {
     if (mission?.finance?.xpert_status === 'CDI de mission') {
       return mission?.finance?.base_tarifaire === 'TJM' ? 'Salaire' : 'Salaire';
@@ -337,78 +347,33 @@ export function MissionFinancials() {
 
           {/* Troisième ligne - CA et Marge */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="relative space-y-1">
-              <MonetaryInput
-                label="CA avant marge"
-                value={calculated.totalXpertCost}
-                disabled
-                helpText="Montant exact des coûts avant application de la marge"
-              />
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => applyMargin(10)}
-                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
-                  title="Ajouter 10% de marge"
-                >
-                  +10%
-                </button>
-                <button
-                  onClick={() => applyMargin(15)}
-                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
-                  title="Ajouter 15% de marge"
-                >
-                  +15%
-                </button>
-                <button
-                  onClick={() => applyMargin(20)}
-                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
-                  title="Ajouter 20% de marge"
-                >
-                  +20%
-                </button>
-                <button
-                  onClick={() => applyMargin(25)}
-                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
-                  title="Ajouter 25% de marge"
-                >
-                  +25%
-                </button>
-                <button
-                  onClick={() => applyMargin(30)}
-                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
-                  title="Ajouter 30% de marge"
-                >
-                  +30%
-                </button>
-                <button
-                  onClick={() => applyMargin(40)}
-                  className="rounded bg-primary px-2 py-1 text-xs text-white hover:bg-primary/80"
-                  title="Ajouter 40% de marge"
-                >
-                  +40%
-                </button>
-              </div>
-            </div>
-
             <MonetaryInput
               label="CA de la mission"
               value={finance.total_ca}
               fieldName="total_ca"
               helpText="Chiffre d'affaires total de la mission"
             />
-          </div>
 
-          {/* Quatrième ligne - Marges calculées */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <MonetaryInput
+              label="CA avant marge"
+              value={calculated.totalXpertCost}
+              disabled
+              helpText="Montant exact des coûts avant application de la marge"
+            />
+
             <MonetaryInput
               label="Marge XPERT ONE"
               value={calculated.marginPercent}
               disabled
               suffix="%"
+              helpText="Pourcentage de marge calculé à partir du CA total"
             />
+          </div>
 
+          {/* Quatrième ligne - Marge en euros */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <MonetaryInput
-              label="soit en euro"
+              label="Marge en euros"
               value={calculated.marginEuros}
               disabled
             />
