@@ -36,6 +36,8 @@ type XpertRowContentBisProps = {
   isLoading: boolean;
   cvInfo: DocumentInfo;
   urssafInfo: DocumentInfo;
+  identityInfo: DocumentInfo;
+  vitaleInfo: DocumentInfo;
   kbisInfo: DocumentInfo;
   responsabiliteCivileInfo: DocumentInfo;
   ribInfo: DocumentInfo;
@@ -49,7 +51,9 @@ type FileType =
   | 'kbis'
   | 'civil_responsability'
   | 'rib'
-  | 'habilitation';
+  | 'habilitation'
+  | 'identity'
+  | 'vitale';
 
 export default function XpertRowContentBis({
   isLoading,
@@ -59,6 +63,8 @@ export default function XpertRowContentBis({
   responsabiliteCivileInfo,
   ribInfo,
   habilitationInfo,
+  identityInfo,
+  vitaleInfo,
   handleKeyChanges,
 }: XpertRowContentBisProps) {
   const {
@@ -80,6 +86,8 @@ export default function XpertRowContentBis({
     { label: 'KBIS -3mois', value: 'kbis' },
     { label: 'Responsabilité civile', value: 'civil_responsability' },
     { label: 'RIB', value: 'rib' },
+    { label: 'Identité', value: 'identity' },
+    { label: 'Vitale', value: 'vitale' },
     { label: 'Habilitation', value: 'habilitation' },
   ];
 
@@ -102,9 +110,13 @@ export default function XpertRowContentBis({
             ? 'civil_responsability'
             : ribInfo
               ? 'rib'
-              : habilitationInfo
-                ? 'habilitation'
-                : ''
+              : identityInfo
+                ? 'identity'
+                : vitaleInfo
+                  ? 'vitale'
+                  : habilitationInfo
+                    ? 'habilitation'
+                    : ''
   );
 
   const selectOptions = [
@@ -152,6 +164,24 @@ export default function XpertRowContentBis({
             label: 'RIB',
             value: 'rib',
             json_key: new Date(ribInfo.created_at).toLocaleDateString(),
+          },
+        ]
+      : []),
+    ...(identityInfo.created_at
+      ? [
+          {
+            label: 'Identité',
+            value: 'identity',
+            json_key: new Date(identityInfo.created_at).toLocaleDateString(),
+          },
+        ]
+      : []),
+    ...(vitaleInfo.created_at
+      ? [
+          {
+            label: 'Vitale',
+            value: 'vitale',
+            json_key: new Date(vitaleInfo.created_at).toLocaleDateString(),
           },
         ]
       : []),
@@ -362,6 +392,16 @@ export default function XpertRowContentBis({
           className="h-[90vh] w-full py-2"
           title="kbis"
         />
+      );
+    }
+    if (documentType === 'identity' && identityInfo.publicUrl) {
+      return (
+        <iframe src={identityInfo.publicUrl} className="h-[90vh] w-full py-2" />
+      );
+    }
+    if (documentType === 'vitale' && vitaleInfo.publicUrl) {
+      return (
+        <iframe src={vitaleInfo.publicUrl} className="h-[90vh] w-full py-2" />
       );
     }
     if (
