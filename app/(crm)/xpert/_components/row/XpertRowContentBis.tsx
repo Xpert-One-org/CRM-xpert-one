@@ -365,7 +365,9 @@ export default function XpertRowContentBis({
     kbisInfo: DocumentInfo,
     responsabiliteCivileInfo: DocumentInfo,
     ribInfo: DocumentInfo,
-    habilitationInfo: DocumentInfo
+    habilitationInfo: DocumentInfo,
+    identityInfo: DocumentInfo,
+    vitaleInfo: DocumentInfo
   ) => {
     if (documentType === 'cv' && cvInfo.publicUrl) {
       return (
@@ -522,7 +524,9 @@ export default function XpertRowContentBis({
           kbisInfo,
           responsabiliteCivileInfo,
           ribInfo,
-          habilitationInfo
+          habilitationInfo,
+          identityInfo,
+          vitaleInfo
         )
       )}
       <div className="flex w-full flex-col gap-4 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">
