@@ -11,6 +11,8 @@ import BriefCase from '@/components/svg/BriefCase';
 import FacturationLogo from '@/components/svg/Facturation';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { getFileTypeByStatus } from '../../../activation-des-missions/[slug]/_utils/getFileTypeByStatus';
+import { getLabel } from '@/utils/getLabel';
+import { jobTitleSelect } from '@/data/mocked_select';
 
 export default function MissionEtatInProgressRow({
   mission,
@@ -159,14 +161,19 @@ export default function MissionEtatInProgressRow({
           handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
         }
       >
-        {mission.supplier?.generated_id}
+        {mission.supplier?.generated_id} - {mission.supplier?.firstname}{' '}
+        {mission.supplier?.lastname}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
         primary
         onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
       >
-        {mission.mission_number}
+        {mission.mission_number} -{' '}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>

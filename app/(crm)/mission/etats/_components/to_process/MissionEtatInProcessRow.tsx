@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box } from '@/components/ui/box';
-import type { ReasonMissionDeletion} from '@/types/typesDb';
+import type { ReasonMissionDeletion } from '@/types/typesDb';
 import { type DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { getTimeBeforeMission } from '@/utils/string';
@@ -167,14 +167,19 @@ export default function MissionEtatInProcessRow({
           handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
         }
       >
-        {mission.supplier?.generated_id}
+        {mission.supplier?.generated_id} - {mission.supplier?.firstname}{' '}
+        {mission.supplier?.lastname}
       </Box>
       <Box
         className="col-span-1 cursor-pointer text-white"
         primary
         onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
       >
-        {mission.mission_number}
+        {mission.mission_number} -{' '}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1">{timeBeforeMission}</Box>

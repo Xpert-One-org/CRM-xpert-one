@@ -1,5 +1,9 @@
 import { Box } from '@/components/ui/box';
-import { reasonDeleteMissionSelect } from '@/data/mocked_select';
+import { empty } from '@/data/constant';
+import {
+  jobTitleSelect,
+  reasonDeleteMissionSelect,
+} from '@/data/mocked_select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { formatDateHour } from '@/utils/formatDates';
@@ -35,14 +39,19 @@ export default function MissionEtatDeletedRow({
           handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
         }
       >
-        {mission.supplier?.generated_id}
+        {mission.supplier?.generated_id} - {mission.supplier?.firstname}{' '}
+        {mission.supplier?.lastname}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
         primary
         onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
       >
-        {mission.mission_number}
+        {mission.mission_number} -{' '}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1">
