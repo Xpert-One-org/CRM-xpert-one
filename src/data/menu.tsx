@@ -28,14 +28,7 @@ export const menuCrm = [
         title: 'Accueil',
         url: '/dashboard',
       },
-      {
-        title: 'Mail',
-        url: '/dashboard/mail',
-      },
-      {
-        title: 'Calendrier',
-        url: '/dashboard/calendrier',
-      },
+
       {
         title: 'To Do',
         url: '/dashboard/todo',

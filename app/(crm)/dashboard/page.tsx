@@ -27,7 +27,10 @@ export default async function DashboardPage() {
   const user = await getLoggedUser();
 
   const { data: newUsers } = await getLastSignupNewUsers('xpert');
+  const { data: newSuppliers } = await getLastSignupNewUsers('company');
   const { newUsersLastWeek } = await getLastSignUpNewUsersWeek('xpert');
+  const { newUsersLastWeek: newSuppliersLastWeek } =
+    await getLastSignUpNewUsersWeek('company');
 
   const { data: missionsOpen } = await getCountMissionsState('open');
   const { data: missionInProgress } =
@@ -133,6 +136,19 @@ export default async function DashboardPage() {
             link="/nouveaux-inscrits?role=xpert"
           />
         )}
+        {user?.role !== 'hr' && user?.role !== 'adv' && (
+          <DashBoardCards
+            count={newSuppliers.length}
+            title="Total fournisseurs inscrits"
+            urgentTitle="Semaine"
+            urgentCount={newSuppliersLastWeek.length || 0}
+            buttonTitle="Nouveaux inscrits"
+            iconButton={
+              <PeopleUsersAdd className="fill-white" width={24} height={24} />
+            }
+            link="/nouveaux-inscrits?role=xpert"
+          />
+        )}
         <DashBoardCards
           count={missions.length}
           title="Suivi des missions"
@@ -153,9 +169,6 @@ export default async function DashboardPage() {
           }
           link="/mission/etats?etat=finished"
         />
-      </div>
-      <div className="flex flex-col gap-4 py-8">
-        <OutlookButton type="calendar" />
       </div>
     </>
   );
