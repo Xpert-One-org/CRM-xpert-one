@@ -1,5 +1,6 @@
 import { Box } from '@/components/ui/box';
 import { jobTitleSelect } from '@/data/mocked_select';
+import { cn } from '@/lib/utils';
 import { useSelect } from '@/store/select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
@@ -40,7 +41,12 @@ export default function FournisseurMissionRow({
       <Box className="col-span-1 bg-lightgray-secondary">
         {getLabel({ value: mission.job_title ?? '', select: jobTitleSelect })}
       </Box>
-      <Box className="col-span-1 bg-lightgray-secondary">
+      <Box
+        className={cn('col-span-1 bg-[#D64242] text-white', {
+          'bg-[#248D6180]': mission.state === 'open',
+          'bg-[#F9A800BF]': mission.state === 'in_progress',
+        })}
+      >
         {mission.state === 'open'
           ? 'Ouvert'
           : mission.state === 'in_progress'
