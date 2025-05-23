@@ -59,12 +59,13 @@ export default function MissionActivationRow({
     setHasChanges(false);
   };
 
-  console.log(mission);
-
   return (
     <>
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
-      <ComboboxMission slug="activation-des-missions" />
+      <ComboboxMission
+        slug="activation-des-missions"
+        jobTitle={mission.job_title ?? empty}
+      />
       <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box
         className="col-span-1 bg-[#65ADAF] text-white"

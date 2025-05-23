@@ -4,6 +4,7 @@ import React from 'react';
 import type { DBMission } from '@/types/typesDb';
 import { uppercaseFirstLetter } from '@/utils/string';
 import ComboboxMission from '@/components/combobox/ComboboxMission';
+import { empty } from '@/data/constant';
 
 export default function MatchingMissionRow({
   mission,
@@ -26,7 +27,7 @@ export default function MatchingMissionRow({
   return (
     <>
       <div className="col-span-1">
-        <ComboboxMission slug={slug} />
+        <ComboboxMission slug={slug} jobTitle={mission.job_title ?? empty} />
       </div>
       <Box
         className="col-span-1 cursor-pointer text-white"

@@ -19,6 +19,9 @@ import {
   formatEndMissionDisplay,
 } from '../_functions/day.actions';
 import type { CheckpointField } from '@/types/types';
+import { getLabel } from '@/utils/getLabel';
+import { empty } from '@/data/constant';
+import { jobTitleSelect } from '@/data/mocked_select';
 
 export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
   const router = useRouter();
@@ -57,7 +60,11 @@ export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
         primary
         onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
       >
-        {mission.mission_number}
+        {mission.mission_number} -{' '}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
       {/* Point J-10 F (before the first point) */}

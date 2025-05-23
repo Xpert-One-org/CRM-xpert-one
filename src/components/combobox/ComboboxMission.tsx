@@ -5,13 +5,23 @@ import { useMissionStore } from '@/store/mission';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { jobTitleSelect } from '@/data/mocked_select';
+import { getLabel } from '@/utils/getLabel';
 
 export default function ComboboxMission({
   slug,
   className,
+  jobTitle,
 }: {
   slug?: string;
   className?: string;
+  jobTitle?: string;
 }) {
   const [value, setValue] = useState('');
   const [text] = useDebounce(value, 500);
@@ -29,6 +39,7 @@ export default function ComboboxMission({
       ? currentMissionNumber
       : ''
   );
+  const [currentJobTitle, setCurrentJobTitle] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -75,26 +86,44 @@ export default function ComboboxMission({
     setData(missionFound);
   }, [missionsNumbers]);
 
+  const getJobTitle = (jobTitle: string | null) => {
+    if (!jobTitle) return '';
+    return getLabel({ value: jobTitle, select: jobTitleSelect }) || jobTitle;
+  };
+
   return (
-    <Combobox
-      data={data}
-      value={currentValue ?? ''}
-      handleSetValue={handleSetValue}
-      isLoading={isLoading}
-      handleValueChange={handleValueChange}
-      placeholder={
-        slug === 'matching' ||
-        slug === 'selection' ||
-        slug === 'fiche' ||
-        slug === 'activation-des-missions' ||
-        currentMissionNumber === currentMissionNumber
-          ? 'Rechercher'
-          : currentMissionNumber
-      }
-      className={cn(
-        'h-full bg-primary py-spaceContainer text-white hover:bg-secondary',
-        className
-      )}
-    />
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <Combobox
+              data={data}
+              value={currentValue ?? ''}
+              handleSetValue={handleSetValue}
+              isLoading={isLoading}
+              handleValueChange={handleValueChange}
+              placeholder={
+                slug === 'matching' ||
+                slug === 'selection' ||
+                slug === 'fiche' ||
+                slug === 'activation-des-missions' ||
+                currentMissionNumber === currentMissionNumber
+                  ? 'Rechercher'
+                  : currentMissionNumber
+              }
+              className={cn(
+                'h-full bg-primary py-spaceContainer text-white hover:bg-secondary',
+                className
+              )}
+            />
+          </div>
+        </TooltipTrigger>
+        {jobTitle && (
+          <TooltipContent className="bg-primary text-white">
+            <p>{getJobTitle(jobTitle)}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
   );
 }

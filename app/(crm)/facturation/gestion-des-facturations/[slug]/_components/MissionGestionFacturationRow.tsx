@@ -23,7 +23,10 @@ export default function MissionGestionFacturationRow({
   return (
     <>
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
-      <ComboboxMission slug="gestion-des-facturations" />
+      <ComboboxMission
+        slug="gestion-des-facturations"
+        jobTitle={mission.job_title ?? empty}
+      />
       <Box className="col-span-1">
         {' '}
         {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
