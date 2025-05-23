@@ -31,11 +31,14 @@ import FileInput from '@/components/inputs/FileInput';
 import Button from '@/components/Button';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
+import DeleteDocumentDialog from '../DeleteDocumentDialog';
 
 type XpertRowContentBisProps = {
   isLoading: boolean;
   cvInfo: DocumentInfo;
   urssafInfo: DocumentInfo;
+  identityInfo: DocumentInfo;
+  vitaleInfo: DocumentInfo;
   kbisInfo: DocumentInfo;
   responsabiliteCivileInfo: DocumentInfo;
   ribInfo: DocumentInfo;
@@ -49,7 +52,9 @@ type FileType =
   | 'kbis'
   | 'civil_responsability'
   | 'rib'
-  | 'habilitation';
+  | 'habilitation'
+  | 'identity'
+  | 'vitale';
 
 export default function XpertRowContentBis({
   isLoading,
@@ -59,6 +64,8 @@ export default function XpertRowContentBis({
   responsabiliteCivileInfo,
   ribInfo,
   habilitationInfo,
+  identityInfo,
+  vitaleInfo,
   handleKeyChanges,
 }: XpertRowContentBisProps) {
   const {
@@ -73,6 +80,7 @@ export default function XpertRowContentBis({
   const [newFileType, setNewFileType] = useState<FileType | null>(null);
 
   const [reload, setReload] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const typeOptions: { label: string; value: FileType }[] = [
     { label: 'Curriculum Vitae', value: 'cv' },
@@ -80,6 +88,8 @@ export default function XpertRowContentBis({
     { label: 'KBIS -3mois', value: 'kbis' },
     { label: 'Responsabilité civile', value: 'civil_responsability' },
     { label: 'RIB', value: 'rib' },
+    { label: 'Identité', value: 'identity' },
+    { label: 'Vitale', value: 'vitale' },
     { label: 'Habilitation', value: 'habilitation' },
   ];
 
@@ -102,9 +112,13 @@ export default function XpertRowContentBis({
             ? 'civil_responsability'
             : ribInfo
               ? 'rib'
-              : habilitationInfo
-                ? 'habilitation'
-                : ''
+              : identityInfo
+                ? 'identity'
+                : vitaleInfo
+                  ? 'vitale'
+                  : habilitationInfo
+                    ? 'habilitation'
+                    : ''
   );
 
   const selectOptions = [
@@ -152,6 +166,24 @@ export default function XpertRowContentBis({
             label: 'RIB',
             value: 'rib',
             json_key: new Date(ribInfo.created_at).toLocaleDateString(),
+          },
+        ]
+      : []),
+    ...(identityInfo.created_at
+      ? [
+          {
+            label: 'Identité',
+            value: 'identity',
+            json_key: new Date(identityInfo.created_at).toLocaleDateString(),
+          },
+        ]
+      : []),
+    ...(vitaleInfo.created_at
+      ? [
+          {
+            label: 'Vitale',
+            value: 'vitale',
+            json_key: new Date(vitaleInfo.created_at).toLocaleDateString(),
           },
         ]
       : []),
@@ -236,6 +268,15 @@ export default function XpertRowContentBis({
     return fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Supprime les accents
   };
 
+  const sanitizeFileName = (fileName: string) => {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+      .replace(/_+/g, '_') // Replace multiple underscores with single
+      .toLowerCase(); // Convert to lowercase
+  };
+
   const uploadFile = async () => {
     const supabase = createSupabaseFrontendClient();
     if (!newFile || !newFileType || !xpert) {
@@ -254,15 +295,6 @@ export default function XpertRowContentBis({
         toast.error('Type de fichier non supporté');
         return;
       }
-
-      const sanitizeFileName = (fileName: string) => {
-        return fileName
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '') // Remove accents
-          .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
-          .replace(/_+/g, '_') // Replace multiple underscores with single
-          .toLowerCase(); // Convert to lowercase
-      };
 
       const fileName = `${xpert.generated_id}/${newFileType}/${newFileType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
 
@@ -328,6 +360,53 @@ export default function XpertRowContentBis({
     window.location.reload();
   };
 
+  const getPathnameByDocumentType = (documentType: string) => {
+    switch (documentType) {
+      case 'cv':
+        return cvInfo.pathname;
+      case 'urssaf':
+        return urssafInfo.pathname;
+      case 'kbis':
+        return kbisInfo.pathname;
+      case 'civil_responsability':
+        return responsabiliteCivileInfo.pathname;
+      case 'rib':
+        return ribInfo.pathname;
+      case 'identity':
+        return identityInfo.pathname;
+      case 'vitale':
+        return vitaleInfo.pathname;
+      case 'habilitation':
+        return habilitationInfo.pathname;
+      default:
+        return '';
+    }
+  };
+
+  const handleDeleteDocument = async () => {
+    const supabase = createSupabaseFrontendClient();
+
+    const pathname = getPathnameByDocumentType(documentType);
+
+    if (!pathname) {
+      toast.error('Aucun document trouvé');
+      return;
+    }
+
+    const { error } = await supabase.storage
+      .from('profile_files')
+      .remove([pathname]);
+
+    setReload(true);
+
+    if (error) {
+      toast.error('Erreur lors de la suppression du document');
+      return;
+    }
+
+    setIsDeleteDialogOpen(false);
+  };
+
   const renderDocument = (
     documentType: string,
     cvInfo: DocumentInfo,
@@ -335,7 +414,9 @@ export default function XpertRowContentBis({
     kbisInfo: DocumentInfo,
     responsabiliteCivileInfo: DocumentInfo,
     ribInfo: DocumentInfo,
-    habilitationInfo: DocumentInfo
+    habilitationInfo: DocumentInfo,
+    identityInfo: DocumentInfo,
+    vitaleInfo: DocumentInfo
   ) => {
     if (documentType === 'cv' && cvInfo.publicUrl) {
       return (
@@ -362,6 +443,16 @@ export default function XpertRowContentBis({
           className="h-[90vh] w-full py-2"
           title="kbis"
         />
+      );
+    }
+    if (documentType === 'identity' && identityInfo.publicUrl) {
+      return (
+        <iframe src={identityInfo.publicUrl} className="h-[90vh] w-full py-2" />
+      );
+    }
+    if (documentType === 'vitale' && vitaleInfo.publicUrl) {
+      return (
+        <iframe src={vitaleInfo.publicUrl} className="h-[90vh] w-full py-2" />
       );
     }
     if (
@@ -397,52 +488,69 @@ export default function XpertRowContentBis({
   }
   return (
     <>
+      <DeleteDocumentDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteDocument}
+        documentType={documentType}
+      />
       {(cvInfo.created_at ?? urssafInfo.created_at) && (
         <div className="w-full p-1 font-light xl:max-w-[280px]">
           <Label htmlFor="document_type" className="mb-1 flex items-center">
             Type de documents
           </Label>
-          <Select
-            onValueChange={onValueChange}
-            name="document_type"
-            disabled={false}
-          >
-            <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
-              <SelectValue
-                className="bg-white"
-                placeholder={
-                  <div className="flex flex-row items-center gap-2">
-                    <p className="font-medium text-black">
-                      {selectOptions[0]?.label}
-                    </p>
-                    <p className="font-medium text-[#BEBEC0] group-hover:text-black">
-                      {selectOptions[0]?.json_key}
-                    </p>
-                  </div>
-                }
-              />
-            </SelectTrigger>
-            <SelectContent className="group w-full">
-              <SelectGroup>
-                {selectOptions
-                  .filter((item) => item.value)
-                  .map((item) => (
-                    <SelectItem
-                      key={item.value || ''}
-                      value={item.value || ''}
-                      className="transition duration-150"
-                    >
-                      <div className="flex flex-row items-center gap-2">
-                        <p className="font-medium text-black">{item.label}</p>
-                        <p className="font-medium">{item.json_key}</p>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select
+              onValueChange={onValueChange}
+              name="document_type"
+              disabled={false}
+            >
+              <SelectTrigger className="h-[42px] rounded-md border bg-white shadow-sm transition duration-200 ease-in-out">
+                <SelectValue
+                  className="bg-white"
+                  placeholder={
+                    <div className="flex flex-row items-center gap-2">
+                      <p className="whitespace-nowrap font-medium text-black">
+                        {selectOptions[0]?.label}
+                      </p>
+                      <p className="font-medium text-[#BEBEC0] group-hover:text-black">
+                        {selectOptions[0]?.json_key}
+                      </p>
+                    </div>
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent className="group w-full">
+                <SelectGroup>
+                  {selectOptions
+                    .filter((item) => item.value)
+                    .map((item) => (
+                      <SelectItem
+                        key={item.value || ''}
+                        value={item.value || ''}
+                        className="transition duration-150"
+                      >
+                        <div className="flex flex-row items-center gap-2">
+                          <p className="font-medium text-black">{item.label}</p>
+                          <p className="font-medium">{item.json_key}</p>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <div>
+              <Button
+                className="h-[42px] w-fit bg-red-500 text-sm text-white"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                Supprimer
+              </Button>
+            </div>
+          </div>
         </div>
       )}
+
       <div className="bg flex w-full items-center gap-x-4">
         <FileInput
           name=""
@@ -482,7 +590,9 @@ export default function XpertRowContentBis({
           kbisInfo,
           responsabiliteCivileInfo,
           ribInfo,
-          habilitationInfo
+          habilitationInfo,
+          identityInfo,
+          vitaleInfo
         )
       )}
       <div className="flex w-full flex-col gap-4 rounded-lg rounded-b-xs bg-[#D0DDE1] p-3 shadow-container">

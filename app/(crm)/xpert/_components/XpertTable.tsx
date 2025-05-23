@@ -38,6 +38,7 @@ import { XpertBans } from './XpertBans';
 export type DocumentInfo = {
   publicUrl: string;
   created_at?: string;
+  pathname?: string;
 };
 
 export default function XpertTable() {
@@ -73,6 +74,10 @@ export default function XpertTable() {
   const [cvInfo, setCvInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [urssafInfo, setUrssafInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [hasChanged, setHasChanged] = useState(false);
+  const [identityInfo, setIdentityInfo] = useState<DocumentInfo>({
+    publicUrl: '',
+  });
+  const [vitaleInfo, setVitaleInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [kbisInfo, setKbisInfo] = useState<DocumentInfo>({ publicUrl: '' });
   const [responsabiliteCivileInfo, setResponsabiliteCivileInfo] =
     useState<DocumentInfo>({ publicUrl: '' });
@@ -169,6 +174,14 @@ export default function XpertTable() {
       .from('profile_files')
       .list(`${xpert.generated_id}/rib/`);
 
+    const { data: identityData } = await supabase.storage
+      .from('profile_files')
+      .list(`${xpert.generated_id}/identity/`);
+
+    const { data: vitaleData } = await supabase.storage
+      .from('profile_files')
+      .list(`${xpert.generated_id}/vitale/`);
+
     const { data: habilitationData } = await supabase.storage
       .from('profile_files')
       .list(`${xpert.generated_id}/habilitations/`);
@@ -185,6 +198,7 @@ export default function XpertTable() {
       setCvInfo({
         publicUrl: data.publicUrl,
         created_at: mostRecentCV.created_at,
+        pathname: `${xpert.generated_id}/cv/${mostRecentCV.name}`,
       });
     }
 
@@ -202,6 +216,7 @@ export default function XpertTable() {
       setUrssafInfo({
         publicUrl: data.publicUrl,
         created_at: mostRecentUrssafFile.created_at,
+        pathname: `${xpert.generated_id}/urssaf/${mostRecentUrssafFile.name}`,
       });
     }
 
@@ -217,6 +232,7 @@ export default function XpertTable() {
       setKbisInfo({
         publicUrl: data.publicUrl,
         created_at: mostRecentKbisFile.created_at,
+        pathname: `${xpert.generated_id}/kbis/${mostRecentKbisFile.name}`,
       });
     }
 
@@ -235,6 +251,7 @@ export default function XpertTable() {
       setResponsabiliteCivileInfo({
         publicUrl: data.publicUrl,
         created_at: mostRecentResponsabiliteCivileFile.created_at,
+        pathname: `${xpert.generated_id}/civil_responsability/${mostRecentResponsabiliteCivileFile.name}`,
       });
     }
 
@@ -250,6 +267,43 @@ export default function XpertTable() {
       setRibInfo({
         publicUrl: data.publicUrl,
         created_at: mostRecentRibFile.created_at,
+        pathname: `${xpert.generated_id}/rib/${mostRecentRibFile.name}`,
+      });
+    }
+
+    if (identityData && identityData.length > 0) {
+      const sortedIdentityData = identityData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentIdentityFile = sortedIdentityData[0];
+      const { data } = await supabase.storage
+        .from('profile_files')
+        .getPublicUrl(
+          `${xpert.generated_id}/identity/${mostRecentIdentityFile.name}`
+        );
+      setIdentityInfo({
+        publicUrl: data.publicUrl,
+        created_at: mostRecentIdentityFile.created_at,
+        pathname: `${xpert.generated_id}/identity/${mostRecentIdentityFile.name}`,
+      });
+    }
+
+    if (vitaleData && vitaleData.length > 0) {
+      const sortedVitaleData = vitaleData.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const mostRecentVitaleFile = sortedVitaleData[0];
+      const { data } = await supabase.storage
+        .from('profile_files')
+        .getPublicUrl(
+          `${xpert.generated_id}/vitale/${mostRecentVitaleFile.name}`
+        );
+      setVitaleInfo({
+        publicUrl: data.publicUrl,
+        created_at: mostRecentVitaleFile.created_at,
+        pathname: `${xpert.generated_id}/vitale/${mostRecentVitaleFile.name}`,
       });
     }
 
@@ -267,6 +321,7 @@ export default function XpertTable() {
       setHabilitationInfo({
         publicUrl: data.publicUrl,
         created_at: mostRecentHabilitationFile.created_at,
+        pathname: `${xpert.generated_id}/habilitations/${mostRecentHabilitationFile.name}`,
       });
     }
 
@@ -449,6 +504,8 @@ export default function XpertTable() {
                   <XpertRowContentBis
                     isLoading={isLoading}
                     cvInfo={cvInfo}
+                    identityInfo={identityInfo}
+                    vitaleInfo={vitaleInfo}
                     urssafInfo={urssafInfo}
                     kbisInfo={kbisInfo}
                     responsabiliteCivileInfo={responsabiliteCivileInfo}
