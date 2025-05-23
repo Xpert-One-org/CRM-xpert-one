@@ -1,7 +1,9 @@
 import { Box } from '@/components/ui/box';
 import { empty } from '@/data/constant';
+import { jobTitleSelect } from '@/data/mocked_select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
+import { getLabel } from '@/utils/getLabel';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
@@ -34,14 +36,19 @@ export default function MissionEtatFinishedRow({
           handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
         }
       >
-        {mission.supplier?.generated_id}
+        {mission.supplier?.generated_id} - {mission.supplier?.firstname}{' '}
+        {mission.supplier?.lastname}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
         primary
         onClick={() => handleRedirectFicheMission(mission.mission_number ?? '')}
       >
-        {mission.mission_number}
+        {mission.mission_number} -{' '}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1 text-white" primary>

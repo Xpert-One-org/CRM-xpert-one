@@ -162,7 +162,8 @@ export default function MissionEtatOpenRow({
           handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
         }
       >
-        {mission.supplier?.generated_id}
+        {mission.supplier?.generated_id} - {mission.supplier?.firstname}{' '}
+        {mission.supplier?.lastname}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
@@ -171,7 +172,11 @@ export default function MissionEtatOpenRow({
           handleRedirectFicheMission(mission.mission_number ?? empty)
         }
       >
-        {mission.mission_number}
+        {mission.mission_number} -{' '}
+        {getLabel({
+          value: mission.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box className="col-span-1">{formatDate(mission.start_date ?? '')}</Box>
       <Box className="col-span-1">{formatDate(mission.end_date ?? '')}</Box>

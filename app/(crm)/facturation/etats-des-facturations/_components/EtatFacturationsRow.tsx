@@ -9,6 +9,9 @@ import StatusBox from './_boxes/StatusBox';
 import XpertStatusBox from './_boxes/XpertStatusBox';
 import SalaryPaymentBox from './_boxes/SalaryPaymentBox';
 import type { PaymentStatus, PaymentType } from '@/types/mission';
+import { empty } from '@/data/constant';
+import { getLabel } from '@/utils/getLabel';
+import { jobTitleSelect } from '@/data/mocked_select';
 
 export default function EtatFacturationsRow({
   missionData,
@@ -123,7 +126,11 @@ export default function EtatFacturationsRow({
           handleRedirectFicheMission(missionData.mission_number ?? '')
         }
       >
-        {missionData.mission_number}
+        {missionData.mission_number} -{' '}
+        {getLabel({
+          value: missionData.job_title ?? empty,
+          select: jobTitleSelect,
+        }) ?? empty}
       </Box>
       <Box className="size-full flex-col">
         <p>{`${uppercaseFirstLetter(
