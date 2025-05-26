@@ -59,9 +59,7 @@ export default function XpertStatusBox({
   );
 
   const handleClick = () => {
-    alert('click');
     if (((!isHr && isProjectManager) || isAdv) && !isAdmin) return;
-    alert('click2');
     setLocalIsSelected(!localIsSelected);
     if (!localIsSelected) {
       setCurrentDate(new Date().toISOString());
