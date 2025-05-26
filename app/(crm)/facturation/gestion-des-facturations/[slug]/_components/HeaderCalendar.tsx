@@ -15,6 +15,7 @@ import type { FileStatuses } from '@/types/mission';
 import { checkMonthFilesStatus } from '../_utils/checkMonthFilesStatus';
 import { isMonthDisabled } from '../_utils/isMonthDisabled';
 import type { DBMission } from '@/types/typesDb';
+import { updateMissionState } from '@functions/missions';
 
 type HeaderCalendarProps = {
   startDate?: Date;
@@ -49,12 +50,86 @@ export default function HeaderCalendar({
     yearSelected === currentYear ? currentMonth : 0
   );
 
+  const [allMonthFilesValidated, setAllMonthFilesValidated] = useState(false);
+
+  useEffect(() => {
+    // Check if all files for non-disabled months are validated across all years
+    const checkAllFilesValidated = async () => {
+      const startYear = startDate?.getFullYear() ?? 2010;
+      const endYear = endDate?.getFullYear() ?? currentYear;
+      let allYearsMonths: { year: number; month: string }[] = [];
+
+      // Collect all valid months across all years
+      for (let year = startYear; year <= endYear; year++) {
+        const validMonths = months
+          .filter((month, monthIndex) => {
+            const isDisabled = isMonthDisabled(
+              year,
+              monthIndex,
+              startDate ?? new Date(),
+              endDate ?? new Date()
+            );
+            return !isDisabled && isDisabled !== null;
+          })
+          .map((month) => ({ year, month: month.label }));
+
+        allYearsMonths = [...allYearsMonths, ...validMonths];
+      }
+
+      if (allYearsMonths.length === 0) {
+        setAllMonthFilesValidated(false);
+        return;
+      }
+
+      // Check if all files are validated for all valid months across all years
+      const allValidated = allYearsMonths.every(({ year, month }) => {
+        const monthIndex = months.findIndex((m) => m.label === month);
+        return checkMonthFilesStatus(
+          fileStatuses,
+          year,
+          monthIndex,
+          missionData
+        );
+      });
+
+      setAllMonthFilesValidated(allValidated);
+      if (allValidated && missionData?.state != 'finished' && missionData?.id) {
+        await updateMissionState(missionData?.id.toString(), 'finished');
+      }
+      if (
+        !allValidated &&
+        missionData?.state == 'finished' &&
+        missionData?.id
+      ) {
+        await updateMissionState(missionData?.id.toString(), 'in_progress');
+      }
+    };
+
+    checkAllFilesValidated();
+  }, [
+    yearSelected,
+    startDate,
+    endDate,
+    fileStatuses,
+    missionData,
+    currentYear,
+  ]);
+
   useEffect(() => {
     onDateChange(yearSelected, monthSelected);
   }, [yearSelected, monthSelected, onDateChange]);
 
   return (
     <div className="flex flex-col">
+      {allMonthFilesValidated ? (
+        <div className="flex flex-col">
+          <p>
+            Tous les fichiers sont{' '}
+            <span className="font-bold text-[#92C6B0]">validés</span>
+          </p>
+        </div>
+      ) : null}
+
       <div className="mt-spaceContainer flex items-center gap-x-spaceSmall gap-y-spaceXXSmall overflow-x-auto md:gap-x-spaceXXSmall lg:justify-evenly">
         <Select
           value={String(yearSelected)}
