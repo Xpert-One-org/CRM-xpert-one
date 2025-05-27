@@ -43,6 +43,7 @@ export async function getAllMatchedXperts(
     secondary_job_title: additionalCriteria?.secondary_job_title || [],
     secondary_sector: additionalCriteria?.secondary_sector || [],
     secondary_country: [...(additionalCriteria?.secondary_country || [])],
+    secondary_region: [...(additionalCriteria?.secondary_region || [])],
     secondary_post_type: additionalCriteria?.secondary_post_type || [],
     secondary_specialties: additionalCriteria?.secondary_specialties || [],
     secondary_expertises: additionalCriteria?.secondary_expertises || [],
@@ -74,6 +75,11 @@ export async function getAllMatchedXperts(
       ? finalCriteria.secondary_country
       : '';
 
+  const secondaryRegion =
+    finalCriteria.secondary_region.length > 0
+      ? finalCriteria.secondary_region
+      : '';
+
   let query = supabase
     .from('profile')
     .select(
@@ -82,15 +88,19 @@ export async function getAllMatchedXperts(
     firstname,
     lastname,
     country,
+    
     generated_id,
-    profile_mission (
+    profile_mission!inner(
       job_titles,
       posts_type,
       sector,
       specialties,
       expertises,
       availability,
-      workstation_needed
+      workstation_needed,
+      area,
+      france_detail,
+      regions
     ),
     profile_experience (
       sector,
@@ -109,7 +119,6 @@ export async function getAllMatchedXperts(
   `,
       { count: 'exact' }
     )
-
     .eq('role', 'xpert');
 
   if (firstname) {
@@ -121,9 +130,26 @@ export async function getAllMatchedXperts(
   }
 
   if (secondaryCountry && secondaryCountry?.length > 0) {
-    console.log('secondaryCountry', secondaryCountry);
-
     query = query.in('country', secondaryCountry);
+  }
+
+  if (secondaryRegion && secondaryRegion?.length > 0) {
+    // query = query.or(
+    //   `area.cs.{"france"},and(france_detail.cs.{"metropolitan_france"})`, {
+    //     "referencedTable": "profile_mission",
+    //   }
+
+    // );
+
+    query = query.or(
+      `france_detail.cs.{metropolitan_france},and(france_detail.cs.{regions},regions.cs.{${secondaryRegion.join(',')}})`,
+      { referencedTable: 'profile_mission' }
+    );
+
+    // query = query.filter('profile_mission.france_detail', 'cs', '{"regions"}');
+    // query = query.filter('profile_mission.regions', 'cs', `{${secondaryRegion.join(',')}}`);
+
+    console.log(query);
   }
 
   const { data, count, error } = await query;
