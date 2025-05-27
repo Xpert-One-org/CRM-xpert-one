@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Credenza,
   CredenzaContent,
@@ -11,13 +11,13 @@ import { toast } from 'sonner';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import type { DBMission } from '@/types/typesDb';
 import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
-
-import { DownloadIcon } from 'lucide-react';
+import { DownloadIcon, UploadCloud } from 'lucide-react';
 import { uppercaseFirstLetter } from '@/utils/string';
 import FileInput from '@/components/inputs/FileInput';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { generateMonthsRange } from '../_utils/generateMonthsRange';
 import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
+import { useDropzone } from 'react-dropzone';
 
 type MissionUpload = {
   mission: DBMission;
@@ -120,35 +120,108 @@ export default function UploadMultipleSalarySheetDialog({
     return fileName === expectedName;
   };
 
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setMissionsToUpload((prev) => {
-        const newUploads = [...prev];
-        const currentUpload = newUploads[index];
+  const findMatchingMission = (
+    fileName: string
+  ): {
+    mission: DBMission;
+    monthYear: { month: number; year: number };
+  } | null => {
+    const parts = fileName.split('_');
+    if (parts.length !== 4) return null;
 
-        const isValidNaming = checkFileNaming(
-          file,
-          currentUpload.mission,
-          currentUpload.monthYear
-        );
+    const [missionNumber, generatedId, year, monthStr] = parts;
+    const month = parseInt(monthStr, 10) - 1; // Convert to 0-based month
 
-        newUploads[index] = {
-          ...currentUpload,
-          file,
-          fileName: file.name,
-          isError: !isValidNaming,
-          errorMessage: !isValidNaming
-            ? 'Le nom du fichier ne respecte pas la convention de nommage'
-            : undefined,
-        };
-        return newUploads;
-      });
-    }
+    const mission = missions.find(
+      (m) =>
+        m.mission_number === missionNumber &&
+        (isFournisseur
+          ? m.supplier?.generated_id === generatedId
+          : m.xpert?.generated_id === generatedId)
+    );
+
+    if (!mission) return null;
+
+    return {
+      mission,
+      monthYear: { month, year: parseInt(year, 10) },
+    };
   };
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const newUploads = [...missionsToUpload];
+      let hasNamingError = false;
+      const invalidFiles: string[] = [];
+
+      acceptedFiles.forEach((file) => {
+        const fileNameWithoutExt = file.name.split('.')[0];
+        const match = findMatchingMission(fileNameWithoutExt);
+
+        if (match) {
+          const existingIndex = newUploads.findIndex(
+            (upload) =>
+              upload.mission.mission_number === match.mission.mission_number &&
+              upload.monthYear.month === match.monthYear.month &&
+              upload.monthYear.year === match.monthYear.year
+          );
+
+          if (existingIndex !== -1) {
+            const isValidNaming = checkFileNaming(
+              file,
+              match.mission,
+              match.monthYear
+            );
+            if (!isValidNaming) {
+              hasNamingError = true;
+              invalidFiles.push(file.name);
+            }
+            newUploads[existingIndex] = {
+              ...newUploads[existingIndex],
+              file,
+              fileName: file.name,
+              isError: !isValidNaming,
+              errorMessage: !isValidNaming
+                ? 'Le nom du fichier ne respecte pas la convention de nommage'
+                : undefined,
+            };
+          }
+        } else {
+          hasNamingError = true;
+          invalidFiles.push(file.name);
+        }
+      });
+
+      if (hasNamingError) {
+        toast.error(
+          <div>
+            <p>Les fichiers suivants ne respectent pas la nomenclature :</p>
+            <ul className="mt-2 list-disc pl-4">
+              {invalidFiles.map((fileName, index) => (
+                <li key={index} className="text-sm">
+                  {fileName}
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      setMissionsToUpload(newUploads);
+    },
+    [missionsToUpload, missions, isFournisseur]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        ['.docx'],
+    },
+    multiple: true,
+  });
 
   const handleUploadFiles = async () => {
     const hasNamingErrors = missionsToUpload.some(
@@ -238,6 +311,26 @@ export default function UploadMultipleSalarySheetDialog({
                   ? 'Factures - FOURNISSEUR'
                   : 'Bulletins de Salaires - XPERT'}
               </h2>
+
+              <div
+                {...getRootProps()}
+                className={`cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+                  isDragActive
+                    ? 'border-primary bg-primary/10'
+                    : 'border-gray-300'
+                }`}
+              >
+                <input {...getInputProps()} />
+                <UploadCloud className="mx-auto size-12 text-gray-400" />
+                <p className="mt-2 text-sm text-gray-600">
+                  Glissez et déposez vos fichiers ici, ou cliquez pour
+                  sélectionner
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Format accepté : PDF, DOC, DOCX
+                </p>
+              </div>
+
               <div className="flex flex-col gap-2 overflow-y-auto">
                 {missionsToUpload.map((upload, index) => (
                   <div
@@ -259,25 +352,36 @@ export default function UploadMultipleSalarySheetDialog({
                         )}
                       </h3>
                     </div>
-                    <FileInput
-                      classNameInput="xl:max-w-full"
-                      onChange={(e) => handleFileChange(e, index)}
-                      accept=".pdf,.doc,.docx"
-                      disabled={isUploading}
-                      label={isFournisseur ? 'Facture' : 'Bulletin de salaire'}
-                      placeholder={`${upload.mission.mission_number}_${
-                        isFournisseur
-                          ? upload.mission.supplier?.generated_id
-                          : upload.mission.xpert?.generated_id
-                      }_${upload.monthYear.year}_${
-                        upload.monthYear.month + 1 < 10
-                          ? `0${upload.monthYear.month + 1}`
-                          : upload.monthYear.month + 1
-                      }.pdf`}
-                      hasError={upload.isError}
-                      errorMessageText={upload.errorMessage}
-                      fileName={upload.isError ? '' : upload.fileName}
-                    />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 rounded-md border p-2">
+                        <div className="flex-1">
+                          {upload.file ? (
+                            <p
+                              className={`text-sm ${upload.isError ? 'text-red-500' : 'text-gray-600'}`}
+                            >
+                              {upload.fileName}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-gray-400">
+                              {`${upload.mission.mission_number}_${
+                                isFournisseur
+                                  ? upload.mission.supplier?.generated_id
+                                  : upload.mission.xpert?.generated_id
+                              }_${upload.monthYear.year}_${
+                                upload.monthYear.month + 1 < 10
+                                  ? `0${upload.monthYear.month + 1}`
+                                  : upload.monthYear.month + 1
+                              }.pdf`}
+                            </p>
+                          )}
+                        </div>
+                        {upload.isError && (
+                          <p className="text-xs text-red-500">
+                            {upload.errorMessage}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
