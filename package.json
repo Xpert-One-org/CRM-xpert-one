@@ -66,6 +66,7 @@
     "next-themes": "^0.3.0",
     "react": "19.0.0-rc-69d4b800-20241021",
     "react-dom": "19.0.0-rc-69d4b800-20241021",
+    "react-dropzone": "^14.3.8",
     "react-phone-number-input": "^3.4.8",
     "react-simple-maps": "^3.0.0",
     "react-tooltip": "^5.28.0",

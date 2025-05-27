@@ -196,10 +196,6 @@ export default function EtatFacturationsTable({
     }));
   };
 
-  useEffect(() => {
-    console.log('fileStatusesByMission changed', fileStatusesByMission);
-  }, [fileStatusesByMission]);
-
   const filterRows = useCallback(
     (rows: typeof baseRows) => {
       return rows.filter(({ mission, monthYear }) => {
