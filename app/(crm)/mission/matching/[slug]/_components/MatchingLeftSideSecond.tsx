@@ -11,7 +11,6 @@ import { getLabel } from '@/utils/getLabel';
 import { empty } from '@/data/constant';
 import { Button } from '@/components/ui/button';
 import { useIsIntern } from '@/hooks/useRoles';
-import { fi } from 'date-fns/locale';
 import Input from '@/components/inputs/Input';
 import {
   expertiseSelect,
@@ -40,6 +39,7 @@ export default function MatchingLeftSideSecond({
     firstname: false,
     lastname: false,
     country: false,
+    region: false,
   });
 
   const [criteriaIconShow, setCriteriaIconShow] = useState({
@@ -51,17 +51,19 @@ export default function MatchingLeftSideSecond({
     firstname: false,
     lastname: false,
     country: false,
+    region: false,
   });
 
   const [hasChanges, setHasChanges] = useState(false);
   const [addingFirstname, setAddingFirstname] = useState('');
   const [addingLastname, setAddingLastname] = useState('');
 
-  const { countries, fetchCountries } = useSelect();
+  const { regions, countries, fetchRegions, fetchCountries } = useSelect();
 
   useEffect(() => {
+    fetchRegions();
     fetchCountries();
-  }, [fetchCountries]);
+  }, [fetchRegions, fetchCountries]);
 
   const handleAddClick = (criteriaType: keyof typeof showAdditionalSelects) => {
     if (isIntern) return;
@@ -615,6 +617,74 @@ export default function MatchingLeftSideSecond({
               defaultSelectedKeys={additionalCriteria.secondary_country || []}
               className="w-full"
             />
+          </div>
+        )}
+        <div className="flex w-full gap-6">
+          <div className="min-w-[300px]">
+            <Box className="justify-between bg-[#D0DDE1] p-3">
+              Région
+              {!criteriaIconShow.region ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('region')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('region')}
+                />
+              )}
+            </Box>
+          </div>
+          <div className="flex flex-wrap gap-[10px]">
+            {additionalCriteria.secondary_region?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('region', option);
+                }}
+              >
+                {getLabel({
+                  value: option,
+                  select: regions,
+                }) ?? empty}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
+          </div>
+        </div>
+        {showAdditionalSelects.region && (
+          <div className="flex max-w-[300px] flex-col gap-2">
+            <div className="flex items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+              <MultiSelectComponent
+                options={regions}
+                onValueChange={(values) =>
+                  handleAdditionalSelection(
+                    'region',
+                    values as unknown as string[]
+                  )
+                }
+                name="secondary_region"
+                defaultSelectedKeys={additionalCriteria.secondary_region || []}
+                className="w-full"
+              />
+            </div>
+            <p className="text-xs italic text-gray-600">
+              Note : Les XPERTS ayant sélectionné "France métropolitaine" seront
+              également affichés.
+            </p>
           </div>
         )}
       </div>
