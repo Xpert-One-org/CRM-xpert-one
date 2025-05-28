@@ -41,6 +41,11 @@ export type DocumentInfo = {
   pathname?: string;
 };
 
+type HabilitationInfo = DocumentInfo & {
+  hasMultipleTypes?: boolean;
+  [key: string]: any;
+};
+
 export default function XpertTable() {
   const {
     xpertsOptimized,
@@ -82,8 +87,9 @@ export default function XpertTable() {
   const [responsabiliteCivileInfo, setResponsabiliteCivileInfo] =
     useState<DocumentInfo>({ publicUrl: '' });
   const [ribInfo, setRibInfo] = useState<DocumentInfo>({ publicUrl: '' });
-  const [habilitationInfo, setHabilitationInfo] = useState<DocumentInfo>({
+  const [habilitationInfo, setHabilitationInfo] = useState<HabilitationInfo>({
     publicUrl: '',
+    hasMultipleTypes: false,
   });
   const [openTooltip, setOpenTooltip] = useState(false);
 
@@ -184,7 +190,60 @@ export default function XpertTable() {
 
     const { data: habilitationData } = await supabase.storage
       .from('profile_files')
-      .list(`${xpert.generated_id}/habilitations/`);
+      .list(`${xpert.generated_id}/habilitations/`, {
+        sortBy: { column: 'name', order: 'asc' },
+      });
+
+    const habilitationsMap = new Map<string, any[]>();
+
+    if (habilitationData && habilitationData.length > 0) {
+      for (const file of habilitationData) {
+        if (file.name === '.emptyFolderPlaceholder') continue;
+
+        const habilitationType = file.name.split('.')[0];
+
+        if (!habilitationsMap.has(habilitationType)) {
+          habilitationsMap.set(habilitationType, []);
+        }
+        habilitationsMap.get(habilitationType)?.push(file);
+      }
+
+      console.log({ habilitationsMap });
+
+      const habilitationsUrls: { [key: string]: DocumentInfo } = {};
+
+      for (const [type, files] of Array.from(habilitationsMap.entries())) {
+        const sortedFiles = files.sort(
+          (a: { created_at: string }, b: { created_at: string }) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        const mostRecentFile = sortedFiles[0];
+        const { data } = await supabase.storage
+          .from('profile_files')
+          .getPublicUrl(
+            `${xpert.generated_id}/habilitations/${mostRecentFile.name}`
+          );
+
+        habilitationsUrls[type] = {
+          publicUrl: data.publicUrl,
+          created_at: mostRecentFile.created_at,
+          pathname: `${xpert.generated_id}/habilitations/${mostRecentFile.name}`,
+        };
+      }
+
+      console.log(habilitationsUrls);
+
+      setHabilitationInfo({
+        publicUrl: '',
+        ...habilitationsUrls,
+        hasMultipleTypes: true,
+      });
+    } else {
+      setHabilitationInfo({
+        publicUrl: '',
+        hasMultipleTypes: false,
+      });
+    }
 
     if (cvData && cvData.length > 0) {
       const sortedCvData = cvData.sort(
@@ -304,24 +363,6 @@ export default function XpertTable() {
         publicUrl: data.publicUrl,
         created_at: mostRecentVitaleFile.created_at,
         pathname: `${xpert.generated_id}/vitale/${mostRecentVitaleFile.name}`,
-      });
-    }
-
-    if (habilitationData && habilitationData.length > 0) {
-      const sortedHabilitationData = habilitationData.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-      const mostRecentHabilitationFile = sortedHabilitationData[0];
-      const { data } = await supabase.storage
-        .from('profile_files')
-        .getPublicUrl(
-          `${xpert.generated_id}/habilitations/${mostRecentHabilitationFile.name}`
-        );
-      setHabilitationInfo({
-        publicUrl: data.publicUrl,
-        created_at: mostRecentHabilitationFile.created_at,
-        pathname: `${xpert.generated_id}/habilitations/${mostRecentHabilitationFile.name}`,
       });
     }
 

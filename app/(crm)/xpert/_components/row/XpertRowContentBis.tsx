@@ -5,6 +5,7 @@ import {
   booleanSelect,
   expertiseSelect,
   franceSelect,
+  habilitationsSelect,
   jobTitleSelect,
   sectorSelect,
   specialitySelect,
@@ -12,7 +13,7 @@ import {
 import { useSelect } from '@/store/select';
 import { getLabel } from '@/utils/getLabel';
 import React, { useEffect, useState } from 'react';
-import type { DocumentInfo } from '../XpertTable';
+import type { DocumentInfo as BaseDocumentInfo } from '../XpertTable';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -33,6 +34,13 @@ import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import DeleteDocumentDialog from '../DeleteDocumentDialog';
 
+type DocumentInfo = BaseDocumentInfo;
+
+type HabilitationInfo = DocumentInfo & {
+  hasMultipleTypes?: boolean;
+  [key: string]: any;
+};
+
 type XpertRowContentBisProps = {
   isLoading: boolean;
   cvInfo: DocumentInfo;
@@ -42,7 +50,7 @@ type XpertRowContentBisProps = {
   kbisInfo: DocumentInfo;
   responsabiliteCivileInfo: DocumentInfo;
   ribInfo: DocumentInfo;
-  habilitationInfo: DocumentInfo;
+  habilitationInfo: HabilitationInfo;
   handleKeyChanges: (table: NestedTableKey | undefined, name: string) => void;
 };
 
@@ -58,14 +66,14 @@ type FileType =
 
 export default function XpertRowContentBis({
   isLoading,
-  cvInfo,
-  urssafInfo,
-  kbisInfo,
-  responsabiliteCivileInfo,
-  ribInfo,
-  habilitationInfo,
-  identityInfo,
-  vitaleInfo,
+  cvInfo: initialCvInfo,
+  urssafInfo: initialUrssafInfo,
+  kbisInfo: initialKbisInfo,
+  responsabiliteCivileInfo: initialResponsabiliteCivileInfo,
+  ribInfo: initialRibInfo,
+  habilitationInfo: initialHabilitationInfo,
+  identityInfo: initialIdentityInfo,
+  vitaleInfo: initialVitaleInfo,
   handleKeyChanges,
 }: XpertRowContentBisProps) {
   const {
@@ -76,8 +84,24 @@ export default function XpertRowContentBis({
 
   const { regions, fetchRegions } = useSelect();
 
+  // États pour chaque type de document
+  const [cvInfo, setCvInfo] = useState<DocumentInfo>(initialCvInfo);
+  const [urssafInfo, setUrssafInfo] = useState<DocumentInfo>(initialUrssafInfo);
+  const [kbisInfo, setKbisInfo] = useState<DocumentInfo>(initialKbisInfo);
+  const [responsabiliteCivileInfo, setResponsabiliteCivileInfo] =
+    useState<DocumentInfo>(initialResponsabiliteCivileInfo);
+  const [ribInfo, setRibInfo] = useState<DocumentInfo>(initialRibInfo);
+  const [habilitationInfo, setHabilitationInfo] = useState<HabilitationInfo>(
+    initialHabilitationInfo
+  );
+  const [identityInfo, setIdentityInfo] =
+    useState<DocumentInfo>(initialIdentityInfo);
+  const [vitaleInfo, setVitaleInfo] = useState<DocumentInfo>(initialVitaleInfo);
+
   const [newFile, setNewFile] = useState<File | null>(null);
   const [newFileType, setNewFileType] = useState<FileType | null>(null);
+  const [selectedHabilitationType, setSelectedHabilitationType] =
+    useState<string>('');
 
   const [reload, setReload] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -93,6 +117,9 @@ export default function XpertRowContentBis({
     { label: 'Habilitation', value: 'habilitation' },
   ];
 
+  const habilitationOptions: { label: string; value: string }[] =
+    habilitationsSelect;
+
   useEffect(() => {
     setXpert(openedXpert);
   }, [openedXpert]);
@@ -100,6 +127,26 @@ export default function XpertRowContentBis({
   useEffect(() => {
     fetchRegions();
   }, []);
+
+  useEffect(() => {
+    setCvInfo(initialCvInfo);
+    setUrssafInfo(initialUrssafInfo);
+    setKbisInfo(initialKbisInfo);
+    setResponsabiliteCivileInfo(initialResponsabiliteCivileInfo);
+    setRibInfo(initialRibInfo);
+    setHabilitationInfo(initialHabilitationInfo);
+    setIdentityInfo(initialIdentityInfo);
+    setVitaleInfo(initialVitaleInfo);
+  }, [
+    initialCvInfo,
+    initialUrssafInfo,
+    initialKbisInfo,
+    initialResponsabiliteCivileInfo,
+    initialRibInfo,
+    initialHabilitationInfo,
+    initialIdentityInfo,
+    initialVitaleInfo,
+  ]);
 
   const [documentType, setDocumentType] = useState(
     cvInfo
@@ -187,17 +234,25 @@ export default function XpertRowContentBis({
           },
         ]
       : []),
-    ...(habilitationInfo.created_at
-      ? [
-          {
-            label: 'Habilitation',
-            value: 'habilitation',
-            json_key: new Date(
-              habilitationInfo.created_at
-            ).toLocaleDateString(),
-          },
-        ]
-      : []),
+    ...(habilitationInfo.hasMultipleTypes
+      ? Object.entries(habilitationInfo)
+          .filter(([key]) => key !== 'hasMultipleTypes' && key !== 'publicUrl')
+          .map(([type, info]: [string, any]) => ({
+            label: `Habilitation - ${habilitationsSelect.find((h) => h.value === type)?.label || type}`,
+            value: `habilitation_${type}`,
+            json_key: new Date(info.created_at).toLocaleDateString(),
+          }))
+      : habilitationInfo.created_at
+        ? [
+            {
+              label: 'Habilitation',
+              value: 'habilitation',
+              json_key: new Date(
+                habilitationInfo.created_at
+              ).toLocaleDateString(),
+            },
+          ]
+        : []),
   ];
 
   const handleChangeInput = (
@@ -284,6 +339,11 @@ export default function XpertRowContentBis({
       return;
     }
 
+    if (newFileType === 'habilitation' && !selectedHabilitationType) {
+      toast.error("Veuillez sélectionner un type d'habilitation");
+      return;
+    }
+
     try {
       if (newFile.size > 50 * 1024 * 1024) {
         toast.error('Fichier trop volumineux (max 50 Mo)');
@@ -296,7 +356,12 @@ export default function XpertRowContentBis({
         return;
       }
 
-      const fileName = `${xpert.generated_id}/${newFileType}/${newFileType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
+      let fileName = '';
+      if (newFileType === 'habilitation') {
+        fileName = `${xpert.generated_id}/${newFileType}/${selectedHabilitationType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
+      } else {
+        fileName = `${xpert.generated_id}/${newFileType}/${newFileType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
+      }
 
       console.log('Debug - Tentative upload:', {
         bucket: 'profile_files',
@@ -342,6 +407,7 @@ export default function XpertRowContentBis({
 
       setNewFile(null);
       setNewFileType(null);
+      setSelectedHabilitationType('');
       setReload(true);
       toast.success('Fichier uploadé avec succès');
     } catch (error) {
@@ -361,6 +427,11 @@ export default function XpertRowContentBis({
   };
 
   const getPathnameByDocumentType = (documentType: string) => {
+    if (documentType.startsWith('habilitation_')) {
+      const habilitationType = documentType.replace('habilitation_', '');
+      return habilitationInfo[habilitationType]?.pathname || '';
+    }
+
     switch (documentType) {
       case 'cv':
         return cvInfo.pathname;
@@ -376,8 +447,6 @@ export default function XpertRowContentBis({
         return identityInfo.pathname;
       case 'vitale':
         return vitaleInfo.pathname;
-      case 'habilitation':
-        return habilitationInfo.pathname;
       default:
         return '';
     }
@@ -397,11 +466,69 @@ export default function XpertRowContentBis({
       .from('profile_files')
       .remove([pathname]);
 
-    setReload(true);
-
     if (error) {
       toast.error('Erreur lors de la suppression du document');
       return;
+    }
+
+    if (documentType.startsWith('habilitation_')) {
+      const habilitationType = documentType.replace('habilitation_', '');
+      const habilitationLabel =
+        habilitationsSelect.find((h) => h.value === habilitationType)?.label ||
+        habilitationType;
+
+      const updatedHabilitations = { ...habilitationInfo };
+      delete updatedHabilitations[habilitationType];
+
+      const remainingHabilitations = Object.keys(updatedHabilitations).filter(
+        (key) => key !== 'hasMultipleTypes' && key !== 'publicUrl'
+      );
+
+      if (remainingHabilitations.length === 0) {
+        updatedHabilitations.hasMultipleTypes = false;
+      }
+
+      setHabilitationInfo(updatedHabilitations);
+
+      if (selectOptions.length > 0) {
+        setDocumentType(selectOptions[0].value);
+      } else {
+        setDocumentType('');
+      }
+
+      toast.success(`L'habilitation ${habilitationLabel} a été supprimée`);
+    } else {
+      switch (documentType) {
+        case 'cv':
+          setCvInfo({ publicUrl: '', pathname: '' });
+          break;
+        case 'urssaf':
+          setUrssafInfo({ publicUrl: '', pathname: '' });
+          break;
+        case 'kbis':
+          setKbisInfo({ publicUrl: '', pathname: '' });
+          break;
+        case 'civil_responsability':
+          setResponsabiliteCivileInfo({ publicUrl: '', pathname: '' });
+          break;
+        case 'rib':
+          setRibInfo({ publicUrl: '', pathname: '' });
+          break;
+        case 'identity':
+          setIdentityInfo({ publicUrl: '', pathname: '' });
+          break;
+        case 'vitale':
+          setVitaleInfo({ publicUrl: '', pathname: '' });
+          break;
+      }
+
+      if (selectOptions.length > 1) {
+        setDocumentType(selectOptions[1].value);
+      } else {
+        setDocumentType('');
+      }
+
+      toast.success('Le document a été supprimé');
     }
 
     setIsDeleteDialogOpen(false);
@@ -414,7 +541,7 @@ export default function XpertRowContentBis({
     kbisInfo: DocumentInfo,
     responsabiliteCivileInfo: DocumentInfo,
     ribInfo: DocumentInfo,
-    habilitationInfo: DocumentInfo,
+    habilitationInfo: HabilitationInfo,
     identityInfo: DocumentInfo,
     vitaleInfo: DocumentInfo
   ) => {
@@ -472,13 +599,18 @@ export default function XpertRowContentBis({
         <iframe src={ribInfo.publicUrl} className="h-[90vh] w-full py-2" />
       );
     }
-    if (documentType === 'habilitation' && habilitationInfo.publicUrl) {
-      return (
-        <iframe
-          src={habilitationInfo.publicUrl}
-          className="h-[90vh] w-full py-2"
-        />
-      );
+    if (documentType.startsWith('habilitation_')) {
+      const habilitationType = documentType.replace('habilitation_', '');
+      const habilitationData = habilitationInfo[habilitationType];
+      if (habilitationData?.publicUrl) {
+        return (
+          <iframe
+            src={habilitationData.publicUrl}
+            className="h-[90vh] w-full py-2"
+            title={`habilitation-${habilitationType}`}
+          />
+        );
+      }
     }
     return <p>Aucun document uploadé par l'xpert pour le moment</p>;
   };
@@ -513,7 +645,7 @@ export default function XpertRowContentBis({
                       <p className="whitespace-nowrap font-medium text-black">
                         {selectOptions[0]?.label}
                       </p>
-                      <p className="font-medium text-[#BEBEC0] group-hover:text-black">
+                      <p className="whitespace-nowrap font-medium text-[#BEBEC0] group-hover:text-black">
                         {selectOptions[0]?.json_key}
                       </p>
                     </div>
@@ -531,7 +663,9 @@ export default function XpertRowContentBis({
                         className="transition duration-150"
                       >
                         <div className="flex flex-row items-center gap-2">
-                          <p className="font-medium text-black">{item.label}</p>
+                          <p className="whitespace-nowrap font-medium text-black">
+                            {item.label}
+                          </p>
                           <p className="font-medium">{item.json_key}</p>
                         </div>
                       </SelectItem>
@@ -565,6 +699,16 @@ export default function XpertRowContentBis({
           onChange={(e) => handleFileTypes(e.value as FileType)}
           label="Type de document"
         />
+        {newFileType === 'habilitation' && (
+          <CreatableSelect
+            options={habilitationOptions}
+            className="max-w-[300px]"
+            onChange={(e) => {
+              setSelectedHabilitationType(e.value);
+            }}
+            label="Type d'habilitation"
+          />
+        )}
         <Button
           disabled={!newFile || !newFileType}
           className="flex size-fit self-end disabled:bg-gray-300"
@@ -755,15 +899,6 @@ export default function XpertRowContentBis({
             onChange={(e) => handleChangeInput(e, 'profile_mission')}
           />
 
-          {/* <MultiSelectComponent
-            className="xl:max-w-full"
-            disabled
-            label="Quelles zones géographiques"
-            defaultSelectedKeys={[...(xpert.profile_mission?.area ?? [])]}
-            options={[...areaSelect]}
-            name=""
-            onValueChange={() => ({})}
-          /> */}
           <MultiCreatableSelect
             label="Quelles zones géographiques?"
             defaultValue={xpert.profile_mission?.area?.map((area) => ({
@@ -823,11 +958,6 @@ export default function XpertRowContentBis({
         <div className="h-px w-full bg-[#BEBEC0]" />
         <p className="text-lg font-medium text-black">Prétentions salariales</p>
         <div className="grid w-full grid-cols-2 gap-4">
-          {/* <Input
-            label="TJM total frais souhaité (hors grand déplacement)"
-            disabled
-            value={xpert.profile_mission?.desired_tjm ?? empty}
-          /> */}
           <Input
             label="TJM total frais souhaité (hors grand déplacement)"
             value={xpert.profile_mission?.desired_tjm ?? empty}
@@ -846,18 +976,6 @@ export default function XpertRowContentBis({
         <div className="h-px w-full bg-[#BEBEC0]" />
         <p className="text-lg font-medium text-black">Aménagement de poste</p>
         <div className="grid w-full grid-cols-2 gap-4">
-          {/* <Input
-            label="Avez-vous besoin d'un amménagement de poste"
-            disabled
-            value={
-              (xpert.profile_mission &&
-                getLabel({
-                  value: xpert.profile_mission.workstation_needed ?? '',
-                  select: [],
-                })) ??
-              empty
-            }
-          /> */}
           <CreatableSelect
             options={booleanSelect}
             defaultValue={{
