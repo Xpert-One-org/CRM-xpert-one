@@ -1129,10 +1129,7 @@ export const habilitationsSelect = [
     label: 'Habilitation CACES',
     value: 'habilitation_caces',
   },
-  {
-    label: 'Habilitation électrique',
-    value: 'habilitation_electrique',
-  },
+
   {
     label: 'Habilitation gaz',
     value: 'habilitation_gaz',
@@ -1142,8 +1139,33 @@ export const habilitationsSelect = [
     value: 'habilitation_plomb',
   },
   {
+    label: 'Habilitation travail en hauteur',
+    value: 'habilitation_travail_en_hauteur',
+  },
+  {
+    label: 'Habilitation électrique 1',
+    value: 'habilitation_electrique_1',
+  },
+  {
+    label: 'Habilitation électrique 2',
+    value: 'habilitation_electrique_2',
+  },
+  {
+    label: 'Habilitation électrique 3',
+    value: 'habilitation_electrique_3',
+  },
+
+  {
+    label: 'Habilitation électrique 4',
+    value: 'habilitation_electrique_4',
+  },
+  {
+    label: 'Habilitation électrique 5',
+    value: 'habilitation_electrique_5',
+  },
+  {
     label: 'Autre',
-    value: 'others',
+    value: 'habilitation_autre',
   },
 ];
 
