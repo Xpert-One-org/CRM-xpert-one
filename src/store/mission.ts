@@ -30,6 +30,7 @@ export type FilterMission = {
 type MissionState = {
   missions: DBMission[];
   lastMissionNumber: string;
+  setLastMissionNumber: (missionNumber: string) => void;
   lastMissionNumberFacturation: string;
   missionsNumbers: { mission_number: string | null }[];
   totalMissions: number;
@@ -85,6 +86,8 @@ type MissionState = {
 export const useMissionStore = create<MissionState>((set, get) => ({
   missions: [],
   lastMissionNumber: '',
+  setLastMissionNumber: (missionNumber: string) =>
+    set({ lastMissionNumber: missionNumber }),
   lastMissionNumberFacturation: '',
   missionsNumbers: [],
   totalMissions: 0,

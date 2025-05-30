@@ -27,7 +27,8 @@ export default function ComboboxMission({
   const [text] = useDebounce(value, 500);
   const [data, setData] = useState<string[]>([]);
 
-  const { missionsNumbers, searchMissions, isLoading } = useMissionStore();
+  const { missionsNumbers, searchMissions, isLoading, setLastMissionNumber } =
+    useMissionStore();
   const pathname = usePathname();
   const currentMissionNumber = pathname.split('/').pop();
   const [currentValue] = useState(
@@ -51,6 +52,8 @@ export default function ComboboxMission({
     if (value.toUpperCase() === currentMissionNumber?.toUpperCase()) {
       return;
     }
+
+    setLastMissionNumber(value);
 
     setValue(value);
     if (slug === 'matching') {
