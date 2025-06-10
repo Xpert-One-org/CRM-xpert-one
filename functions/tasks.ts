@@ -22,6 +22,22 @@ const taskQuery = `
   mission(id, job_title, mission_number, state)
 `;
 
+export async function getTaskToTreatCount() {
+  const supabase = await createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  const { error, count } = await supabase
+    .from('tasks')
+    .select('*', { count: 'exact' })
+    .neq('status', 'done')
+    .eq('assigned_to', user?.id ?? '');
+
+  if (error) {
+    return { count: null, error };
+  }
+
+  return { count, error: null };
+}
+
 export async function getTasks({
   offset,
   filters,
