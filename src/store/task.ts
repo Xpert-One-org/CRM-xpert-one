@@ -1,5 +1,5 @@
 import type { FilterTasks, TaskWithRelations } from '@/types/types';
-import { getTasks } from '@functions/tasks';
+import { getTasks, getTaskToTreatCount } from '@functions/tasks';
 import { toast } from 'sonner';
 import { create } from 'zustand';
 
@@ -9,6 +9,8 @@ type TaskState = {
   totalTasks: number | null;
   activeFilters: FilterTasks;
   createTaskDialogOpen: boolean;
+  taskToTreatCount: number | null;
+  setTaskToTreatCount: (count: number) => void;
   initialTaskData: {
     referentId?: string;
     subjectType?: 'xpert' | 'supplier';
@@ -20,6 +22,7 @@ type TaskState = {
   loadTasks: (replacing?: boolean) => Promise<void>;
   setActiveFilters: (filters: FilterTasks) => void;
   setCreateTaskDialogOpen: (open: boolean) => void;
+  loadTaskToTreatCount: () => Promise<void>;
   setInitialTaskData: (data: {
     referentId?: string;
     subjectType?: 'xpert' | 'supplier';
@@ -32,6 +35,10 @@ export const useTasksStore = create<TaskState>((set, get) => ({
   // State
   loading: true,
   tasks: null,
+  taskToTreatCount: null,
+  setTaskToTreatCount: (count) => {
+    set({ taskToTreatCount: count });
+  },
   totalTasks: null,
   activeFilters: {},
   createTaskDialogOpen: false,
@@ -40,6 +47,14 @@ export const useTasksStore = create<TaskState>((set, get) => ({
   // Actions
   setTasks: (tasks) => {
     set({ tasks });
+  },
+
+  loadTaskToTreatCount: async () => {
+    const { count, error } = await getTaskToTreatCount();
+    if (error) {
+      throw new Error(error.message);
+    }
+    set({ taskToTreatCount: count });
   },
 
   loadTasks: async (replacing = false) => {
@@ -57,6 +72,8 @@ export const useTasksStore = create<TaskState>((set, get) => ({
       if (error) {
         throw new Error(error);
       }
+
+      get().loadTaskToTreatCount();
 
       if (data) {
         if (replacing) {

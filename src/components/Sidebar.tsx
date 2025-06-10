@@ -16,6 +16,8 @@ import { ChevronDown } from 'lucide-react';
 import { useXpertStore } from '@/store/xpert';
 import { useMissionStore } from '@/store/mission';
 import useChat from '@/store/chat/chat';
+import { useTasksStore } from '@/store/task';
+import { getTaskToTreatCount } from '@functions/tasks';
 
 export default function Sidebar() {
   const { isSidebarOpen, toggleSidebar } = useSidebarOpenStore();
@@ -40,6 +42,9 @@ export default function Sidebar() {
     notReadChatsCountForum,
     notReadChatsCountEcho,
   } = useChat();
+
+  const { taskToTreatCount, setTaskToTreatCount, loadTaskToTreatCount } =
+    useTasksStore();
 
   const toggleSubMenu = (id: string, open?: boolean) => {
     open
@@ -70,6 +75,10 @@ export default function Sidebar() {
     fetchNotReadChatsForum();
     fetchNotReadChatsEcho();
   }, []);
+
+  useEffect(() => {
+    loadTaskToTreatCount();
+  }, [taskToTreatCount]);
 
   return (
     <div className="relative hidden lg:block">
@@ -112,6 +121,7 @@ export default function Sidebar() {
               const isSubMenuOpen = openSubMenus.includes(el.id.toString());
               const isChat = el.title === 'Messagerie' ? true : false;
               const isCommunity = el.title === 'Communauté' ? true : false;
+              const isDashboard = el.title === 'Mon dashboard' ? true : false;
 
               if (
                 pathname.split('/')[1] === 'messagerie' &&
@@ -165,6 +175,11 @@ export default function Sidebar() {
                                 notReadChatsCountEcho > 0) && (
                                 <span className="ml-2 size-[14px] rounded-full bg-important text-xs text-white" />
                               )}
+                            {isDashboard &&
+                              taskToTreatCount !== null &&
+                              taskToTreatCount > 0 && (
+                                <span className="ml-2 size-[14px] rounded-full bg-important text-xs text-white" />
+                              )}
                           </span>
                         </Link>
                         {isActive && (
@@ -187,6 +202,7 @@ export default function Sidebar() {
                           const pathanmeWithoutParams = pathname.split('?')[0];
                           const subWithoutParams = sub.url.split('?')[0];
                           const isForum = sub.title === 'Forum' ? true : false;
+                          const isTodo = sub.title === 'To Do' ? true : false;
                           const isEcho =
                             sub.title === 'Xpert One vous informe'
                               ? true
@@ -214,6 +230,7 @@ export default function Sidebar() {
                                         )
                                       : subWithoutParams ===
                                         pathanmeWithoutParams;
+
                           return (
                             <div key={sub.url} className="flex items-center">
                               <Link
@@ -241,6 +258,14 @@ export default function Sidebar() {
                               >
                                 {sub.title}
                               </Link>
+
+                              {isDashboard &&
+                              isTodo &&
+                              taskToTreatCount &&
+                              taskToTreatCount > 0 ? (
+                                <span className="ml-2 flex size-[10px] rounded-full bg-important text-xs text-white" />
+                              ) : null}
+
                               {isCommunity &&
                                 ((isForum && notReadChatsCountForum > 0) ||
                                   (isEcho && notReadChatsCountEcho > 0)) && (
