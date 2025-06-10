@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
 import { useXpertStore } from '@/store/xpert';
 import { useMissionStore } from '@/store/mission';
+import useChat from '@/store/chat/chat';
 
 export default function Sidebar() {
   const { isSidebarOpen, toggleSidebar } = useSidebarOpenStore();
@@ -27,6 +28,18 @@ export default function Sidebar() {
     fetchLastMissionNumber,
     lastMissionNumberFacturation,
   } = useMissionStore();
+
+  const {
+    fetchNotReadChats,
+    setNotReadChatsCount,
+    setNotReadChatsCountForum,
+    setNotReadChatsCountEcho,
+    notReadChatsCount,
+    fetchNotReadChatsForum,
+    fetchNotReadChatsEcho,
+    notReadChatsCountForum,
+    notReadChatsCountEcho,
+  } = useChat();
 
   const toggleSubMenu = (id: string, open?: boolean) => {
     open
@@ -50,6 +63,12 @@ export default function Sidebar() {
     if (!lastMissionNumber) {
       fetchLastMissionNumber();
     }
+  }, []);
+
+  useEffect(() => {
+    fetchNotReadChats();
+    fetchNotReadChatsForum();
+    fetchNotReadChatsEcho();
   }, []);
 
   return (
@@ -91,6 +110,30 @@ export default function Sidebar() {
             {menuCrm.map((el) => {
               const isActive = el.url.split('/')[1] === pathname.split('/')[1];
               const isSubMenuOpen = openSubMenus.includes(el.id.toString());
+              const isChat = el.title === 'Messagerie' ? true : false;
+              const isCommunity = el.title === 'Communauté' ? true : false;
+
+              if (
+                pathname.split('/')[1] === 'messagerie' &&
+                notReadChatsCount > 0
+              ) {
+                setNotReadChatsCount(0);
+              }
+
+              if (
+                pathname.split('/')[2] === 'forum' &&
+                notReadChatsCountForum > 0
+              ) {
+                setNotReadChatsCountForum(0);
+              }
+
+              if (
+                pathname.split('/')[2] === 'xpert-one-vous-informe' &&
+                notReadChatsCountEcho > 0
+              ) {
+                setNotReadChatsCountEcho(0);
+              }
+
               if (isSidebarOpen) {
                 return (
                   <div key={el.id} className={sidebarOpenWidth}>
@@ -112,8 +155,16 @@ export default function Sidebar() {
                           >
                             {el.icon}
                           </div>
-                          <span className="ml-4 whitespace-nowrap text-lg text-white group-hover:text-accent">
+                          <span className="ml-4 flex items-center whitespace-nowrap text-lg text-white group-hover:text-accent">
                             {el.title}
+                            {isChat && notReadChatsCount > 0 && (
+                              <span className="ml-2 size-[14px] rounded-full bg-important text-xs text-white" />
+                            )}
+                            {isCommunity &&
+                              (notReadChatsCountForum > 0 ||
+                                notReadChatsCountEcho > 0) && (
+                                <span className="ml-2 size-[14px] rounded-full bg-important text-xs text-white" />
+                              )}
                           </span>
                         </Link>
                         {isActive && (
@@ -135,7 +186,11 @@ export default function Sidebar() {
                         {el.sub?.map((sub) => {
                           const pathanmeWithoutParams = pathname.split('?')[0];
                           const subWithoutParams = sub.url.split('?')[0];
-
+                          const isForum = sub.title === 'Forum' ? true : false;
+                          const isEcho =
+                            sub.title === 'Xpert One vous informe'
+                              ? true
+                              : false;
                           const isSubActive =
                             sub.url === '/mission/fiche'
                               ? pathanmeWithoutParams.includes(subWithoutParams)
@@ -160,29 +215,38 @@ export default function Sidebar() {
                                       : subWithoutParams ===
                                         pathanmeWithoutParams;
                           return (
-                            <Link
-                              key={sub.url}
-                              href={
-                                sub.url === '/mission/fiche'
-                                  ? `/mission/fiche/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
-                                  : sub.url === '/mission/matching'
-                                    ? `/mission/matching/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
-                                    : sub.url === '/mission/selection'
-                                      ? `/mission/selection/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
-                                      : sub.url ===
-                                          '/mission/activation-des-missions'
-                                        ? `/mission/activation-des-missions/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                            <div key={sub.url} className="flex items-center">
+                              <Link
+                                href={
+                                  sub.url === '/mission/fiche'
+                                    ? `/mission/fiche/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                                    : sub.url === '/mission/matching'
+                                      ? `/mission/matching/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                                      : sub.url === '/mission/selection'
+                                        ? `/mission/selection/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
                                         : sub.url ===
-                                            '/facturation/gestion-des-facturations'
-                                          ? `/facturation/gestion-des-facturations/${lastMissionNumberFacturation.split(' ').join('-').toUpperCase()}`
-                                          : sub.url
-                              }
-                              className={cn('w-fit px-[10px] py-1 font-light', {
-                                'bg-dark_hard text-white': isSubActive,
-                              })}
-                            >
-                              {sub.title}
-                            </Link>
+                                            '/mission/activation-des-missions'
+                                          ? `/mission/activation-des-missions/${lastMissionNumber.split(' ').join('-').toUpperCase()}`
+                                          : sub.url ===
+                                              '/facturation/gestion-des-facturations'
+                                            ? `/facturation/gestion-des-facturations/${lastMissionNumberFacturation.split(' ').join('-').toUpperCase()}`
+                                            : sub.url
+                                }
+                                className={cn(
+                                  'w-fit px-[10px] py-1 font-light',
+                                  {
+                                    'bg-dark_hard text-white': isSubActive,
+                                  }
+                                )}
+                              >
+                                {sub.title}
+                              </Link>
+                              {isCommunity &&
+                                ((isForum && notReadChatsCountForum > 0) ||
+                                  (isEcho && notReadChatsCountEcho > 0)) && (
+                                  <span className="ml-2 flex size-[10px] rounded-full bg-important text-xs text-white" />
+                                )}
+                            </div>
                           );
                         })}
                       </div>

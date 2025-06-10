@@ -309,7 +309,8 @@ ALTER TYPE "public"."task_subject_type" OWNER TO "postgres";
 
 CREATE TYPE "public"."xpert_status_type" AS ENUM (
     'Entreprise',
-    'CDI de mission'
+    'CDI de mission',
+    'Portage'
 );
 
 
@@ -2984,7 +2985,8 @@ CREATE TABLE IF NOT EXISTS "public"."mission_finance" (
     "months_worked" numeric(4,2),
     "gd_rate" numeric(10,2),
     "annex_costs" numeric(10,2),
-    "margin" numeric(5,2)
+    "margin" numeric(5,2),
+    "total_ca" numeric
 );
 
 
@@ -4077,7 +4079,7 @@ CREATE OR REPLACE TRIGGER "brevo_new_xpert_to_xpert_chat" AFTER INSERT ON "publi
 
 CREATE OR REPLACE TRIGGER "create_checkpoints_after_mission_insert" AFTER INSERT ON "public"."mission" FOR EACH ROW EXECUTE FUNCTION "public"."create_mission_checkpoints"();
 
-ALTER TABLE "public"."mission" DISABLE TRIGGER "create_checkpoints_after_mission_insert";
+ALTER TABLE "public"."mission" ENABLE ALWAYS TRIGGER "create_checkpoints_after_mission_insert";
 
 
 
@@ -5046,7 +5048,7 @@ ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
 
 
--- ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
+ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat";

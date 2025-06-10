@@ -1,6 +1,7 @@
 import type { ChatType, DBChat, DBMessage } from '@/types/typesDb';
 import {
   deleteChat,
+  getNotReadChatsCount,
   getUserChats,
   handleReadNewMessage,
   postChat,
@@ -33,6 +34,15 @@ type ChatState = {
   deleteChat: (chatId: number) => Promise<void>;
   setChatSelected: (chat: DBChat | null) => void;
   setCurrentChatSelected: (chat: DBChat | null) => void;
+  fetchNotReadChats: () => void;
+  notReadChatsCount: number;
+  fetchNotReadChatsForum: () => void;
+  notReadChatsCountForum: number;
+  setNotReadChatsCountForum: (count: number) => void;
+  fetchNotReadChatsEcho: () => void;
+  notReadChatsCountEcho: number;
+  setNotReadChatsCountEcho: (count: number) => void;
+  setNotReadChatsCount: (count: number) => void;
   setCurrentMessages: (
     type: string,
     messagesOrUpdater:
@@ -104,6 +114,7 @@ const useChat = create<ChatState>((set, get) => ({
   chats: [],
   echoChats: [],
   forumChats: [],
+
   xpertChats: [],
   setCurrentChat: (chats: DBChat[]) => {
     switch (chats[0].type) {
@@ -235,7 +246,12 @@ const useChat = create<ChatState>((set, get) => ({
   setIsFileLoading: (isFileLoading) => set({ isFileLoading: isFileLoading }),
   answeringMsg: null,
   popupOpen: false,
-
+  notReadChatsCount: 0,
+  notReadChatsCountForum: 0,
+  notReadChatsCountEcho: 0,
+  setNotReadChatsCount: (count) => set({ notReadChatsCount: count }),
+  setNotReadChatsCountForum: (count) => set({ notReadChatsCountForum: count }),
+  setNotReadChatsCountEcho: (count) => set({ notReadChatsCountEcho: count }),
   setPopupOpen: (popupOpen) => set({ popupOpen: popupOpen }),
   setAnsweringMsg: (answeringMsg) => set({ answeringMsg: answeringMsg }),
   messages: [],
@@ -288,6 +304,37 @@ const useChat = create<ChatState>((set, get) => ({
 
       set({ isLoading: false, popupOpen: false });
     }
+  },
+
+  fetchNotReadChats: async () => {
+    const { error, count } = await getNotReadChatsCount({ type: 'chat' });
+    if (error) {
+      console.log('error', error);
+      set({ errorMsg: error });
+    }
+    console.log('count', count);
+
+    set({ notReadChatsCount: count ?? 0 });
+  },
+
+  fetchNotReadChatsForum: async () => {
+    const { error, count } = await getNotReadChatsCount({ type: 'forum' });
+    if (error) {
+      console.log('error', error);
+      set({ errorMsg: error });
+    }
+    set({ notReadChatsCountForum: count ?? 0 });
+  },
+
+  fetchNotReadChatsEcho: async () => {
+    const { error, count } = await getNotReadChatsCount({
+      type: 'echo_community',
+    });
+    if (error) {
+      console.log('error', error);
+      set({ errorMsg: error });
+    }
+    set({ notReadChatsCountEcho: count ?? 0 });
   },
 
   fetchChats: async (type) => {
@@ -360,9 +407,13 @@ const useChat = create<ChatState>((set, get) => ({
 
   updateMessageRead: async ({ chat_id, read_by }) => {
     const { error } = await handleReadNewMessage({ chat_id, read_by });
+
     if (error) {
       set({ errorMsg: error });
     }
+    get().fetchNotReadChats();
+    get().fetchNotReadChatsForum();
+    get().fetchNotReadChatsEcho();
   },
 
   sortDataByLatestMessage: (chats: DBChat[]) => {
