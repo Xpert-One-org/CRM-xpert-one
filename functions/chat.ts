@@ -29,7 +29,41 @@ export const handleReadNewMessage = async ({
   if (error) {
     return { error: error.message };
   }
-  return { error: null };
+  return { data, error: null };
+};
+
+export const getNotReadChatsCount = async ({
+  type = 'chat',
+}: {
+  type?: ChatType;
+}) => {
+  const supabase = await createSupabaseAppServerClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  if (!user) {
+    return { error: 'User not found' };
+  }
+  const { data, error } = await supabase
+    .from('chat')
+    .select('*', { count: 'exact' })
+    .eq('type', type);
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data) {
+    const chatIds = data.map((chat) => chat.id);
+    const { count, error: errorMsg } = await supabase
+      .from('message')
+      .select('*', { count: 'exact' })
+      .in('chat_id', chatIds)
+      .not('read_by', 'cs', `{${user.id}}`);
+
+    if (errorMsg) {
+      return { error: errorMsg.message };
+    }
+    return { data, error: null, count };
+  }
+  return { data: null, error: null, count: 0 };
 };
 
 export const getUserChats = async (type: ChatType) => {
