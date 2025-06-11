@@ -14,6 +14,7 @@ import { MissionReferentXpertOne } from './sections/MissionReferentXpertOne';
 import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import { MissionNotes } from './MissionNotes';
 import { MissionSupplier } from './sections/MissionSupplier';
+import CloneMissionDialog from '../../_components/CloneMissionDialog';
 
 export default function RightSideFicheMission() {
   const {
@@ -80,9 +81,12 @@ export default function RightSideFicheMission() {
             </Link>
           )}
         </div>
-        {mission.state != 'deleted' && (
-          <DeleteMissionDialog missionId={mission.id} />
-        )}
+        <div className="flex flex-row gap-2">
+          <CloneMissionDialog missionId={mission.id} />
+          {mission.state != 'deleted' && (
+            <DeleteMissionDialog missionId={mission.id} />
+          )}
+        </div>
       </div>
     </div>
   );
