@@ -250,7 +250,7 @@ export default function Sidebar() {
                                             : sub.url
                                 }
                                 className={cn(
-                                  'w-fit px-[10px] py-1 font-light',
+                                  'w-fit px-[10px] py-1 font-light hover:text-accent',
                                   {
                                     'bg-dark_hard text-white': isSubActive,
                                   }
