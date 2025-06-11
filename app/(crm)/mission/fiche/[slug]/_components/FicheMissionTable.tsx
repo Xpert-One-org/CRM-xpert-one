@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import CreatableSelect from '@/components/CreatableSelect';
 
 import { jobTitleSelect } from '@/data/mocked_select';
 
@@ -33,15 +34,40 @@ type MissionState =
 export default function FicheMissionTable() {
   const { openedMissionNotSaved: mission, handleUpdateField } =
     useEditMissionStore();
-  console.log(mission);
   if (!mission) return null;
+
+  const jobTitleLabel = mission.job_title
+    ? getLabel({ value: mission.job_title, select: jobTitleSelect }) ||
+      mission.job_title
+    : '';
 
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="w-fit self-center rounded-lg bg-primary px-spaceMediumContainer py-[10px] text-white shadow-container">
-        <h2 className="text-md font-bold">
-          {getLabel({ value: mission.job_title ?? '', select: jobTitleSelect })}
-        </h2>
+        <div className="flex flex-col gap-1">
+          <CreatableSelect
+            options={jobTitleSelect}
+            optionsOther={mission.job_title_other}
+            defaultValue={
+              mission.job_title
+                ? {
+                    value: mission.job_title,
+                    label: jobTitleLabel,
+                  }
+                : undefined
+            }
+            onChange={(option) => {
+              handleUpdateField('job_title', option.value);
+              if (option.value === 'other') {
+                handleUpdateField('job_title_other', option.label);
+              }
+            }}
+            label="Poste de la mission"
+            creatable={true}
+            classNameInput="bg-transparent text-black border-white"
+            classNameLabel="text-white"
+          />
+        </div>
       </div>
 
       <div className="flex w-full flex-row gap-3">
@@ -125,7 +151,7 @@ export default function FicheMissionTable() {
                 INFORMATIONS XPERT
               </h3>
               <p>
-                N° d’identification : {''}
+                N° d'identification : {''}
                 <Link
                   href={`/xpert?id=${mission.xpert?.generated_id}`}
                   className="whitespace-nowrap font-bold text-primary"
