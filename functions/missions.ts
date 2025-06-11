@@ -650,6 +650,40 @@ export const deleteMission = async (
   return { error: null };
 };
 
+export const cloneMission = async (mission: any) => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { isAuthorized, hasWriteAccess } = await checkMissionAccess(supabase);
+  if (!isAuthorized || !hasWriteAccess) {
+    return { error: 'Non autorisé à cloner des missions' };
+  }
+
+  const { finance, ...rest } = mission;
+  const { data, error } = await supabase
+    .from('mission')
+    .insert(rest)
+    .select()
+    .single();
+
+  if (error) {
+    return { error };
+  }
+
+  if (!data) {
+    return { error: 'Mission non créée' };
+  }
+
+  const { data: financeData, error: errorFinance } = await supabase
+    .from('mission_finance')
+    .update(finance)
+    .eq('mission_id', data.id);
+
+  if (errorFinance) {
+    return { error: errorFinance };
+  }
+
+  return { data: data, error: null };
+};
 export async function updateShowOnWebsite(
   missionId: number,
   showOnWebsite: boolean
