@@ -474,7 +474,9 @@ export const getMissionState = async (
 
 export const searchMission = async (
   missionId: string
-): Promise<{ data: { mission_number: string | null }[] }> => {
+): Promise<{
+  data: { mission_number: string | null; job_title: string | null }[];
+}> => {
   const supabase = await createSupabaseAppServerClient();
 
   const { isAuthorized, hasReadAccess, userId, isAdmin, isChargeAffaires } =
@@ -484,7 +486,7 @@ export const searchMission = async (
 
   let query = supabase
     .from('mission')
-    .select('mission_number')
+    .select('mission_number, job_title')
     .ilike('mission_number', `%${missionId}%`);
 
   // Appliquer le même filtrage que dans getAllMissions et getMissionState

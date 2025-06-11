@@ -49,31 +49,38 @@ export default function ComboboxMission({
   };
 
   const handleSetValue = (value: string) => {
-    if (value.toUpperCase() === currentMissionNumber?.toUpperCase()) {
+    console.log({ value });
+    // get only the mission number
+    const missionNumber = value.split(' - ')[0];
+    const jobTitle = value.split(' - ')[1];
+    console.log({ missionNumber });
+    if (missionNumber.toUpperCase() === currentMissionNumber?.toUpperCase()) {
       return;
     }
 
-    setLastMissionNumber(value);
+    setLastMissionNumber(missionNumber);
 
-    setValue(value);
+    setValue(missionNumber);
     if (slug === 'matching') {
       router.push(
-        `/mission/matching/${value.split(' ').join('-').toUpperCase()}`
+        `/mission/matching/${missionNumber.split(' ').join('-').toUpperCase()}`
       );
     } else if (slug === 'selection') {
       router.push(
-        `/mission/selection/${value.split(' ').join('-').toUpperCase()}`
+        `/mission/selection/${missionNumber.split(' ').join('-').toUpperCase()}`
       );
     } else if (slug === 'activation-des-missions') {
       router.push(
-        `/mission/activation-des-missions/${value.split(' ').join('-').toUpperCase()}`
+        `/mission/activation-des-missions/${missionNumber.split(' ').join('-').toUpperCase()}`
       );
     } else if (slug === 'gestion-des-facturations') {
       router.push(
-        `/facturation/gestion-des-facturations/${value.split(' ').join('-').toUpperCase()}`
+        `/facturation/gestion-des-facturations/${missionNumber.split(' ').join('-').toUpperCase()}`
       );
     } else {
-      router.push(`/mission/fiche/${value.split(' ').join('-').toUpperCase()}`);
+      router.push(
+        `/mission/fiche/${missionNumber.split(' ').join('-').toUpperCase()}`
+      );
     }
   };
 
@@ -84,8 +91,10 @@ export default function ComboboxMission({
 
   useEffect(() => {
     const missionFound = missionsNumbers.map(
-      (mission) => mission.mission_number || ''
+      (mission) =>
+        `${mission.mission_number || ``} - ${` ${getJobTitle(mission.job_title)}` || ''}`
     );
+    console.log({ missionFound });
     setData(missionFound);
   }, [missionsNumbers]);
 

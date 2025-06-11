@@ -5,6 +5,11 @@ export const sortDateOptions = [
   { label: 'Récent', value: 'desc' },
 ];
 
+export const documentsOptions = [
+  { label: 'Reçu', value: 'received', color: '#92C6B0' },
+  { label: 'Non reçu', value: 'not_received', color: '#D64242' },
+];
+
 export const availabilityOptions = [
   { label: 'Disponible', value: 'available', color: '#92C6B0' },
   { label: 'Non disponible', value: 'unavailable', color: '#D64242' },

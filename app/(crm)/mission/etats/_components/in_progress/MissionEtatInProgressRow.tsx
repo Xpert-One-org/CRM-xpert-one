@@ -24,7 +24,6 @@ export default function MissionEtatInProgressRow({
   >({});
   const router = useRouter();
   const missionXpertStatus = mission.xpert_associated_status;
-  console.log(missionXpertStatus);
   useEffect(() => {
     const fetchFileStatuses = async () => {
       const supabase = createSupabaseFrontendClient();
