@@ -32,7 +32,10 @@ type MissionState = {
   lastMissionNumber: string;
   setLastMissionNumber: (missionNumber: string) => void;
   lastMissionNumberFacturation: string;
-  missionsNumbers: { mission_number: string | null }[];
+  missionsNumbers: {
+    mission_number: string | null;
+    job_title: string | null;
+  }[];
   totalMissions: number;
   isLoading: boolean;
   page: number;

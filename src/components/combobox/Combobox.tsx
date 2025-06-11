@@ -33,12 +33,14 @@ type Props = {
   icon?: React.ReactNode;
   showValue?: boolean;
   onClear?: () => void;
+  valueSupplement?: string[];
   showPlaceholderWithValue?: boolean;
   showSelectedOption?: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 export default function Combobox({
   data,
+  valueSupplement,
   isLoading,
   className,
   showSelectedOption = true,
