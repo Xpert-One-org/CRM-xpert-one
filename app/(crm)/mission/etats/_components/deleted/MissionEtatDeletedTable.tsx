@@ -66,7 +66,7 @@ export default function MissionEtatDeletedTable() {
   const filteredMissions = sortedMissions;
 
   return (
-    <div className="grid grid-cols-8 gap-3">
+    <div className="grid grid-cols-9 gap-3">
       <FilterButton
         options={sortDateOptions}
         onValueChange={handleSortDateChange}
@@ -86,6 +86,7 @@ export default function MissionEtatDeletedTable() {
         filter={false}
         className="col-span-2"
       />
+      <FilterButton placeholder="Réouvrir la mission" filter={false} />
 
       {filteredMissions.map((mission) => (
         <MissionEtatDeletedRow key={mission.id} mission={mission} />
