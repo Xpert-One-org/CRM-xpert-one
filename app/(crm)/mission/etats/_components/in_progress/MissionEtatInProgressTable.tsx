@@ -13,18 +13,19 @@ const sortDateOptionsWithReset = [
 ];
 
 const documentsOptionsWithReset = [
-  ...documentsOptions,
+  { label: 'Signé et reçu', value: 'received' },
+  { label: 'Non reçu', value: 'not_received' },
   { label: 'Réinitialiser', value: '' },
 ];
 
 const commandeXpertOptionsWithReset = [
-  { label: 'Reçu', value: 'received' },
+  { label: 'Signé et reçu', value: 'received' },
   { label: 'Non reçu', value: 'not_received' },
   { label: 'Réinitialiser', value: '' },
 ];
 
 const commandeFournisseurOptionsWithReset = [
-  { label: 'Reçu', value: 'received' },
+  { label: 'Signé et reçu', value: 'received' },
   { label: 'Non reçu', value: 'not_received' },
   { label: 'Réinitialiser', value: '' },
 ];
@@ -244,7 +245,7 @@ export default function MissionEtatInProgressTable() {
         <FilterButton placeholder="N° XPERT" filter={false} />
         <FilterButton
           className="col-span-2"
-          placeholder="Xpert: Documents mission"
+          placeholder="Récap. mission (Xpert)"
           options={documentsOptionsWithReset}
           onValueChange={handleMissionDocsChange}
           showSelectedOption={true}
@@ -253,7 +254,8 @@ export default function MissionEtatInProgressTable() {
           sortKey="mission_docs"
         />
         <FilterButton
-          placeholder="Xpert : Commande / Devis / CDI"
+          className="col-span-1"
+          placeholder="Contrat Xpert"
           options={commandeXpertOptionsWithReset}
           onValueChange={handleCommandeXpertChange}
           showSelectedOption={true}
@@ -262,7 +264,8 @@ export default function MissionEtatInProgressTable() {
           sortKey="commande_xpert"
         />
         <FilterButton
-          placeholder="Fournisseur : Commande"
+          className="col-span-1"
+          placeholder="Contrat Fournisseur"
           options={commandeFournisseurOptionsWithReset}
           onValueChange={handleCommandeFournisseurChange}
           showSelectedOption={true}
