@@ -46,7 +46,7 @@ export default function MatchingXpertsRow({
         onClick={() => router.push(`/xpert?id=${matchedXpert.generated_id}`)}
       >
         <span>
-          {`${uppercaseFirstLetter(matchedXpert.firstname)} ${uppercaseFirstLetter(matchedXpert.lastname)} : ${matchedXpert.matchingScore}%`}
+          {`${matchedXpert.generated_id} - ${uppercaseFirstLetter(matchedXpert.firstname)} ${uppercaseFirstLetter(matchedXpert.lastname)} : ${matchedXpert.matchingScore}%`}
         </span>
       </Box>
       <Box

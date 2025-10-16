@@ -51,6 +51,7 @@ export async function getAllMatchedXperts(
     secondary_expertises: additionalCriteria?.secondary_expertises || [],
     secondary_firstname: additionalCriteria?.secondary_firstname || [],
     secondary_lastname: additionalCriteria?.secondary_lastname || [],
+    secondary_xpert_id: additionalCriteria?.secondary_xpert_id || [],
   };
 
   const finalCriteria = Object.entries(mergedCriteria).reduce(
@@ -75,6 +76,11 @@ export async function getAllMatchedXperts(
   const lastname =
     finalCriteria.secondary_lastname.length > 0
       ? finalCriteria.secondary_lastname[0]
+      : '';
+
+  const xpertId =
+    finalCriteria.secondary_xpert_id.length > 0
+      ? finalCriteria.secondary_xpert_id[0]
       : '';
 
   const secondaryCountry =
@@ -139,7 +145,16 @@ export async function getAllMatchedXperts(
   if (lastname) {
     query = query.ilike('lastname', `%${lastname}%`);
   }
-
+  if (xpertId) {
+    // if no space between X and numbers, add a space
+    if (!xpertId.includes(' ')) {
+      console.log('xpertId', xpertId);
+      const xpertIdWithSpace = `X ${xpertId.replace('X', '')}`;
+      query = query.ilike('generated_id', `%${xpertIdWithSpace}%`);
+    } else {
+      query = query.ilike('generated_id', `%${xpertId}%`);
+    }
+  }
   if (secondaryCountry && secondaryCountry.length > 0) {
     query = query.in('country', secondaryCountry);
   }
