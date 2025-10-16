@@ -66,7 +66,7 @@ export default function MissionEtatDeletedTable() {
   const filteredMissions = sortedMissions;
 
   return (
-    <div className="grid grid-cols-9 gap-3">
+    <div className="grid grid-cols-10 gap-3">
       <FilterButton
         options={sortDateOptions}
         onValueChange={handleSortDateChange}
@@ -77,6 +77,7 @@ export default function MissionEtatDeletedTable() {
         sortKey="created_at"
       />
       <FilterButton placeholder="N° de fournisseur" filter={false} />
+      <FilterButton placeholder="N° XPERT" filter={false} />
       <FilterButton placeholder="N° de mission" filter={false} />
       <FilterButton placeholder="Référent Xpert One" filter={false} />
       <FilterButton placeholder="Perdu / Supprimée le" />

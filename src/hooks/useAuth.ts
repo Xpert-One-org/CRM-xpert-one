@@ -23,10 +23,14 @@ export function useAuth() {
             .single();
 
           setUser(userData);
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.error('Error fetching user:', error);
+        setUser(null);
       } finally {
+        console.log('ok');
         setLoading(false);
       }
     };

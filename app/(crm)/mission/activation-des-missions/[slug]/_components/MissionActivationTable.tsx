@@ -21,8 +21,8 @@ export default function MissionActivationTable({
       <FilterButton placeholder="Statut de l'XPERT" filter={false} />
       <FilterButton placeholder="Date de début prévisionnelle" filter={false} />
       <FilterButton placeholder="Date de début définitive" filter={false} />
-      <FilterButton placeholder="N° de fournisseur" filter={false} />
-      <FilterButton placeholder="N° XPERT" filter={false} />
+      <FilterButton placeholder="Fournisseur" filter={false} />
+      <FilterButton placeholder="XPERT" filter={false} />
 
       {missionData && (
         <MissionActivationRow key={missionData.id} mission={missionData} />

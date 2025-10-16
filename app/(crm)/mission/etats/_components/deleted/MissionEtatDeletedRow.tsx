@@ -38,6 +38,10 @@ export default function MissionEtatDeletedRow({
   const handleRedirectFournisseur = (fournisseurId: string) => {
     router.push(`/fournisseur?id=${fournisseurId}`);
   };
+
+  const handleRedirectXpert = (xpertId: string) => {
+    router.push(`/xpert?id=${xpertId}`);
+  };
   const { updateMission } = useMissionStore();
 
   const handleReOpen = async () => {
@@ -58,6 +62,15 @@ export default function MissionEtatDeletedRow({
       >
         {mission.supplier?.generated_id} - {mission.supplier?.firstname}{' '}
         {mission.supplier?.lastname}
+      </Box>
+      <Box
+        className="col-span-1 cursor-pointer text-white"
+        primary
+        onClick={() => handleRedirectXpert(mission.xpert?.generated_id ?? '')}
+      >
+        {mission.xpert?.generated_id
+          ? `${mission.xpert?.generated_id} - ${mission.xpert?.firstname} ${mission.xpert?.lastname}`
+          : empty}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"

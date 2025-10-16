@@ -52,7 +52,8 @@ export default function MissionEtatFinishedRow({
       </Box>
       <Box className="col-span-1">{`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}</Box>
       <Box className="col-span-1 text-white" primary>
-        {mission.xpert?.generated_id ?? empty}
+        {mission.xpert?.generated_id} - {mission.xpert?.firstname}{' '}
+        {mission.xpert?.lastname}{' '}
       </Box>
       <Box className="col-span-2">{finishedAt}</Box>
       <Box className="col-span-1 text-white" primary>
