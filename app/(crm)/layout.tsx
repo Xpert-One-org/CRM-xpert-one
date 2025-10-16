@@ -30,19 +30,6 @@ export default async function Layout({
         <div className="relative grid grid-cols-3 items-center justify-end gap-x-spaceContainer px-spaceContainer lg:flex lg:items-end lg:px-0">
           {/* BURGER MOBILE SHEET */}
           <MenuBurger />
-          {/* //! For the moment disabled the searchbar, maybe we will work on it later for the v2 */}
-          {/* <Tooltip>
-            <TooltipTrigger className="w-full max-w-[280px]" asChild>
-              <Input
-                type="search"
-                disabled
-                className="hidden w-full max-w-[280px] lg:block"
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>La recherche est actuellement en cours de re-développement</p>
-            </TooltipContent>
-          </Tooltip> */}
 
           <ActualPageTitle className="flex items-center justify-center" />
           <div className="flex items-center justify-end gap-x-spaceSmall sm:gap-x-spaceContainer lg:items-end">

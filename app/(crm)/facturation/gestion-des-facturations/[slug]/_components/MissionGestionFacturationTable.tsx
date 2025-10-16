@@ -13,7 +13,7 @@ export default function MissionGestionFacturationTable({
   selectedMonth: number;
 }) {
   return (
-    <div className="grid grid-cols-7 gap-3">
+    <div className="grid grid-cols-8 gap-3">
       <FilterButton
         placeholder="État de la mission"
         filter={true}
@@ -21,6 +21,7 @@ export default function MissionGestionFacturationTable({
         onValueChange={() => {}}
       />
       <FilterButton placeholder="N° de mission" filter={false} />
+      <FilterButton placeholder="N° XPERT" filter={false} />
       <FilterButton placeholder="Référent Xpert One" filter={false} />
       <FilterButton placeholder="Date de début de mission" filter={false} />
       <FilterButton placeholder="Date de fin de mission" filter={false} />

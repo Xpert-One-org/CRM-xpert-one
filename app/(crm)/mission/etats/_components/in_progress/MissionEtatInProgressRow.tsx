@@ -183,7 +183,8 @@ export default function MissionEtatInProgressRow({
         primary
         onClick={() => handleRedirectXpert(mission.xpert?.generated_id ?? '')}
       >
-        {mission.xpert?.generated_id ?? empty}
+        {mission.xpert?.generated_id} - {mission.xpert?.firstname}{' '}
+        {mission.xpert?.lastname}{' '}
       </Box>
       <Box
         className={`col-span-2 ${getBackgroundClass(

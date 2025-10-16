@@ -84,14 +84,14 @@ export default function MissionActivationRow({
           handleRedirectFournisseur(mission.supplier?.generated_id ?? '')
         }
       >
-        {mission.supplier?.generated_id}
+        {mission.supplier?.firstname} {mission.supplier?.lastname}
       </Box>
       <Box
         className="col-span-1 cursor-pointer bg-primary text-white"
         primary
         onClick={() => handleRedirectXpert(mission.xpert?.generated_id ?? '')}
       >
-        {mission.xpert?.generated_id ?? empty}
+        {mission.xpert?.firstname} {mission.xpert?.lastname}
       </Box>
       {hasChanges && (
         <div className="fixed bottom-10 right-10">

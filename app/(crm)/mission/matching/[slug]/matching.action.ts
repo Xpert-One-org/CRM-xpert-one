@@ -40,6 +40,8 @@ export async function getAllMatchedXperts(
     availability: [...(additionalCriteria?.availability || [])],
     management: [...(additionalCriteria?.management || [])],
     handicap: [...(additionalCriteria?.handicap || [])],
+
+    // secondaires
     secondary_job_title: additionalCriteria?.secondary_job_title || [],
     secondary_sector: additionalCriteria?.secondary_sector || [],
     secondary_country: [...(additionalCriteria?.secondary_country || [])],
@@ -49,6 +51,7 @@ export async function getAllMatchedXperts(
     secondary_expertises: additionalCriteria?.secondary_expertises || [],
     secondary_firstname: additionalCriteria?.secondary_firstname || [],
     secondary_lastname: additionalCriteria?.secondary_lastname || [],
+    secondary_xpert_id: additionalCriteria?.secondary_xpert_id || [],
   };
 
   const finalCriteria = Object.entries(mergedCriteria).reduce(
@@ -61,6 +64,11 @@ export async function getAllMatchedXperts(
     {} as Record<string, string[]>
   );
 
+  // Déterminer si on est en "mode secondaire uniquement"
+  const secondaryMode = Object.entries(finalCriteria).some(
+    ([k, v]) => k.startsWith('secondary_') && v.length > 0
+  );
+
   const firstname =
     finalCriteria.secondary_firstname.length > 0
       ? finalCriteria.secondary_firstname[0]
@@ -70,86 +78,93 @@ export async function getAllMatchedXperts(
       ? finalCriteria.secondary_lastname[0]
       : '';
 
+  const xpertId =
+    finalCriteria.secondary_xpert_id.length > 0
+      ? finalCriteria.secondary_xpert_id[0]
+      : '';
+
   const secondaryCountry =
     finalCriteria.secondary_country.length > 0
       ? finalCriteria.secondary_country
-      : '';
+      : [];
 
   const secondaryRegion =
     finalCriteria.secondary_region.length > 0
       ? finalCriteria.secondary_region
-      : '';
+      : [];
 
+  // IMPORTANT : pas de !inner -> LEFT JOIN implicites
   let query = supabase
     .from('profile')
     .select(
       `
-    id,
-    firstname,
-    lastname,
-    country,
-    
-    generated_id,
-    profile_mission!inner(
-      job_titles,
-      posts_type,
-      sector,
-      specialties,
-      expertises,
-      availability,
-      workstation_needed,
-      area,
-      france_detail,
-      regions
-    ),
-    profile_experience (
-      sector,
-      post_type,
-      post,
-      has_led_team
-    ),
-    profile_expertise (
-      seniority,
-      specialties,
-      expertises,
-      diploma,
-      degree,
-      maternal_language
-    )
-  `,
+      id,
+      firstname,
+      lastname,
+      country,
+      generated_id,
+
+      profile_mission (
+        id,
+        job_titles,
+        posts_type,
+        sector,
+        specialties,
+        expertises,
+        availability,
+        workstation_needed,
+        area,
+        france_detail,
+        regions
+      ),
+      profile_experience (
+        id,
+        sector,
+        post_type,
+        post,
+        has_led_team
+      ),
+      profile_expertise (
+        id,
+        seniority,
+        specialties,
+        expertises,
+        diploma,
+        degree,
+        maternal_language
+      )
+    `,
       { count: 'exact' }
     )
     .eq('role', 'xpert');
 
+  // Les champs nom/prénom secondaires sont appliqués en SQL (ilike)
   if (firstname) {
-    query = query.ilike('firstname', firstname);
+    query = query.ilike('firstname', `%${firstname}%`);
   }
-
   if (lastname) {
-    query = query.ilike('lastname', lastname);
+    query = query.ilike('lastname', `%${lastname}%`);
   }
-
-  if (secondaryCountry && secondaryCountry?.length > 0) {
+  if (xpertId) {
+    // if no space between X and numbers, add a space
+    if (!xpertId.includes(' ')) {
+      console.log('xpertId', xpertId);
+      const xpertIdWithSpace = `X ${xpertId.replace('X', '')}`;
+      query = query.ilike('generated_id', `%${xpertIdWithSpace}%`);
+    } else {
+      query = query.ilike('generated_id', `%${xpertId}%`);
+    }
+  }
+  if (secondaryCountry && secondaryCountry.length > 0) {
     query = query.in('country', secondaryCountry);
   }
 
-  if (secondaryRegion && secondaryRegion?.length > 0) {
-    // query = query.or(
-    //   `area.cs.{"france"},and(france_detail.cs.{"metropolitan_france"})`, {
-    //     "referencedTable": "profile_mission",
-    //   }
-
-    // );
-
+  // Regions (secondaire) -> null = pas match, donc on ne garde PAS les lignes sans profile_mission
+  if (secondaryRegion && secondaryRegion.length > 0) {
     query = query.or(
       `france_detail.cs.{metropolitan_france},and(france_detail.cs.{regions},regions.cs.{${secondaryRegion.join(',')}})`,
       { referencedTable: 'profile_mission' }
     );
-
-    // query = query.filter('profile_mission.france_detail', 'cs', '{"regions"}');
-    // query = query.filter('profile_mission.regions', 'cs', `{${secondaryRegion.join(',')}}`);
-
-    console.log(query);
   }
 
   const { data, count, error } = await query;
@@ -159,120 +174,132 @@ export async function getAllMatchedXperts(
     return { data: [], error: 'Une erreur est survenue lors du matching.' };
   }
 
-  const matchedXperts = data.filter((xpert) => {
-    const mission = xpert.profile_mission;
-    const expertise = xpert.profile_expertise;
-    const experience = xpert.profile_experience;
+  const matchedXperts = (data || []).filter((xpert: any) => {
+    const mission = xpert.profile_mission; // peut être null
+    const expertise = xpert.profile_expertise; // peut être null
+    const experience = xpert.profile_experience || []; // array ou []
 
-    const primaryConditions = [];
-    const secondaryConditions = [];
+    const primaryConditions: boolean[] = [];
+    const secondaryConditions: boolean[] = [];
 
-    if (finalCriteria.job_title.length > 0) {
-      primaryConditions.push(
-        experience
-          .map((exp) => exp.post)
-          .some((job) => finalCriteria.job_title.includes(job || ''))
-      );
+    // ====== PRIMARY ONLY IF secondaryMode === false ======
+    if (!secondaryMode) {
+      if (finalCriteria.job_title.length > 0) {
+        primaryConditions.push(
+          experience
+            .map((exp: any) => exp.post)
+            .some((job: string) => finalCriteria.job_title.includes(job || ''))
+        );
+      }
+
+      if (finalCriteria.sector.length > 0) {
+        primaryConditions.push(
+          experience.some((exp: any) =>
+            finalCriteria.sector.includes(exp.sector || '')
+          )
+        );
+      }
+
+      if (finalCriteria.post_type.length > 0) {
+        primaryConditions.push(
+          experience.some((exp: any) =>
+            (exp.post_type || []).some((type: string) =>
+              finalCriteria.post_type.includes(type)
+            )
+          )
+        );
+      }
+
+      if (finalCriteria.specialties.length > 0) {
+        primaryConditions.push(
+          (expertise?.specialties || []).some((specialty: string) =>
+            finalCriteria.specialties.includes(specialty)
+          )
+        );
+      }
+
+      if (finalCriteria.expertises.length > 0) {
+        primaryConditions.push(
+          (expertise?.expertises || []).some((exp: string) =>
+            finalCriteria.expertises.includes(exp)
+          )
+        );
+      }
+
+      if (finalCriteria.diplomas.length > 0) {
+        primaryConditions.push(
+          !!expertise?.diploma &&
+            finalCriteria.diplomas.includes(expertise.diploma)
+        );
+      }
+
+      if (finalCriteria.languages.length > 0) {
+        primaryConditions.push(
+          !!expertise?.maternal_language &&
+            finalCriteria.languages.includes(expertise.maternal_language)
+        );
+      }
+
+      // disponibilité (null = pas match)
+      if (finalCriteria.availability.length > 0) {
+        primaryConditions.push(
+          !!mission?.availability &&
+            new Date(mission.availability) <=
+              new Date(missionData.start_date ?? '')
+        );
+      } else {
+        primaryConditions.push(
+          !!mission?.availability &&
+            new Date(mission.availability) >
+              new Date(missionData.start_date ?? '')
+        );
+      }
+
+      // management (null = pas match)
+      if (finalCriteria.management.length > 0) {
+        primaryConditions.push(
+          experience.some((exp: any) =>
+            finalCriteria.management.includes('yes')
+              ? exp.has_led_team === 'true'
+              : exp.has_led_team === 'false'
+          )
+        );
+      } else {
+        primaryConditions.push(
+          experience.some((exp: any) => exp.has_led_team === 'true')
+        );
+      }
+
+      // handicap (null = pas match)
+      if (finalCriteria.handicap.length > 0) {
+        primaryConditions.push(
+          finalCriteria.handicap.includes('yes')
+            ? mission?.workstation_needed === 'true'
+            : mission?.workstation_needed === 'false'
+        );
+      } else {
+        primaryConditions.push(
+          missionData.open_to_disabled === 'true'
+            ? mission?.workstation_needed === 'true'
+            : mission?.workstation_needed === 'false'
+        );
+      }
     }
 
-    if (finalCriteria.sector.length > 0) {
-      primaryConditions.push(
-        experience.some((exp) =>
-          finalCriteria.sector.includes(exp.sector || '')
-        )
-      );
-    }
-
-    if (finalCriteria.post_type.length > 0) {
-      primaryConditions.push(
-        experience.some((exp) =>
-          exp.post_type?.some((type) => finalCriteria.post_type.includes(type))
-        )
-      );
-    }
-
-    if (finalCriteria.specialties.length > 0) {
-      primaryConditions.push(
-        expertise?.specialties?.some((specialty) =>
-          finalCriteria.specialties.includes(specialty)
-        )
-      );
-    }
-
-    if (finalCriteria.expertises.length > 0) {
-      primaryConditions.push(
-        expertise?.expertises?.some((exp) =>
-          finalCriteria.expertises.includes(exp)
-        )
-      );
-    }
-
-    if (finalCriteria.diplomas.length > 0) {
-      primaryConditions.push(
-        expertise?.diploma && finalCriteria.diplomas.includes(expertise.diploma)
-      );
-    }
-
-    if (finalCriteria.languages.length > 0) {
-      primaryConditions.push(
-        expertise?.maternal_language &&
-          finalCriteria.languages.includes(expertise.maternal_language)
-      );
-    }
-
-    if (finalCriteria.availability.length > 0) {
-      primaryConditions.push(
-        mission?.availability &&
-          new Date(mission.availability) <=
-            new Date(missionData.start_date ?? '')
-      );
-    } else {
-      primaryConditions.push(
-        mission?.availability &&
-          new Date(mission.availability) >
-            new Date(missionData.start_date ?? '')
-      );
-    }
-
-    if (finalCriteria.management.length > 0) {
-      primaryConditions.push(
-        experience.some((exp) =>
-          finalCriteria.management.includes('yes')
-            ? exp.has_led_team === 'true'
-            : exp.has_led_team === 'false'
-        )
-      );
-    } else {
-      primaryConditions.push(
-        experience.some((exp) => exp.has_led_team === 'true')
-      );
-    }
-
-    if (finalCriteria.handicap.length > 0) {
-      primaryConditions.push(
-        finalCriteria.handicap.includes('yes')
-          ? mission?.workstation_needed === 'true'
-          : mission?.workstation_needed === 'false'
-      );
-    } else {
-      primaryConditions.push(
-        missionData.open_to_disabled === 'true'
-          ? mission?.workstation_needed === 'true'
-          : mission?.workstation_needed === 'false'
-      );
-    }
-
+    // ====== SECONDARY (utilisés SEULS si secondaryMode === true) ======
     if (finalCriteria.secondary_job_title?.length > 0) {
       secondaryConditions.push(
         experience
-          .map((exp) => exp.post)
-          .some((job) => finalCriteria.secondary_job_title.includes(job || ''))
+          .map((exp: any) => exp.post)
+          .some((job: string) =>
+            finalCriteria.secondary_job_title.includes(job || '')
+          )
       );
     }
 
     if (finalCriteria.secondary_sector?.length > 0) {
       secondaryConditions.push(
-        experience.some((exp) =>
+        experience.some((exp: any) =>
           finalCriteria.secondary_sector.includes(exp.sector || '')
         )
       );
@@ -280,8 +307,8 @@ export async function getAllMatchedXperts(
 
     if (finalCriteria.secondary_post_type?.length > 0) {
       secondaryConditions.push(
-        experience.some((exp) =>
-          exp.post_type?.some((type) =>
+        experience.some((exp: any) =>
+          (exp.post_type || []).some((type: string) =>
             finalCriteria.secondary_post_type.includes(type)
           )
         )
@@ -290,7 +317,7 @@ export async function getAllMatchedXperts(
 
     if (finalCriteria.secondary_specialties?.length > 0) {
       secondaryConditions.push(
-        expertise?.specialties?.some((specialty) =>
+        (expertise?.specialties || []).some((specialty: string) =>
           finalCriteria.secondary_specialties.includes(specialty)
         )
       );
@@ -298,7 +325,7 @@ export async function getAllMatchedXperts(
 
     if (finalCriteria.secondary_expertises?.length > 0) {
       secondaryConditions.push(
-        expertise?.expertises?.some((exp) =>
+        (expertise?.expertises || []).some((exp: string) =>
           finalCriteria.secondary_expertises.includes(exp)
         )
       );
@@ -310,37 +337,29 @@ export async function getAllMatchedXperts(
       );
     }
 
-    // if (finalCriteria.secondary_firstname?.length > 0) {
-    //   secondaryConditions.push(
-    //     xpert.firstname &&
-    //       finalCriteria.secondary_firstname.includes(xpert.firstname)
+    // Note : secondary_firstname/lastname sont déjà appliqués en SQL via ilike
 
-    //   );
-    // }
-
-    // if (finalCriteria.secondary_lastname?.length > 0) {
-    //   secondaryConditions.push(
-    //     xpert.lastname &&
-    //       finalCriteria.secondary_lastname.includes(xpert.lastname)
-
-    //   );
-    // }
-
-    const hasPrimaryMatch =
-      primaryConditions.length === 0 ||
-      primaryConditions.some((condition) => condition === true);
-    const hasSecondaryMatch =
-      secondaryConditions.length === 0 ||
-      secondaryConditions.some((condition) => condition === true);
-
-    return hasPrimaryMatch && hasSecondaryMatch;
+    // === Décision finale ===
+    if (secondaryMode) {
+      // On ignore complètement les primaryConditions
+      const hasSecondaryMatch =
+        secondaryConditions.length === 0 || secondaryConditions.some(Boolean);
+      return hasSecondaryMatch;
+    } else {
+      const hasPrimaryMatch =
+        primaryConditions.length === 0 || primaryConditions.some(Boolean);
+      const hasSecondaryMatch =
+        secondaryConditions.length === 0 || secondaryConditions.some(Boolean);
+      return hasPrimaryMatch && hasSecondaryMatch;
+    }
   });
 
   const enhancedXperts = matchedXperts
-    .map((xpert) => {
+    .map((xpert: any) => {
       const nonMatchingCriteria = getNonMatchingCriteria({
         xpert: xpert as DBMatchedXpert,
         excludedCriteria: excludedCriteria || {},
+        // si secondaryMode, on ne calcule le score que sur les critères primaires ? => on garde ton comportement actuel
         additionalCriteria: Object.fromEntries(
           Object.entries(additionalCriteria || {}).filter(
             ([key]) => !key.startsWith('secondary_')
@@ -366,7 +385,7 @@ export async function getAllMatchedXperts(
         nonMatchingCriteria,
       };
     })
-    .sort((a, b) => b.matchingScore - a.matchingScore);
+    .sort((a: any, b: any) => b.matchingScore - a.matchingScore);
 
   return { data: enhancedXperts as DBMatchedXpert[], error: '' };
 }

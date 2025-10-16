@@ -17,7 +17,10 @@ export default function MissionGestionFacturationRow({
 }) {
   const calculateTJMWithCharges = () => {
     const baseAmount = parseInt(mission.tjm ?? '0');
-    return baseAmount * 1.55;
+    if (isNaN(baseAmount)) {
+      return empty;
+    }
+    return `${(baseAmount * 1.55).toFixed(2)} €`;
   };
 
   return (
@@ -27,6 +30,11 @@ export default function MissionGestionFacturationRow({
         slug="gestion-des-facturations"
         jobTitle={mission.job_title ?? empty}
       />
+      <Box className="col-span-1">
+        {mission.xpert?.generated_id
+          ? `${mission.xpert?.generated_id} - ${mission.xpert?.firstname} ${mission.xpert?.lastname}`
+          : empty}
+      </Box>
       <Box className="col-span-1">
         {' '}
         {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}
@@ -53,7 +61,7 @@ export default function MissionGestionFacturationRow({
           month: 'long',
         })
       )} ${selectedYear}`}</Box>
-      <Box className="col-span-1">{calculateTJMWithCharges()} €</Box>
+      <Box className="col-span-1">{calculateTJMWithCharges()}</Box>
     </>
   );
 }

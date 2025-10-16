@@ -10,7 +10,6 @@ const getTotalCriteriaCount = (
   let count = 0;
 
   if (missionData.job_title && !excludedCriteria.job_title?.length) {
-    console.log('CRITERE JOB TITLE : ', missionData.job_title);
     count++;
   }
   if (
@@ -21,12 +20,10 @@ const getTotalCriteriaCount = (
       (type) => !excludedCriteria.post_type?.includes(type)
     );
     notExcluded.forEach((type) => {
-      console.log('CRITERE POST TYPE : ', type);
       count++;
     });
   }
   if (missionData.sector && !excludedCriteria.sector?.length) {
-    console.log('CRITERE SECTOR : ', missionData.sector);
     count++;
   }
   if (
@@ -37,7 +34,6 @@ const getTotalCriteriaCount = (
       (specialty) => !excludedCriteria.specialties?.includes(specialty)
     );
     notExcluded.forEach((specialty) => {
-      console.log('CRITERE SPECIALTIES : ', specialty);
       count++;
     });
   }
@@ -49,7 +45,6 @@ const getTotalCriteriaCount = (
       (expertise) => !excludedCriteria.expertises?.includes(expertise)
     );
     notExcluded.forEach((expertise) => {
-      console.log('CRITERE EXPERTISES : ', expertise);
       count++;
     });
   }
@@ -61,7 +56,6 @@ const getTotalCriteriaCount = (
       (diploma) => !excludedCriteria.diplomas?.includes(diploma)
     );
     notExcluded.forEach((diploma) => {
-      console.log('CRITERE DIPLOMAS : ', diploma);
       count++;
     });
   }
@@ -73,54 +67,29 @@ const getTotalCriteriaCount = (
       (language) => !excludedCriteria.languages?.includes(language)
     );
     notExcluded.forEach((language) => {
-      console.log('CRITERE LANGUAGES : ', language);
       count++;
     });
   }
 
-  console.log({ additionalCriteria });
-
   if (additionalCriteria.job_title?.length) {
-    console.log(
-      'CRITERE JOB TITLE ADDITIONNEL : ',
-      additionalCriteria.job_title
-    );
     count++;
   }
   if (additionalCriteria.post_type?.length) {
-    console.log(
-      'CRITERE POST TYPE ADDITIONNEL : ',
-      additionalCriteria.post_type
-    );
     count++;
   }
   if (additionalCriteria.sector?.length) {
-    console.log('CRITERE SECTOR ADDITIONNEL : ', additionalCriteria.sector);
     count++;
   }
   if (additionalCriteria.specialties?.length) {
-    console.log(
-      'CRITERE SPECIALTIES ADDITIONNEL : ',
-      additionalCriteria.specialties
-    );
     count++;
   }
   if (additionalCriteria.expertises?.length) {
-    console.log(
-      'CRITERE EXPERTISES ADDITIONNEL : ',
-      additionalCriteria.expertises
-    );
     count++;
   }
   if (additionalCriteria.diplomas?.length) {
-    console.log('CRITERE DIPLOMAS ADDITIONNEL : ', additionalCriteria.diplomas);
     count++;
   }
   if (additionalCriteria.languages?.length) {
-    console.log(
-      'CRITERE LANGUAGES ADDITIONNEL : ',
-      additionalCriteria.languages
-    );
     count++;
   }
   // if (additionalCriteria.availability?.length) {
@@ -131,18 +100,12 @@ const getTotalCriteriaCount = (
   //   count++;
   // }
   if (additionalCriteria.management?.length) {
-    console.log(
-      'CRITERE MANAGEMENT ADDITIONNEL : ',
-      additionalCriteria.management
-    );
     count++;
   }
   if (additionalCriteria.handicap?.length) {
-    console.log('CRITERE HANDICAP ADDITIONNEL : ', additionalCriteria.handicap);
     count++;
   }
 
-  console.log('TOTAL CRITERIA COUNT : ', count);
   return Math.max(1, count); // Ensure we don't divide by zero
 };
 
@@ -176,12 +139,6 @@ export const calculateMatchingPercentage = (
 
   // Calculate percentage based on matching criteria
   const matchingPercentage = 100 - numberOfNonMatches * pointsPerCriteria;
-
-  console.log({ matchingPercentage });
-  console.log({ totalCriteria });
-  console.log({ nonMatchingCriteria });
-  console.log({ numberOfNonMatches });
-  console.log({ pointsPerCriteria });
 
   // Round to 1 decimal place and ensure it's between 0 and 100
   return Math.max(0, Math.min(100, Math.round(matchingPercentage * 10) / 10));

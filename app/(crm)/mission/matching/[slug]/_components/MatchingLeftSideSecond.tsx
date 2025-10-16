@@ -37,6 +37,7 @@ export default function MatchingLeftSideSecond({
     specialties: false,
     expertises: false,
     firstname: false,
+    xpert_id: false,
     lastname: false,
     country: false,
     region: false,
@@ -49,6 +50,7 @@ export default function MatchingLeftSideSecond({
     specialties: false,
     expertises: false,
     firstname: false,
+    xpert_id: false,
     lastname: false,
     country: false,
     region: false,
@@ -57,7 +59,7 @@ export default function MatchingLeftSideSecond({
   const [hasChanges, setHasChanges] = useState(false);
   const [addingFirstname, setAddingFirstname] = useState('');
   const [addingLastname, setAddingLastname] = useState('');
-
+  const [addingXpertId, setAddingXpertId] = useState('');
   const { regions, countries, fetchRegions, fetchCountries } = useSelect();
 
   useEffect(() => {
@@ -241,6 +243,67 @@ export default function MatchingLeftSideSecond({
             </Button>
           </div>
         )}
+        <div className="flex w-full gap-6">
+          <div className="min-w-[300px]">
+            <Box className="justify-between bg-[#D0DDE1] p-3">
+              N° XPERT
+              {!criteriaIconShow.xpert_id ? (
+                <AddIcon
+                  width={20}
+                  height={20}
+                  className={`rounded bg-primary p-1 ${
+                    isIntern
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'hover:cursor-pointer'
+                  }`}
+                  onClick={() => !isIntern && handleAddClick('xpert_id')}
+                />
+              ) : (
+                <X
+                  width={20}
+                  height={20}
+                  strokeWidth={6}
+                  className="rounded bg-primary p-1 text-white hover:cursor-pointer"
+                  onClick={() => handleAddClick('xpert_id')}
+                />
+              )}
+            </Box>
+          </div>
+          <div className="flex flex-wrap gap-[10px]">
+            {additionalCriteria.secondary_xpert_id?.map((option) => (
+              <Box
+                key={option}
+                className="relative cursor-pointer bg-[#FBBE40] p-3 px-6 text-white"
+                onClick={() => {
+                  handleRemoveAdditionalCriteria('xpert_id', option);
+                }}
+              >
+                {option}
+                <div className="absolute right-1 top-1" onClick={() => {}}>
+                  <X className="size-4" />
+                </div>
+              </Box>
+            ))}
+          </div>
+        </div>
+        {showAdditionalSelects.xpert_id && (
+          <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
+            <Input
+              onChange={(e) => setAddingXpertId(e.target.value)}
+              value={addingXpertId}
+            />
+            <Button
+              className="h-full rounded-sm bg-primary p-2 text-white"
+              onClick={(e) => {
+                handleAdditionalSelection('xpert_id', [addingXpertId]),
+                  setAddingXpertId('');
+              }}
+            >
+              <Check size={20} />
+            </Button>
+          </div>
+        )}
+
         <div className="flex w-full gap-6">
           <div className="min-w-[300px]">
             <Box className="justify-between bg-[#D0DDE1] p-3">
