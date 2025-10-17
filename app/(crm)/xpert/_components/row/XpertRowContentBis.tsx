@@ -363,13 +363,6 @@ export default function XpertRowContentBis({
         fileName = `${xpert.generated_id}/${newFileType}/${newFileType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
       }
 
-      console.log('Debug - Tentative upload:', {
-        bucket: 'profile_files',
-        path: fileName,
-        fileType: newFile.type,
-        fileSize: newFile.size,
-      });
-
       const { data, error } = await supabase.storage
         .from('profile_files')
         .upload(fileName, newFile, {

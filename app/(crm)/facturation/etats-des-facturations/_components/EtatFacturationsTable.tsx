@@ -1,6 +1,8 @@
+'use client';
+
 import { FilterButton } from '@/components/FilterButton';
 import type { DBMission } from '@/types/typesDb';
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useContext } from 'react';
 import EtatFacturationsRow from './EtatFacturationsRow';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getUniqueBillingMonths } from '../_utils/getUniqueBillingMonths';
@@ -15,7 +17,7 @@ import type {
 } from '@/types/mission';
 import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
-import { useIsProjectManager } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 const yesNoOptions = [
   { label: 'OUI', value: 'yes', color: '#92C6B0' },
@@ -32,6 +34,11 @@ type FilterState = {
   payment?: string;
 };
 
+type RowItem = {
+  mission: DBMission;
+  monthYear: { month: number; year: number };
+};
+
 export default function EtatFacturationsTable({
   missions,
 }: {
@@ -39,60 +46,55 @@ export default function EtatFacturationsTable({
 }) {
   const { fileStatusesByMission, checkAllMissionsFiles } =
     useFileStatusFacturationStore();
-  const isProjectManager = useIsProjectManager();
-  const [sortedRows, setSortedRows] = useState<
-    { mission: DBMission; monthYear: { month: number; year: number } }[]
-  >([]);
-
+  const { isProjectManager } = useContext(AuthContext);
+  const [sortedRows, setSortedRows] = useState<RowItem[]>([]);
   const [pendingPayments, setPendingPayments] = useState<PendingPayments>({});
-
   const [activeFilters, setActiveFilters] = useState<FilterState>({});
-
   const [filterKey, setFilterKey] = useState(0);
 
-  const baseRows = missions
-    .flatMap((mission) => {
-      const fileStatuses =
-        fileStatusesByMission[mission.mission_number || ''] || {};
+  // 1) Base rows = toutes les (mission, mois) calculées à partir des statuts
+  const baseRows: RowItem[] = useMemo(() => {
+    const rows = missions
+      .flatMap((mission) => {
+        const fileStatuses =
+          fileStatusesByMission[mission.mission_number || ''] || {};
+        const monthsForMission = getUniqueBillingMonths(fileStatuses, mission);
+        return monthsForMission.map((monthYear) => ({ mission, monthYear }));
+      })
+      .sort((a, b) => {
+        if (a.monthYear.year !== b.monthYear.year) {
+          return a.monthYear.year - b.monthYear.year;
+        }
+        if (a.monthYear.month !== b.monthYear.month) {
+          return a.monthYear.month - b.monthYear.month;
+        }
+        const missionNumberA = parseInt(
+          a.mission.mission_number?.split(' ')[1] || '0',
+          10
+        );
+        const missionNumberB = parseInt(
+          b.mission.mission_number?.split(' ')[1] || '0',
+          10
+        );
+        return missionNumberA - missionNumberB;
+      });
 
-      const monthsForMission = getUniqueBillingMonths(fileStatuses, mission);
+    return rows;
+  }, [missions, fileStatusesByMission]);
 
-      return monthsForMission.map((monthYear) => ({
-        mission,
-        monthYear,
-      }));
-    })
-    .sort((a, b) => {
-      if (a.monthYear.year !== b.monthYear.year) {
-        return a.monthYear.year - b.monthYear.year;
-      }
-      if (a.monthYear.month !== b.monthYear.month) {
-        return a.monthYear.month - b.monthYear.month;
-      }
-      const missionNumberA = parseInt(
-        a.mission.mission_number?.split(' ')[1] || '0'
-      );
-      const missionNumberB = parseInt(
-        b.mission.mission_number?.split(' ')[1] || '0'
-      );
-      return missionNumberA - missionNumberB;
-    });
-
+  // 2) Tri par date
   const handleDateSort = (value: string) => {
-    const newSortedRows = [...baseRows].sort((a, b) => {
+    const data = [...baseRows].sort((a, b) => {
       const dateA = new Date(a.monthYear.year, a.monthYear.month);
       const dateB = new Date(b.monthYear.year, b.monthYear.month);
-
-      if (value === 'asc') {
-        return dateA.getTime() - dateB.getTime();
-      } else {
-        return dateB.getTime() - dateA.getTime();
-      }
+      return value === 'asc'
+        ? dateA.getTime() - dateB.getTime()
+        : dateB.getTime() - dateA.getTime();
     });
-
-    setSortedRows(newSortedRows);
+    setSortedRows(data);
   };
 
+  // 3) Clics “paiements”
   const handleSalaryPaymentChange = (
     mission: DBMission,
     monthYear: { month: number; year: number },
@@ -104,36 +106,31 @@ export default function EtatFacturationsTable({
 
     setPendingPayments((prev) => {
       const missionKey = `${mission.id}_${paymentType}`;
-      const existingPayments = prev[missionKey] || [];
+      const existing = prev[missionKey] || [];
 
       if (isNull) {
         return {
           ...prev,
           [missionKey]: [
-            ...existingPayments.filter(
+            ...existing.filter(
               (p) =>
                 p.monthYear.month !== monthYear.month ||
                 p.monthYear.year !== monthYear.year
             ),
-            {
-              monthYear,
-              date: null,
-              paymentType,
-            },
+            { monthYear, date: null, paymentType },
           ],
         };
       }
 
-      const paymentExists = existingPayments.some(
+      const exists = existing.some(
         (p) =>
           p.monthYear.month === monthYear.month &&
           p.monthYear.year === monthYear.year
       );
-
-      if (paymentExists) {
+      if (exists) {
         return {
           ...prev,
-          [missionKey]: existingPayments.filter(
+          [missionKey]: existing.filter(
             (p) =>
               p.monthYear.month !== monthYear.month ||
               p.monthYear.year !== monthYear.year
@@ -144,7 +141,7 @@ export default function EtatFacturationsTable({
       return {
         ...prev,
         [missionKey]: [
-          ...existingPayments,
+          ...existing,
           {
             monthYear,
             date: isSelected ? new Date().toISOString() : null,
@@ -159,25 +156,23 @@ export default function EtatFacturationsTable({
     for (const [key, payments] of Object.entries(pendingPayments)) {
       if (payments.length === 0) continue;
 
-      const [missionId, ...paymentTypeParts] = key.split('_');
-      const paymentType = paymentTypeParts.join('_') as PaymentType;
+      const [missionId, ...typeParts] = key.split('_');
+      const paymentType = typeParts.join('_') as PaymentType;
 
-      const mission = missions.find(
-        (mission) => mission.id === parseInt(missionId)
-      );
+      const mission = missions.find((m) => m.id === parseInt(missionId, 10));
 
-      const paymentData = payments.reduce(
-        (acc, { monthYear, date }) => ({
-          ...acc,
-          [`${monthYear.year}-${(monthYear.month + 1)
-            .toString()
-            .padStart(2, '0')}`]: date,
-        }),
+      const paymentData = payments.reduce<Record<string, string | null>>(
+        (acc, { monthYear, date }) => {
+          acc[
+            `${monthYear.year}-${(monthYear.month + 1).toString().padStart(2, '0')}`
+          ] = date;
+          return acc;
+        },
         {}
       );
 
       await updateMissionFacturationPayment(
-        parseInt(missionId),
+        parseInt(missionId, 10),
         paymentData,
         paymentType
       );
@@ -189,18 +184,20 @@ export default function EtatFacturationsTable({
     setPendingPayments({});
   };
 
-  const handleFilterChange = (filterKey: keyof FilterState, value: string) => {
+  // 4) Filtres
+  const handleFilterChange = (key: keyof FilterState, value: string) => {
     setActiveFilters((prev) => ({
       ...prev,
-      [filterKey]: value === prev[filterKey] ? undefined : value,
+      [key]: value === prev[key] ? undefined : value,
     }));
   };
 
   const filterRows = useCallback(
-    (rows: typeof baseRows) => {
-      return rows.filter(({ mission, monthYear }) => {
+    (rows: RowItem[]) =>
+      rows.filter(({ mission, monthYear }) => {
         const fileStatuses =
           fileStatusesByMission[mission.mission_number || ''] || {};
+
         const missionStatus = mission.xpert_associated_status;
 
         const checkFileStatus = (fileType: string, isFournisseur = false) => {
@@ -211,21 +208,22 @@ export default function EtatFacturationsTable({
             isFournisseur,
             getFileTypeByStatusFacturation(fileType, missionStatus || '')
           );
+
           return status.exists;
         };
 
         const checkPayment = (payments: PaymentStatus[] | null) => {
           if (!Array.isArray(payments)) return false;
           const key = `${monthYear.year}-${(monthYear.month + 1).toString().padStart(2, '0')}`;
-          return payments.some((payment) => payment.period === key);
+          return payments.some((p) => p.period === key);
         };
 
-        for (const [key, value] of Object.entries(activeFilters)) {
-          if (!value) continue;
+        for (const [k, v] of Object.entries(activeFilters)) {
+          if (!v) continue;
 
-          const isYes = value === 'yes';
+          const isYes = v === 'yes';
 
-          switch (key) {
+          switch (k as keyof FilterState) {
             case 'presenceSheetValidated':
               if (checkFileStatus('presence_sheet_validated') !== isYes)
                 return false;
@@ -246,6 +244,7 @@ export default function EtatFacturationsTable({
                 return false;
               break;
             case 'invoiceValidated':
+              // NB: ton code initial utilisait 'invoice_received' ici.
               if (
                 missionStatus !== 'cdi' &&
                 checkFileStatus('invoice_received') !== isYes
@@ -274,13 +273,12 @@ export default function EtatFacturationsTable({
           }
         }
         return true;
-      });
-    },
+      }),
+
     [fileStatusesByMission, activeFilters]
   );
 
-  const displayRows = useMemo(() => {
-    console.log('Display rows');
+  const displayRows: RowItem[] = useMemo(() => {
     const rows = sortedRows.length > 0 ? sortedRows : baseRows;
     return filterRows(rows);
   }, [sortedRows, baseRows, filterRows]);
@@ -293,6 +291,7 @@ export default function EtatFacturationsTable({
 
   return (
     <div className="flex h-[calc(100vh-260px)] flex-col gap-3">
+      {/* Filtres */}
       <div className="grid grid-cols-10 gap-3">
         <FilterButton
           key={`gestion-${filterKey}`}
@@ -384,10 +383,11 @@ export default function EtatFacturationsTable({
         />
       </div>
 
+      {/* Résumé & reset */}
       <div className="flex items-center gap-x-4 px-1">
         <p className="whitespace-nowrap">{displayRows.length} résultats</p>
         {(Object.keys(activeFilters).some(
-          (key) => activeFilters[key as keyof FilterState]
+          (k) => activeFilters[k as keyof FilterState]
         ) ||
           sortedRows.length > 0) && (
           <button className="font-[600] text-primary" onClick={resetFilters}>
@@ -396,24 +396,21 @@ export default function EtatFacturationsTable({
         )}
       </div>
 
+      {/* Liste des lignes */}
       <div className="overflow-y-auto">
         <div className="grid grid-cols-10 gap-3">
-          {displayRows.map(
-            ({ mission, monthYear }) => (
-              console.log('Etat facturation table'),
-              (
-                <EtatFacturationsRow
-                  key={`${mission.id}-${monthYear.year}-${monthYear.month}`}
-                  missionData={mission}
-                  selectedMonthYear={monthYear}
-                  onSalaryPaymentChange={handleSalaryPaymentChange}
-                />
-              )
-            )
-          )}
+          {displayRows.map(({ mission, monthYear }) => (
+            <EtatFacturationsRow
+              key={`${mission.id}-${monthYear.year}-${monthYear.month}`}
+              missionData={mission}
+              selectedMonthYear={monthYear}
+              onSalaryPaymentChange={handleSalaryPaymentChange}
+            />
+          ))}
         </div>
       </div>
 
+      {/* Bouton d'enregistrement des paiements */}
       {Object.keys(pendingPayments).length > 0 && (
         <div className="fixed bottom-10 right-10">
           <Button
@@ -425,6 +422,7 @@ export default function EtatFacturationsTable({
         </div>
       )}
 
+      {/* Ligne d'upload + refresh des statuts au succès */}
       <div className="grid grid-cols-10 gap-3">
         <EtatFacturationUploadRow
           missions={missions}

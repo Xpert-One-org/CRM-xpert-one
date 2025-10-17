@@ -33,7 +33,6 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   const getLastMonthNewUsers = async (role: string) => {
     setLoading(true);
     const { newUsersLastMonth } = await getNewUsersLastMonth(role);
-    console.log(newUsersLastMonth);
     setFilteredUsers(newUsersLastMonth);
     setLoading(false);
   };
@@ -63,11 +62,6 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
 
     const errors = results.filter((result) => result.error !== null);
 
-    if (errors.length > 0) {
-      console.log('There were errors:', errors);
-    } else {
-      console.log('All calls were successful');
-    }
     setNewUserCalledNotSaved([]);
     toast.success('Les modifications ont bien été enregistrées');
     setIsSaving(false);
@@ -79,10 +73,8 @@ export default function NewsXpertFournisseursTable({ role }: { role: string }) {
   useEffect(() => {
     if (selectedRole === 'Fournisseur') {
       getLastMonthNewUsers('company');
-      console.log(filteredUsers);
     } else {
       getLastMonthNewUsers('xpert');
-      console.log(filteredUsers);
     }
   }, []);
 

@@ -7,15 +7,15 @@ import {
 } from '@/components/ui/credenza';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import SelectComponent from '@/components/SelectComponent';
 import { deleteMission } from '@functions/missions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import type { ReasonMissionDeletion } from '@/types/typesDb';
 import { reasonDeleteMissionSelect } from '@/data/mocked_select';
-import { useIsIntern } from '@/hooks/useRoles';
 import { Textarea } from '@/components/ui/textarea';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function DeleteMissionDialog({
   missionId,
@@ -24,8 +24,7 @@ export default function DeleteMissionDialog({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
-  const isIntern = useIsIntern();
-
+  const { isIntern } = useContext(AuthContext);
   const [reasonDelete, setReasonDelete] =
     useState<ReasonMissionDeletion | null>(null);
   const [detailDeletion, setDetailDeletion] = useState<string>('');

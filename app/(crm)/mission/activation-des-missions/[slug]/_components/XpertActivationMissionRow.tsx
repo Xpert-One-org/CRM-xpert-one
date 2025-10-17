@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { downloadMissionFile } from '@functions/download-file-mission';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
-import { useIsIntern } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function XpertActivationMissionRow({
   missionData,
@@ -25,7 +25,7 @@ export default function XpertActivationMissionRow({
   fileStatuses: Record<string, { exists: boolean; createdAt?: string }>;
   onFileUpload: () => Promise<void>;
 }) {
-  const isIntern = useIsIntern();
+  const { isIntern } = useContext(AuthContext);
 
   const missionXpertStatus = missionData.xpert_associated_status;
   const handleDownloadFile = async ({

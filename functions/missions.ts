@@ -30,7 +30,6 @@ const checkMissionAccess = async (supabase: any) => {
     .eq('collaborator_replacement_id', authUser.id);
 
   const isReplaceForSomeone = isReplacement && isReplacement.length > 0;
-  console.log("L'utilisateur est-il remplaçant:", isReplaceForSomeone);
 
   // D'après l'image, admin et chargé d'affaires ont accès complet
   const isAdmin = userProfile.role === 'admin';
@@ -56,8 +55,6 @@ const checkMissionAccess = async (supabase: any) => {
 
 // Fonction utilitaire pour récupérer les IDs des missions accessibles par un remplaçant
 const getMissionsForReplacement = async (supabase: any, userId: string) => {
-  console.log('getMissionsForReplacement appelé pour userId:', userId);
-
   // D'abord, trouver tous les référents pour lesquels l'utilisateur est remplaçant
   const { data: referentsReplaced } = await supabase
     .from('profile')
@@ -65,27 +62,20 @@ const getMissionsForReplacement = async (supabase: any, userId: string) => {
     .eq('collaborator_is_absent', true)
     .eq('collaborator_replacement_id', userId);
 
-  console.log('Référents remplacés:', referentsReplaced);
-
   if (!referentsReplaced || referentsReplaced.length === 0) {
-    console.log('Aucun référent remplacé trouvé');
     return [];
   }
 
   // Récupérer les missions où ces référents sont assignés
   const referentIds = referentsReplaced.map((ref: { id: string }) => ref.id);
-  console.log('IDs des référents remplacés:', referentIds);
 
   const { data: replacementMissions } = await supabase
     .from('mission')
     .select('id')
     .in('affected_referent_id', referentIds);
 
-  console.log('Missions de remplacement trouvées:', replacementMissions);
-
   const missionIds =
     replacementMissions?.map((m: { id: number }) => m.id.toString()) || [];
-  console.log('IDs des missions de remplacement:', missionIds);
 
   return missionIds;
 };
@@ -96,13 +86,6 @@ const checkReplacementAccess = async (
   userId: string,
   referentId: string | null
 ) => {
-  console.log(
-    'checkReplacementAccess appelé pour userId:',
-    userId,
-    'referentId:',
-    referentId
-  );
-
   if (!referentId) return false;
 
   const { data: referent } = await supabase
@@ -111,12 +94,9 @@ const checkReplacementAccess = async (
     .eq('id', referentId)
     .single();
 
-  console.log('Données du référent:', referent);
-
   const hasAccess =
     referent?.collaborator_is_absent &&
     referent?.collaborator_replacement_id === userId;
-  console.log('A-t-il accès:', hasAccess);
 
   return hasAccess;
 };
@@ -232,17 +212,6 @@ export const getAllMissions = async (
     isReplaceForSomeone,
   } = await checkMissionAccess(supabase);
 
-  console.log(
-    'getAllMissions - userId:',
-    userId,
-    'isAuthorized:',
-    isAuthorized,
-    'hasReadAccess:',
-    hasReadAccess,
-    'isRemplaçant:',
-    isReplaceForSomeone
-  );
-
   if (!isAuthorized) return { missions: [], total: 0 };
 
   let query = supabase.from('mission').select(
@@ -265,8 +234,6 @@ export const getAllMissions = async (
   // Seuls les admin et chargés d'affaires voient toutes les missions
   // Les autres (référents et remplaçants) doivent être filtrés
   if (!isAdmin && !isChargeAffaires) {
-    console.log('Filtrage des missions pour utilisateur:', userId);
-
     // Récupérer les IDs des référents que l'utilisateur remplace
     const { data: referentsReplaced } = await supabase
       .from('profile')
@@ -274,14 +241,11 @@ export const getAllMissions = async (
       .eq('collaborator_is_absent', true)
       .eq('collaborator_replacement_id', userId);
 
-    console.log('Référents remplacés:', referentsReplaced);
-
     if (referentsReplaced && referentsReplaced.length > 0) {
       // Construire une condition OR pour:
       // 1. Missions où l'utilisateur est référent
       // 2. Missions où l'utilisateur remplace le référent
       const referentIds = referentsReplaced.map((r: any) => r.id);
-      console.log('IDs des référents remplacés:', referentIds);
 
       // Si l'utilisateur est référent OU s'il remplace un référent qui est assigné à la mission
       query = query.or(
@@ -362,17 +326,6 @@ export const getMissionState = async (
     isReplaceForSomeone,
   } = await checkMissionAccess(supabase);
 
-  console.log(
-    'getMissionState - userId:',
-    userId,
-    'isAuthorized:',
-    isAuthorized,
-    'hasReadAccess:',
-    hasReadAccess,
-    'isRemplaçant:',
-    isReplaceForSomeone
-  );
-
   if (!isAuthorized) return [];
 
   // Si l'utilisateur n'a pas les droits de lecture mais est remplaçant, continuer
@@ -399,8 +352,6 @@ export const getMissionState = async (
   // Seuls les admin et chargés d'affaires voient toutes les missions
   // Les autres (référents et remplaçants) doivent être filtrés
   if (!isAdmin && !isChargeAffaires) {
-    console.log('Filtrage des missions pour utilisateur:', userId);
-
     // Récupérer les IDs des référents que l'utilisateur remplace
     const { data: referentsReplaced } = await supabase
       .from('profile')
@@ -408,14 +359,11 @@ export const getMissionState = async (
       .eq('collaborator_is_absent', true)
       .eq('collaborator_replacement_id', userId);
 
-    console.log('Référents remplacés:', referentsReplaced);
-
     if (referentsReplaced && referentsReplaced.length > 0) {
       // Construire une condition OR pour:
       // 1. Missions où l'utilisateur est référent
       // 2. Missions où l'utilisateur remplace le référent
       const referentIds = referentsReplaced.map((r: any) => r.id);
-      console.log('IDs des référents remplacés:', referentIds);
 
       // Si l'utilisateur est référent OU s'il remplace un référent qui est assigné à la mission
       query = query.or(
@@ -491,8 +439,6 @@ export const searchMission = async (
 
   // Appliquer le même filtrage que dans getAllMissions et getMissionState
   if (!isAdmin && !isChargeAffaires) {
-    console.log('Filtrage des missions pour utilisateur:', userId);
-
     // Récupérer les IDs des référents que l'utilisateur remplace
     const { data: referentsReplaced } = await supabase
       .from('profile')
@@ -500,11 +446,8 @@ export const searchMission = async (
       .eq('collaborator_is_absent', true)
       .eq('collaborator_replacement_id', userId);
 
-    console.log('Référents remplacés:', referentsReplaced);
-
     if (referentsReplaced && referentsReplaced.length > 0) {
       const referentIds = referentsReplaced.map((r: any) => r.id);
-      console.log('IDs des référents remplacés:', referentIds);
 
       // Si l'utilisateur est référent OU s'il remplace un référent qui est assigné à la mission
       query = query.or(

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { DESKTOP } from '@/data/constant';
@@ -16,7 +16,7 @@ import SkeletonChat from './skeletons/SkeletonChat';
 import Loader from '@/components/Loader';
 import { MsgCard } from './MsgCard';
 import InputSend from './InputSend';
-import { useAuth } from '@/hooks/useAuth';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function ChatContent({
   className,
@@ -36,8 +36,7 @@ export default function ChatContent({
     setCurrentMessages,
   } = useChat();
 
-  const { user } = useAuth();
-
+  const { user } = useContext(AuthContext);
   const chatSelected = getChatSelectedWithRightType(type);
   const chats = getChatWithRightType(type);
   const { mission_number } = chatSelected?.mission ?? {};

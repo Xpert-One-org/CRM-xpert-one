@@ -3,7 +3,7 @@
 // Ce fichier est une modification du composant ChatContent qui suit la même structure que le fichier que vous avez montré,
 // mais ajoute la prise en charge du mode lecture seule pour les conversations entre experts.
 
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { DESKTOP } from '@/data/constant';
@@ -19,7 +19,7 @@ import { handleReadNewMessage, getMessages } from '@functions/chat';
 import SkeletonChat from './skeletons/SkeletonChat';
 import Loader from '@/components/Loader';
 import { MsgCard } from './MsgCard';
-import { useAuth } from '@/hooks/useAuth';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 type ChatContentProps = {
   type: ChatType;
@@ -42,7 +42,7 @@ export default function ReadOnlyChatContent({
     setCurrentMessages,
   } = useChat();
 
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext);
 
   const chatSelected = getChatSelectedWithRightType(type);
   const chats = getChatWithRightType(type);

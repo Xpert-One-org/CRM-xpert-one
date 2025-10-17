@@ -7,15 +7,15 @@ import {
 } from '@/components/ui/credenza';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { toast } from 'sonner';
 
 import FakeInput from '@/components/inputs/FakeInput';
 import { useXpertStore } from '@/store/xpert';
-import { useAuth } from '@/hooks/useAuth';
 import TextArea from '@/components/inputs/TextArea';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { cn } from '@/lib/utils';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function BanXpertDialog({
   xpertId,
@@ -37,7 +37,7 @@ export default function BanXpertDialog({
   const [reasonBan, setReasonBan] = useState('');
   const [isBanned, setIsBanned] = useState(false);
   const { banXpert } = useXpertStore();
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     checkIfUserIsBanned();

@@ -1,34 +1,33 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import EtatFacturationsTable from './_components/EtatFacturationsTable';
+import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
+import { FilterButton } from '@/components/FilterButton';
 import { useMissionStore } from '@/store/mission';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
-import { FilterButton } from '@/components/FilterButton';
-import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
+import type { DBMission } from '@/types/typesDb';
 
 export default function EtatsFacturationsPage() {
   const { missions, fetchMissionsState } = useMissionStore();
   const { fileStatusesByMission, checkAllMissionsFiles } =
     useFileStatusFacturationStore();
 
-  const filteredMissions = missions
-    .filter((mission) => mission.state === 'in_progress')
-    .sort((a, b) => {
-      const dateA = new Date(a.start_date || '').getTime();
-      const dateB = new Date(b.start_date || '').getTime();
-      return dateA - dateB;
-    });
+  const filteredMissions: DBMission[] = useMemo(() => {
+    return missions
+      .filter((m) => m.state === 'in_progress')
+      .sort((a, b) => {
+        const dateA = new Date(a.start_date || '').getTime();
+        const dateB = new Date(b.start_date || '').getTime();
+        return dateA - dateB;
+      });
+  }, [missions]);
 
   const shouldUpdateFileStatuses = useCallback(
-    (missions: typeof filteredMissions) => {
-      if (missions.length === 0) return false;
-
+    (ms: DBMission[]) => {
+      if (ms.length === 0) return false;
       if (Object.keys(fileStatusesByMission).length === 0) return true;
-
-      return missions.some(
-        (mission) => !fileStatusesByMission[mission.mission_number || '']
-      );
+      return ms.some((m) => !fileStatusesByMission[m.mission_number || '']);
     },
     [fileStatusesByMission]
   );
@@ -63,6 +62,7 @@ export default function EtatsFacturationsPage() {
             filter={false}
           />
         </div>
+
         <EtatFacturationsTable missions={filteredMissions} />
       </div>
     </ProtectedRoleRoutes>

@@ -17,7 +17,6 @@ export async function checkFileExists(
       }/${type}`;
 
   try {
-    console.log('Checking file existence:', filePath);
     const { data: files, error } = await supabase.storage
       .from('mission_files')
       .list(filePath);

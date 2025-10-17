@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { FilterButton } from '@/components/FilterButton';
 import { Box } from '@/components/ui/box';
@@ -28,8 +28,8 @@ import { useWarnIfUnsavedChanges } from '@/hooks/useLeavePageConfirm';
 import DeleteTaskDialog from './DeleteTaskDialog';
 import DialogTaskHistory from './HistoryTaskDialog';
 import { useAdminCollaborators } from '@/store/adminCollaborators';
-import { useIsAdmin } from '@/hooks/useRoles';
 import Link from 'next/link';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 type TaskStatus = 'urgent' | 'pending' | 'done';
 
@@ -273,7 +273,7 @@ export default function TaskTable() {
     setFilterKey((prev) => prev + 1);
   };
 
-  const isAdmin = useIsAdmin();
+  const { isAdmin } = useContext(AuthContext);
 
   return (
     <div

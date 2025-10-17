@@ -152,8 +152,6 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
 
     set({ loading: true });
 
-    console.log('missionNotSaved', missionNotSaved);
-
     try {
       // 1. Mise à jour des données de la mission
       if (keyDBMissionChanged.length > 0) {

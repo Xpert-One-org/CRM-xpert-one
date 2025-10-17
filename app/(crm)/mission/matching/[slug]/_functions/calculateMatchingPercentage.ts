@@ -92,13 +92,7 @@ const getTotalCriteriaCount = (
   if (additionalCriteria.languages?.length) {
     count++;
   }
-  // if (additionalCriteria.availability?.length) {
-  //   console.log(
-  //     'CRITERE AVAILABILITY ADDITIONNEL : ',
-  //     additionalCriteria.availability
-  //   );
-  //   count++;
-  // }
+
   if (additionalCriteria.management?.length) {
     count++;
   }
@@ -298,21 +292,6 @@ export const calculatePartialMatches = (
         (matchingCount / requiredLanguages.length) * (pointsPerCriteria / 2);
     }
   }
-
-  // Availability
-  // if (nonMatchingCriteria.availability?.length && mission?.availability) {
-  //   const missionStartDate = new Date(missionData.start_date ?? '');
-  //   const xpertAvailability = new Date(mission.availability);
-
-  //   console.log('Is xpert available ? ', xpertAvailability <= missionStartDate);
-
-  //   if (
-  //     additionalCriteria.availability?.includes('yes') &&
-  //     xpertAvailability <= missionStartDate
-  //   ) {
-  //     additionalPoints += pointsPerCriteria / 2;
-  //   }
-  // }
 
   // Management
   if (nonMatchingCriteria.management?.length && experience) {

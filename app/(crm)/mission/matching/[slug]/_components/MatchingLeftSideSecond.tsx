@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Box } from '@/components/ui/box';
 import AddIcon from '@/components/svg/AddIcon';
 import { Check, X } from 'lucide-react';
@@ -10,7 +10,7 @@ import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 import { getLabel } from '@/utils/getLabel';
 import { empty } from '@/data/constant';
 import { Button } from '@/components/ui/button';
-import { useIsIntern } from '@/hooks/useRoles';
+
 import Input from '@/components/inputs/Input';
 import {
   expertiseSelect,
@@ -19,13 +19,14 @@ import {
   sectorSelect,
   specialitySelect,
 } from '@/data/mocked_select';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function MatchingLeftSideSecond({
   missionNumber,
 }: {
   missionNumber: string;
 }) {
-  const isIntern = useIsIntern();
+  const { isIntern } = useContext(AuthContext);
 
   const { additionalCriteria, setAdditionalCriteria, saveCriteria } =
     useMatchingCriteriaStore();

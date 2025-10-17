@@ -197,8 +197,6 @@ export async function approveContactRequest(requestId: number) {
       return { success: false, error: updateError.message };
     }
 
-    console.log('Updated contact request state:', updateData);
-
     // Use existing chat or create new one
     let chatId;
 
@@ -320,8 +318,6 @@ export async function rejectContactRequest(requestId: number) {
       console.error('Error updating request state:', updateError);
       return { success: false, error: updateError.message };
     }
-
-    console.log('Updated contact request state:', updateData);
 
     return { success: true };
   } catch (error) {

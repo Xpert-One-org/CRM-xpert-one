@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
+import { X } from 'lucide-react';
+import { ScrollArea } from './ui/scroll-area';
 
 export type SortOrder = 'asc' | 'desc' | null;
 export type SelectedOption = { label: string; value: string };
@@ -98,6 +100,11 @@ export const FilterButton = ({
     }
   };
 
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleValueChange({ label: '', value: '' });
+  };
+
   return (
     <>
       {filter ? (
@@ -118,7 +125,7 @@ export const FilterButton = ({
               {selectedOption.value !== '' && showSelectedOption && (
                 <div>
                   <Badge
-                    className="whitespace-nowrap"
+                    className="flex items-center gap-1 whitespace-nowrap"
                     style={
                       coloredOptions &&
                       options?.find((opt) => opt.value === selectedOption.value)
@@ -133,6 +140,10 @@ export const FilterButton = ({
                     }
                   >
                     {selectedOption.label}
+                    <X
+                      className="size-3 cursor-pointer hover:text-destructive"
+                      onClick={handleClear}
+                    />
                   </Badge>
                 </div>
               )}
@@ -140,23 +151,25 @@ export const FilterButton = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-white">
             <DropdownMenuLabel>{placeholder}</DropdownMenuLabel>
-            {options && options.length > 0 ? (
-              options.map((option) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() =>
-                    handleValueChange({
-                      label: option.label || '',
-                      value: option.value || '',
-                    })
-                  }
-                >
-                  {option.label || ''}
-                </DropdownMenuItem>
-              ))
-            ) : (
-              <DropdownMenuItem disabled>Aucun résultat</DropdownMenuItem>
-            )}
+            <ScrollArea className="h-[var(--radix-dropdown-menu-content-available-height)] max-h-[300px]">
+              {options && options.length > 0 ? (
+                options.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() =>
+                      handleValueChange({
+                        label: option.label || '',
+                        value: option.value || '',
+                      })
+                    }
+                  >
+                    {option.label || ''}
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>Aucun résultat</DropdownMenuItem>
+              )}
+            </ScrollArea>
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (

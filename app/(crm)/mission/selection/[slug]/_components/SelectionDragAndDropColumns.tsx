@@ -1,19 +1,19 @@
 'use client';
 
 import { Box } from '@/components/ui/box';
-import React from 'react';
+import React, { useContext } from 'react';
 import SelectionMatchedXpertCard from './SelectionMatchedXpertCard';
 import { Droppable } from '@hello-pangea/dnd';
 import type { ColumnStatus, DBMissionXpertsSelection } from '@/types/typesDb';
 import { columns } from '@/constants/columnStatus';
-import { useIsIntern } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function SelectionDragAndDropColumns({
   xpertsSelection,
 }: {
   xpertsSelection: DBMissionXpertsSelection[];
 }) {
-  const isIntern = useIsIntern();
+  const { isIntern } = useContext(AuthContext);
   const xpertsByColumn = columns.reduce(
     (acc, column) => {
       acc[column] = xpertsSelection.filter((x) => x.column_status === column);

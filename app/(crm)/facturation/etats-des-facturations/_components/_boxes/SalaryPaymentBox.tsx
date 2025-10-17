@@ -1,8 +1,8 @@
+import { AuthContext } from '@/components/auth/AuthProvider';
 import { Box } from '@/components/ui/box';
 import type { PaymentType } from '@/types/mission';
 import { formatDate } from '@/utils/date';
-import React, { useState, useEffect } from 'react';
-import { useIsProjectManager, useIsHr, useIsAdv } from '@/hooks/useRoles';
+import React, { useState, useEffect, useContext } from 'react';
 
 type SalaryPaymentBoxProps = {
   selectedMonthYear: {
@@ -20,9 +20,7 @@ export default function SalaryPaymentBox({
   onSalaryPaymentClick,
   isSelected = false,
 }: SalaryPaymentBoxProps) {
-  const isProjectManager = useIsProjectManager();
-  const isHr = useIsHr();
-  const isAdv = useIsAdv();
+  const { isProjectManager, isHr, isAdv } = useContext(AuthContext);
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
