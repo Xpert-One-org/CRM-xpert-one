@@ -1,45 +1,72 @@
-// middleware.ts
-import { createSupabaseAppServerClient } from "@/utils/supabase/server";
-import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { type NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/connexion", "/auth/callback"];
+export default async function middleware(request: NextRequest) {
+  // Réponse source où Supabase va écrire les cookies
+  const supabaseResponse = NextResponse.next({ request });
 
-function normalizePath(pathname: string) {
-  // retire un éventuel locale au début (fr, en, etc.)
-  const withoutLocale = pathname.replace(/^\/([a-zA-Z-]{2,})(?=\/|$)/, "");
-  // retire le slash final sauf pour la racine
-  const normalized = withoutLocale !== "/" ? withoutLocale.replace(/\/$/, "") : "/";
-  // vide => racine
-  return normalized || "/";
-}
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          // Écrire uniquement sur la réponse (pas sur request.cookies)
+          for (const cookie of cookiesToSet) {
+            supabaseResponse.cookies.set(cookie);
+          }
+        },
+      },
+    }
+  );
 
-export async function middleware(request: NextRequest) {
-  const res = NextResponse.next();
+  // IMPORTANT: DO NOT REMOVE auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // Important en middleware: passer req/res au client
-  const supabase = await createSupabaseAppServerClient()
+  const { pathname } = request.nextUrl;
+  const method = request.method;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Helpers
+  const withSupabaseCookies = (res: NextResponse) => {
+    for (const c of supabaseResponse.cookies.getAll()) {
+      res.cookies.set(c);
+    }
+    return res;
+  };
 
-  const path = normalizePath(request.nextUrl.pathname);
+  const isPublicPath =
+    pathname === "/connexion" ||
+    pathname === "/auth/callback";
 
-  // Utilisateur connecté sur la page /connexion → bascule vers /dashboard
-  if (user && path === "/connexion") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Si c'est une requête "API-like" (non-GET) on évite les redirections
+  const isApiLike = method !== "GET" || pathname.startsWith("/api");
+
+  // Si user connecté et va sur /connexion => /dashboard
+  if (user && pathname === "/connexion") {
+    return withSupabaseCookies(
+      NextResponse.redirect(new URL("/dashboard", request.url))
+    );
   }
 
-  // Autoriser les routes publiques si non connecté
-  const isPublic = PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
-  if (!user && !isPublic) {
-    const url = new URL("/connexion", request.url);
-    // optionnel: mémoriser la page d’origine pour y revenir après login
-    url.searchParams.set("redirectedFrom", request.nextUrl.pathname + request.nextUrl.search);
-    return NextResponse.redirect(url);
+  // Si user NON connecté et route protégée
+  if (!user && !isPublicPath) {
+    if (isApiLike) {
+      // IMPORTANT : ne pas rediriger les POST/PUT/etc.
+      return withSupabaseCookies(
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      );
+    }
+    // GET classique => redirection vers /connexion
+    return withSupabaseCookies(
+      NextResponse.redirect(new URL("/connexion", request.url))
+    );
   }
 
-  return res;
+  // Laisser passer
+  return supabaseResponse;
 }
 
 export const config = {

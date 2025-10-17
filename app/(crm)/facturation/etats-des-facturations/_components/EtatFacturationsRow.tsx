@@ -126,11 +126,8 @@ export default function EtatFacturationsRow({
           handleRedirectFicheMission(missionData.mission_number ?? '')
         }
       >
-        {missionData.mission_number} -{' '}
-        {getLabel({
-          value: missionData.job_title ?? empty,
-          select: jobTitleSelect,
-        }) ?? empty}
+        {missionData.mission_number} - {missionData.xpert?.firstname}{' '}
+        {missionData.xpert?.lastname}
       </Box>
       <Box className="size-full flex-col">
         <p>{`${uppercaseFirstLetter(
