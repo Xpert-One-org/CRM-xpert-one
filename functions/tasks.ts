@@ -10,8 +10,6 @@ import type {
 } from '@/types/types';
 import type { Task } from '@/types/types';
 import { limitTask } from '@/data/constant';
-import { useIsAdmin } from '@/hooks/useRoles';
-import { DBCollaboratorRole } from '@/types/typesDb';
 
 const taskQuery = `
   *,

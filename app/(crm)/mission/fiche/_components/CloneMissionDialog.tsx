@@ -7,10 +7,10 @@ import {
 } from '@/components/ui/credenza';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { useIsIntern } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 import { useEditMissionStore } from '../editMissionStore';
 import SelectComponent from '@/components/SelectComponent';
 import { missionStates } from '@/data/mocked_select';
@@ -25,7 +25,7 @@ export default function CloneMissionDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const [selectedState, setSelectedState] = useState<DBMissionState>('open');
-  const isIntern = useIsIntern();
+  const { isIntern } = useContext(AuthContext);
   const { openedMissionNotSaved: mission } = useEditMissionStore();
 
   const router = useRouter();
@@ -107,8 +107,6 @@ export default function CloneMissionDialog({
       };
 
       const { data, error } = await cloneMission(clonedMission);
-
-      console.log(data, error);
 
       setPopupOpen(false);
       //indiquer le numéro de la nouvelle mission

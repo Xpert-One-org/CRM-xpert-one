@@ -1,14 +1,13 @@
 'use client';
 import { DESKTOP } from '@/data/constant';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import useChat from '@/store/chat/chat';
 import { useRealtimeChat } from '@/store/chat/realtime';
 import type { ChatType, DBChat } from '@/types/typesDb';
 import { getTimeFromNow } from '@/utils/getTimeFromNow';
 import { handleReadNewMessage } from '@functions/chat';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { X } from 'lucide-react';
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 type TabContentProps = {
   type: ChatType;
@@ -35,7 +35,7 @@ export default function TabContent({
     getChatWithRightType,
   } = useChat();
 
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext);
 
   useRealtimeChat({ type, user_id: user?.id ?? '' });
   const isDektop = useMediaQuery(DESKTOP);

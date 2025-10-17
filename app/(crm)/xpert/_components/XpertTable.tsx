@@ -208,8 +208,6 @@ export default function XpertTable() {
         habilitationsMap.get(habilitationType)?.push(file);
       }
 
-      console.log({ habilitationsMap });
-
       const habilitationsUrls: { [key: string]: DocumentInfo } = {};
 
       for (const [type, files] of Array.from(habilitationsMap.entries())) {
@@ -230,8 +228,6 @@ export default function XpertTable() {
           pathname: `${xpert.generated_id}/habilitations/${mostRecentFile.name}`,
         };
       }
-
-      console.log(habilitationsUrls);
 
       setHabilitationInfo({
         publicUrl: '',

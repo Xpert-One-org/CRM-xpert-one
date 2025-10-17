@@ -162,18 +162,12 @@ export const useXpertStore = create<XpertState>((set, get) => ({
     sectors: [],
   },
   setActiveFilters: (filter: Partial<FilterXpert>) => {
-    console.log('Setting filters:', filter);
-    console.log('Current filters:', get().activeFilters);
-
     const newFilters = {
       ...get().activeFilters,
       ...filter,
     };
 
-    console.log('New filters:', newFilters);
     set({ activeFilters: newFilters });
-
-    console.log('Updated filters:', get().activeFilters);
   },
   openedXpert: null,
   openedXpertNotSaved: null,

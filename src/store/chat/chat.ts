@@ -312,7 +312,6 @@ const useChat = create<ChatState>((set, get) => ({
       console.log('error', error);
       set({ errorMsg: error });
     }
-    console.log('count', count);
 
     set({ notReadChatsCount: count ?? 0 });
   },

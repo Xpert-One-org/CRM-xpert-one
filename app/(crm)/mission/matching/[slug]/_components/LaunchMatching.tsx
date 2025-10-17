@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
 import Loader from '@/components/Loader';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { getAllMatchedXperts } from '../matching.action';
 import MatchingXpertsTable from './MatchingXpertsTable';
 import RecapMissionDialog from '@/components/dialogs/RecapMissionDialog';
@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { sendMatchedXpertsToSelectionBoard } from '../../../selection/selection.action';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
-import { useIsIntern } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function LaunchMatching({
   missionData,
@@ -28,7 +28,7 @@ export default function LaunchMatching({
     Record<string, number>
   >({});
   const router = useRouter();
-  const isIntern = useIsIntern();
+  const { isIntern } = useContext(AuthContext);
 
   const { excludedCriteria, additionalCriteria, saveCriteria } =
     useMatchingCriteriaStore();

@@ -205,6 +205,9 @@ export default function EtatFacturationsRow({
       {/* Paiement */}
       <StatusBox
         fileStatuses={fileStatuses}
+        mission_fournisseur_payment_date={
+          missionData.facturation_fournisseur_payment as PaymentStatus[]
+        }
         selectedMonthYear={selectedMonthYear}
         fileType="invoice_paid"
         isFournisseur

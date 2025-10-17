@@ -361,22 +361,18 @@ export const getXpertsOptimized = async ({
   }
 
   if (filters?.cv) {
-    console.log('Applying CV filter:', filters.cv);
     if (filters.cv === 'yes') {
       // Utilisation de l'API raw pour être explicite
-      console.log('Recherche des profils AVEC CV');
       // On évite not is null pour utiliser une syntaxe plus directe
       query = query.filter('cv_name', 'not.is', null);
     } else if (filters.cv === 'no') {
       // Utilisation de l'API raw pour être explicite
-      console.log('Recherche des profils SANS CV');
       // On utilise l'opérateur is null directement
       query = query.filter('cv_name', 'is', null);
     }
   }
 
   if (filters?.sectors && filters.sectors.length > 0) {
-    console.log('Applying sectors filter:', filters.sectors);
     // S'assurer que profile_mission n'est pas null
     query = query.not('profile_mission', 'is', null);
 
@@ -949,9 +945,6 @@ export const updateUserEmail = async ({
       };
     }
 
-    console.log('Email actuel dans auth:', userBefore.user.email);
-    console.log('Tentative de mise à jour vers:', newEmail);
-
     // Tenter la mise à jour via API admin
     const { data, error: updateAuthError } =
       await supabase.auth.admin.updateUserById(userId, {
@@ -989,8 +982,6 @@ export const updateUserEmail = async ({
       };
     }
 
-    console.log('Email après tentative de mise à jour:', userAfter.user.email);
-
     // Vérification stricte que l'email a bien changé
     if (userAfter.user.email !== newEmail) {
       console.error(
@@ -1018,8 +1009,6 @@ export const updateUserEmail = async ({
             },
           };
         }
-
-        console.log("Méthode alternative d'invitation appliquée");
       } catch (altError) {
         console.error('Exception lors de la méthode alternative:', altError);
         return {

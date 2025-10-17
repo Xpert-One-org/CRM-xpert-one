@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
@@ -11,7 +11,7 @@ import DownloadOff from '@/components/svg/DownloadOff';
 import { getFileTypeByStatus } from '../_utils/getFileTypeByStatus';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
 import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
-import { useIsIntern } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function FournisseurActivationMissionRow({
   missionData,
@@ -22,8 +22,7 @@ export default function FournisseurActivationMissionRow({
   fileStatuses: Record<string, { exists: boolean; createdAt?: string }>;
   onFileUpload: () => Promise<void>;
 }) {
-  const isIntern = useIsIntern();
-
+  const { isIntern } = useContext(AuthContext);
   const missionXpertStatus = missionData.xpert_associated_status;
   const handleDownloadFile = async ({
     type,

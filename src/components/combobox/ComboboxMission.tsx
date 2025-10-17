@@ -49,11 +49,8 @@ export default function ComboboxMission({
   };
 
   const handleSetValue = (value: string) => {
-    console.log({ value });
     // get only the mission number
     const missionNumber = value.split(' - ')[0];
-    const jobTitle = value.split(' - ')[1];
-    console.log({ missionNumber });
     if (missionNumber.toUpperCase() === currentMissionNumber?.toUpperCase()) {
       return;
     }
@@ -94,7 +91,6 @@ export default function ComboboxMission({
       (mission) =>
         `${mission.mission_number || ``} - ${` ${getJobTitle(mission.job_title)}` || ''}`
     );
-    console.log({ missionFound });
     setData(missionFound);
   }, [missionsNumbers]);
 

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import UploadMultipleSalarySheetDialog from './UploadMultipleSalarySheetDialog';
 import type { DBMission } from '@/types/typesDb';
-import { useIsProjectManager, useIsHr, useIsAdv } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function EtatFacturationUploadRow({
   missions,
@@ -10,9 +10,7 @@ export default function EtatFacturationUploadRow({
   missions: DBMission[];
   onUploadSuccess?: () => void;
 }) {
-  const isProjectManager = useIsProjectManager();
-  const isHr = useIsHr();
-  const isAdv = useIsAdv();
+  const { isProjectManager, isHr, isAdv } = useContext(AuthContext);
 
   if (isProjectManager) {
     return (

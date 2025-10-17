@@ -148,7 +148,6 @@ export async function getAllMatchedXperts(
   if (xpertId) {
     // if no space between X and numbers, add a space
     if (!xpertId.includes(' ')) {
-      console.log('xpertId', xpertId);
       const xpertIdWithSpace = `X ${xpertId.replace('X', '')}`;
       query = query.ilike('generated_id', `%${xpertIdWithSpace}%`);
     } else {

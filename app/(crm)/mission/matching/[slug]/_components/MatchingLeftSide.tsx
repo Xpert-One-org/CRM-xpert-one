@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import type { DBMission } from '@/types/typesDb';
 import { Box } from '@/components/ui/box';
 import AddIcon from '@/components/svg/AddIcon';
@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
-import { useIsIntern } from '@/hooks/useRoles';
 import {
   degreeSelect,
   expertiseSelect,
@@ -21,6 +20,7 @@ import {
   sectorSelect,
   specialitySelect,
 } from '@/data/mocked_select';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function MatchingLeftSide({
   missionData,
@@ -61,13 +61,7 @@ export default function MatchingLeftSide({
 
   const [hasChanges, setHasChanges] = useState(false);
 
-  const isIntern = useIsIntern();
-
-  const seniorityOptions = [
-    { label: '1 an', value: '1' },
-    { label: '2 ans', value: '2' },
-    { label: '3 ans', value: '3' },
-  ];
+  const { isIntern } = useContext(AuthContext);
 
   const actionOptions = [
     { label: 'OUI', value: 'yes' },

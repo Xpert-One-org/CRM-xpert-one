@@ -1,17 +1,16 @@
 import { create } from 'zustand';
 import type { FileStatuses } from '@/types/mission';
 import type { DBMission } from '@/types/typesDb';
-import { checkFileExistsFacturations } from '../../app/(crm)/facturation/gestion-des-facturations/[slug]/_utils/check-file-mission.action';
 import { getFileTypeByStatusFacturation } from '../../app/(crm)/facturation/gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 
 type FileStatusFacturationStore = {
   fileStatusesByMission: Record<string, FileStatuses>;
   cache: Record<string, FileStatuses>;
   cacheTimestamp: number;
-  checkAllFiles: (mission: DBMission) => Promise<void>;
+  loadingByMission: Record<string, boolean>;
   checkAllMissionsFiles: (missions: DBMission[]) => Promise<void>;
+  checkAllFiles: (mission: DBMission) => Promise<void>;
   invalidateCache: () => void;
-  isLoadingFiles: boolean;
 };
 
 export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
@@ -19,156 +18,176 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
     fileStatusesByMission: {},
     cache: {},
     cacheTimestamp: 0,
-    isLoadingFiles: false,
+    loadingByMission: {},
+
+    /**
+     * Rafraîchir les fichiers pour UNE mission
+     */
     checkAllFiles: async (mission: DBMission) => {
-      if (!mission || !mission.mission_number) return;
+      if (!mission?.mission_number) return;
 
-      const filesToCheck = [
-        getFileTypeByStatusFacturation(
-          'presence_sheet_signed',
-          mission.xpert_associated_status || ''
-        ),
-        getFileTypeByStatusFacturation(
-          'presence_sheet_validated',
-          mission.xpert_associated_status || ''
-        ),
-        getFileTypeByStatusFacturation(
-          mission.xpert_associated_status === 'cdi'
-            ? 'salary_sheet'
-            : 'invoice_received',
-          mission.xpert_associated_status || ''
-        ),
-        getFileTypeByStatusFacturation(
-          'invoice_validated',
-          mission.xpert_associated_status || ''
-        ),
-        getFileTypeByStatusFacturation(
-          'invoice',
-          mission.xpert_associated_status || ''
-        ),
-      ];
-
-      // Exécuter les vérifications de fichiers en parallèle
-      const fileChecks = await Promise.all(
-        filesToCheck.map((fileType) =>
-          checkFileExistsFacturations(fileType, mission)
-        )
-      );
-
-      // Construire l'objet de résultats
-      const newFileStatuses: FileStatuses = {};
-      filesToCheck.forEach((fileType, index) => {
-        newFileStatuses[fileType] = fileChecks[index];
-      });
-
+      const missionNumber = mission.mission_number;
       set((state) => ({
-        fileStatusesByMission: {
-          ...state.fileStatusesByMission,
-          [mission.mission_number ?? '']: newFileStatuses,
-        },
-        cache: {
-          ...state.cache,
-          [mission.mission_number ?? '']: newFileStatuses,
-        },
+        loadingByMission: { ...state.loadingByMission, [missionNumber]: true },
       }));
-    },
 
-    checkAllMissionsFiles: async (missions: DBMission[]) => {
-      if (get().isLoadingFiles) {
-        return;
-      }
-      console.log('Checking all missions files');
-      set({ isLoadingFiles: true });
-      const now = Date.now();
-      const cachedData = get().cache;
-      const cacheTimestamp = get().cacheTimestamp;
-      const cacheExpiration = 5 * 60 * 1000; // 5 minutes
+      try {
+        const status = mission.xpert_associated_status || '';
 
-      // Si le cache est récent et complet, l'utiliser
-      const missionNumbers = missions
-        .map((m) => m.mission_number)
-        .filter(Boolean);
-      const cachedMissions = Object.keys(cachedData);
-      const allMissionsCached = missionNumbers.every((num) =>
-        cachedMissions.includes(num as string)
-      );
-
-      if (
-        cacheTimestamp > 0 &&
-        now - cacheTimestamp < cacheExpiration &&
-        allMissionsCached
-      ) {
-        console.log('Using cached data');
-        set({ fileStatusesByMission: cachedData, isLoadingFiles: false });
-        console.timeEnd('checkAllMissionsFiles');
-        return;
-      }
-
-      // Préparer toutes les promesses en parallèle
-      const missionPromises = missions.map(async (mission) => {
-        if (!mission || !mission.mission_number) return null;
-
-        const filesToCheck = [
-          getFileTypeByStatusFacturation(
-            'presence_sheet_signed',
-            mission.xpert_associated_status || ''
-          ),
-          getFileTypeByStatusFacturation(
-            'presence_sheet_validated',
-            mission.xpert_associated_status || ''
-          ),
+        // Types pertinents pour CETTE mission (via helper)
+        const types = [
+          getFileTypeByStatusFacturation('presence_sheet_signed', status),
+          getFileTypeByStatusFacturation('presence_sheet_validated', status),
           getFileTypeByStatusFacturation(
             mission.xpert_associated_status === 'cdi'
               ? 'salary_sheet'
               : 'invoice_received',
-            mission.xpert_associated_status || ''
+            status
           ),
-          getFileTypeByStatusFacturation(
-            'invoice_validated',
-            mission.xpert_associated_status || ''
-          ),
-          getFileTypeByStatusFacturation(
-            'invoice',
-            mission.xpert_associated_status || ''
-          ),
-        ];
+          getFileTypeByStatusFacturation('invoice_validated', status),
+          getFileTypeByStatusFacturation('invoice', status),
+        ].filter(Boolean) as string[];
 
-        // Exécuter les vérifications de fichiers en parallèle pour chaque mission
-        const fileChecks = await Promise.all(
-          filesToCheck.map((fileType) =>
-            checkFileExistsFacturations(fileType, mission)
-          )
-        );
-
-        // Construire l'objet de résultats
-        const newFileStatuses: FileStatuses = {};
-        filesToCheck.forEach((fileType, index) => {
-          newFileStatuses[fileType] = fileChecks[index];
+        const res = await fetch('/api/facturation/statuses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            missions: [
+              {
+                mission_number: mission.mission_number,
+                xpert_generated_id: mission.xpert?.generated_id ?? null,
+                supplier_generated_id: mission.supplier?.generated_id ?? null,
+                start_date: mission.start_date ?? null,
+              },
+            ],
+            types,
+          }),
         });
 
-        return {
-          missionNumber: mission.mission_number,
-          statuses: newFileStatuses,
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        const { data } = (await res.json()) as {
+          data: Record<string, FileStatuses>;
         };
-      });
 
-      // Attendre que toutes les missions soient traitées
-      const results = await Promise.all(missionPromises);
+        // La route renvoie déjà FileStatuses pour la mission
+        const newFileStatuses = (data?.[missionNumber] ?? {}) as FileStatuses;
 
-      // Construire l'objet final
-      const newFileStatusesByMission: Record<string, FileStatuses> = {};
-      results.forEach((result) => {
-        if (result) {
-          newFileStatusesByMission[result.missionNumber] = result.statuses;
+        set((state) => ({
+          fileStatusesByMission: {
+            ...state.fileStatusesByMission,
+            [missionNumber]: newFileStatuses,
+          },
+          cache: { ...state.cache, [missionNumber]: newFileStatuses },
+          loadingByMission: {
+            ...state.loadingByMission,
+            [missionNumber]: false,
+          },
+        }));
+      } catch (err) {
+        console.error('Erreur checkAllFiles:', err);
+        set((state) => ({
+          loadingByMission: {
+            ...state.loadingByMission,
+            [mission.mission_number!]: false,
+          },
+        }));
+      }
+    },
+
+    /**
+     * Rafraîchir les fichiers pour TOUTES les missions visibles
+     * (appelle la route serveur une seule fois, avec l’union des types)
+     */
+    checkAllMissionsFiles: async (missions: DBMission[]) => {
+      const now = Date.now();
+      const { cache, cacheTimestamp } = get();
+      const cacheExpiration = 5 * 60 * 1000; // 5 min
+
+      const missionNumbers = missions
+        .map((m) => m.mission_number)
+        .filter(Boolean) as string[];
+
+      const cachedAll = missionNumbers.every((n) => !!cache[n]);
+      if (
+        cacheTimestamp > 0 &&
+        now - cacheTimestamp < cacheExpiration &&
+        cachedAll
+      ) {
+        set({ fileStatusesByMission: cache });
+        return;
+      }
+
+      // Marquer toutes les missions "en cours"
+      set((state) => ({
+        loadingByMission: missionNumbers.reduce<Record<string, boolean>>(
+          (acc, n) => ({ ...acc, [n]: true }),
+          { ...state.loadingByMission }
+        ),
+      }));
+
+      try {
+        // Payload missions pour l’API
+        const payload = missions
+          .filter((m) => !!m.mission_number)
+          .map((m) => ({
+            mission_number: m.mission_number!,
+            xpert_generated_id: m.xpert?.generated_id ?? null,
+            supplier_generated_id: m.supplier?.generated_id ?? null,
+            start_date: m.start_date ?? null,
+            xpert_associated_status: m.xpert_associated_status ?? '',
+          }));
+
+        // Union des types calculés via helper (CDI / freelance…)
+        const typeSet = new Set<string>();
+        for (const m of missions) {
+          const status = m.xpert_associated_status || '';
+          [
+            getFileTypeByStatusFacturation('presence_sheet_signed', status),
+            getFileTypeByStatusFacturation('presence_sheet_validated', status),
+            getFileTypeByStatusFacturation(
+              m.xpert_associated_status === 'cdi'
+                ? 'salary_sheet'
+                : 'invoice_received',
+              status
+            ),
+            getFileTypeByStatusFacturation('invoice_validated', status),
+            getFileTypeByStatusFacturation('invoice', status),
+          ]
+            .filter(Boolean)
+            .forEach((t) => typeSet.add(t as string));
         }
-      });
+        const allTypes = Array.from(typeSet);
 
-      set({
-        fileStatusesByMission: newFileStatusesByMission,
-        cache: newFileStatusesByMission,
-        cacheTimestamp: now,
-        isLoadingFiles: false,
-      });
+        const res = await fetch('/api/facturation/statuses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            missions: payload,
+            types: allTypes,
+          }),
+        });
+
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        const { data } = (await res.json()) as {
+          data: Record<string, FileStatuses>;
+        };
+
+        // data est déjà: Record<mission_number, FileStatuses>
+        const fileStatusesByMission = (data ?? {}) as Record<
+          string,
+          FileStatuses
+        >;
+
+        set({
+          fileStatusesByMission,
+          cache: fileStatusesByMission,
+          cacheTimestamp: Date.now(),
+          loadingByMission: {}, // terminé
+        });
+      } catch (err) {
+        console.error('Erreur checkAllMissionsFiles:', err);
+        set({ loadingByMission: {} });
+      }
     },
 
     invalidateCache: () => {

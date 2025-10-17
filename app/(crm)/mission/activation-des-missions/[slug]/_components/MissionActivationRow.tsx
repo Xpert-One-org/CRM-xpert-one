@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/utils/date';
 import { empty } from '@/data/constant';
@@ -10,7 +10,7 @@ import ComboboxMission from '@/components/combobox/ComboboxMission';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useMissionStore } from '@/store/mission';
-import { useIsIntern } from '@/hooks/useRoles';
+import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function MissionActivationRow({
   mission,
@@ -23,7 +23,8 @@ export default function MissionActivationRow({
     mission.xpert_associated_status
   );
   const [hasChanges, setHasChanges] = useState(false);
-  const isIntern = useIsIntern();
+
+  const { isIntern } = useContext(AuthContext);
 
   const handleRedirectFournisseur = (fournisseurId: string) => {
     router.push(`/fournisseur?id=${fournisseurId}`);
