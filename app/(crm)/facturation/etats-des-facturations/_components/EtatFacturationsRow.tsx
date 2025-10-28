@@ -209,6 +209,7 @@ export default function EtatFacturationsRow({
           missionData.facturation_fournisseur_payment as PaymentStatus[]
         }
         selectedMonthYear={selectedMonthYear}
+        missionNumber={missionData.mission_number ?? ''}
         fileType="invoice_paid"
         isFournisseur
         xpertAssociatedStatus={missionStatus || ''}

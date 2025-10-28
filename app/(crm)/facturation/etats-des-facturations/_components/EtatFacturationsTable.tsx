@@ -154,6 +154,7 @@ export default function EtatFacturationsTable({
 
   const handleSavePayments = async () => {
     for (const [key, payments] of Object.entries(pendingPayments)) {
+      console.log(key, payments);
       if (payments.length === 0) continue;
 
       const [missionId, ...typeParts] = key.split('_');

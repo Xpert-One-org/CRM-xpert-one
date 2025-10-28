@@ -1,4 +1,3 @@
-// extrait pertinent de StatusBox.tsx
 'use client';
 import { useState, useEffect, useMemo, useContext } from 'react';
 import { Box } from '@/components/ui/box';
@@ -10,6 +9,7 @@ import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturation
 
 type StatusBoxProps = {
   fileStatuses: FileStatuses;
+  missionNumber?: string;
   selectedMonthYear: { month: number; year: number };
   fileType: string;
   isFournisseur?: boolean;
@@ -27,6 +27,7 @@ type StatusBoxProps = {
 export default function StatusBox(props: StatusBoxProps) {
   const {
     fileStatuses,
+    missionNumber,
     selectedMonthYear,
     mission_fournisseur_payment_date,
     fileType,
@@ -39,15 +40,14 @@ export default function StatusBox(props: StatusBoxProps) {
 
   const { isProjectManager, isAdv, isAdmin } = useContext(AuthContext);
 
-  // état local: uniquement pour refléter le toggle UI,
-  // on ne met JAMAIS la date du jour automatiquement au montage
+  // état local pour UI optimiste
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
   // clé période normalisée
   const periodKey = useMemo(
     () =>
-      `${selectedMonthYear.year}-${String(selectedMonthYear.month).padStart(2, '0')}`,
+      `${selectedMonthYear.year}-${String(selectedMonthYear.month + 1).padStart(2, '0')}`,
     [selectedMonthYear.year, selectedMonthYear.month]
   );
 
@@ -59,7 +59,7 @@ export default function StatusBox(props: StatusBoxProps) {
     [mission_fournisseur_payment_date, periodKey]
   );
 
-  // Sync depuis la DB UNIQUEMENT (pas de date du jour au montage)
+  // Sync depuis la DB - FIX: dépendances correctes
   useEffect(() => {
     if (!isSalaryPayment) return;
 
@@ -70,15 +70,19 @@ export default function StatusBox(props: StatusBoxProps) {
       setLocalIsSelected(false);
       setCurrentDate(null);
     }
-  }, [isSalaryPayment, paymentForPeriod?.payment_date]);
+  }, [
+    isSalaryPayment,
+    paymentForPeriod?.payment_date,
+    periodKey, // Important: si la période change, on resync
+    missionNumber, // Important: si la mission change, on resync
+  ]);
 
   const clickDisabled = (isProjectManager || !isAdv) && !isAdmin;
 
   const handleSalaryClick = () => {
     if (clickDisabled) return;
 
-    // Si une date DB existe pour cette période et que la tuile est "ON",
-    // premier clic = annuler (supprimer la date)
+    // Si déjà payé, on annule (optimiste)
     if (localIsSelected) {
       setLocalIsSelected(false);
       setCurrentDate(null);
@@ -88,7 +92,7 @@ export default function StatusBox(props: StatusBoxProps) {
       return;
     }
 
-    // Sinon, on active et on met la date du jour
+    // Sinon, on active avec la date du jour (optimiste)
     const nowIso = new Date().toISOString();
     setLocalIsSelected(true);
     setCurrentDate(nowIso);
@@ -100,7 +104,7 @@ export default function StatusBox(props: StatusBoxProps) {
 
   // ----- Rendu salaire -----
   if (isSalaryPayment) {
-    // Toujours privilégier la date DB si elle existe
+    // Privilégier la date DB, sinon la date locale optimiste
     const displayIso = paymentForPeriod?.payment_date ?? currentDate ?? null;
 
     return (
@@ -110,11 +114,7 @@ export default function StatusBox(props: StatusBoxProps) {
         }`}
         onClick={clickDisabled ? undefined : handleSalaryClick}
       >
-        {!localIsSelected
-          ? 'NON REÇU'
-          : displayIso
-            ? formatDate(displayIso)
-            : 'NON REÇU'}
+        {localIsSelected && displayIso ? formatDate(displayIso) : 'NON REÇU'}
       </Box>
     );
   }
