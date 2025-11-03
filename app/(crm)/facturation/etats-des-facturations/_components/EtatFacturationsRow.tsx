@@ -117,6 +117,10 @@ export default function EtatFacturationsRow({
     );
   };
 
+  if (missionData.mission_number === 'M 9869') {
+    console.log({ fileStatuses });
+  }
+
   return (
     <>
       <Box
