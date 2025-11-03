@@ -40,6 +40,7 @@ export const emptyMission: DBMission = {
   image_url: null,
   deleted_at: null,
   affected_referent_id: null,
+  order_number: null,
   reason_deletion: null,
   referent: null,
   show_on_website: null,

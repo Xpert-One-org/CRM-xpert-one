@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box } from '@/components/ui/box';
 import type { DBMission } from '@/types/typesDb';
 import UploadFileDialog from '@/components/dialogs/UploadFileDialog';
@@ -9,12 +9,14 @@ import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getFileTypeByStatusFacturation } from '../_utils/getFileTypeByStatusFacturation';
 import { checkPaymentStatusForDate } from '../_utils/checkPaymentStatusForDate';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Check, Download, Pencil, X } from 'lucide-react';
 import type { DownloadType } from '@/types/mission';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import { downloadMissionFile } from '@functions/download-file-mission';
 import DownloadOff from '@/components/svg/DownloadOff';
+import Input from '@/components/inputs/Input';
+import { updateOrderMissionNumber } from '@functions/update-order-mission-number';
 
 type FournisseurGestionFacturationRowProps = {
   missionData: DBMission;
@@ -30,6 +32,10 @@ export default function FournisseurGestionFacturationRow({
   onFileUpdate,
 }: Omit<FournisseurGestionFacturationRowProps, 'fileStatuses'>) {
   const { fileStatusesByMission } = useFileStatusFacturationStore();
+  const [isEditingOrderNumber, setIsEditingOrderNumber] = useState(false);
+  const [orderNumber, setOrderNumber] = useState(
+    missionData.order_number ?? missionData.mission_number ?? ''
+  );
   const fileStatuses =
     fileStatusesByMission[missionData.mission_number || ''] || {};
 
@@ -102,6 +108,20 @@ export default function FournisseurGestionFacturationRow({
     }
   };
 
+  const handleSaveOrderNumber = async () => {
+    if (!missionData.mission_number) {
+      toast.error('Numéro de mission manquant');
+      return;
+    }
+    if (!orderNumber) {
+      toast.error('Numéro de commande manquant');
+      return;
+    }
+    await updateOrderMissionNumber(missionData.mission_number, orderNumber);
+    toast.success('Numéro de commande enregistré');
+    setIsEditingOrderNumber(false);
+  };
+
   return (
     <>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">Facture</Box>
@@ -159,7 +179,40 @@ export default function FournisseurGestionFacturationRow({
       </Box>
 
       <Box className="col-span-1 bg-primary text-white">
-        {missionData.mission_number}
+        {isEditingOrderNumber ? (
+          <>
+            <Input
+              value={orderNumber}
+              onChange={(e) => setOrderNumber(e.target.value)}
+              className="text-black"
+            />
+            <div className="flex">
+              <button onClick={handleSaveOrderNumber} className="px-2">
+                <Check className="size-4" />
+              </button>
+              <button
+                onClick={() => {
+                  setIsEditingOrderNumber(false),
+                    setOrderNumber(
+                      missionData.order_number ??
+                        missionData.mission_number ??
+                        ''
+                    );
+                }}
+                className="px-2"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p>{orderNumber}</p>
+            <Button onClick={() => setIsEditingOrderNumber(true)}>
+              <Pencil className="size-4" />
+            </Button>
+          </>
+        )}
       </Box>
       <Box className="col-span-3 h-[70px] w-full bg-[#F5F5F5]">Paiement</Box>
       <Box className="size-full bg-[#b1b1b1]">{''}</Box>
