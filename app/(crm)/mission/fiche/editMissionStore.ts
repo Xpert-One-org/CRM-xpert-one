@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { getMissionDetails, updateMission } from './mission.action';
 import { updateMissionSupplier } from './mission.action';
 import { updateXpertEvaluation } from './profile.action';
+import { useMissionStore } from '@/store/mission';
 
 type UpdateMissionData = Omit<Partial<DBMission>, 'id'> & {
   id?: never;
@@ -210,6 +211,9 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
         hasChanges: false,
       });
 
+      // Mettre à jour la mission dans le store global pour synchroniser avec les autres composants
+      useMissionStore.getState().updateMissionInStore(missionNotSaved);
+
       toast.success('Modifications enregistrées');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
@@ -255,6 +259,9 @@ export const useEditMissionStore = create<EditMissionState>((set, get) => ({
         hasChanges: false,
         loading: false,
       });
+
+      // Mettre à jour la mission dans le store global pour synchroniser avec les autres composants
+      useMissionStore.getState().updateMissionInStore(updatedMission);
 
       toast.success('Fournisseur de la mission mis à jour avec succès');
     } catch (error) {
