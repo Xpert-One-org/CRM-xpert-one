@@ -11,6 +11,7 @@ export const createCollaborator = async ({
 }: {
   collaborator: CreateCollaboratorDTO;
 }) => {
+  console.log('createCollaborator', collaborator);
   const supabase = await createSupabaseAppServerClient('admin');
 
   const { user: userSession } = (await supabase.auth.getUser()).data;
@@ -22,6 +23,8 @@ export const createCollaborator = async ({
   }
 
   const { email, password, firstname, lastname, mobile, role } = collaborator;
+
+  console.log(role);
 
   const { data: authData, error } = await supabase.auth.admin.createUser({
     email_confirm: true,
@@ -42,8 +45,7 @@ export const createCollaborator = async ({
 
   const { data, error: profileError } = await supabase
     .from('profile')
-    .insert({
-      id: authData.user.id,
+    .update({
       email,
       firstname,
       lastname,
@@ -51,6 +53,7 @@ export const createCollaborator = async ({
       role,
       generated_id: await generateUniqueCollaboratorId(),
     })
+    .eq('email', email)
     .select(
       'id, email, firstname, lastname, mobile, role, collaborator_is_absent'
     )
