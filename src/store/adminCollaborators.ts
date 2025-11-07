@@ -8,6 +8,7 @@ import {
   updateCollaborator,
   deleteCollaborator,
   updateCollaboratorStatus,
+  resetPassword,
 } from '../../app/(crm)/admin/collaborateurs/collaborator.action';
 
 type AdminCollaboratorsStore = {
@@ -31,6 +32,9 @@ type AdminCollaboratorsStore = {
   ) => Promise<{ error: { message: string; code: string } | null }>;
   deleteCollaborator: (
     id: string
+  ) => Promise<{ error: { message: string; code: string } | null }>;
+  sendPasswordResetLink: (
+    email: string
   ) => Promise<{ error: { message: string; code: string } | null }>;
 };
 
@@ -128,6 +132,22 @@ export const useAdminCollaborators = create<AdminCollaboratorsStore>(
       set({
         collaborators: get().collaborators.filter((c) => c.id !== id),
       });
+
+      return { error: null };
+    },
+
+    sendPasswordResetLink: async (email) => {
+      const { error } = await resetPassword(email);
+
+      if (error) {
+        return {
+          error: {
+            message:
+              "Une erreur est survenue lors de l'envoi du lien de réinitialisation de mot de passe",
+            code: 'unknown',
+          },
+        };
+      }
 
       return { error: null };
     },

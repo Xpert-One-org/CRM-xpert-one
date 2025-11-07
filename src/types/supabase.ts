@@ -7,6 +7,11 @@ export type Json =
   | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '12.2.12 (cd3cf9e)';
+  };
   public: {
     Tables: {
       article: {
@@ -483,6 +488,7 @@ export type Database = {
           mission_number: string | null;
           needed: string | null;
           open_to_disabled: string | null;
+          order_number: string | null;
           post_type: string[] | null;
           postal_code: string | null;
           profile_searched: string | null;
@@ -543,6 +549,7 @@ export type Database = {
           mission_number?: string | null;
           needed?: string | null;
           open_to_disabled?: string | null;
+          order_number?: string | null;
           post_type?: string[] | null;
           postal_code?: string | null;
           profile_searched?: string | null;
@@ -603,6 +610,7 @@ export type Database = {
           mission_number?: string | null;
           needed?: string | null;
           open_to_disabled?: string | null;
+          order_number?: string | null;
           post_type?: string[] | null;
           postal_code?: string | null;
           profile_searched?: string | null;
@@ -2022,78 +2030,45 @@ export type Database = {
     };
     Functions: {
       calculate_matching_score: {
-        Args: {
-          p_mission_id: number;
-          p_xpert_id: string;
-        };
+        Args: { p_mission_id: number; p_xpert_id: string };
         Returns: number;
       };
-      check_and_create_mission_tasks: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      check_mission_checkpoints: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      check_mission_documents: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      check_mission_documents_bis: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
+      check_and_create_mission_tasks: { Args: never; Returns: undefined };
+      check_mission_checkpoints: { Args: never; Returns: undefined };
+      check_mission_documents: { Args: never; Returns: undefined };
+      check_mission_documents_bis: { Args: never; Returns: undefined };
       create_forum_notifications: {
         Args: {
-          message_content: string;
           chat_id: number;
-          sender_id: string;
           exclude_user_id: string;
+          message_content: string;
+          sender_id: string;
         };
         Returns: undefined;
       };
       create_notification: {
         Args: {
-          user_id: string;
+          category?: string;
+          is_global?: boolean;
           link: string;
           message: string;
-          subject: string;
           status?: Database['public']['Enums']['notification_status'];
-          is_global?: boolean;
-          category?: string;
+          subject: string;
+          user_id: string;
         };
         Returns: undefined;
       };
-      do_nothing: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      generate_mission_unique_id: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
-      generate_new_mission_number: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
-      generate_unique_id: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
-      generate_unique_id_f: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
+      do_nothing: { Args: never; Returns: undefined };
+      generate_mission_unique_id: { Args: never; Returns: string };
+      generate_new_mission_number: { Args: never; Returns: string };
+      generate_unique_id: { Args: never; Returns: string };
+      generate_unique_id_f: { Args: never; Returns: string };
       generate_unique_slug: {
-        Args: {
-          input_text: string;
-          table_name: string;
-        };
+        Args: { input_text: string; table_name: string };
         Returns: string;
       };
       get_combined_data: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
           company_roles: string;
           diplomas: string;
@@ -2109,42 +2084,18 @@ export type Database = {
           subjects: string;
         }[];
       };
-      get_full_profile: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
-      get_job_titles_search: {
-        Args: {
-          titles: string[];
-        };
-        Returns: string;
-      };
-      get_profile_other_languages: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
+      get_full_profile: { Args: never; Returns: Json };
+      get_job_titles_search: { Args: { titles: string[] }; Returns: string };
+      get_profile_other_languages: { Args: never; Returns: Json };
       parse_file_path: {
-        Args: {
-          file_path: string;
-        };
+        Args: { file_path: string };
         Returns: {
+          document_type: string;
           mission_number: string;
           xpert_id: string;
-          document_type: string;
         }[];
       };
-      unaccent: {
-        Args: {
-          '': string;
-        };
-        Returns: string;
-      };
-      unaccent_init: {
-        Args: {
-          '': unknown;
-        };
-        Returns: unknown;
-      };
+      unaccent: { Args: { '': string }; Returns: string };
     };
     Enums: {
       admin_opinion: 'positive' | 'neutral' | 'negative';
@@ -2200,7 +2151,7 @@ export type Database = {
       task_history_action: 'created' | 'updated' | 'completed' | 'deleted';
       task_status: 'urgent' | 'pending' | 'done';
       task_subject_type: 'xpert' | 'supplier' | 'mission' | 'other';
-      xpert_status_type: 'Entreprise' | 'CDI de mission';
+      xpert_status_type: 'Entreprise' | 'CDI de mission' | 'Portage';
     };
     CompositeTypes: {
       chat_files: {
@@ -2227,27 +2178,36 @@ export type Database = {
   };
 };
 
-type PublicSchema = Database[Extract<keyof Database, 'public'>];
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<
+  keyof Database,
+  'public'
+>];
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-        Database[PublicTableNameOrOptions['schema']]['Views'])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-      Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R;
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] &
-        PublicSchema['Views'])
-    ? (PublicSchema['Tables'] &
-        PublicSchema['Views'])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R;
       }
       ? R
@@ -2255,20 +2215,24 @@ export type Tables<
     : never;
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema['Tables']
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I;
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I;
       }
       ? I
@@ -2276,20 +2240,24 @@ export type TablesInsert<
     : never;
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema['Tables']
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U;
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U;
       }
       ? U
@@ -2297,29 +2265,101 @@ export type TablesUpdate<
     : never;
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema['Enums']
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema['Enums']
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
-    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
-    | { schema: keyof Database },
+    | keyof DefaultSchema['CompositeTypes']
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;
+
+export const Constants = {
+  public: {
+    Enums: {
+      admin_opinion: ['positive', 'neutral', 'negative'],
+      article_status: ['published', 'draft'],
+      article_type: ['web', 'link', 'press'],
+      base_tarifaire_type: ['TJM', 'Prix Mensuel', 'Brut Mensuel'],
+      categories: [
+        'energy_and_nuclear',
+        'renewable_energy',
+        'waste_treatment',
+        'process_industry',
+        'water',
+        'infrastructure',
+        'entrepreneurship',
+        'other',
+        'relation_presse',
+      ],
+      chat_type: ['chat', 'echo_community', 'forum', 'xpert_to_xpert'],
+      mission_state: [
+        'to_validate',
+        'open_all_to_validate',
+        'open',
+        'open_all',
+        'in_progress',
+        'deleted',
+        'finished',
+        'in_process',
+        'validated',
+        'refused',
+      ],
+      notification_status: ['urgent', 'info', 'standard'],
+      profile_roles: [
+        'xpert',
+        'company',
+        'admin',
+        'project_manager',
+        'intern',
+        'hr',
+        'adv',
+      ],
+      reason_mission_deletion: [
+        'status_candidate_not_found',
+        'won_competition',
+        'mission_suspended_by_supplier',
+        'other',
+      ],
+      revenu_type: ['tjm', 'brut'],
+      selection_column_type: [
+        'postulant',
+        'matching',
+        'etude',
+        'non-retenu',
+        'discussions',
+        'proposes',
+        'refuses',
+        'valides',
+      ],
+      task_history_action: ['created', 'updated', 'completed', 'deleted'],
+      task_status: ['urgent', 'pending', 'done'],
+      task_subject_type: ['xpert', 'supplier', 'mission', 'other'],
+      xpert_status_type: ['Entreprise', 'CDI de mission', 'Portage'],
+    },
+  },
+} as const;

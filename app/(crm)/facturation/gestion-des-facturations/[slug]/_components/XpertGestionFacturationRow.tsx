@@ -48,6 +48,8 @@ export default function XpertGestionFacturationRow({
   const fileStatuses =
     fileStatusesByMission[missionData.mission_number || ''] || {};
 
+  console.log({ fileStatuses });
+
   const handleDownloadFile = async ({
     type,
     isTemplate = false,
@@ -167,7 +169,13 @@ export default function XpertGestionFacturationRow({
       toast.info('La facture a déjà été validée');
       return;
     }
+
     const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|invoice`;
+    if (isInvoicePendingValidation) {
+      onPendingChange?.('validation', key, false);
+      setIsInvoicePendingValidation(false);
+      return;
+    }
     onPendingChange?.('validation', key, true);
     onPendingChange?.('deletion', key, false);
     setIsInvoicePendingValidation(true);
@@ -176,8 +184,15 @@ export default function XpertGestionFacturationRow({
 
   const handleDeleteInvoice = () => {
     const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|invoice`;
+    if (isInvoicePendingDeletion) {
+      onPendingChange?.('deletion', key, false);
+      setIsInvoicePendingDeletion(false);
+      return;
+    }
+
     onPendingChange?.('deletion', key, true);
     onPendingChange?.('validation', key, false);
+
     setIsInvoicePendingDeletion(true);
     setIsInvoicePendingValidation(false);
   };
@@ -190,6 +205,7 @@ export default function XpertGestionFacturationRow({
     selectedMonth
   );
 
+  console.log({ paymentStatus });
   return (
     <>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
@@ -364,7 +380,7 @@ export default function XpertGestionFacturationRow({
         </p>
         <p>
           {salaryOrInvoiceStatus.exists
-            ? formatDate(salaryOrInvoiceStatus.createdAt ?? '')
+            ? formatDate(invoiceValidatedStatus.createdAt ?? '')
             : ''}
         </p>
       </Box>

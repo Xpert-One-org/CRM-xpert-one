@@ -26,7 +26,7 @@ export default async function middleware(request: NextRequest) {
   // IMPORTANT: DO NOT REMOVE auth.getUser()
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
   const method = request.method;
 
   // Helpers
@@ -37,10 +37,18 @@ export default async function middleware(request: NextRequest) {
     return res;
   };
 
+  // Vérifier si c'est une réinitialisation de mot de passe (peut avoir des paramètres de hash ou query)
+  const isPasswordReset = 
+    pathname === "/nouveau-mot-de-passe" ||
+    pathname.startsWith("/nouveau-mot-de-passe") ||
+    searchParams.get("type") === "recovery";
+
+    console.log({isPasswordReset});
+
   const isPublicPath =
     pathname === "/connexion" ||
-    pathname === "/auth/callback";
-
+    pathname === "/auth/callback" ||
+    isPasswordReset;
   // Si c'est une requête "API-like" (non-GET) on évite les redirections
   const isApiLike = method !== "GET" || pathname.startsWith("/api");
 

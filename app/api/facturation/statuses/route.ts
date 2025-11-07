@@ -7,11 +7,23 @@ const supabaseAdmin = createClient(
   { auth: { persistSession: false } }
 );
 
-type SideEntry = { year: number; month: number; createdAt: string };
+type SideEntry = {
+  year: number;
+  month: number; // 0..11
+  createdAt: string;
+  createdAtMs: number;
+};
+
 type TypeEntry = {
   xpertFiles: SideEntry[];
   fournisseurFiles: SideEntry[];
   noFilesFound: boolean;
+};
+
+// Normalise une date "YYYY-MM-DD HH:mm:ss+00" -> "YYYY-MM-DDTHH:mm:ss+00" (ISO-ish) puis parse en ms
+const toMs = (s: string) => {
+  const iso = s.includes('T') ? s : s.replace(' ', 'T');
+  return Date.parse(iso);
 };
 
 export async function POST(req: Request) {
@@ -36,6 +48,7 @@ export async function POST(req: Request) {
       ? `${m.mission_number}/${m.supplier_generated_id}/facturation/`
       : null;
 
+    // Aucun des deux préfixes -> rien à faire pour cette mission
     if (!xpertPrefix && !fournisseurPrefix) {
       out[m.mission_number] = {};
       continue;
@@ -49,9 +62,12 @@ export async function POST(req: Request) {
     const { data, error } = await supabaseAdmin
       .schema('storage')
       .from('objects')
-      .select('name,created_at')
+      .select('name, created_at, updated_at')
       .eq('bucket_id', bucket)
-      .or(orFilter);
+      .or(orFilter)
+      // Le tri ne remplace pas la logique JS, mais il aide à limiter les surprises
+      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error || !data) {
       out[m.mission_number] = {};
@@ -65,8 +81,10 @@ export async function POST(req: Request) {
     > = {};
 
     for (const row of data) {
-      const name = row.name;
+      const name = row.name as string;
       const parts = name.split('/');
+
+      // On cherche ".../facturation/<year>/<mm>/<type>/<...fichier...>"
       const idx = parts.findIndex((p: string) => p === 'facturation');
       if (idx < 0) continue;
 
@@ -81,35 +99,37 @@ export async function POST(req: Request) {
       const isFournisseur = fournisseurPrefix
         ? name.startsWith(fournisseurPrefix)
         : false;
+      if (!isXpert && !isFournisseur) continue; // on ignore ce qui ne matche aucun des deux côtés
 
       if (!map[t]) map[t] = { xpertFiles: [], fournisseurFiles: [] };
 
+      const ts = (row as any).updated_at ?? (row as any).created_at;
       const entry: SideEntry = {
         year,
-        month: mm - 1,
-        createdAt: row.created_at,
+        month: mm - 1, // 0..11
+        createdAt: ts,
+        createdAtMs: toMs(ts),
       };
 
       if (isXpert) map[t].xpertFiles.push(entry);
       else if (isFournisseur) map[t].fournisseurFiles.push(entry);
-      // si jamais un fichier ne matche aucun des deux, on l’ignore
     }
 
-    // Compacte: garde le plus récent par (year,month) pour chaque côté
+    // Compactage : on garde le plus récent par (year, month) pour chaque côté et chaque type
     const compact: Record<string, TypeEntry> = {};
-    for (const t of Object.keys(map)) {
-      const takeLatest = (arr: SideEntry[]) => {
-        const byYM = new Map<string, SideEntry>();
-        for (const it of arr) {
-          const key = `${it.year}-${it.month}`;
-          const prev = byYM.get(key);
-          if (!prev || new Date(it.createdAt) > new Date(prev.createdAt)) {
-            byYM.set(key, it);
-          }
+    const takeLatest = (arr: SideEntry[]) => {
+      const byYM = new Map<string, SideEntry>();
+      for (const it of arr) {
+        const key = `${it.year}-${it.month}`;
+        const prev = byYM.get(key);
+        if (!prev || it.createdAtMs > prev.createdAtMs) {
+          byYM.set(key, it);
         }
-        return Array.from(byYM.values());
-      };
+      }
+      return Array.from(byYM.values());
+    };
 
+    for (const t of Object.keys(map)) {
       const xpertFiles = takeLatest(map[t].xpertFiles);
       const fournisseurFiles = takeLatest(map[t].fournisseurFiles);
 
@@ -121,6 +141,25 @@ export async function POST(req: Request) {
     }
 
     out[m.mission_number] = compact;
+
+    // Debug ciblé : vérifier la clé mentionnée
+    if (
+      m.mission_number === 'M 9869' &&
+      compact.invoice_received_freelance_portage
+    ) {
+      console.log({
+        out: compact.invoice_received_freelance_portage.xpertFiles.map((f) => ({
+          createdAt: f.createdAt,
+          createdAtMs: f.createdAtMs,
+        })),
+      });
+    }
+    if (m.mission_number === 'M 9869') {
+      console.log({
+        out: out[m.mission_number].invoice_validated_freelance_portage
+          .xpertFiles,
+      });
+    }
   }
 
   return NextResponse.json({ data: out });
