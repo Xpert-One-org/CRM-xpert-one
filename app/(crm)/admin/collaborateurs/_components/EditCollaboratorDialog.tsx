@@ -39,7 +39,8 @@ export default function EditCollaboratorDialog({
 }: {
   collaborator: Collaborator;
 }) {
-  const { updateCollaborator, deleteCollaborator } = useAdminCollaborators();
+  const { updateCollaborator, deleteCollaborator, sendPasswordResetLink } =
+    useAdminCollaborators();
   const [formData, setFormData] = useState({
     email: collaborator.email,
     firstname: collaborator.firstname,
@@ -48,7 +49,7 @@ export default function EditCollaboratorDialog({
     role: collaborator.role as DBCollaboratorRole,
   });
   const [open, setOpen] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -73,6 +74,20 @@ export default function EditCollaboratorDialog({
 
     toast.success('Le collaborateur a été supprimé avec succès');
     setOpen(false);
+  };
+
+  const handleSendPasswordReset = async () => {
+    setIsLoading(true);
+    const result = await sendPasswordResetLink(collaborator.email);
+
+    if (result.error) {
+      toast.error(result.error.message);
+      setIsLoading(false);
+      return;
+    }
+
+    toast.success('Le lien de réinitialisation a été envoyé avec succès');
+    setIsLoading(false);
   };
 
   return (
@@ -151,6 +166,18 @@ export default function EditCollaboratorDialog({
                 }
               />
             </div>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSendPasswordReset}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? 'Envoi en cours...'
+                : 'Envoyer un lien de réinitialisation de mot de passe'}
+            </Button>
           </div>
           <DialogFooter className="flex justify-between">
             <AlertDialog>

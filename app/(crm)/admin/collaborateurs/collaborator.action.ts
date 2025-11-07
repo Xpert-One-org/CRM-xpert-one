@@ -4,6 +4,7 @@ import type { Collaborator, CreateCollaboratorDTO } from '@/types/collaborator';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { generateUniqueCollaboratorId } from './generated-id.action';
 import type { DBCollaboratorRole } from '@/types/typesDb';
+import { headers } from 'next/headers';
 
 export const createCollaborator = async ({
   collaborator,
@@ -166,4 +167,22 @@ export const deleteCollaborator = async (id: string) => {
   if (deleteError) throw deleteError;
 
   return { errorMessage: null };
+};
+
+export const resetPassword = async (email: string) => {
+  const supabase = await createSupabaseAppServerClient();
+  const origin = (await headers()).get('origin');
+
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/nouveau-mot-de-passe`,
+  });
+
+  if (error) {
+    return { error: error.message, data: null };
+  }
+
+  return {
+    data,
+    error: null,
+  };
 };

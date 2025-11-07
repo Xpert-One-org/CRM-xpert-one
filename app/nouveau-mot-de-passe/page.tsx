@@ -1,0 +1,47 @@
+import React, { Suspense } from 'react';
+import NouveauMotDePasse from './NouveauMotDePasse';
+import Image from 'next/image';
+
+export default function page() {
+  return (
+    <section className="relative flex h-screen w-screen overflow-hidden bg-[#c4812e] bg-[url('/static/signin/signup_background.jpg')] bg-cover bg-center bg-no-repeat md:bg-[url('/static/signin/main_background.jpg')] md:bg-right">
+      <div className="absolute right-0 hidden h-screen w-[220px] flex-col md:flex">
+        <div className="relative h-[25vh]">
+          <Image
+            src={'/static/signin/1.png'}
+            fill
+            alt="xpert_1"
+            objectFit="cover"
+          />
+        </div>
+        <div className="relative h-[25vh]">
+          <Image
+            src={'/static/signin/2.png'}
+            fill
+            alt="xpert_1"
+            objectFit="cover"
+          />
+        </div>
+        <div className="relative h-[25vh]">
+          <Image
+            src={'/static/signin/3.png'}
+            alt="xpert_1"
+            fill
+            objectFit="cover"
+          />
+        </div>
+        <div className="relative h-[25vh]">
+          <Image
+            src={'/static/signin/4.png'}
+            alt="xpert_1"
+            fill
+            objectFit="cover"
+          />
+        </div>
+      </div>
+      <Suspense fallback={<div>Chargement...</div>}>
+        <NouveauMotDePasse />
+      </Suspense>
+    </section>
+  );
+}
