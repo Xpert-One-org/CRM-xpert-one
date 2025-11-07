@@ -53,6 +53,7 @@ export default function NouveauMotDePasse() {
         password: password,
       });
       if (error) {
+        console.error(error);
         toast.error('Une erreur est survenue');
       } else {
         toast.success('Votre mot de passe a été mis à jour');
