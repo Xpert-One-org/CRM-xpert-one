@@ -39,8 +39,8 @@ export default function ComboboxFournisseur({
   };
 
   useEffect(() => {
-    fetchFournisseurs();
-  }, []);
+    fetchFournisseurs(true); // Force le rechargement complet pour avoir tous les fournisseurs
+  }, [fetchFournisseurs]);
 
   return (
     <Combobox
