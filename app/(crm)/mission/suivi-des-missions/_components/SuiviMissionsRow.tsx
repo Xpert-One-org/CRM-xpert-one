@@ -53,7 +53,7 @@ export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-3">
+    <div className="grid grid-cols-[repeat(13,_minmax(0,_1fr))] gap-3">
       <Box className="col-span-1">{convertStateValue(mission.state)}</Box>
       <Box
         className="col-span-1 cursor-pointer text-white"
@@ -143,6 +143,9 @@ export default function SuiviMissionsRow({ mission }: { mission: DBMission }) {
         checkpointField="point_rh_fin_j_plus_10_f"
         onToggle={handleCheckpointToggle}
       />
+      <Box className="">
+        {`${mission.xpert?.firstname ?? ''} ${mission.xpert?.lastname ?? ''}`}
+      </Box>
 
       <Box className="col-span-1">
         {`${mission.referent?.firstname ?? ''} ${mission.referent?.lastname ?? ''}`}

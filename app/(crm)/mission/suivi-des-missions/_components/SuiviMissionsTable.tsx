@@ -182,7 +182,7 @@ export default function SuiviMissionsTable() {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-[repeat(13,_minmax(0,_1fr))] gap-3">
         <FilterButton
           className="col-span-2"
           placeholder="Trier par"
@@ -206,7 +206,7 @@ export default function SuiviMissionsTable() {
         />
       </div>
 
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-[repeat(13,_minmax(0,_1fr))] gap-3">
         <FilterButton
           className="col-span-1"
           placeholder="Mission"
@@ -268,12 +268,17 @@ export default function SuiviMissionsTable() {
 
         <FilterButton
           className="col-span-1"
+          placeholder="XPERT"
+          filter={false}
+        />
+        <FilterButton
+          className="col-span-1"
           placeholder="Référent mission XPERT ONE"
           filter={false}
         />
       </div>
 
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-[repeat(13,_minmax(0,_1fr))] gap-3">
         <FilterButton
           className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
           placeholder="TOUS"
@@ -330,6 +335,11 @@ export default function SuiviMissionsTable() {
           filter={false}
         />
 
+        <FilterButton
+          className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
+          placeholder="TOUS"
+          filter={false}
+        />
         <FilterButton
           className="col-span-1 bg-[#363636] text-white hover:bg-[#363636] hover:text-white"
           placeholder="TOUS"
