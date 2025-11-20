@@ -81,6 +81,7 @@ type MissionState = {
       >
     >
   ) => void;
+  updateMissionInStore: (updatedMission: DBMission) => void;
   activeFilters: FilterMission;
   setActiveFilters: (filters: FilterMission) => void;
   hasMore: boolean;
@@ -375,6 +376,27 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         ...state,
         missions: updatedMissions,
       };
+    });
+  },
+
+  updateMissionInStore: (updatedMission) => {
+    set((state) => {
+      const existingIndex = state.missions.findIndex(
+        (m) => m.id === updatedMission.id
+      );
+      if (existingIndex >= 0) {
+        // Mettre à jour la mission existante
+        return {
+          missions: state.missions.map((mission) =>
+            mission.id === updatedMission.id ? updatedMission : mission
+          ),
+        };
+      } else {
+        // Ajouter la mission si elle n'existe pas encore
+        return {
+          missions: [...state.missions, updatedMission],
+        };
+      }
     });
   },
 }));

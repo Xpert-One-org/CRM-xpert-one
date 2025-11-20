@@ -14,6 +14,6 @@ export async function GET(request: Request) {
   }
 
   // Utilise le paramètre 'next' pour la redirection si présent
-  console.log(`http://localhost:3000${next}`);
+
   return NextResponse.redirect(`${origin}${next}`);
 }

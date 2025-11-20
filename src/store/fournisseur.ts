@@ -15,6 +15,7 @@ import {
 } from '../../app/(crm)/fournisseur/fournisseur.action';
 import { toast } from 'sonner';
 import { updateCollaboratorReferent } from '../../app/(crm)/admin/gestion-collaborateurs/gestion-collaborateurs.action';
+import { limitFournisseur } from '@/data/constant';
 
 type FournisseurState = {
   loading: boolean;
@@ -33,7 +34,7 @@ type FournisseurState = {
   setOpenedFournisseur: (fournisseurId: string) => void;
   setOpenedFournisseurNotSaved: (fournisseur: DBFournisseur | null) => void;
 
-  fetchFournisseurs: () => void;
+  fetchFournisseurs: (forceReload?: boolean) => void;
   fetchSpecificFournisseur: (id: string) => void;
   handleSaveUpdatedFournisseur: () => void;
   deleteFournisseur: ({
@@ -115,21 +116,64 @@ export const useFournisseurStore = create<FournisseurState>((set, get) => ({
     });
   },
 
-  fetchFournisseurs: async () => {
+  fetchFournisseurs: async (forceReload = false) => {
     set({ loading: true });
-    const offset = get().fournisseurs?.length || 0;
+    const currentFournisseurs = get().fournisseurs || [];
+    const offset = currentFournisseurs.length;
 
-    const { data, count } = await getAllFournisseurs({ offset: offset - 1 });
-    const fournisseurs = get().fournisseurs || [];
-    const filterFournisseurs = data.filter(
-      (fournisseur) =>
-        !fournisseurs.find((f) => f.generated_id === fournisseur.generated_id)
-    );
-    set({
-      fournisseurs: [...fournisseurs, ...filterFournisseurs],
-      totalFournisseurs: count,
-      loading: false,
-    });
+    // Si forceReload est true ou si on n'a pas encore de fournisseurs, on récupère toutes les pages
+    // Sinon, on continue la pagination incrémentale
+    if (forceReload || currentFournisseurs.length === 0) {
+      // Récupérer toutes les pages
+      let allFournisseurs: DBFournisseur[] = [];
+      let currentOffset = 0;
+      let hasMore = true;
+      let totalCount: number | null = null;
+
+      while (hasMore) {
+        const { data, count } = await getAllFournisseurs({
+          offset: currentOffset,
+        });
+        totalCount = count;
+
+        if (data.length === 0) {
+          hasMore = false;
+        } else {
+          allFournisseurs = [...allFournisseurs, ...data];
+          currentOffset += data.length;
+
+          // Si on a récupéré tous les fournisseurs, on arrête
+          if (totalCount !== null && allFournisseurs.length >= totalCount) {
+            hasMore = false;
+          }
+
+          // Si on a récupéré moins que la limite, c'est qu'on a atteint la fin
+          if (data.length < limitFournisseur) {
+            hasMore = false;
+          }
+        }
+      }
+
+      set({
+        fournisseurs: allFournisseurs,
+        totalFournisseurs: totalCount,
+        loading: false,
+      });
+    } else {
+      // Pagination incrémentale
+      const { data, count } = await getAllFournisseurs({ offset });
+      const filterFournisseurs = data.filter(
+        (fournisseur) =>
+          !currentFournisseurs.find(
+            (f) => f.generated_id === fournisseur.generated_id
+          )
+      );
+      set({
+        fournisseurs: [...currentFournisseurs, ...filterFournisseurs],
+        totalFournisseurs: count,
+        loading: false,
+      });
+    }
   },
 
   handleSaveUpdatedFournisseur: async () => {
