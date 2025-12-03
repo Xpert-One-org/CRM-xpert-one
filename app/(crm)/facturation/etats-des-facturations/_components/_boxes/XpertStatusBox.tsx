@@ -19,6 +19,7 @@ type XpertStatusBoxProps = {
   xpertAssociatedStatus: string; // ex: 'cdi' | 'freelance' ...
   onInvoicePaidClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean; // pour le mode toggle invoice_paid (pilotage externe)
+  paymentDate?: string | null;
 };
 
 export default function XpertStatusBox({
@@ -30,6 +31,7 @@ export default function XpertStatusBox({
   xpertAssociatedStatus,
   onInvoicePaidClick,
   isSelected = false,
+  paymentDate,
 }: XpertStatusBoxProps) {
   const { isProjectManager, isHr, isAdv } = useContext(AuthContext);
 
@@ -40,7 +42,12 @@ export default function XpertStatusBox({
   // On synchronise uniquement l'état booléen depuis l'extérieur (AUCUNE date du jour au montage)
   useEffect(() => {
     setLocalIsSelected(isSelected);
-  }, [isSelected]);
+    if (paymentDate) {
+      setCurrentDate(paymentDate);
+    } else {
+      setCurrentDate(null);
+    }
+  }, [isSelected, paymentDate]);
 
   // --- Résolution du type de fichier/colonne à checker ---
   const resolvedType = useMemo(
@@ -78,7 +85,7 @@ export default function XpertStatusBox({
   // --- Cas particulier : colonne "invoice_paid" côté XPERT -> toggle cliquable ---
   const isXpertInvoicePaidToggle =
     isFreelancePortageSide &&
-    resolvedType === 'invoice_paid' &&
+    fileType === 'invoice_paid' &&
     typeof onInvoicePaidClick === 'function';
 
   if (isXpertInvoicePaidToggle) {

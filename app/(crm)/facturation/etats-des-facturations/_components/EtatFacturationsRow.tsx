@@ -56,15 +56,17 @@ export default function EtatFacturationsRow({
     return payments.some((payment) => payment.period === key);
   }, [missionData.facturation_salary_payment, selectedMonthYear]);
 
-  const isInvoicePaidSelected = useMemo(() => {
+  const invoicePaidPayment = useMemo(() => {
     const payments = Array.isArray(missionData.facturation_invoice_paid)
       ? (missionData.facturation_invoice_paid as PaymentStatus[])
       : [];
     const key = `${selectedMonthYear.year}-${(selectedMonthYear.month + 1)
       .toString()
       .padStart(2, '0')}`;
-    return payments.some((payment) => payment.period === key);
+    return payments.find((payment) => payment.period === key);
   }, [missionData.facturation_invoice_paid, selectedMonthYear]);
+
+  const isInvoicePaidSelected = !!invoicePaidPayment;
 
   const handleRedirectFicheMission = (number: string) => {
     const formattedNumber = number.replaceAll(' ', '-');
@@ -192,11 +194,12 @@ export default function EtatFacturationsRow({
       <XpertStatusBox
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
-        fileType={missionStatus === 'cdi' ? 'salary_sheet' : ''}
+        fileType={missionStatus === 'cdi' ? 'salary_sheet' : 'invoice_paid'}
         isFreelancePortageSide
         xpertAssociatedStatus={missionStatus || ''}
         onInvoicePaidClick={handleInvoicePaidClick}
         isSelected={isInvoicePaidSelected}
+        paymentDate={invoicePaidPayment?.payment_date}
       />
       {/* Facture */}
       <StatusBox
