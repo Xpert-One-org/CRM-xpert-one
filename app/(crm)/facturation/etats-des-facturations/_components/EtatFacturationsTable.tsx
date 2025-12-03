@@ -2,7 +2,13 @@
 
 import { FilterButton } from '@/components/FilterButton';
 import type { DBMission } from '@/types/typesDb';
-import React, { useState, useCallback, useMemo, useContext } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useContext,
+  useEffect,
+} from 'react';
 import EtatFacturationsRow from './EtatFacturationsRow';
 import { useFileStatusFacturationStore } from '@/store/fileStatusFacturation';
 import { getUniqueBillingMonths } from '../_utils/getUniqueBillingMonths';
@@ -18,6 +24,8 @@ import type {
 import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
 import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
 import { AuthContext } from '@/components/auth/AuthProvider';
+import { isMissionBillingComplete } from '../_utils/isMissionBillingComplete';
+import { useMissionStore } from '@/store/mission';
 
 const yesNoOptions = [
   { label: 'OUI', value: 'yes', color: '#92C6B0' },
@@ -46,8 +54,42 @@ export default function EtatFacturationsTable({
 }) {
   const { fileStatusesByMission, checkAllMissionsFiles } =
     useFileStatusFacturationStore();
+  const { updateMission } = useMissionStore();
   const { isProjectManager } = useContext(AuthContext);
   const [sortedRows, setSortedRows] = useState<RowItem[]>([]);
+
+  useEffect(() => {
+    missions.forEach((mission) => {
+      // 1. Check if mission is already finished
+      if (mission.state === 'finished') return;
+
+      // 2. Check if end date passed
+      if (!mission.end_date) return;
+      const endDate = new Date(mission.end_date);
+      const now = new Date();
+      if (endDate >= now) {
+        alert('endDate >= now');
+        return;
+      }
+
+      // 3. Check if billing is complete
+      const fileStatuses = fileStatusesByMission[mission.mission_number || ''];
+      if (!fileStatuses) return;
+
+      console.log('mission', mission);
+
+      if (isMissionBillingComplete(mission, fileStatuses)) {
+        console.log(
+          'isMissionBillingComplete',
+          isMissionBillingComplete(mission, fileStatuses)
+        );
+        updateMission(mission.id.toString(), 'finished');
+        toast.success(
+          `Mission ${mission.mission_number} archivée automatiquement.`
+        );
+      }
+    });
+  }, [missions, fileStatusesByMission, updateMission]);
   const [pendingPayments, setPendingPayments] = useState<PendingPayments>({});
   const [activeFilters, setActiveFilters] = useState<FilterState>({});
   const [filterKey, setFilterKey] = useState(0);
@@ -154,7 +196,6 @@ export default function EtatFacturationsTable({
 
   const handleSavePayments = async () => {
     for (const [key, payments] of Object.entries(pendingPayments)) {
-      console.log(key, payments);
       if (payments.length === 0) continue;
 
       const [missionId, ...typeParts] = key.split('_');
