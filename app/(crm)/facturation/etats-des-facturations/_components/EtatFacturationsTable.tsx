@@ -68,7 +68,6 @@ export default function EtatFacturationsTable({
       const endDate = new Date(mission.end_date);
       const now = new Date();
       if (endDate >= now) {
-        alert('endDate >= now');
         return;
       }
 
