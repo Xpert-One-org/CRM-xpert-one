@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   // Réponse source où Supabase va écrire les cookies
   const supabaseResponse = NextResponse.next({ request });
 
@@ -20,7 +20,7 @@ export default async function middleware(request: NextRequest) {
           }
         },
       },
-    }
+    },
   );
 
   // IMPORTANT: DO NOT REMOVE auth.getUser()
@@ -38,15 +38,13 @@ export default async function middleware(request: NextRequest) {
   };
 
   // Vérifier si c'est une réinitialisation de mot de passe (peut avoir des paramètres de hash ou query)
-  const isPasswordReset = 
-    pathname === "/nouveau-mot-de-passe" ||
+  const isPasswordReset = pathname === "/nouveau-mot-de-passe" ||
     pathname.startsWith("/nouveau-mot-de-passe") ||
     searchParams.get("type") === "recovery";
 
-    console.log({isPasswordReset});
+  console.log({ isPasswordReset });
 
-  const isPublicPath =
-    pathname === "/connexion" ||
+  const isPublicPath = pathname === "/connexion" ||
     pathname === "/auth/callback" ||
     isPasswordReset;
   // Si c'est une requête "API-like" (non-GET) on évite les redirections
@@ -55,7 +53,7 @@ export default async function middleware(request: NextRequest) {
   // Si user connecté et va sur /connexion => /dashboard
   if (user && pathname === "/connexion") {
     return withSupabaseCookies(
-      NextResponse.redirect(new URL("/dashboard", request.url))
+      NextResponse.redirect(new URL("/dashboard", request.url)),
     );
   }
 
@@ -64,12 +62,12 @@ export default async function middleware(request: NextRequest) {
     if (isApiLike) {
       // IMPORTANT : ne pas rediriger les POST/PUT/etc.
       return withSupabaseCookies(
-        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
       );
     }
     // GET classique => redirection vers /connexion
     return withSupabaseCookies(
-      NextResponse.redirect(new URL("/connexion", request.url))
+      NextResponse.redirect(new URL("/connexion", request.url)),
     );
   }
 

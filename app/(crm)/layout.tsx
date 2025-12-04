@@ -1,4 +1,4 @@
-import Input from '@/components/inputs/Input';
+import { redirect } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Image from 'next/image';
 import React from 'react';
@@ -17,7 +17,7 @@ export default async function Layout({
   const supabase = await createSupabaseAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
-    return { data: null, error: 'User not found' };
+    redirect('/connexion');
   }
 
   const userData = await getLoggedUser();
