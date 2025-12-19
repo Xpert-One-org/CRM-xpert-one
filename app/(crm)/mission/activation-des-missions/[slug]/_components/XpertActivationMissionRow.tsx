@@ -77,175 +77,197 @@ export default function XpertActivationMissionRow({
   return (
     <>
       {/* Ligne 1 */}
-      <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
-        Récapitulatif de mission
-      </Box>
-      <div className="col-span-1 flex w-full gap-2">
-        <ViewFileDialog
-          type={getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')}
-          title="Récapitulatif de mission"
-          missionData={missionData}
-          hasFile={
-            fileStatuses[
-              getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
-            ]?.exists
-          }
-        />
-        <UploadFileDialog
-          type={getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')}
-          title="Récapitulatif de mission"
-          missionData={missionData}
-          onUploadSuccess={isIntern ? () => {} : onFileUpload}
-          disabled={isIntern}
-        />
-      </div>
-      <Button
-        className="size-full text-white"
-        onClick={() =>
-          handleDownloadFile({ type: 'recap_mission', isTemplate: true })
-        }
-      >
-        Modèle
-        <Download className="ml-2 size-6" />
-      </Button>
-      <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <Box
-        className={`col-span-1 flex-col text-white ${
-          fileStatuses[
-            getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
-          ]?.exists
-            ? 'bg-[#92C6B0]'
-            : 'bg-[#D64242]'
-        }`}
-      >
-        <p>
-          {fileStatuses[
-            getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
-          ]?.exists
-            ? getFileStatus('recap_mission', missionXpertStatus ?? '').sentLabel
-            : getFileStatus('recap_mission', missionXpertStatus ?? '')
-                .notSentLabel}
-        </p>
-        <p>
-          {fileStatuses[
-            getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
-          ]?.exists
-            ? formatDate(
+      {missionXpertStatus !== 'portage' && (
+        <>
+          <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
+            Récapitulatif de mission
+          </Box>
+          <div className="col-span-1 flex w-full gap-2">
+            <ViewFileDialog
+              type={getFileTypeByStatus(
+                'recap_mission',
+                missionXpertStatus ?? ''
+              )}
+              title="Récapitulatif de mission"
+              missionData={missionData}
+              hasFile={
                 fileStatuses[
                   getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
-                ]?.createdAt ?? ''
-              )
-            : ''}
-        </p>
-      </Box>
+                ]?.exists
+              }
+            />
+            <UploadFileDialog
+              type={getFileTypeByStatus(
+                'recap_mission',
+                missionXpertStatus ?? ''
+              )}
+              title="Récapitulatif de mission"
+              missionData={missionData}
+              onUploadSuccess={isIntern ? () => {} : onFileUpload}
+              disabled={isIntern}
+            />
+          </div>
+          <Button
+            className="size-full text-white"
+            onClick={() =>
+              handleDownloadFile({ type: 'recap_mission', isTemplate: true })
+            }
+          >
+            Modèle
+            <Download className="ml-2 size-6" />
+          </Button>
+          <Box className="size-full bg-[#b1b1b1]">{''}</Box>
+          <Box
+            className={`col-span-1 flex-col text-white ${
+              fileStatuses[
+                getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+              ]?.exists
+                ? 'bg-[#92C6B0]'
+                : 'bg-[#D64242]'
+            }`}
+          >
+            <p>
+              {fileStatuses[
+                getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+              ]?.exists
+                ? getFileStatus('recap_mission', missionXpertStatus ?? '')
+                    .sentLabel
+                : getFileStatus('recap_mission', missionXpertStatus ?? '')
+                    .notSentLabel}
+            </p>
+            <p>
+              {fileStatuses[
+                getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
+              ]?.exists
+                ? formatDate(
+                    fileStatuses[
+                      getFileTypeByStatus(
+                        'recap_mission',
+                        missionXpertStatus ?? ''
+                      )
+                    ]?.createdAt ?? ''
+                  )
+                : ''}
+            </p>
+          </Box>
+        </>
+      )}
       {/* ---------------------------- */}
       {/* Ligne 2 */}
       {/* ---------------------------- */}
-      <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
-        Récapitulatif de mission signé
-      </Box>
-      <div className="col-span-1 flex w-full gap-2">
-        <ViewFileDialog
-          type={getFileTypeByStatus(
-            'recap_mission_signed',
-            missionXpertStatus ?? ''
-          )}
-          title="Récapitulatif de mission signé"
-          missionData={missionData}
-          hasFile={
-            fileStatuses[
-              getFileTypeByStatus(
+      {missionXpertStatus !== 'portage' && (
+        <>
+          <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">
+            Récapitulatif de mission signé
+          </Box>
+          <div className="col-span-1 flex w-full gap-2">
+            <ViewFileDialog
+              type={getFileTypeByStatus(
                 'recap_mission_signed',
                 missionXpertStatus ?? ''
-              )
-            ]?.exists
-          }
-        />
-        <Button
-          className="size-full text-white"
-          onClick={() =>
-            handleDownloadFile({
-              type: getFileTypeByStatus(
-                'recap_mission_signed',
-                missionXpertStatus ?? ''
-              ),
-            })
-          }
-          disabled={
-            !fileStatuses[
-              getFileTypeByStatus(
-                'recap_mission_signed',
-                missionXpertStatus ?? ''
-              )
-            ]?.exists
-          }
-        >
-          {fileStatuses[
-            getFileTypeByStatus(
-              'recap_mission_signed',
-              missionXpertStatus ?? ''
-            )
-          ]?.exists ? (
-            <Download className="size-6" />
-          ) : (
-            <DownloadOff className="size-6" />
-          )}
-        </Button>
-      </div>
-      <Box className="size-full bg-[#b1b1b1]">{''}</Box>
-      <UploadFileDialog
-        type={getFileTypeByStatus(
-          'recap_mission_signed',
-          missionXpertStatus ?? ''
-        )}
-        title="Récapitulatif de mission signé"
-        buttonText="Loader récap signé"
-        missionData={missionData}
-        onUploadSuccess={isIntern ? () => {} : onFileUpload}
-        disabled={isIntern}
-      />
-      <Box
-        className={`col-span-1 flex-col text-white ${
-          fileStatuses[
-            getFileTypeByStatus(
-              'recap_mission_signed',
-              missionXpertStatus ?? ''
-            )
-          ]?.exists
-            ? 'bg-[#92C6B0]'
-            : 'bg-[#D64242]'
-        }`}
-      >
-        <p>
-          {fileStatuses[
-            getFileTypeByStatus(
-              'recap_mission_signed',
-              missionXpertStatus ?? ''
-            )
-          ]?.exists
-            ? getFileStatus('recap_mission_signed', missionXpertStatus ?? '')
-                .sentLabel
-            : getFileStatus('recap_mission_signed', missionXpertStatus ?? '')
-                .notSentLabel}
-        </p>
-        <p>
-          {fileStatuses[
-            getFileTypeByStatus(
-              'recap_mission_signed',
-              missionXpertStatus ?? ''
-            )
-          ]?.exists
-            ? formatDate(
+              )}
+              title="Récapitulatif de mission signé"
+              missionData={missionData}
+              hasFile={
                 fileStatuses[
                   getFileTypeByStatus(
                     'recap_mission_signed',
                     missionXpertStatus ?? ''
                   )
-                ]?.createdAt ?? ''
-              )
-            : ''}
-        </p>
-      </Box>
+                ]?.exists
+              }
+            />
+            <Button
+              className="size-full text-white"
+              onClick={() =>
+                handleDownloadFile({
+                  type: getFileTypeByStatus(
+                    'recap_mission_signed',
+                    missionXpertStatus ?? ''
+                  ),
+                })
+              }
+              disabled={
+                !fileStatuses[
+                  getFileTypeByStatus(
+                    'recap_mission_signed',
+                    missionXpertStatus ?? ''
+                  )
+                ]?.exists
+              }
+            >
+              {fileStatuses[
+                getFileTypeByStatus(
+                  'recap_mission_signed',
+                  missionXpertStatus ?? ''
+                )
+              ]?.exists ? (
+                <Download className="size-6" />
+              ) : (
+                <DownloadOff className="size-6" />
+              )}
+            </Button>
+          </div>
+          <Box className="size-full bg-[#b1b1b1]">{''}</Box>
+          <UploadFileDialog
+            type={getFileTypeByStatus(
+              'recap_mission_signed',
+              missionXpertStatus ?? ''
+            )}
+            title="Récapitulatif de mission signé"
+            buttonText="Loader récap signé"
+            missionData={missionData}
+            onUploadSuccess={isIntern ? () => {} : onFileUpload}
+            disabled={isIntern}
+          />
+          <Box
+            className={`col-span-1 flex-col text-white ${
+              fileStatuses[
+                getFileTypeByStatus(
+                  'recap_mission_signed',
+                  missionXpertStatus ?? ''
+                )
+              ]?.exists
+                ? 'bg-[#92C6B0]'
+                : 'bg-[#D64242]'
+            }`}
+          >
+            <p>
+              {fileStatuses[
+                getFileTypeByStatus(
+                  'recap_mission_signed',
+                  missionXpertStatus ?? ''
+                )
+              ]?.exists
+                ? getFileStatus(
+                    'recap_mission_signed',
+                    missionXpertStatus ?? ''
+                  ).sentLabel
+                : getFileStatus(
+                    'recap_mission_signed',
+                    missionXpertStatus ?? ''
+                  ).notSentLabel}
+            </p>
+            <p>
+              {fileStatuses[
+                getFileTypeByStatus(
+                  'recap_mission_signed',
+                  missionXpertStatus ?? ''
+                )
+              ]?.exists
+                ? formatDate(
+                    fileStatuses[
+                      getFileTypeByStatus(
+                        'recap_mission_signed',
+                        missionXpertStatus ?? ''
+                      )
+                    ]?.createdAt ?? ''
+                  )
+                : ''}
+            </p>
+          </Box>
+        </>
+      )}
       {/* ---------------------------- */}
       {/* Ligne 3 */}
       {/* ---------------------------- */}

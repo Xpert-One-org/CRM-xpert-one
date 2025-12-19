@@ -33,11 +33,18 @@ export default function MissionActivationPage(props: {
 
     // Check XPERT files
     const xpertFilesToCheck = [
-      getFileTypeByStatus('recap_mission', missionData.xpert_associated_status),
-      getFileTypeByStatus(
-        'recap_mission_signed',
-        missionData.xpert_associated_status
-      ),
+      ...(missionData.xpert_associated_status !== 'portage'
+        ? [
+            getFileTypeByStatus(
+              'recap_mission',
+              missionData.xpert_associated_status
+            ),
+            getFileTypeByStatus(
+              'recap_mission_signed',
+              missionData.xpert_associated_status
+            ),
+          ]
+        : []),
       getFileTypeByStatus(
         missionData.xpert_associated_status === 'cdi'
           ? 'contrat'
@@ -94,7 +101,7 @@ export default function MissionActivationPage(props: {
 
   useEffect(() => {
     fetchUniqueMission(missionNumber);
-  }, [fetchUniqueMission]);
+  }, [fetchUniqueMission, missionNumber]);
 
   useEffect(() => {
     checkAllFilesStatus();
