@@ -166,6 +166,7 @@ export const insertMessage = async ({
   if (!user) {
     return { id: null, error: 'User not found' };
   }
+
   const { data: data, error } = await supabase
     .from('message')
     .insert({
@@ -174,10 +175,12 @@ export const insertMessage = async ({
       answer_to: message.answer_to,
       is_pinned: message.is_pinned,
       files,
+      send_by: user.id,
     })
     .select('id')
     .single();
   if (error) {
+    console.log({ error });
     return { id: null, error };
   }
   return { id: data.id, error: null };
@@ -239,6 +242,7 @@ export const postChat = async ({
     .insert({
       content: message.content,
       chat_id: data.id,
+      send_by: user.id,
     })
     .select('id')
     .single();

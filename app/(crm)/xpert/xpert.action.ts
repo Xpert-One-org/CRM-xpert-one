@@ -512,7 +512,7 @@ export const createUser = async ({
   const { email, password, firstname, lastname, mobile, referent_id, role } =
     user;
 
-  const { error } = await supabase.auth.admin.createUser({
+  const { data, error } = await supabase.auth.admin.createUser({
     email_confirm: true,
     email,
     password,
@@ -529,6 +529,15 @@ export const createUser = async ({
     return { error: { message: error.message, code: error.code } };
   }
 
+  if (!data.user) {
+    return {
+      error: {
+        message: "Erreur lors de la création de l'utilisateur",
+        code: 'create_user_error',
+      },
+    };
+  }
+
   const {
     address,
     company_name,
@@ -542,23 +551,56 @@ export const createUser = async ({
     street_number,
   } = profile;
 
-  const { error: updateError } = await supabase
-    .from('profile')
-    .update({
-      address,
-      company_name,
-      city,
-      civility,
-      country,
-      fix,
-      how_did_you_hear_about_us,
-      linkedin,
-      postal_code,
-      street_number,
-      role: role,
-      mobile, // Add mobile number to profile update
-    })
-    .eq('email', email);
+  let updateError: {
+    message: string;
+    code: string;
+    details?: string;
+    hint?: string;
+  } | null = null;
+  let attempts = 0;
+  const maxAttempts = 5;
+
+  while (attempts < maxAttempts) {
+    const { error, data: updatedData } = await supabase
+      .from('profile')
+      .update({
+        address,
+        company_name,
+        city,
+        civility,
+        country,
+        fix,
+        how_did_you_hear_about_us,
+        linkedin,
+        postal_code,
+        street_number,
+        role: role,
+        mobile,
+      })
+      .eq('id', data.user.id)
+      .select('id');
+
+    if (error) {
+      updateError = error;
+      break;
+    }
+
+    if (updatedData && updatedData.length > 0) {
+      updateError = null;
+      break;
+    }
+
+    attempts++;
+    if (attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } else {
+      updateError = {
+        message:
+          "Erreur: Le profil n'a pas pu être mis à jour après plusieurs tentatives. Veuillez contacter le support.",
+        code: 'profile_update_timeout',
+      };
+    }
+  }
 
   if (updateError) {
     return { error: { message: updateError.message, code: updateError.code } };

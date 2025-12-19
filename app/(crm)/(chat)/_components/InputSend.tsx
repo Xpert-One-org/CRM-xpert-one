@@ -116,6 +116,7 @@ export default function InputSend({
     textarea.value = '';
 
     // ADD INSTANT TO CLIENT
+
     setCurrentMessages(type, (prev: DBMessage[]) => [...prev, message]);
 
     const filesUrl: any[] = [{}];
@@ -142,6 +143,7 @@ export default function InputSend({
       Promise.all(uploadPromises)
         .then(async () => {
           const filteredFiles = filesUrl.filter((f) => f.url);
+
           const { id, error } = await insertMessage({
             message,
             files: filteredFiles,
