@@ -2892,6 +2892,7 @@ CREATE TABLE IF NOT EXISTS "public"."mission" (
     "affected_referent_id" "uuid",
     "detail_deletion" "text",
     "statut_xpert" "text",
+    "order_number" "text",
     CONSTRAINT "mission_statut_xpert_check" CHECK (("statut_xpert" = ANY (ARRAY['CDI de mission'::"text", 'Entreprise'::"text"])))
 );
 
@@ -6235,4 +6236,111 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 
-RESET ALL;
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+CREATE TRIGGER on_email_confirmation AFTER UPDATE OF confirmed_at ON auth.users FOR EACH ROW WHEN ((new.confirmed_at IS NOT NULL)) EXECUTE FUNCTION public.notify_email_confirmation();
+
+
+  create policy " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_0"
+  on "storage"."objects"
+  as permissive
+  for insert
+  to public
+with check ((bucket_id = 'mission_files'::text));
+
+
+
+  create policy " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_1"
+  on "storage"."objects"
+  as permissive
+  for select
+  to public
+using ((bucket_id = 'mission_files'::text));
+
+
+
+  create policy " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0 14rm0as_2"
+  on "storage"."objects"
+  as permissive
+  for update
+  to public
+using ((bucket_id = 'mission_files'::text));
+
+
+
+  create policy " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_0"
+  on "storage"."objects"
+  as permissive
+  for select
+  to public
+using ((bucket_id = 'profile_files'::text));
+
+
+
+  create policy " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_1"
+  on "storage"."objects"
+  as permissive
+  for insert
+  to public
+with check ((bucket_id = 'profile_files'::text));
+
+
+
+  create policy " Allow Read + Insert to auth 1n0bjoh_0 1n0bjoh_2"
+  on "storage"."objects"
+  as permissive
+  for update
+  to public
+using ((bucket_id = 'profile_files'::text));
+
+
+
+  create policy "Allow Select  1zbfv_0"
+  on "storage"."objects"
+  as permissive
+  for select
+  to public
+using ((bucket_id = 'logo'::text));
+
+
+
+  create policy "Allow remove file 1n0bjoh_0"
+  on "storage"."objects"
+  as permissive
+  for delete
+  to authenticated
+using ((bucket_id = 'profile_files'::text));
+
+
+
+  create policy "Allow select and insert for auth 1tf88_0"
+  on "storage"."objects"
+  as permissive
+  for insert
+  to authenticated
+with check ((bucket_id = 'chat'::text));
+
+
+
+  create policy "Allow select and insert for auth 1tf88_1"
+  on "storage"."objects"
+  as permissive
+  for select
+  to authenticated
+using ((bucket_id = 'chat'::text));
+
+
+
+  create policy "Delete mission file 14rm0as_0"
+  on "storage"."objects"
+  as permissive
+  for delete
+  to public
+using ((bucket_id = 'mission_files'::text));
+
+
+CREATE TRIGGER brevo_new_kbis AFTER INSERT ON storage.objects FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://wxjnrjakjwjhvsiwhelt.supabase.co/functions/v1/brevo-management', 'POST', '{"Content-Type":"application/json"}', '{"type":"new_object_uploaded"}', '5000');
+
+CREATE TRIGGER trigger_facturation_xpert_document_upload AFTER INSERT ON storage.objects FOR EACH ROW EXECUTE FUNCTION public.process_document_upload();
+
+

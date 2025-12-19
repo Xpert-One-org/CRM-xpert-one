@@ -144,9 +144,13 @@ export const useField = ({
   const checkIfRequiredAndNotMissing = (key: keyof UserType) => {
     if (!isInitialized) return false;
     const requiredFields = getRequiredFields(currentProfileData);
-    return requiredFields.some(([keyField]) => {
+    const isRequired = requiredFields.some(([keyField]) => {
       return keyField == key;
-    }) && Array.isArray(user[key])
+    });
+
+    if (!isRequired) return false;
+
+    return Array.isArray(user[key])
       ? (user as any)[key].length == 0
       : !user[key];
   };

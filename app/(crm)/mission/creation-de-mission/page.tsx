@@ -260,6 +260,7 @@ export default function Page() {
         toast.error('Erreur lors de la sauvegarde de votre profil');
         setIsSavingLoading(false);
         setIsInitialized(true);
+        return;
       }
       setIsCompleted(true);
 
@@ -386,7 +387,6 @@ export default function Page() {
             className="w-fit"
             defaultValue={[]}
             name={creationMissionData.post_type?.name ?? ''}
-            required
             onChange={(selectedOption) => {
               const values = selectedOption.map((option) => option.value);
               handleChangeSelect(values, 'post_type');
@@ -407,7 +407,6 @@ export default function Page() {
               value: '',
             }}
             name={creationMissionData.sector?.name ?? ''}
-            required
             onChange={(e) => handleChangeSelect(e.value, 'sector')}
           />
 
@@ -424,7 +423,6 @@ export default function Page() {
               placeholder="Choisir"
               options={energySelect}
               label={creationMissionData.sector_energy?.label}
-              required
               onChange={(e) => handleChangeSelect(e.value, 'sector_energy')}
             />
           )}
@@ -443,7 +441,6 @@ export default function Page() {
               placeholder="Choisir"
               options={energyRenewableSelect}
               label={creationMissionData.sector_renewable_energy?.label}
-              required
               onChange={(e) =>
                 handleChangeSelect(e.value, 'sector_renewable_energy')
               }
@@ -460,7 +457,6 @@ export default function Page() {
               placeholder="Choisir"
               options={wasteTreatmentSelect}
               label={creationMissionData.sector_waste_treatment?.label}
-              required
               onChange={(e) =>
                 handleChangeSelect(e.value, 'sector_waste_treatment')
               }
@@ -482,7 +478,6 @@ export default function Page() {
               options={infrastructureSelect}
               label={creationMissionData.sector_infrastructure?.label}
               name={creationMissionData.sector_infrastructure?.name ?? ''}
-              required
               onChange={(e) =>
                 handleChangeSelect(e.value, 'sector_infrastructure')
               }
@@ -499,7 +494,6 @@ export default function Page() {
             placeholder={'Spécialités'}
             className="w-fit"
             name={creationMissionData.specialties?.name ?? ''}
-            required
             onChange={(selectedOption) => {
               const values = selectedOption.map((option) => option.value);
               handleChangeSelect(values, 'specialties');
@@ -515,7 +509,6 @@ export default function Page() {
             )}
             options={expertiseSelect}
             placeholder={'Expertise'}
-            required
             onChange={(selectedOption) => {
               const values = selectedOption.map((option) => option.value);
               handleChangeSelect(values, 'expertises');
@@ -531,7 +524,6 @@ export default function Page() {
             )}
             options={degreeSelect}
             placeholder={'Diplômes'}
-            required
             onChange={(selectedOption) => {
               const values = selectedOption.map((option) => option.value);
               handleChangeSelect(values, 'diplomas');
@@ -547,7 +539,6 @@ export default function Page() {
             placeholder={'Langues parlées'}
             className="w-fit"
             options={languageSelect}
-            required
             onChange={(selectedOption) => {
               const values = selectedOption.map((option) => option.value);
               handleChangeSelect(values, 'languages');
@@ -563,7 +554,6 @@ export default function Page() {
             sideEplain="top"
             placeholder="TJM Max"
             name={creationMissionData.tjm?.name}
-            required
             onChange={handleChange}
           />
 
@@ -574,7 +564,6 @@ export default function Page() {
             label={creationMissionData.open_to_disabled?.label}
             options={booleanSelect}
             className="w-fit xl:max-w-[340px]"
-            required
             onChange={(e) => handleChangeSelect(e.value, 'open_to_disabled')}
           />
         </div>
@@ -587,7 +576,6 @@ export default function Page() {
             type="date"
             placeholder="Date de début de mission"
             name={creationMissionData.start_date?.name}
-            required
             onChange={handleChange}
           />
 
@@ -599,7 +587,6 @@ export default function Page() {
             type="date"
             placeholder="Date de fin de mission"
             name={creationMissionData.end_date?.name}
-            required
             onChange={handleChange}
           />
 
@@ -611,7 +598,6 @@ export default function Page() {
             type="date"
             placeholder="Date de fin de mission"
             name={creationMissionData.deadline_application?.name}
-            required
             onChange={handleChange}
           />
         </div>
@@ -666,7 +652,6 @@ export default function Page() {
               className="w-fit"
               label={creationMissionData.country?.label}
               name={creationMissionData.country?.name ?? ''}
-              required={countries.length > 0}
               onChange={(e) => handleChangeSelect(e.value, 'country')}
             />
           )}
@@ -686,7 +671,6 @@ export default function Page() {
             placeholder="Description du besoin"
             label={creationMissionData.needed?.label}
             name={creationMissionData.needed?.name}
-            required
             defaultValue={''}
             onChange={handleChange}
           />
@@ -699,7 +683,6 @@ export default function Page() {
             placeholder="Descriptif du poste"
             label={creationMissionData.description?.label}
             name={creationMissionData.description?.name}
-            required
             defaultValue={''}
             onChange={handleChange}
           />
@@ -760,7 +743,7 @@ export default function Page() {
         <div className="grid grid-cols-4 gap-4">
           <ComboboxFournisseur
             name={creationMissionData.created_by?.name ?? ''}
-            required
+            required={true}
             label={creationMissionData.created_by?.label ?? ''}
             onChange={handleChange}
             hasError={checkIfRequiredAndNotMissing(

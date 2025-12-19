@@ -558,6 +558,14 @@ export const insertMission = async ({ mission }: { mission: any }) => {
     return { error: 'User not found' };
   }
 
+  // Si aucun référent n'est assigné, on assigne automatiquement le créateur
+  if (
+    !mission.affected_referent_id ||
+    mission.affected_referent_id === 'none'
+  ) {
+    mission.affected_referent_id = user.id;
+  }
+
   const { error } = await supabase.from('mission').insert([mission]);
 
   if (error) {
