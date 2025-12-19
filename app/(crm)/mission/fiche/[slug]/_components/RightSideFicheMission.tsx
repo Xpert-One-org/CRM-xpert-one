@@ -30,9 +30,7 @@ export default function RightSideFicheMission() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {mission.state === 'deleted' && (
-        <DeletedMissionBanner reason={mission.reason_deletion} />
-      )}
+      {mission.state === 'deleted' && <DeletedMissionBanner />}
 
       <MissionDates />
       <MissionFinancials />

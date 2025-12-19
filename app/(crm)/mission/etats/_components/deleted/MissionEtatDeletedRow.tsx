@@ -7,19 +7,27 @@ import {
   CredenzaTrigger,
 } from '@/components/ui/credenza';
 import { empty } from '@/data/constant';
-import {
-  jobTitleSelect,
-  reasonDeleteMissionSelect,
-} from '@/data/mocked_select';
+import { jobTitleSelect } from '@/data/mocked_select';
+import { reasonDeleteMissionSelect } from '@/data/mocked_select';
 import type { DBMission } from '@/types/typesDb';
 import { formatDate } from '@/utils/date';
 import { formatDateHour } from '@/utils/formatDates';
 import { getLabel } from '@/utils/getLabel';
-import { EyeIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useMissionStore } from '@/store/mission';
+import type { ReasonMissionDeletion } from '@/types/typesDb';
+import { updateMission as updateMissionAction } from '../../../fiche/mission.action';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function MissionEtatDeletedRow({
   mission,
@@ -88,20 +96,64 @@ export default function MissionEtatDeletedRow({
         {mission.deleted_at ? formatDateHour(mission.deleted_at) : ''}
       </Box>
       <Box className="col-span-1">
-        {getLabel({
-          value: mission.reason_deletion ?? '',
-          select: reasonDeleteMissionSelect,
-        })}
+        <Select
+          value={mission.reason_deletion ?? ''}
+          onValueChange={async (value: ReasonMissionDeletion) => {
+            if (mission.reason_deletion !== value) {
+              const { error } = await updateMissionAction({
+                mission_id: mission.id,
+                newData: { reason_deletion: value },
+              });
+              if (error) {
+                toast.error('Erreur lors de la mise à jour du motif');
+              } else {
+                toast.success('Motif mis à jour');
+              }
+            }
+          }}
+        >
+          <SelectTrigger className="w-full border-none bg-transparent text-center shadow-none hover:bg-gray-100">
+            <SelectValue>
+              {getLabel({
+                value: mission.reason_deletion ?? '',
+                select: reasonDeleteMissionSelect,
+              }) || 'Choisir un motif'}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {reasonDeleteMissionSelect.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Box>
-      <Box className="col-span-2 gap-2">
-        {mission.detail_deletion}
-        <></>
+      <Box className="col-span-2 p-1">
+        <Input
+          className="h-8 border-none bg-transparent text-center shadow-none hover:bg-gray-100 focus-visible:ring-0"
+          defaultValue={mission.detail_deletion ?? ''}
+          onBlur={async (e) => {
+            const newValue = e.target.value;
+            if (mission.detail_deletion !== newValue) {
+              const { error } = await updateMissionAction({
+                mission_id: mission.id,
+                newData: { detail_deletion: newValue },
+              });
+              if (error) {
+                toast.error('Erreur lors de la mise à jour du commentaire');
+              } else {
+                toast.success('Commentaire mis à jour');
+              }
+            }
+          }}
+        />
       </Box>
       <Credenza>
         <CredenzaTrigger asChild>
           <Button>Réouvrir la mission</Button>
         </CredenzaTrigger>
-        <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white bg-opacity-70 p-0 backdrop-blur-sm">
+        <CredenzaContent className="font-fira mx-4 max-w-[946px] overflow-hidden rounded-sm border-0 bg-white/70 p-0 backdrop-blur-sm">
           <div className="relative h-[175px] w-full">
             <Image
               src="/static/background.jpg"
