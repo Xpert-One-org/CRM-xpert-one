@@ -11,6 +11,19 @@ export const metadata = {
   metadataBase: new URL(defaultUrl),
   title: 'Xpert One CRM',
   description: 'Voici le CRM de Xpert One',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export const viewport: Viewport = {
