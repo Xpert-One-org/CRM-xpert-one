@@ -373,13 +373,14 @@ export const getXpertsOptimized = async ({
   }
 
   if (filters?.sectors && filters.sectors.length > 0) {
-    // S'assurer que profile_mission n'est pas null
-    query = query.not('profile_mission', 'is', null);
+    const validSectors = filters.sectors.filter((s) => s && s.trim() !== '');
+    if (validSectors.length > 0) {
+      // S'assurer que profile_mission n'est pas null
+      query = query.not('profile_mission', 'is', null);
 
-    // Corriger l'erreur en utilisant la méthode .contains sur le tableau de secteurs
-    if (filters.sectors[0] && filters.sectors[0].trim() !== '') {
-      // Utilisation de l'opérateur @> qui vérifie si un tableau contient un élément
-      query = query.contains('profile_mission.sector', [filters.sectors[0]]);
+      // Utilisation de l'opérateur overlaps (@>) pour vérifier si les tableaux s'intersectent
+      // overlaps vérifie si AU MOINS UN élément du filtre est présent dans profile_mission.sector
+      query = query.overlaps('profile_mission.sector', validSectors);
     }
   }
 

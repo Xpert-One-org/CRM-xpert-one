@@ -75,13 +75,7 @@ export default function EtatFacturationsTable({
       const fileStatuses = fileStatusesByMission[mission.mission_number || ''];
       if (!fileStatuses) return;
 
-      console.log('mission', mission);
-
       if (isMissionBillingComplete(mission, fileStatuses)) {
-        console.log(
-          'isMissionBillingComplete',
-          isMissionBillingComplete(mission, fileStatuses)
-        );
         updateMission(mission.id.toString(), 'finished');
         toast.success(
           `Mission ${mission.mission_number} archivée automatiquement.`
@@ -109,11 +103,11 @@ export default function EtatFacturationsTable({
         if (a.monthYear.month !== b.monthYear.month) {
           return a.monthYear.month - b.monthYear.month;
         }
-        const missionNumberA = parseInt(
+        const missionNumberA = Number.parseInt(
           a.mission.mission_number?.split(' ')[1] || '0',
           10
         );
-        const missionNumberB = parseInt(
+        const missionNumberB = Number.parseInt(
           b.mission.mission_number?.split(' ')[1] || '0',
           10
         );
@@ -141,7 +135,8 @@ export default function EtatFacturationsTable({
     monthYear: { month: number; year: number },
     isSelected: boolean,
     isNull: boolean,
-    paymentType: PaymentType
+    paymentType: PaymentType,
+    customDate?: string | null
   ) => {
     if (isProjectManager) return;
 
@@ -163,6 +158,23 @@ export default function EtatFacturationsTable({
         };
       }
 
+      // Si on fournit une customDate, on met à jour ou on ajoute, sans toggler
+      if (customDate) {
+        const filtered = existing.filter(
+          (p) =>
+            p.monthYear.month !== monthYear.month ||
+            p.monthYear.year !== monthYear.year
+        );
+        return {
+          ...prev,
+          [missionKey]: [
+            ...filtered,
+            { monthYear, date: customDate, paymentType },
+          ],
+        };
+      }
+
+      // Logique de toggle standard (pour le clic direct sans date spécifique)
       const exists = existing.some(
         (p) =>
           p.monthYear.month === monthYear.month &&
@@ -200,7 +212,9 @@ export default function EtatFacturationsTable({
       const [missionId, ...typeParts] = key.split('_');
       const paymentType = typeParts.join('_') as PaymentType;
 
-      const mission = missions.find((m) => m.id === parseInt(missionId, 10));
+      const mission = missions.find(
+        (m) => m.id === Number.parseInt(missionId, 10)
+      );
 
       const paymentData = payments.reduce<Record<string, string | null>>(
         (acc, { monthYear, date }) => {
@@ -213,7 +227,7 @@ export default function EtatFacturationsTable({
       );
 
       await updateMissionFacturationPayment(
-        parseInt(missionId, 10),
+        Number.parseInt(missionId, 10),
         paymentData,
         paymentType
       );

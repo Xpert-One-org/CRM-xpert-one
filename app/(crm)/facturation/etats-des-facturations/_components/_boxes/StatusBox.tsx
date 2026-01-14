@@ -6,6 +6,13 @@ import { AuthContext } from '@/components/auth/AuthProvider';
 import type { PaymentStatus, PaymentType, FileStatuses } from '@/types/mission';
 import { checkFileStatusForDate } from '../../_utils/checkFileStatusForDate';
 import { getFileTypeByStatusFacturation } from '../../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 type StatusBoxProps = {
   fileStatuses: FileStatuses;
@@ -14,7 +21,6 @@ type StatusBoxProps = {
   fileType: string;
   isFournisseur?: boolean;
   xpertAssociatedStatus: string;
-  isSelected?: boolean;
   isSalaryPayment?: boolean;
   onSalaryPaymentClick?: (
     isNull: boolean,
@@ -33,7 +39,6 @@ export default function StatusBox(props: StatusBoxProps) {
     fileType,
     isFournisseur = false,
     xpertAssociatedStatus,
-    isSelected = false,
     isSalaryPayment = false,
     onSalaryPaymentClick,
   } = props;
@@ -78,28 +83,26 @@ export default function StatusBox(props: StatusBoxProps) {
   ]);
 
   const clickDisabled = (isProjectManager || !isAdv) && !isAdmin;
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [selectedDateValue, setSelectedDateValue] = useState('');
 
-  const handleSalaryClick = () => {
-    if (clickDisabled) return;
-
-    // Si déjà payé, on annule (optimiste)
-    if (localIsSelected) {
-      setLocalIsSelected(false);
-      setCurrentDate(null);
-      onSalaryPaymentClick?.(true, 'facturation_fournisseur_payment', {
-        period: periodKey,
-      });
-      return;
-    }
-
-    // Sinon, on active avec la date du jour (optimiste)
-    const nowIso = new Date().toISOString();
+  const handleSetPaid = (date: string) => {
     setLocalIsSelected(true);
-    setCurrentDate(nowIso);
+    setCurrentDate(date);
     onSalaryPaymentClick?.(false, 'facturation_fournisseur_payment', {
-      payment_date: nowIso,
+      payment_date: date,
       period: periodKey,
     });
+    setPopoverOpen(false);
+  };
+
+  const handleClearPaid = () => {
+    setLocalIsSelected(false);
+    setCurrentDate(null);
+    onSalaryPaymentClick?.(true, 'facturation_fournisseur_payment', {
+      period: periodKey,
+    });
+    setPopoverOpen(false);
   };
 
   // ----- Rendu salaire -----
@@ -108,14 +111,73 @@ export default function StatusBox(props: StatusBoxProps) {
     const displayIso = paymentForPeriod?.payment_date ?? currentDate ?? null;
 
     return (
-      <Box
-        className={`size-full ${clickDisabled ? 'cursor-not-allowed' : 'cursor-pointer'} text-white ${
-          localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
-        }`}
-        onClick={clickDisabled ? undefined : handleSalaryClick}
-      >
-        {localIsSelected && displayIso ? formatDate(displayIso) : 'NON REÇU'}
-      </Box>
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <PopoverTrigger asChild>
+          <div className="size-full">
+            <Box
+              className={`size-full ${clickDisabled ? 'cursor-not-allowed' : 'cursor-pointer'} text-white ${
+                localIsSelected ? 'bg-[#92C6B0]' : 'bg-[#D64242]'
+              }`}
+            >
+              {localIsSelected && displayIso
+                ? formatDate(displayIso)
+                : 'NON REÇU'}
+            </Box>
+          </div>
+        </PopoverTrigger>
+        {!clickDisabled && (
+          <PopoverContent className="w-60">
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-medium">Marquer comme reçu :</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSetPaid(new Date().toISOString())}
+              >
+                Aujourd'hui
+              </Button>
+              <div className="flex flex-col gap-1">
+                <span className="text-muted-foreground text-xs">
+                  Autre date :
+                </span>
+                <div className="flex gap-1">
+                  <Input
+                    type="date"
+                    className="h-8 flex-1 p-1 text-xs"
+                    value={selectedDateValue}
+                    onChange={(e) => setSelectedDateValue(e.target.value)}
+                  />
+                  <Button
+                    size="sm"
+                    className="h-8 px-2"
+                    disabled={!selectedDateValue}
+                    onClick={() => {
+                      if (selectedDateValue) {
+                        handleSetPaid(
+                          new Date(selectedDateValue).toISOString()
+                        );
+                        setSelectedDateValue('');
+                      }
+                    }}
+                  >
+                    OK
+                  </Button>
+                </div>
+              </div>
+              {localIsSelected && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleClearPaid}
+                  className="mt-2"
+                >
+                  Annuler le paiement
+                </Button>
+              )}
+            </div>
+          </PopoverContent>
+        )}
+      </Popover>
     );
   }
 

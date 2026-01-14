@@ -1,5 +1,5 @@
 import { FilterButton } from '@/components/FilterButton';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import type { DBXpertOptimized } from '@/types/typesDb';
 import CountryFilterButton from '@/components/CountryFilterButton';
 import { useXpertStore } from '@/store/xpert';
@@ -11,9 +11,9 @@ import {
   availabilityOptions,
   cvOptions,
   sortDateOptions,
-  iamStatusOptions,
 } from '@/data/filter';
 import { getLabel } from '@/utils/getLabel';
+import MultiSelectFilter from '@/components/combobox/MultiSelectFilter';
 
 export default function XpertFilter({
   xperts,
@@ -93,15 +93,6 @@ export default function XpertFilter({
     }
   };
 
-  const handleJobTitlesChange = (value: string) => {
-    const newActiveFilter = { ...activeFilters, jobTitles: value };
-    setActiveFilters(newActiveFilter);
-    if (value === '') {
-      fetchXpertOptimizedFiltered(true);
-      return;
-    }
-  };
-
   const handleFirstNameChange = (value: string) => {
     const newActiveFilter = { ...activeFilters, firstname: value };
     setActiveFilters(newActiveFilter);
@@ -109,23 +100,6 @@ export default function XpertFilter({
       fetchXpertOptimizedFiltered(true);
       return;
     }
-  };
-
-  const handleLastNameChange = (value: string) => {
-    const newActiveFilter = { ...activeFilters, lastname: value };
-    setActiveFilters(newActiveFilter);
-    if (value === '') {
-      fetchXpertOptimizedFiltered(true);
-      return;
-    }
-  };
-
-  const getSectorValue = () => {
-    return activeFilters.sectors
-      .map(
-        (sector) => getLabel({ value: sector, select: sectorSelect }) ?? sector
-      )
-      .join(', ');
   };
 
   useEffect(() => {
@@ -241,15 +215,14 @@ export default function XpertFilter({
         placeholder="Statut IAM"
         showSelectedOption={true}
       />
-
       <div className="col-span-2 flex h-full items-center justify-center bg-chat-selected text-black hover:bg-chat-selected">
-        <SearchComponentFilter
-          showSelectedOption={true}
-          placeholder="Secteurs"
-          filterKey="sectors"
-          placeholderSearch="Rechercher des secteurs"
-          value={getSectorValue()}
+        <MultiSelectFilter
+          options={sectorSelect}
+          selectedValues={activeFilters.sectors}
           onValueChange={handleSectorsChange}
+          placeholder="Secteurs"
+          className="border-none bg-transparent"
+          showSelectedOption={true}
         />
       </div>
       <FilterButton
