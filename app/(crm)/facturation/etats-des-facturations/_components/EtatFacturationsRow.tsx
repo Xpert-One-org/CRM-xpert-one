@@ -9,9 +9,6 @@ import StatusBox from './_boxes/StatusBox';
 import XpertStatusBox from './_boxes/XpertStatusBox';
 import SalaryPaymentBox from './_boxes/SalaryPaymentBox';
 import type { PaymentStatus, PaymentType } from '@/types/mission';
-import { empty } from '@/data/constant';
-import { getLabel } from '@/utils/getLabel';
-import { jobTitleSelect } from '@/data/mocked_select';
 
 export default function EtatFacturationsRow({
   missionData,
@@ -25,7 +22,8 @@ export default function EtatFacturationsRow({
     monthYear: { month: number; year: number },
     isSelected: boolean,
     isNull: boolean,
-    paymentType: PaymentType
+    paymentType: PaymentType,
+    customDate?: string
   ) => void;
 }) {
   const router = useRouter();
@@ -85,10 +83,12 @@ export default function EtatFacturationsRow({
 
   const handleSalaryPaymentClick = (
     isNull: boolean,
-    paymentType: PaymentType
+    paymentType: PaymentType,
+    payload?: { payment_date?: string; period?: string }
   ) => {
-    const isCurrentlySelected =
-      paymentType === 'facturation_salary_payment'
+    const isCurrentlySelected = payload?.payment_date
+      ? false // Force selection true if we are providing a date
+      : paymentType === 'facturation_salary_payment'
         ? isSalaryPaymentSelected
         : isPaymentSelected;
 
@@ -97,7 +97,8 @@ export default function EtatFacturationsRow({
       selectedMonthYear,
       !isCurrentlySelected,
       isNull,
-      paymentType
+      paymentType,
+      payload?.payment_date
     );
   };
 
@@ -118,10 +119,6 @@ export default function EtatFacturationsRow({
       paymentType
     );
   };
-
-  if (missionData.mission_number === 'M 9869') {
-    console.log({ fileStatuses });
-  }
 
   return (
     <>
@@ -165,7 +162,6 @@ export default function EtatFacturationsRow({
         fileStatuses={fileStatuses}
         selectedMonthYear={selectedMonthYear}
         fileType="presence_sheet_validated"
-        isSelected={true}
         xpertAssociatedStatus={missionStatus || ''}
       />
       {/* Paiement de salaire */}
@@ -222,7 +218,6 @@ export default function EtatFacturationsRow({
         xpertAssociatedStatus={missionStatus || ''}
         isSalaryPayment
         onSalaryPaymentClick={handleSalaryPaymentClick}
-        isSelected={isPaymentSelected}
       />
     </>
   );

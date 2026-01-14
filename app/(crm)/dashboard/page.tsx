@@ -3,13 +3,7 @@
 import React from 'react';
 import DashBoardCards from './_components/DashBoardCards';
 import BriefCase from '@/components/svg/BriefCase';
-// import FacturationLogo from '@/components/svg/Facturation';
-// import ChatBubbles from '@/components/svg/ChatBubbles';
-import {
-  Phone,
-  SquarePen,
-  //  SquarePen
-} from 'lucide-react';
+import { Phone, SquarePen } from 'lucide-react';
 import BriefCaseAdd from '@/components/svg/BriefCaseAdd';
 import PeopleUsersAdd from '@/components/svg/PeopleUsersAdd';
 import {
@@ -17,11 +11,11 @@ import {
   getCountMissionsState,
   getLastSignupNewUsers,
   getLastSignUpNewUsersWeek,
+  getCountMissionApplications,
+  getCountMissionApplicationsWeek,
 } from '@functions/dashboard';
 import { getCountTasksToTreatAndUrgent } from '@functions/tasks';
-import OutlookButton from '@/components/OutlookButton';
 import { getLoggedUser } from '@functions/auth/getLoggedUser';
-import FacturationCard from './_components/FacturationCard';
 
 export default async function DashboardPage() {
   const user = await getLoggedUser();
@@ -46,6 +40,10 @@ export default async function DashboardPage() {
     await getCountMissionsState('to_validate');
 
   const { data: missionsClosed } = await getCountMissionsState('finished');
+
+  const { data: missionApplications } = await getCountMissionApplications();
+  const { data: missionApplicationsWeek } =
+    await getCountMissionApplicationsWeek();
 
   return (
     <>
@@ -76,20 +74,6 @@ export default async function DashboardPage() {
             />
           </>
         )}
-        {/* {user?.role !== 'hr' && user?.role !== 'adv' && (
-          <FacturationCard missions={missionInProgress} />
-        )} */}
-        {/* <DashBoardCards
-          count={newUsers.length}
-          title="Gestion de facturations"
-          urgentTitle="Retards"
-          urgentCount={0}
-          buttonTitle="Gestion de facturations"
-          iconButton={
-            <FacturationLogo className="fill-white" width={24} height={24} />
-          }
-          link="/facturation/etats-des-facturations"
-        /> */}
         <DashBoardCards
           count={(pendingTaskCount ?? 0) + (urgentTaskCount ?? 0)}
           title="TO DO à traiter"
@@ -99,15 +83,6 @@ export default async function DashboardPage() {
           iconButton={<SquarePen width={24} height={24} />}
           link="/dashboard/todo"
         />
-        {/* <DashBoardCards
-        count={newUsers.length}
-        title="Messagerie externe"
-        urgentTitle="Non lus"
-        urgentCount={0}
-        buttonTitle="Messagerie"
-        iconButton={<ChatBubbles width={24} height={24} />}
-        link="/messagerie"
-      /> */}
         {user?.role !== 'hr' && user?.role !== 'adv' && (
           <>
             <DashBoardCards
@@ -124,30 +99,41 @@ export default async function DashboardPage() {
           </>
         )}
         {user?.role !== 'hr' && user?.role !== 'adv' && (
-          <DashBoardCards
-            count={newUsers.length}
-            title="Total xperts inscrits"
-            urgentTitle="Semaine"
-            urgentCount={newUsersLastWeek.length || 0}
-            buttonTitle="Nouveaux inscrits"
-            iconButton={
-              <PeopleUsersAdd className="fill-white" width={24} height={24} />
-            }
-            link="/nouveaux-inscrits?role=xpert"
-          />
-        )}
-        {user?.role !== 'hr' && user?.role !== 'adv' && (
-          <DashBoardCards
-            count={newSuppliers.length}
-            title="Total fournisseurs inscrits"
-            urgentTitle="Semaine"
-            urgentCount={newSuppliersLastWeek.length || 0}
-            buttonTitle="Nouveaux inscrits"
-            iconButton={
-              <PeopleUsersAdd className="fill-white" width={24} height={24} />
-            }
-            link="/nouveaux-inscrits?role=xpert"
-          />
+          <>
+            <DashBoardCards
+              count={newUsers.length}
+              title="Total xperts inscrits"
+              urgentTitle="Semaine"
+              urgentCount={newUsersLastWeek.length || 0}
+              buttonTitle="Nouveaux inscrits"
+              iconButton={
+                <PeopleUsersAdd className="fill-white" width={24} height={24} />
+              }
+              link="/nouveaux-inscrits?role=xpert"
+            />
+            <DashBoardCards
+              count={missionApplications.length}
+              title="Nouvelles candidatures"
+              urgentTitle="Cette semaine"
+              urgentCount={missionApplicationsWeek.length || 0}
+              buttonTitle="Candidatures"
+              iconButton={
+                <PeopleUsersAdd className="fill-white" width={24} height={24} />
+              }
+              link="/mission/etats?etat=open"
+            />
+            <DashBoardCards
+              count={newSuppliers.length}
+              title="Total fournisseurs inscrits"
+              urgentTitle="Semaine"
+              urgentCount={newSuppliersLastWeek.length || 0}
+              buttonTitle="Nouveaux inscrits"
+              iconButton={
+                <PeopleUsersAdd className="fill-white" width={24} height={24} />
+              }
+              link="/nouveaux-inscrits?role=xpert"
+            />
+          </>
         )}
         <DashBoardCards
           count={missions.length}

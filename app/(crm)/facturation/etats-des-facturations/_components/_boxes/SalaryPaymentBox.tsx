@@ -3,6 +3,13 @@ import { Box } from '@/components/ui/box';
 import type { PaymentType } from '@/types/mission';
 import { formatDate } from '@/utils/date';
 import React, { useState, useEffect, useContext } from 'react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 type SalaryPaymentBoxProps = {
   selectedMonthYear: {
@@ -10,8 +17,12 @@ type SalaryPaymentBoxProps = {
     year: number;
   };
   xpertAssociatedStatus: string;
-  onSalaryPaymentClick?: (isNull: boolean, paymentType: PaymentType) => void;
   isSelected?: boolean;
+  onSalaryPaymentClick?: (
+    isNull: boolean,
+    paymentType: PaymentType,
+    payload?: { payment_date?: string; period?: string }
+  ) => void;
 };
 
 export default function SalaryPaymentBox({
@@ -20,29 +31,30 @@ export default function SalaryPaymentBox({
   onSalaryPaymentClick,
   isSelected = false,
 }: SalaryPaymentBoxProps) {
-  const { isProjectManager, isHr, isAdv } = useContext(AuthContext);
+  const { isProjectManager, isHr, isAdv, isAdmin } = useContext(AuthContext);
   const [localIsSelected, setLocalIsSelected] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [selectedDateValue, setSelectedDateValue] = useState('');
 
   useEffect(() => {
-    if (isSelected && !currentDate) {
-      setCurrentDate(new Date().toISOString());
-    }
     setLocalIsSelected(isSelected);
   }, [isSelected]);
 
-  const handleClick = () => {
-    if ((!isHr && isProjectManager) || xpertAssociatedStatus !== 'cdi' || isAdv)
-      return;
+  const handleSetPaid = (date: string) => {
+    setLocalIsSelected(true);
+    setCurrentDate(date);
+    onSalaryPaymentClick?.(false, 'facturation_salary_payment', {
+      payment_date: date,
+    });
+    setPopoverOpen(false);
+  };
 
-    setLocalIsSelected(!localIsSelected);
-    if (!localIsSelected) {
-      setCurrentDate(new Date().toISOString());
-      onSalaryPaymentClick?.(false, 'facturation_salary_payment');
-    } else {
-      setCurrentDate(null);
-      onSalaryPaymentClick?.(true, 'facturation_salary_payment');
-    }
+  const handleClearPaid = () => {
+    setLocalIsSelected(false);
+    setCurrentDate(null);
+    onSalaryPaymentClick?.(true, 'facturation_salary_payment');
+    setPopoverOpen(false);
   };
 
   const getBackgroundColor = () => {
@@ -68,26 +80,81 @@ export default function SalaryPaymentBox({
     return 'bg-[#D64242]';
   };
 
-  return xpertAssociatedStatus !== 'cdi' ? (
-    <Box className={`size-full bg-[#b1b1b1] text-white`}>{''}</Box>
-  ) : (
-    <Box
-      className={`size-full ${
-        isAdv
-          ? 'cursor-not-allowed'
-          : isHr || !isProjectManager
-            ? 'cursor-pointer'
-            : 'cursor-not-allowed'
-      } text-white ${getBackgroundColor()}`}
-      onClick={
-        isAdv ? undefined : isHr || !isProjectManager ? handleClick : undefined
-      }
-    >
-      {!localIsSelected
-        ? 'NON'
-        : localIsSelected && currentDate
-          ? formatDate(currentDate)
-          : 'NON'}
-    </Box>
+  const clickDisabled = ((!isHr && isProjectManager) || isAdv) && !isAdmin;
+
+  if (xpertAssociatedStatus !== 'cdi') {
+    return <Box className={`size-full bg-[#b1b1b1] text-white`}>{''}</Box>;
+  }
+
+  const displayIso = currentDate ?? null;
+
+  return (
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <PopoverTrigger asChild>
+        <div className="size-full">
+          <Box
+            className={`size-full ${
+              clickDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+            } text-white ${getBackgroundColor()}`}
+          >
+            {localIsSelected && displayIso
+              ? formatDate(displayIso)
+              : localIsSelected
+                ? 'PAYÉ'
+                : 'NON'}
+          </Box>
+        </div>
+      </PopoverTrigger>
+      {!clickDisabled && (
+        <PopoverContent className="w-60">
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-medium">Marquer comme reçu :</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSetPaid(new Date().toISOString())}
+            >
+              Aujourd'hui
+            </Button>
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground text-xs">
+                Autre date :
+              </span>
+              <div className="flex gap-1">
+                <Input
+                  type="date"
+                  className="h-8 flex-1 p-1 text-xs"
+                  value={selectedDateValue}
+                  onChange={(e) => setSelectedDateValue(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  className="h-8 px-2"
+                  disabled={!selectedDateValue}
+                  onClick={() => {
+                    if (selectedDateValue) {
+                      handleSetPaid(new Date(selectedDateValue).toISOString());
+                      setSelectedDateValue('');
+                    }
+                  }}
+                >
+                  OK
+                </Button>
+              </div>
+            </div>
+            {localIsSelected && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleClearPaid}
+                className="mt-2"
+              >
+                Annuler le paiement
+              </Button>
+            )}
+          </div>
+        </PopoverContent>
+      )}
+    </Popover>
   );
 }
