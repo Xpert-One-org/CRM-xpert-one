@@ -58,6 +58,7 @@ export default function XpertFilter({
           .map((s) => s.trim())
           .filter(Boolean);
     const newActiveFilter = { ...activeFilters, sectors: validSectors };
+
     setActiveFilters(newActiveFilter);
   };
 

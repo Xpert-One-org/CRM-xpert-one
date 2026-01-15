@@ -273,6 +273,7 @@ export const useXpertStore = create<XpertState>((set, get) => ({
 
     const offset = replacing ? 0 : get().xpertsOptimized?.length || 0;
 
+    console.log('filter', filter);
     const { data, count } = await getXpertsOptimized({
       offset: offset,
       filters: filter,
