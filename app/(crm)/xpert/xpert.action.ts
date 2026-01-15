@@ -274,7 +274,7 @@ export const getXpertsOptimized = async ({
       admin_opinion, cv_name, 
       profile_mission(availability, job_titles, sector), 
       profile_status(iam),
-      profile_experience(post, post_other), 
+      profile_experience(post, post_other, sector), 
       mission:mission!xpert_associated_id(
         id,
         mission_number,
@@ -375,12 +375,33 @@ export const getXpertsOptimized = async ({
   if (filters?.sectors && filters.sectors.length > 0) {
     const validSectors = filters.sectors.filter((s) => s && s.trim() !== '');
     if (validSectors.length > 0) {
-      // S'assurer que profile_mission n'est pas null
-      query = query.not('profile_mission', 'is', null);
+      // On cherche dans profile_mission.sector (tableau) ET profile_experience.sector (string)
+      // Supabase ne supporte pas le .or() sur plusieurs tables jointes en une seule chaîne.
+      // On récupère donc les IDs séparément.
 
-      // Utilisation de l'opérateur overlaps (@>) pour vérifier si les tableaux s'intersectent
-      // overlaps vérifie si AU MOINS UN élément du filtre est présent dans profile_mission.sector
-      query = query.overlaps('profile_mission.sector', validSectors);
+      const { data: missionMatches } = await supabase
+        .from('profile_mission')
+        .select('profile_id')
+        .overlaps('sector', validSectors);
+
+      const { data: expMatches } = await supabase
+        .from('profile_experience')
+        .select('profile_id')
+        .in('sector', validSectors);
+
+      const sectorMatchedIds = Array.from(
+        new Set([
+          ...(missionMatches?.map((m) => m.profile_id) || []),
+          ...(expMatches?.map((e) => e.profile_id) || []),
+        ])
+      );
+
+      if (sectorMatchedIds.length > 0) {
+        query = query.in('id', sectorMatchedIds);
+      } else {
+        // Aucun profil ne correspond aux secteurs demandés
+        return { data: [], count: 0 };
+      }
     }
   }
 
