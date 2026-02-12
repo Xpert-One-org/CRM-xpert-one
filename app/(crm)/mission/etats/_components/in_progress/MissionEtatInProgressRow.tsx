@@ -31,7 +31,12 @@ export default function MissionEtatInProgressRow({
       const supabase = createSupabaseFrontendClient();
 
       const xpertTypes = [
-        getFileTypeByStatus('recap_mission_signed', missionXpertStatus ?? ''),
+        getFileTypeByStatus(
+          missionXpertStatus === 'portage'
+            ? 'devis_portage'
+            : 'recap_mission_signed',
+          missionXpertStatus ?? ''
+        ),
         getFileTypeByStatus('contrat_signed', missionXpertStatus ?? ''),
         getFileTypeByStatus(
           'commande_societe_signed',
@@ -129,9 +134,9 @@ export default function MissionEtatInProgressRow({
       return 'bg-[#e1e1e1] text-black';
     }
 
+    // Document not received → check urgency level
     const endDate = new Date(mission.end_date ?? '');
     const currentDate = new Date();
-    // Positive = end date in the future, Negative = end date in the past
     const diffTime = endDate.getTime() - currentDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -143,13 +148,9 @@ export default function MissionEtatInProgressRow({
     if (diffDays <= 10) {
       return 'bg-[#D64242] text-white';
     }
-    // End date within 15 days → yellow (approaching)
-    if (diffDays <= 15) {
-      return 'bg-accent text-white';
-    }
 
-    // End date far in the future → no urgency
-    return '';
+    // Document not received → yellow (default warning)
+    return 'bg-accent text-white';
   };
 
   const handleRedirectionActivation = () => {
@@ -204,19 +205,28 @@ export default function MissionEtatInProgressRow({
         className={`col-span-2 ${getBackgroundClass(
           fileStatuses[
             getFileTypeByStatus(
-              'recap_mission_signed',
+              missionXpertStatus === 'portage'
+                ? 'devis_portage'
+                : 'recap_mission_signed',
               missionXpertStatus ?? ''
             )
           ]?.exists || false
         )}`}
       >
         {fileStatuses[
-          getFileTypeByStatus('recap_mission_signed', missionXpertStatus ?? '')
+          getFileTypeByStatus(
+            missionXpertStatus === 'portage'
+              ? 'devis_portage'
+              : 'recap_mission_signed',
+            missionXpertStatus ?? ''
+          )
         ]?.exists
           ? `Reçu le ${formatDate(
               fileStatuses[
                 getFileTypeByStatus(
-                  'recap_mission_signed',
+                  missionXpertStatus === 'portage'
+                    ? 'devis_portage'
+                    : 'recap_mission_signed',
                   missionXpertStatus ?? ''
                 )
               ].createdAt ?? ''
