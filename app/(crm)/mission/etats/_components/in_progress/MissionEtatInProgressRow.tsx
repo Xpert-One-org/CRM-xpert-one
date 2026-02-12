@@ -22,10 +22,12 @@ export default function MissionEtatInProgressRow({
   const [fileStatuses, setFileStatuses] = useState<
     Record<string, { exists: boolean; createdAt?: string }>
   >({});
+  const [isLoadingFiles, setIsLoadingFiles] = useState(true);
   const router = useRouter();
   const missionXpertStatus = mission.xpert_associated_status;
   useEffect(() => {
     const fetchFileStatuses = async () => {
+      setIsLoadingFiles(true);
       const supabase = createSupabaseFrontendClient();
 
       const xpertTypes = [
@@ -92,6 +94,7 @@ export default function MissionEtatInProgressRow({
       }
 
       setFileStatuses(statuses);
+      setIsLoadingFiles(false);
     };
 
     fetchFileStatuses();
@@ -119,22 +122,33 @@ export default function MissionEtatInProgressRow({
   };
 
   const getBackgroundClass = (fileExists: boolean) => {
+    if (isLoadingFiles) {
+      return 'bg-[#e1e1e1] text-black';
+    }
     if (fileExists) {
       return 'bg-[#e1e1e1] text-black';
     }
 
     const endDate = new Date(mission.end_date ?? '');
     const currentDate = new Date();
-    const diffTime = Math.abs(currentDate.getTime() - endDate.getTime());
+    // Positive = end date in the future, Negative = end date in the past
+    const diffTime = endDate.getTime() - currentDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays >= 15) {
-      return 'bg-accent text-white';
-    }
-    if (diffDays >= 10) {
+    // End date already passed → red (overdue)
+    if (diffDays < 0) {
       return 'bg-[#D64242] text-white';
     }
+    // End date within 10 days → red (urgent)
+    if (diffDays <= 10) {
+      return 'bg-[#D64242] text-white';
+    }
+    // End date within 15 days → yellow (approaching)
+    if (diffDays <= 15) {
+      return 'bg-accent text-white';
+    }
 
+    // End date far in the future → no urgency
     return '';
   };
 
