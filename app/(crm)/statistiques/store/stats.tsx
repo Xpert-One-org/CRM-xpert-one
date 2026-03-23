@@ -33,7 +33,8 @@ type MissionStats = {
   dureeMoyenne: number;
   dureeMoyennePlacee: number;
   tauxMargeMoyen: number;
-  caTotal: number;
+  caTotalReel: number;
+  caTotalEstime: number;
   missionsParMetier: PieDataPoint[];
 };
 

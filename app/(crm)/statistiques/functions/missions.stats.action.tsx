@@ -13,7 +13,8 @@ export type MissionStatData = {
   dureeMoyenne: number;
   dureeMoyennePlacee: number;
   tauxMargeMoyen: number;
-  caTotal: number;
+  caTotalReel: number;
+  caTotalEstime: number;
   missionsParMetier: PieDataPoint[];
 };
 
@@ -190,57 +191,74 @@ export const getTauxMargeMoyen = async (period?: number): Promise<number> => {
 };
 
 /**
- * Calcule le chiffre d'affaires total cumulé de toutes les missions ouvertes
+ * Calcule le CA pour un ensemble de missions selon leurs états
  */
-export const getCATotal = async (): Promise<number> => {
+const calculateCA = async (states: string): Promise<number> => {
+  const supabase = await createSupabaseAppServerClient();
+
+  const { data: missionData, error: missionError } = await supabase
+    .from('mission')
+    .select('id, tjm, start_date, end_date')
+    .filter('state', 'in', states);
+
+  if (missionError) throw missionError;
+  if (!missionData || missionData.length === 0) return 0;
+
+  const { data: financeData, error: financeError } = await supabase
+    .from('mission_finance')
+    .select('mission_id, daily_rate, days_worked, monthly_rate, months_worked');
+
+  if (financeError) throw financeError;
+
+  let totalCA = 0;
+
+  for (const mission of missionData) {
+    const finance = financeData?.find((f) => f.mission_id === mission.id);
+
+    if (finance) {
+      if (finance.daily_rate && finance.days_worked) {
+        totalCA += finance.daily_rate * finance.days_worked;
+      } else if (finance.monthly_rate && finance.months_worked) {
+        totalCA += finance.monthly_rate * finance.months_worked;
+      }
+    } else if (mission.tjm && mission.start_date && mission.end_date) {
+      const tjm = parseFloat(mission.tjm);
+      const startDate = new Date(mission.start_date);
+      const endDate = new Date(mission.end_date);
+
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const workingDays = Math.round(diffDays * (22 / 30));
+
+      totalCA += tjm * workingDays;
+    }
+  }
+
+  return Math.round(totalCA);
+};
+
+/**
+ * CA réel : missions en cours et terminées (données financières réelles)
+ */
+export const getCATotalReel = async (): Promise<number> => {
   try {
     await checkAuthRole();
-    const supabase = await createSupabaseAppServerClient();
-
-    const { data: missionData, error: missionError } = await supabase
-      .from('mission')
-      .select('id, tjm, start_date, end_date')
-      .filter('state', 'in', '(open,open_all,in_progress)');
-
-    if (missionError) throw missionError;
-
-    if (!missionData || missionData.length === 0) return 0;
-
-    const { data: financeData, error: financeError } = await supabase
-      .from('mission_finance')
-      .select(
-        'mission_id, daily_rate, days_worked, monthly_rate, months_worked'
-      );
-
-    if (financeError) throw financeError;
-
-    let totalCA = 0;
-
-    for (const mission of missionData) {
-      const finance = financeData?.find((f) => f.mission_id === mission.id);
-
-      if (finance) {
-        if (finance.daily_rate && finance.days_worked) {
-          totalCA += finance.daily_rate * finance.days_worked;
-        } else if (finance.monthly_rate && finance.months_worked) {
-          totalCA += finance.monthly_rate * finance.months_worked;
-        }
-      } else if (mission.tjm && mission.start_date && mission.end_date) {
-        const tjm = parseFloat(mission.tjm);
-        const startDate = new Date(mission.start_date);
-        const endDate = new Date(mission.end_date);
-
-        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const workingDays = Math.round(diffDays * (22 / 30));
-
-        totalCA += tjm * workingDays;
-      }
-    }
-
-    return Math.round(totalCA);
+    return await calculateCA('(in_progress,finished)');
   } catch (error) {
-    console.error('Erreur lors du calcul du CA total:', error);
+    console.error('Erreur lors du calcul du CA réel:', error);
+    return 0;
+  }
+};
+
+/**
+ * CA estimé : missions non placées (ouvertes)
+ */
+export const getCATotalEstime = async (): Promise<number> => {
+  try {
+    await checkAuthRole();
+    return await calculateCA('(open,open_all)');
+  } catch (error) {
+    console.error('Erreur lors du calcul du CA estimé:', error);
     return 0;
   }
 };
@@ -680,14 +698,16 @@ export const getMissionStats = async (
       dureeMoyenne,
       dureeMoyennePlacee,
       tauxMargeMoyen,
-      caTotal,
+      caTotalReel,
+      caTotalEstime,
       missionsParMetier,
     ] = await Promise.all([
       getTotalMissions(),
       getDureeMoyenneMissions(),
       getDureeMoyenneMissionsPlacees(),
       getTauxMargeMoyen(period),
-      getCATotal(),
+      getCATotalReel(),
+      getCATotalEstime(),
       getMissionsParMetier(),
     ]);
 
@@ -696,7 +716,8 @@ export const getMissionStats = async (
       dureeMoyenne,
       dureeMoyennePlacee,
       tauxMargeMoyen,
-      caTotal,
+      caTotalReel,
+      caTotalEstime,
       missionsParMetier,
     };
   } catch (error) {
@@ -711,7 +732,8 @@ export const getMissionStats = async (
       dureeMoyenne: 0,
       dureeMoyennePlacee: 0,
       tauxMargeMoyen: 0,
-      caTotal: 0,
+      caTotalReel: 0,
+      caTotalEstime: 0,
       missionsParMetier: [],
     };
   }

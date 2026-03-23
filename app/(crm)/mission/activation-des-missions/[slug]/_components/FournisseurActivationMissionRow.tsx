@@ -84,6 +84,7 @@ export default function FournisseurActivationMissionRow({
               ?.exists
           }
           isFournisseurSide
+          onDeleteSuccess={onFileUpload}
         />
         <UploadFileDialog
           type={getFileTypeByStatus('devis', missionXpertStatus ?? '')}
@@ -140,6 +141,7 @@ export default function FournisseurActivationMissionRow({
             ]?.exists
           }
           isFournisseurSide
+          onDeleteSuccess={onFileUpload}
         />
         <Button
           className="size-full text-white"
@@ -222,6 +224,7 @@ export default function FournisseurActivationMissionRow({
             ]?.exists
           }
           isFournisseurSide
+          onDeleteSuccess={onFileUpload}
         />
         <Button
           className="size-full text-white"

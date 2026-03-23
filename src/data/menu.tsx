@@ -138,6 +138,10 @@ export const menuCrm = [
         title: 'Etat des facturations',
         url: '/facturation/etats-des-facturations',
       },
+      {
+        title: 'Facturations clôturées',
+        url: '/facturation/etats-des-facturations-cloturees',
+      },
     ],
   },
   {

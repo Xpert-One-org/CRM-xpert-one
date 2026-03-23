@@ -3,7 +3,24 @@
 import React, { useState } from 'react';
 import { Credenza, CredenzaContent } from '@/components/ui/credenza';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Trash2,
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { createSupabaseFrontendClient } from '@/utils/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,6 +43,7 @@ type ViewFileDialogProps = {
   isFacturation?: boolean;
   selectedYear?: number;
   selectedMonth?: number;
+  onDeleteSuccess?: () => void;
 };
 
 export default function ViewFileDialog({
@@ -37,12 +55,14 @@ export default function ViewFileDialog({
   isFacturation = false,
   selectedYear,
   selectedMonth,
+  onDeleteSuccess,
 }: ViewFileDialogProps) {
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<number | null>(null);
 
   const getFilePath = () => {
     const dateFolder =
@@ -143,6 +163,44 @@ export default function ViewFileDialog({
     );
   };
 
+  const handleDeleteFile = async () => {
+    if (fileToDelete === null) return;
+
+    const supabase = createSupabaseFrontendClient();
+    const filePath = getFilePath();
+    const fileName = files[fileToDelete].name;
+
+    const { error } = await supabase.storage
+      .from('mission_files')
+      .remove([`${filePath}/${fileName}`]);
+
+    if (error) {
+      toast.error('Erreur lors de la suppression du fichier');
+      console.error(error);
+      setFileToDelete(null);
+      return;
+    }
+
+    toast.success('Fichier supprimé');
+    const newFiles = files.filter((_, i) => i !== fileToDelete);
+    setFiles(newFiles);
+    setFileToDelete(null);
+
+    if (newFiles.length === 0) {
+      handleClose(false);
+      onDeleteSuccess?.();
+      return;
+    }
+
+    const newIndex = Math.min(selectedIndex, newFiles.length - 1);
+    setSelectedIndex(newIndex);
+
+    const url = await loadSignedUrl(filePath, newFiles[newIndex].name);
+    if (url) setFileUrl(url);
+
+    onDeleteSuccess?.();
+  };
+
   const handleClose = (value: boolean) => {
     setOpen(value);
     if (!value) {
@@ -185,6 +243,16 @@ export default function ViewFileDialog({
                   <Download className="mr-1 size-4" />
                   Télécharger
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => setFileToDelete(selectedIndex)}
+                  disabled={!files[selectedIndex]}
+                >
+                  <Trash2 className="mr-1 size-4" />
+                  Supprimer
+                </Button>
               </div>
             </div>
 
@@ -200,28 +268,52 @@ export default function ViewFileDialog({
                   <ScrollArea className="flex-1">
                     <div className="flex flex-col gap-1 p-2">
                       {files.map((file, index) => (
-                        <button
+                        <div
                           key={file.name}
-                          onClick={() => handleSelectFile(index)}
-                          className={`rounded-md p-3 text-left transition-colors ${
+                          className={`flex items-center justify-between rounded-md p-3 transition-colors ${
                             index === selectedIndex
                               ? 'bg-primary text-white'
                               : 'hover:bg-gray-100'
                           }`}
                         >
-                          <p className="truncate text-sm font-medium">
-                            {file.name}
-                          </p>
-                          <p
-                            className={`text-xs ${
-                              index === selectedIndex
-                                ? 'text-white/80'
-                                : 'text-gray-500'
-                            }`}
+                          <button
+                            onClick={() => handleSelectFile(index)}
+                            className="min-w-0 flex-1 text-left"
                           >
-                            {formatDate(file.created_at)}
-                          </p>
-                        </button>
+                            <p className="truncate text-sm font-medium">
+                              {file.name}
+                            </p>
+                            <p
+                              className={`text-xs ${
+                                index === selectedIndex
+                                  ? 'text-white/80'
+                                  : 'text-gray-500'
+                              }`}
+                            >
+                              {formatDate(file.created_at)}
+                            </p>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFileToDelete(index);
+                            }}
+                            className={`ml-2 shrink-0 rounded p-1 transition-colors ${
+                              index === selectedIndex
+                                ? 'hover:bg-white/20'
+                                : 'hover:bg-red-100'
+                            }`}
+                            title="Supprimer"
+                          >
+                            <Trash2
+                              className={`size-4 ${
+                                index === selectedIndex
+                                  ? 'text-white/80'
+                                  : 'text-red-500'
+                              }`}
+                            />
+                          </button>
+                        </div>
                       ))}
                     </div>
                   </ScrollArea>
@@ -270,6 +362,36 @@ export default function ViewFileDialog({
           </div>
         </CredenzaContent>
       </Credenza>
+
+      {/* Confirmation de suppression */}
+      <AlertDialog
+        open={fileToDelete !== null}
+        onOpenChange={(v) => {
+          if (!v) setFileToDelete(null);
+        }}
+      >
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le fichier</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer{' '}
+              <strong>
+                {fileToDelete !== null && files[fileToDelete]?.name}
+              </strong>{' '}
+              ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteFile}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
