@@ -28,8 +28,10 @@ import CreatableSelect from '@/components/CreatableSelect';
 import MultiCreatableSelect from '@/components/MultiCreatableSelect';
 import Button from '@/components/Button';
 import Plus from '@/components/svg/Plus';
-import { Minus } from 'lucide-react';
+import { Camera, Minus } from 'lucide-react';
 import { useXpertDebounce } from '@/hooks/use-xpert-debounce';
+import { createSupabaseFrontendClient } from '@/utils/supabase/client';
+import { updateProfile } from '../../xpert.action';
 import XpertAlertSettings from '../XpertAlertSettings';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { updateUserAlerts } from '../../xpert.action';
@@ -351,6 +353,42 @@ export default function XpertRowContent({
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !xpert) return;
+
+    const supabase = createSupabaseFrontendClient();
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const filePath = `avatars/${xpert.generated_id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('mission_files')
+      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+    if (uploadError) {
+      toast.error("Erreur lors de l'upload de la photo");
+      console.error(uploadError);
+      return;
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('mission_files').getPublicUrl(filePath);
+
+    const { error: updateError } = await updateProfile({
+      xpert_id: xpert.id,
+      newData: [{ avatar_url: publicUrl }],
+    });
+
+    if (updateError) {
+      toast.error('Erreur lors de la sauvegarde');
+      return;
+    }
+
+    setXpert({ ...xpert, avatar_url: publicUrl });
+    toast.success('Photo de profil mise à jour');
+  };
+
   useEffect(() => {
     if (!xpert) {
       handleGetSpecificXpert();
@@ -398,16 +436,27 @@ export default function XpertRowContent({
           />
         </div>
         <div className="flex items-center justify-end">
-          <Avatar className="aspect-square size-[120px]">
-            <AvatarImage
-              src={xpert.avatar_url ?? ''}
-              className="object-cover"
+          <label className="group relative cursor-pointer">
+            <Avatar className="aspect-square size-[120px]">
+              <AvatarImage
+                src={xpert.avatar_url ?? ''}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-primary text-xl uppercase text-white">
+                {xpert.firstname?.substring(0, 1)}
+                {xpert.lastname?.substring(0, 1)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+              <Camera className="size-8 text-white" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
             />
-            <AvatarFallback className="bg-primary text-xl uppercase text-white">
-              {xpert.firstname?.substring(0, 1)}
-              {xpert.lastname?.substring(0, 1)}
-            </AvatarFallback>
-          </Avatar>
+          </label>
         </div>
       </div>
       <p className="pt-4 text-lg font-medium text-black">Mon profil</p>

@@ -23,8 +23,7 @@ import Picker from '@emoji-mart/react';
 import { Lock, MessageSquareMore, Pin, X } from 'lucide-react';
 import { useState } from 'react';
 
-import Image from 'next/image';
-import { defaultAvatar } from '@/data/constant';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Reaction } from '@/types/types';
 import type { ChatType, DBMessage, DBProfile } from '@/types/typesDb';
 import { useReaction } from '@/hooks/useReaction';
@@ -314,15 +313,13 @@ const Card = ({
           <Logo className="fill-white transition" />
         </div>
       ) : (
-        <div className="border-1 rounded-full border-primary bg-white">
-          <Image
-            src={avatar_url ?? defaultAvatar}
-            alt="avatar"
-            width={50}
-            height={50}
-            className="max-h-[50px] min-h-[50px] min-w-[50px] max-w-[50px] rounded-full object-cover"
-          />
-        </div>
+        <Avatar className="size-[50px] border border-primary">
+          <AvatarImage src={avatar_url ?? ''} className="object-cover" />
+          <AvatarFallback className="bg-primary text-sm uppercase text-white">
+            {firstname?.substring(0, 1)}
+            {lastname?.substring(0, 1)}
+          </AvatarFallback>
+        </Avatar>
       )}
 
       <div className="flex w-full flex-wrap items-center gap-x-spaceMediumContainer">
