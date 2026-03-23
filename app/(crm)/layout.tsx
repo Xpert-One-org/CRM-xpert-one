@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
-import Image from 'next/image';
 import React from 'react';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import MenuBurger from '@components/MenuBurger';
@@ -8,6 +7,7 @@ import NotificationBell from '@components/NotificationBell';
 import ActualPageTitle from './actual-page-title';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { getLoggedUser } from '@functions/auth/getLoggedUser';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default async function Layout({
   children,
@@ -38,17 +38,16 @@ export default async function Layout({
               <div>
                 <NotificationBell user={user} />
               </div>
-              <Image
-                src={
-                  userData.avatar_url
-                    ? userData.avatar_url
-                    : '/static/avatar.png'
-                }
-                alt=""
-                width={64}
-                height={64}
-                className="size-[51px] rounded-full object-cover sm:size-[64px]"
-              />
+              <Avatar className="size-[51px] sm:size-[64px]">
+                <AvatarImage
+                  src={userData.avatar_url ?? ''}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-primary text-lg uppercase text-white">
+                  {userData.firstname?.substring(0, 1)}
+                  {userData.lastname?.substring(0, 1)}
+                </AvatarFallback>
+              </Avatar>
             </div>
             <div className="sm:hidden" />
           </div>
