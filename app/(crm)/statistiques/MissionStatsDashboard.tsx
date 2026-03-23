@@ -96,7 +96,7 @@ const MissionStatsDashboard: React.FC = () => {
       />
 
       <StatCard
-        title="CA TOTAL mission"
+        title="CA TOTAL missions ouvertes"
         value={`${missionStats.caTotal.toLocaleString('fr-FR')} €`}
         modalTitle="Évolution du chiffre d'affaires total"
         modalContent={

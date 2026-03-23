@@ -190,75 +190,49 @@ export const getTauxMargeMoyen = async (period?: number): Promise<number> => {
 };
 
 /**
- * Calcule le chiffre d'affaires total des missions
- * @param period - Période en mois pour laquelle calculer le CA (optionnel)
+ * Calcule le chiffre d'affaires total cumulé de toutes les missions ouvertes
  */
-export const getCATotal = async (period?: number): Promise<number> => {
+export const getCATotal = async (): Promise<number> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    // Date limite pour le filtrage par période
-    let dateLimit;
-    if (period !== undefined) {
-      dateLimit = new Date();
-      dateLimit.setMonth(dateLimit.getMonth() - (period || 12));
-    }
-
-    // Requête des missions avec filtrage par période si spécifiée
-    let missionQuery = supabase
+    const { data: missionData, error: missionError } = await supabase
       .from('mission')
-      .select('id, tjm, start_date, end_date, created_at')
-      .filter('state', 'in', '(open,open_all,in_progress,finished)');
-
-    if (dateLimit) {
-      missionQuery = missionQuery.gte('created_at', dateLimit.toISOString());
-    }
-
-    const { data: missionData, error: missionError } = await missionQuery;
+      .select('id, tjm, start_date, end_date')
+      .filter('state', 'in', '(open,open_all,in_progress)');
 
     if (missionError) throw missionError;
 
     if (!missionData || missionData.length === 0) return 0;
 
-    // Requête des données financières avec filtrage par période si spécifiée
-    let financeQuery = supabase
+    const { data: financeData, error: financeError } = await supabase
       .from('mission_finance')
       .select(
-        'mission_id, daily_rate, days_worked, monthly_rate, months_worked, created_at'
+        'mission_id, daily_rate, days_worked, monthly_rate, months_worked'
       );
-
-    if (dateLimit) {
-      financeQuery = financeQuery.gte('created_at', dateLimit.toISOString());
-    }
-
-    const { data: financeData, error: financeError } = await financeQuery;
 
     if (financeError) throw financeError;
 
     let totalCA = 0;
 
-    // Pour chaque mission, calculer son CA
     for (const mission of missionData) {
       const finance = financeData?.find((f) => f.mission_id === mission.id);
 
       if (finance) {
-        // Si on a des données financières précises
         if (finance.daily_rate && finance.days_worked) {
           totalCA += finance.daily_rate * finance.days_worked;
         } else if (finance.monthly_rate && finance.months_worked) {
           totalCA += finance.monthly_rate * finance.months_worked;
         }
       } else if (mission.tjm && mission.start_date && mission.end_date) {
-        // Sinon estimation basée sur le TJM et la durée
         const tjm = parseFloat(mission.tjm);
         const startDate = new Date(mission.start_date);
         const endDate = new Date(mission.end_date);
 
-        // Calculer les jours ouvrés entre les deux dates (estimation approximative: 22 jours ouvrés par mois)
         const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const workingDays = Math.round(diffDays * (22 / 30)); // Estimation des jours ouvrés
+        const workingDays = Math.round(diffDays * (22 / 30));
 
         totalCA += tjm * workingDays;
       }
@@ -713,7 +687,7 @@ export const getMissionStats = async (
       getDureeMoyenneMissions(),
       getDureeMoyenneMissionsPlacees(),
       getTauxMargeMoyen(period),
-      getCATotal(period),
+      getCATotal(),
       getMissionsParMetier(),
     ]);
 
