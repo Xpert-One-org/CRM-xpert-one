@@ -95,6 +95,7 @@ export default function XpertActivationMissionRow({
                   getFileTypeByStatus('recap_mission', missionXpertStatus ?? '')
                 ]?.exists
               }
+              onDeleteSuccess={onFileUpload}
             />
             <UploadFileDialog
               type={getFileTypeByStatus(
@@ -176,6 +177,7 @@ export default function XpertActivationMissionRow({
                   )
                 ]?.exists
               }
+              onDeleteSuccess={onFileUpload}
             />
             <Button
               className="size-full text-white"
@@ -298,6 +300,7 @@ export default function XpertActivationMissionRow({
               )
             ]?.exists
           }
+          onDeleteSuccess={onFileUpload}
         />
         {missionXpertStatus !== 'portage' ? (
           <UploadFileDialog
@@ -461,6 +464,7 @@ export default function XpertActivationMissionRow({
               )
             ]?.exists
           }
+          onDeleteSuccess={onFileUpload}
         />
         {missionXpertStatus === 'portage' ? (
           <UploadFileDialog

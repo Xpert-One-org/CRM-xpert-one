@@ -11,6 +11,8 @@ import { uppercaseFirstLetter } from '@/utils/string';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { isAuthorizedToWorkInFrance } from '@/utils/workAuthorization';
 
 import { iamSelect, jobTitleSelect, sectorSelect } from '@/data/mocked_select';
 import type { AdminOpinionValue } from '@/types/types';
@@ -173,7 +175,7 @@ export default function XpertRow({
               : empty}
         </div>
       </Box>
-      <Box className="col-span-1" isSelected={isOpen}>
+      <Box className="col-span-1 gap-1" isSelected={isOpen}>
         {countries.find((c) => c.value === xpert.country)?.flag && (
           <Image
             src={countries.find((c) => c.value === xpert.country)?.flag ?? ''}
@@ -181,6 +183,21 @@ export default function XpertRow({
             width={24}
             height={16}
           />
+        )}
+        {xpert.country && (
+          <span
+            title={
+              isAuthorizedToWorkInFrance(xpert.country)
+                ? 'Autorisé à travailler en France'
+                : 'Autorisation de travail requise'
+            }
+          >
+            {isAuthorizedToWorkInFrance(xpert.country) ? (
+              <CheckCircle2 className="size-4 text-[#92C6B0]" />
+            ) : (
+              <AlertCircle className="size-4 text-[#D64242]" />
+            )}
+          </span>
         )}
       </Box>
       <Box className="col-span-1" isSelected={isOpen}>

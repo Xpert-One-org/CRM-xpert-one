@@ -96,9 +96,22 @@ const MissionStatsDashboard: React.FC = () => {
       />
 
       <StatCard
-        title="CA TOTAL mission"
-        value={`${missionStats.caTotal.toLocaleString('fr-FR')} €`}
-        modalTitle="Évolution du chiffre d'affaires total"
+        title="CA Réel (missions en cours / terminées)"
+        value={`${missionStats.caTotalReel.toLocaleString('fr-FR')} €`}
+        modalTitle="Évolution du CA réel"
+        modalContent={
+          <AreaChartStat
+            data={evolutionData.mission.caEvolution}
+            dataKey="ca"
+            tooltipFormatter={(value) => `${value.toLocaleString('fr-FR')} €`}
+          />
+        }
+      />
+
+      <StatCard
+        title="CA Estimé (missions non placées)"
+        value={`${missionStats.caTotalEstime.toLocaleString('fr-FR')} €`}
+        modalTitle="CA estimé des missions non placées"
         modalContent={
           <AreaChartStat
             data={evolutionData.mission.caEvolution}
