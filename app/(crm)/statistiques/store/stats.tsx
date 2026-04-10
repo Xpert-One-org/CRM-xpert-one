@@ -8,6 +8,7 @@ import {
 import {
   getMissionStats,
   getMissionEvolutionData,
+  type DateFilter,
 } from '../functions/missions.stats.action';
 import {
   getFournisseurStats,
@@ -78,6 +79,9 @@ type StatistiquesState = {
   fournisseurStats: FournisseurStats | null;
   evolutionData: EvolutionData | null;
 
+  // Filtre temporel pour les stats Mission (year/month sur created_at)
+  missionDateFilter: DateFilter;
+
   // États de chargement
   loadingXpert: boolean;
   loadingMission: boolean;
@@ -96,16 +100,22 @@ type StatistiquesState = {
   fetchFournisseurStats: () => Promise<void>;
   fetchEvolutionData: () => Promise<void>;
 
+  // Setter pour le filtre Mission (refetch automatique)
+  setMissionDateFilter: (filter: DateFilter) => Promise<void>;
+
   // Méthode pour réinitialiser les erreurs
   resetErrors: () => void;
 };
 
-export const useStatistiquesStore = create<StatistiquesState>((set) => ({
+export const useStatistiquesStore = create<StatistiquesState>((set, get) => ({
   // États initiaux
   xpertStats: null,
   missionStats: null,
   fournisseurStats: null,
   evolutionData: null,
+
+  // Filtre temporel par défaut : aucun (toutes périodes)
+  missionDateFilter: {},
 
   // États de chargement
   loadingXpert: false,
@@ -153,8 +163,8 @@ export const useStatistiquesStore = create<StatistiquesState>((set) => ({
     set({ loadingMission: true, errorMission: null });
 
     try {
-      // Appel à la fonction serveur réelle
-      const stats = await getMissionStats();
+      // Appel à la fonction serveur réelle avec le filtre temporel courant
+      const stats = await getMissionStats(get().missionDateFilter);
       set({ missionStats: stats, loadingMission: false });
     } catch (error) {
       console.error(
@@ -167,6 +177,11 @@ export const useStatistiquesStore = create<StatistiquesState>((set) => ({
           error instanceof Error ? error.message : "Une erreur s'est produite",
       });
     }
+  },
+
+  setMissionDateFilter: async (filter: DateFilter) => {
+    set({ missionDateFilter: filter });
+    await get().fetchMissionStats();
   },
 
   fetchFournisseurStats: async () => {

@@ -29,16 +29,51 @@ export type ChartDataPoint = {
 };
 
 /**
- * Récupère le nombre total de missions
+ * Filtre temporel optionnel sur created_at des missions.
+ * - year seul : toute l'année
+ * - year + month (1-12) : ce mois précis
+ * - rien : aucun filtre (toutes périodes)
  */
-export const getTotalMissions = async (): Promise<number> => {
+export type DateFilter = { year?: number; month?: number };
+
+const getDateRange = (
+  filter?: DateFilter
+): { startISO: string; endISO: string } | null => {
+  if (!filter?.year) return null;
+  const y = filter.year;
+  if (filter.month && filter.month >= 1 && filter.month <= 12) {
+    const start = new Date(Date.UTC(y, filter.month - 1, 1));
+    const end = new Date(Date.UTC(y, filter.month, 1));
+    return { startISO: start.toISOString(), endISO: end.toISOString() };
+  }
+  const start = new Date(Date.UTC(y, 0, 1));
+  const end = new Date(Date.UTC(y + 1, 0, 1));
+  return { startISO: start.toISOString(), endISO: end.toISOString() };
+};
+
+/**
+ * Récupère le nombre total de missions (hors missions supprimées)
+ */
+export const getTotalMissions = async (
+  dateFilter?: DateFilter
+): Promise<number> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    const { count, error } = await supabase
+    let query = supabase
       .from('mission')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .neq('state', 'deleted');
+
+    const range = getDateRange(dateFilter);
+    if (range) {
+      query = query
+        .gte('created_at', range.startISO)
+        .lt('created_at', range.endISO);
+    }
+
+    const { count, error } = await query;
 
     if (error) throw error;
 
@@ -55,14 +90,26 @@ export const getTotalMissions = async (): Promise<number> => {
 /**
  * Récupère la durée moyenne des missions en jours
  */
-export const getDureeMoyenneMissions = async (): Promise<number> => {
+export const getDureeMoyenneMissions = async (
+  dateFilter?: DateFilter
+): Promise<number> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('mission')
-      .select('start_date, end_date');
+      .select('start_date, end_date')
+      .neq('state', 'deleted');
+
+    const range = getDateRange(dateFilter);
+    if (range) {
+      query = query
+        .gte('created_at', range.startISO)
+        .lt('created_at', range.endISO);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -103,15 +150,27 @@ export const getDureeMoyenneMissions = async (): Promise<number> => {
 /**
  * Récupère la durée moyenne des missions placées (missions avec un xpert associé)
  */
-export const getDureeMoyenneMissionsPlacees = async (): Promise<number> => {
+export const getDureeMoyenneMissionsPlacees = async (
+  dateFilter?: DateFilter
+): Promise<number> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('mission')
       .select('start_date, end_date')
-      .not('xpert_associated_id', 'is', null);
+      .not('xpert_associated_id', 'is', null)
+      .neq('state', 'deleted');
+
+    const range = getDateRange(dateFilter);
+    if (range) {
+      query = query
+        .gte('created_at', range.startISO)
+        .lt('created_at', range.endISO);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -150,21 +209,25 @@ export const getDureeMoyenneMissionsPlacees = async (): Promise<number> => {
 };
 
 /**
- * Récupère le taux de marge moyen des missions
- * @param period - Période en mois pour laquelle calculer la marge (optionnel)
+ * Récupère le taux de marge moyen des missions (hors missions supprimées).
  */
-export const getTauxMargeMoyen = async (period?: number): Promise<number> => {
+export const getTauxMargeMoyen = async (
+  dateFilter?: DateFilter
+): Promise<number> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    let query = supabase.from('mission_finance').select('margin, created_at');
+    let query = supabase
+      .from('mission_finance')
+      .select('margin, mission!inner(state, created_at)')
+      .neq('mission.state', 'deleted');
 
-    // Filtrer par période si spécifiée (par défaut: 12 derniers mois)
-    if (period !== undefined) {
-      const dateLimit = new Date();
-      dateLimit.setMonth(dateLimit.getMonth() - (period || 12));
-      query = query.gte('created_at', dateLimit.toISOString());
+    const range = getDateRange(dateFilter);
+    if (range) {
+      query = query
+        .gte('mission.created_at', range.startISO)
+        .lt('mission.created_at', range.endISO);
     }
 
     const { data, error } = await query;
@@ -191,22 +254,36 @@ export const getTauxMargeMoyen = async (period?: number): Promise<number> => {
 };
 
 /**
- * Calcule le CA pour un ensemble de missions selon leurs états
+ * Calcule le CA pour un ensemble de missions selon leurs états.
+ * Utilise en priorité mission_finance.total_ca (CA réel saisi),
+ * et retombe sur tjm × jours ouvrés en estimation si absent.
  */
-const calculateCA = async (states: string): Promise<number> => {
+const calculateCA = async (
+  states: string,
+  dateFilter?: DateFilter
+): Promise<number> => {
   const supabase = await createSupabaseAppServerClient();
 
-  const { data: missionData, error: missionError } = await supabase
+  let missionQuery = supabase
     .from('mission')
     .select('id, tjm, start_date, end_date')
     .filter('state', 'in', states);
+
+  const range = getDateRange(dateFilter);
+  if (range) {
+    missionQuery = missionQuery
+      .gte('created_at', range.startISO)
+      .lt('created_at', range.endISO);
+  }
+
+  const { data: missionData, error: missionError } = await missionQuery;
 
   if (missionError) throw missionError;
   if (!missionData || missionData.length === 0) return 0;
 
   const { data: financeData, error: financeError } = await supabase
     .from('mission_finance')
-    .select('mission_id, daily_rate, days_worked, monthly_rate, months_worked');
+    .select('mission_id, total_ca');
 
   if (financeError) throw financeError;
 
@@ -215,12 +292,8 @@ const calculateCA = async (states: string): Promise<number> => {
   for (const mission of missionData) {
     const finance = financeData?.find((f) => f.mission_id === mission.id);
 
-    if (finance) {
-      if (finance.daily_rate && finance.days_worked) {
-        totalCA += finance.daily_rate * finance.days_worked;
-      } else if (finance.monthly_rate && finance.months_worked) {
-        totalCA += finance.monthly_rate * finance.months_worked;
-      }
+    if (finance?.total_ca) {
+      totalCA += finance.total_ca;
     } else if (mission.tjm && mission.start_date && mission.end_date) {
       const tjm = parseFloat(mission.tjm);
       const startDate = new Date(mission.start_date);
@@ -240,10 +313,12 @@ const calculateCA = async (states: string): Promise<number> => {
 /**
  * CA réel : missions en cours et terminées (données financières réelles)
  */
-export const getCATotalReel = async (): Promise<number> => {
+export const getCATotalReel = async (
+  dateFilter?: DateFilter
+): Promise<number> => {
   try {
     await checkAuthRole();
-    return await calculateCA('(in_progress,finished)');
+    return await calculateCA('(in_progress,finished)', dateFilter);
   } catch (error) {
     console.error('Erreur lors du calcul du CA réel:', error);
     return 0;
@@ -253,10 +328,12 @@ export const getCATotalReel = async (): Promise<number> => {
 /**
  * CA estimé : missions non placées (ouvertes)
  */
-export const getCATotalEstime = async (): Promise<number> => {
+export const getCATotalEstime = async (
+  dateFilter?: DateFilter
+): Promise<number> => {
   try {
     await checkAuthRole();
-    return await calculateCA('(open,open_all)');
+    return await calculateCA('(open,open_all)', dateFilter);
   } catch (error) {
     console.error('Erreur lors du calcul du CA estimé:', error);
     return 0;
@@ -266,14 +343,26 @@ export const getCATotalEstime = async (): Promise<number> => {
 /**
  * Récupère la répartition des missions par métier
  */
-export const getMissionsParMetier = async (): Promise<PieDataPoint[]> => {
+export const getMissionsParMetier = async (
+  dateFilter?: DateFilter
+): Promise<PieDataPoint[]> => {
   try {
     await checkAuthRole();
     const supabase = await createSupabaseAppServerClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('mission')
-      .select('job_title, job_title_other');
+      .select('job_title, job_title_other')
+      .neq('state', 'deleted');
+
+    const range = getDateRange(dateFilter);
+    if (range) {
+      query = query
+        .gte('created_at', range.startISO)
+        .lt('created_at', range.endISO);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -338,6 +427,7 @@ export const getMissionsEvolution = async (): Promise<ChartDataPoint[]> => {
       const { count, error } = await supabase
         .from('mission')
         .select('*', { count: 'exact', head: true })
+        .neq('state', 'deleted')
         .lte('created_at', monthEnd.toISOString());
 
       if (error) throw error;
@@ -385,6 +475,7 @@ export const getDureeEvolution = async (): Promise<ChartDataPoint[]> => {
       const { data, error } = await supabase
         .from('mission')
         .select('start_date, end_date')
+        .neq('state', 'deleted')
         .lte('created_at', monthEnd.toISOString());
 
       if (error) throw error;
@@ -459,6 +550,7 @@ export const getDureePlaceeEvolution = async (): Promise<ChartDataPoint[]> => {
         .from('mission')
         .select('start_date, end_date')
         .not('xpert_associated_id', 'is', null)
+        .neq('state', 'deleted')
         .lte('created_at', monthEnd.toISOString());
 
       if (error) throw error;
@@ -524,7 +616,8 @@ export const getTauxMargeEvolution = async (): Promise<ChartDataPoint[]> => {
     // Récupérer toutes les missions avec leurs marges
     const { data: missionsData, error: missionsError } = await supabase
       .from('mission')
-      .select('id, created_at');
+      .select('id, created_at')
+      .neq('state', 'deleted');
 
     if (missionsError) throw missionsError;
 
@@ -614,9 +707,7 @@ export const getCAEvolution = async (): Promise<ChartDataPoint[]> => {
     // Récupérer les données financières
     const { data: financeData, error: financeError } = await supabase
       .from('mission_finance')
-      .select(
-        'mission_id, daily_rate, days_worked, monthly_rate, months_worked'
-      );
+      .select('mission_id, total_ca');
 
     if (financeError) throw financeError;
 
@@ -645,15 +736,11 @@ export const getCAEvolution = async (): Promise<ChartDataPoint[]> => {
       missionsForMonth.forEach((mission) => {
         const finance = missionFinanceMap.get(mission.id);
 
-        if (finance) {
-          // Si on a des données financières précises
-          if (finance.daily_rate && finance.days_worked) {
-            monthlyCA += finance.daily_rate * finance.days_worked;
-          } else if (finance.monthly_rate && finance.months_worked) {
-            monthlyCA += finance.monthly_rate * finance.months_worked;
-          }
+        if (finance?.total_ca) {
+          // CA réel saisi dans la fiche mission
+          monthlyCA += finance.total_ca;
         } else if (mission.tjm && mission.start_date && mission.end_date) {
-          // Sinon estimation basée sur le TJM et la durée
+          // Sinon estimation basée sur le TJM cible et la durée
           const tjm = parseFloat(mission.tjm);
           const startDate = new Date(mission.start_date);
           const endDate = new Date(mission.end_date);
@@ -684,11 +771,11 @@ export const getCAEvolution = async (): Promise<ChartDataPoint[]> => {
 };
 
 /**
- * Récupère toutes les statistiques des missions en une seule fonction
- * @param period - Période en mois pour les statistiques (par défaut: 12 mois)
+ * Récupère toutes les statistiques des missions en une seule fonction.
+ * Accepte un filtre temporel optionnel sur created_at.
  */
 export const getMissionStats = async (
-  period: number = 12
+  dateFilter?: DateFilter
 ): Promise<MissionStatData> => {
   try {
     await checkAuthRole();
@@ -702,13 +789,13 @@ export const getMissionStats = async (
       caTotalEstime,
       missionsParMetier,
     ] = await Promise.all([
-      getTotalMissions(),
-      getDureeMoyenneMissions(),
-      getDureeMoyenneMissionsPlacees(),
-      getTauxMargeMoyen(period),
-      getCATotalReel(),
-      getCATotalEstime(),
-      getMissionsParMetier(),
+      getTotalMissions(dateFilter),
+      getDureeMoyenneMissions(dateFilter),
+      getDureeMoyenneMissionsPlacees(dateFilter),
+      getTauxMargeMoyen(dateFilter),
+      getCATotalReel(dateFilter),
+      getCATotalEstime(dateFilter),
+      getMissionsParMetier(dateFilter),
     ]);
 
     return {
