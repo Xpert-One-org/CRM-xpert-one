@@ -236,10 +236,11 @@ export const getTauxMargeMoyen = async (
 
     if (!data || data.length === 0) return 0;
 
-    // Filtrer les valeurs nulles et calculer la moyenne
+    // Filtrer les valeurs nulles, NaN, et les marges aberrantes (> 100%)
     const margins = data
       .filter((item) => item.margin !== null && item.margin !== undefined)
-      .map((item) => Number(item.margin));
+      .map((item) => Number(item.margin))
+      .filter((m) => !isNaN(m) && m >= 0 && m <= 100);
 
     if (margins.length === 0) return 0;
 
@@ -291,19 +292,23 @@ const calculateCA = async (
 
   for (const mission of missionData) {
     const finance = financeData?.find((f) => f.mission_id === mission.id);
+    const ca = finance?.total_ca ? Number(finance.total_ca) : 0;
 
-    if (finance?.total_ca) {
-      totalCA += finance.total_ca;
+    if (ca >= 500) {
+      // Utiliser le CA réel saisi (seuil 500€ pour exclure les saisies incomplètes type "41" ou "111")
+      totalCA += ca;
     } else if (mission.tjm && mission.start_date && mission.end_date) {
       const tjm = parseFloat(mission.tjm);
-      const startDate = new Date(mission.start_date);
-      const endDate = new Date(mission.end_date);
+      if (!isNaN(tjm) && tjm > 0) {
+        const startDate = new Date(mission.start_date);
+        const endDate = new Date(mission.end_date);
 
-      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      const workingDays = Math.round(diffDays * (22 / 30));
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const workingDays = Math.round(diffDays * (22 / 30));
 
-      totalCA += tjm * workingDays;
+        totalCA += tjm * workingDays;
+      }
     }
   }
 
@@ -647,7 +652,7 @@ export const getTauxMargeEvolution = async (): Promise<ChartDataPoint[]> => {
           (mission) => new Date(mission.created_at) <= monthEnd
         ) || [];
 
-      // Calculer la marge moyenne pour ce mois
+      // Calculer la marge moyenne pour ce mois (exclure marges aberrantes > 100%)
       const margins: number[] = [];
       missionsForMonth.forEach((mission) => {
         const finance = missionFinanceMap.get(mission.id);
@@ -656,7 +661,10 @@ export const getTauxMargeEvolution = async (): Promise<ChartDataPoint[]> => {
           finance.margin !== null &&
           finance.margin !== undefined
         ) {
-          margins.push(Number(finance.margin));
+          const m = Number(finance.margin);
+          if (!isNaN(m) && m >= 0 && m <= 100) {
+            margins.push(m);
+          }
         }
       });
 
@@ -735,22 +743,22 @@ export const getCAEvolution = async (): Promise<ChartDataPoint[]> => {
       let monthlyCA = 0;
       missionsForMonth.forEach((mission) => {
         const finance = missionFinanceMap.get(mission.id);
+        const ca = finance?.total_ca ? Number(finance.total_ca) : 0;
 
-        if (finance?.total_ca) {
-          // CA réel saisi dans la fiche mission
-          monthlyCA += finance.total_ca;
+        if (ca >= 500) {
+          monthlyCA += ca;
         } else if (mission.tjm && mission.start_date && mission.end_date) {
-          // Sinon estimation basée sur le TJM cible et la durée
           const tjm = parseFloat(mission.tjm);
-          const startDate = new Date(mission.start_date);
-          const endDate = new Date(mission.end_date);
+          if (!isNaN(tjm) && tjm > 0) {
+            const startDate = new Date(mission.start_date);
+            const endDate = new Date(mission.end_date);
 
-          // Calculer les jours ouvrés entre les deux dates
-          const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          const workingDays = Math.round(diffDays * (22 / 30)); // Estimation des jours ouvrés
+            const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const workingDays = Math.round(diffDays * (22 / 30));
 
-          monthlyCA += tjm * workingDays;
+            monthlyCA += tjm * workingDays;
+          }
         }
       });
 
