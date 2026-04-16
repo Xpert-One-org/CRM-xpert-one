@@ -126,6 +126,19 @@ export function MissionFinancials() {
         marginPercent,
         totalCA,
       });
+
+      // Persister la marge calculée pour les statistiques
+      const roundedMargin =
+        totalXpertCost > 0 && totalCA > 0
+          ? parseFloat(marginPercent.toFixed(2))
+          : null;
+      const currentMargin =
+        finance.margin !== null && finance.margin !== undefined
+          ? Number(finance.margin)
+          : null;
+      if (roundedMargin !== currentMargin) {
+        handleFinanceUpdate('margin', roundedMargin);
+      }
     } catch (error) {
       console.error('Erreur dans le calcul des finances:', error);
       setCalculated(initialCalculatedValues);
