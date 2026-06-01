@@ -5,6 +5,16 @@ export const sortDateOptions = [
   { label: 'Récent', value: 'desc' },
 ];
 
+export const sortAlphaOptions = [
+  { label: 'A → Z', value: 'asc' },
+  { label: 'Z → A', value: 'desc' },
+];
+
+export const sortNumberOptions = [
+  { label: 'Croissant', value: 'asc' },
+  { label: 'Décroissant', value: 'desc' },
+];
+
 export const documentsOptions = [
   { label: 'Reçu', value: 'received', color: '#92C6B0' },
   { label: 'Non reçu', value: 'not_received', color: '#D64242' },

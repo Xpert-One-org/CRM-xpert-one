@@ -226,7 +226,7 @@ export default function ViewFileDialog({
         <CredenzaContent className="my-2 h-[90vh] max-w-[90vw] overflow-hidden rounded-sm border-0 bg-white p-0">
           <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between border-b p-4">
+            <div className="flex items-center justify-between border-b p-4 pr-14">
               <h3 className="text-lg font-semibold">{title}</h3>
               <div className="flex items-center gap-2">
                 {hasMultipleFiles && (
