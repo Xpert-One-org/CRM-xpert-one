@@ -1,7 +1,7 @@
 'use client';
 
 import { FilterButton } from '@/components/FilterButton';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import FournisseurRow from './FournisseurRow';
 import { areObjectsEqual, cn } from '@/lib/utils';
 import FournisseurMissionTable from './FournisseurMissionRow';
@@ -39,14 +39,30 @@ import { FournisseurNotes } from './FournisseurNotes';
 import CreatableSelect from '@/components/CreatableSelect';
 import MultiCreatableSelect from '@/components/MultiCreatableSelect';
 import { Checkbox } from '@/components/ui/checkbox';
-import { sortDateOptions } from '@/data/filter';
+import {
+  sortAlphaOptions,
+  sortDateOptions,
+  sortNumberOptions,
+} from '@/data/filter';
+import { Search } from 'lucide-react';
+
+type SortKey =
+  | 'created_at'
+  | 'lastname'
+  | 'firstname'
+  | 'company_role'
+  | 'generated_id'
+  | 'company_name'
+  | 'mission';
 
 export default function FournisseurTable() {
   const [fournisseurIdOpened, setFournisseurIdOpened] = useState('');
   const [hasChanged, setHasChanged] = useState(false);
-  const [sortedFournisseurs, setSortedFournisseurs] = useState<DBFournisseur[]>(
-    []
-  );
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState<{
+    key: SortKey;
+    order: 'asc' | 'desc';
+  } | null>(null);
 
   const { regions, countries, fetchRegions, fetchCountries } = useSelect();
 
@@ -92,11 +108,6 @@ export default function FournisseurTable() {
     );
   }, [openedFournisseurNotSaved, openedFournisseur]);
 
-  useEffect(() => {
-    // Mettre à jour les fournisseurs triés lorsque les fournisseurs changent
-    setSortedFournisseurs(fournisseurs || []);
-  }, [fournisseurs]);
-
   type FournisseurTableKey = 'profile' | 'profile_status';
 
   const handleKeyChanges = (table: FournisseurTableKey, name: string) => {
@@ -139,76 +150,130 @@ export default function FournisseurTable() {
     }
   };
 
-  const handleSortDateChange = (value: string) => {
-    if (!fournisseurs) return;
-    if (value === '') {
-      setSortedFournisseurs([...fournisseurs]);
-      return;
-    }
-
-    const sorted = [...fournisseurs].sort((a, b) => {
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
-      return value === 'asc' ? dateA - dateB : dateB - dateA;
-    });
-
-    setSortedFournisseurs(sorted);
+  const handleSortChange = (key: SortKey) => (value: string) => {
+    setSortConfig(
+      value === '' ? null : { key, order: value as 'asc' | 'desc' }
+    );
   };
 
-  // Utiliser sortedFournisseurs pour l'affichage
-  const displayFournisseurs =
-    sortedFournisseurs.length > 0 ? sortedFournisseurs : fournisseurs || [];
+  const getSortValue = (fournisseur: DBFournisseur, key: SortKey) => {
+    if (key === 'mission') return fournisseur.mission?.length ?? 0;
+    if (key === 'created_at') return new Date(fournisseur.created_at).getTime();
+    return fournisseur[key as keyof DBFournisseur] ?? '';
+  };
+
+  // Recherche texte + tri appliqués sur la liste complète chargée côté client
+  const displayFournisseurs = useMemo(() => {
+    let list = [...(fournisseurs || [])];
+
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      list = list.filter((fournisseur) =>
+        [
+          fournisseur.firstname,
+          fournisseur.lastname,
+          fournisseur.company_name,
+          fournisseur.generated_id,
+          fournisseur.company_role,
+          fournisseur.email,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(query)
+      );
+    }
+
+    if (sortConfig) {
+      const { key, order } = sortConfig;
+      list.sort((a, b) => {
+        const valueA = getSortValue(a, key);
+        const valueB = getSortValue(b, key);
+
+        let comparison: number;
+        if (typeof valueA === 'number' && typeof valueB === 'number') {
+          comparison = valueA - valueB;
+        } else {
+          comparison = String(valueA)
+            .toLowerCase()
+            .localeCompare(String(valueB).toLowerCase());
+        }
+        return order === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return list;
+  }, [fournisseurs, searchQuery, sortConfig]);
 
   return (
     <>
-      <div className="mb-2 flex w-fit items-center justify-between gap-2">
-        <CreateFournisseurXpertDialog role="company" />
-        {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
-          <Button
-            className="size-fit disabled:bg-gray-200"
-            onClick={handleSaveUpdatedFournisseur}
-            disabled={!hasChanged}
-          >
-            Enregistrer
-          </Button>
-        )}
+      <div className="mb-2 flex w-full flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <CreateFournisseurXpertDialog role="company" />
+          {fournisseurIdOpened !== '' && fournisseurIdOpened !== '0' && (
+            <Button
+              className="size-fit disabled:bg-gray-200"
+              onClick={handleSaveUpdatedFournisseur}
+              disabled={!hasChanged}
+            >
+              Enregistrer
+            </Button>
+          )}
+        </div>
+        <div className="relative w-full max-w-xs">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher un fournisseur (nom, société, ID...)"
+            className="w-full rounded-md border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-primary"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-8 gap-3">
         <FilterButton
           options={sortDateOptions}
-          onValueChange={handleSortDateChange}
+          onValueChange={handleSortChange('created_at')}
           placeholder="Date d'inscription"
           showSelectedOption={true}
-          sortable
-          data={fournisseurs || []}
-          sortKey="created_at"
         />
-        <FilterButton options={[]} onValueChange={() => {}} placeholder="Nom" />
         <FilterButton
-          options={[]}
-          onValueChange={() => {}}
+          options={sortAlphaOptions}
+          onValueChange={handleSortChange('lastname')}
+          placeholder="Nom"
+          showSelectedOption={true}
+        />
+        <FilterButton
+          options={sortAlphaOptions}
+          onValueChange={handleSortChange('firstname')}
           placeholder="Prénom"
+          showSelectedOption={true}
         />
         <FilterButton
-          options={[]}
-          onValueChange={() => {}}
+          options={sortAlphaOptions}
+          onValueChange={handleSortChange('company_role')}
           placeholder="Poste"
+          showSelectedOption={true}
         />
         <FilterButton
-          options={[]}
-          onValueChange={() => {}}
+          options={sortAlphaOptions}
+          onValueChange={handleSortChange('generated_id')}
           placeholder="N° identification"
+          showSelectedOption={true}
         />
         <FilterButton
-          options={[]}
-          onValueChange={() => {}}
+          options={sortAlphaOptions}
+          onValueChange={handleSortChange('company_name')}
           placeholder="Société"
+          showSelectedOption={true}
         />
         <FilterButton
-          options={[]}
-          onValueChange={() => {}}
+          options={sortNumberOptions}
+          onValueChange={handleSortChange('mission')}
           placeholder="Nombre de missions"
+          showSelectedOption={true}
         />
         <FilterButton
           className="font-bold"

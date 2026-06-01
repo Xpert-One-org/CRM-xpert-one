@@ -108,11 +108,20 @@ export const useFournisseurStore = create<FournisseurState>((set, get) => ({
       return;
     }
 
-    set({
-      fournisseurs: [fournisseur, ...fournisseurs],
-      loading: false,
-      openedFournisseur: fournisseur,
-      openedFournisseurNotSaved: fournisseur,
+    // set fonctionnel : on relit l'état le plus récent pour éviter d'écraser
+    // une liste chargée en parallèle (InfiniteScroll) avec un instantané
+    // périmé, et on dédoublonne sur generated_id.
+    set((state) => {
+      const current = state.fournisseurs || [];
+      const others = current.filter(
+        (f) => f.generated_id !== fournisseur.generated_id
+      );
+      return {
+        fournisseurs: [fournisseur, ...others],
+        loading: false,
+        openedFournisseur: fournisseur,
+        openedFournisseurNotSaved: fournisseur,
+      };
     });
   },
 
