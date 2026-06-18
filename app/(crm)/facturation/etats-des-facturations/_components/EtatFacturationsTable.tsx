@@ -56,7 +56,12 @@ export default function EtatFacturationsTable({
     useFileStatusFacturationStore();
   const { updateMission } = useMissionStore();
   const { isProjectManager } = useContext(AuthContext);
-  const [sortedRows, setSortedRows] = useState<RowItem[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'date' | 'mission' | 'referent';
+    order: 'asc' | 'desc';
+  } | null>(null);
+  const [yearFilter, setYearFilter] = useState<number | null>(null);
+  const [monthFilter, setMonthFilter] = useState<number | null>(null);
 
   useEffect(() => {
     missions.forEach((mission) => {
@@ -117,17 +122,43 @@ export default function EtatFacturationsTable({
     return rows;
   }, [missions, fileStatusesByMission]);
 
-  // 2) Tri par date
-  const handleDateSort = (value: string) => {
-    const data = [...baseRows].sort((a, b) => {
-      const dateA = new Date(a.monthYear.year, a.monthYear.month);
-      const dateB = new Date(b.monthYear.year, b.monthYear.month);
-      return value === 'asc'
-        ? dateA.getTime() - dateB.getTime()
-        : dateB.getTime() - dateA.getTime();
-    });
-    setSortedRows(data);
-  };
+  // 2) Tri (date / n° de mission / référent)
+  const handleSort =
+    (key: 'date' | 'mission' | 'referent') => (value: string) => {
+      setSortConfig(
+        value === '' ? null : { key, order: value as 'asc' | 'desc' }
+      );
+    };
+
+  // Années disponibles (pour le filtre "année au choix")
+  const availableYears = useMemo(() => {
+    const years = new Set(baseRows.map((r) => r.monthYear.year));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [baseRows]);
+
+  const yearOptions = useMemo(
+    () => availableYears.map((y) => ({ label: String(y), value: String(y) })),
+    [availableYears]
+  );
+
+  const monthOptions = useMemo(
+    () =>
+      [
+        'Janvier',
+        'Février',
+        'Mars',
+        'Avril',
+        'Mai',
+        'Juin',
+        'Juillet',
+        'Août',
+        'Septembre',
+        'Octobre',
+        'Novembre',
+        'Décembre',
+      ].map((label, i) => ({ label, value: String(i) })),
+    []
+  );
 
   // 3) Clics “paiements”
   const handleSalaryPaymentChange = (
@@ -334,13 +365,66 @@ export default function EtatFacturationsTable({
   );
 
   const displayRows: RowItem[] = useMemo(() => {
-    const rows = sortedRows.length > 0 ? sortedRows : baseRows;
-    return filterRows(rows);
-  }, [sortedRows, baseRows, filterRows]);
+    let rows = filterRows(baseRows);
+
+    // Filtre "année au choix" / "mois au choix"
+    if (yearFilter !== null) {
+      rows = rows.filter((r) => r.monthYear.year === yearFilter);
+    }
+    if (monthFilter !== null) {
+      rows = rows.filter((r) => r.monthYear.month === monthFilter);
+    }
+
+    // Tri
+    if (sortConfig) {
+      const { key, order } = sortConfig;
+      rows = [...rows].sort((a, b) => {
+        let cmp = 0;
+        if (key === 'date') {
+          cmp =
+            new Date(a.monthYear.year, a.monthYear.month).getTime() -
+            new Date(b.monthYear.year, b.monthYear.month).getTime();
+        } else if (key === 'mission') {
+          const na = Number.parseInt(
+            a.mission.mission_number?.split(' ')[1] || '0',
+            10
+          );
+          const nb = Number.parseInt(
+            b.mission.mission_number?.split(' ')[1] || '0',
+            10
+          );
+          cmp = na - nb;
+        } else {
+          const ra =
+            `${a.mission.referent?.firstname ?? ''} ${a.mission.referent?.lastname ?? ''}`
+              .trim()
+              .toLowerCase();
+          const rb =
+            `${b.mission.referent?.firstname ?? ''} ${b.mission.referent?.lastname ?? ''}`
+              .trim()
+              .toLowerCase();
+          cmp = ra.localeCompare(rb);
+        }
+        return order === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return rows;
+  }, [baseRows, filterRows, yearFilter, monthFilter, sortConfig]);
+
+  const hasActiveFiltersOrSort =
+    Object.keys(activeFilters).some(
+      (k) => activeFilters[k as keyof FilterState]
+    ) ||
+    sortConfig !== null ||
+    yearFilter !== null ||
+    monthFilter !== null;
 
   const resetFilters = () => {
     setActiveFilters({});
-    setSortedRows([]);
+    setSortConfig(null);
+    setYearFilter(null);
+    setMonthFilter(null);
     setFilterKey((prev) => prev + 1);
   };
 
@@ -352,22 +436,37 @@ export default function EtatFacturationsTable({
           key={`gestion-${filterKey}`}
           className="col-span-1"
           placeholder="Gestion de facturation"
+          filter={true}
+          showSelectedOption
+          options={[
+            { label: 'N° de M croissant', value: 'asc' },
+            { label: 'N° de M décroissant', value: 'desc' },
+          ]}
+          onValueChange={handleSort('mission')}
         />
         <FilterButton
           key={`date-${filterKey}`}
           className="col-span-1"
           placeholder="Mois / Année"
           filter={true}
+          showSelectedOption
           options={[
             { label: 'Plus ancien', value: 'asc' },
             { label: 'Plus récent', value: 'desc' },
           ]}
-          onValueChange={handleDateSort}
+          onValueChange={handleSort('date')}
         />
         <FilterButton
           key={`referent-${filterKey}`}
           className="col-span-1"
           placeholder="Référent Xpert One"
+          filter={true}
+          showSelectedOption
+          options={[
+            { label: 'Référent A → Z', value: 'asc' },
+            { label: 'Référent Z → A', value: 'desc' },
+          ]}
+          onValueChange={handleSort('referent')}
         />
         <FilterButton
           key={`presence-${filterKey}`}
@@ -438,13 +537,37 @@ export default function EtatFacturationsTable({
         />
       </div>
 
+      {/* Filtre par date : année au choix + mois au choix */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+        <span className="whitespace-nowrap text-sm font-medium">
+          Trier par date :
+        </span>
+        <FilterButton
+          key={`year-${filterKey}`}
+          placeholder="Année"
+          filter={true}
+          showSelectedOption
+          options={yearOptions}
+          onValueChange={(value) =>
+            setYearFilter(value === '' ? null : Number(value))
+          }
+        />
+        <FilterButton
+          key={`month-${filterKey}`}
+          placeholder="Mois"
+          filter={true}
+          showSelectedOption
+          options={monthOptions}
+          onValueChange={(value) =>
+            setMonthFilter(value === '' ? null : Number(value))
+          }
+        />
+      </div>
+
       {/* Résumé & reset */}
       <div className="flex items-center gap-x-4 px-1">
         <p className="whitespace-nowrap">{displayRows.length} résultats</p>
-        {(Object.keys(activeFilters).some(
-          (k) => activeFilters[k as keyof FilterState]
-        ) ||
-          sortedRows.length > 0) && (
+        {hasActiveFiltersOrSort && (
           <button className="font-[600] text-primary" onClick={resetFilters}>
             Réinitialiser
           </button>
