@@ -9,6 +9,9 @@ import StatusBox from './_boxes/StatusBox';
 import XpertStatusBox from './_boxes/XpertStatusBox';
 import SalaryPaymentBox from './_boxes/SalaryPaymentBox';
 import type { PaymentStatus, PaymentType } from '@/types/mission';
+import ViewFileDialog from '@/components/dialogs/ViewFileDialog';
+import { getFileTypeByStatusFacturation } from '../../gestion-des-facturations/[slug]/_utils/getFileTypeByStatusFacturation';
+import { checkFileStatusForDate } from '../_utils/checkFileStatusForDate';
 
 export default function EtatFacturationsRow({
   missionData,
@@ -28,11 +31,37 @@ export default function EtatFacturationsRow({
 }) {
   const router = useRouter();
   const { setCreateTaskDialogOpen, setInitialTaskData } = useTasksStore();
-  const { fileStatusesByMission } = useFileStatusFacturationStore();
+  const { fileStatusesByMission, checkAllFiles } =
+    useFileStatusFacturationStore();
   const missionStatus = missionData.xpert_associated_status;
 
   const fileStatuses =
     fileStatusesByMission[missionData.mission_number || ''] || {};
+
+  // Suppression de fichier depuis la page d'aperçu (bulletin de salaire / facture)
+  const salaryType = getFileTypeByStatusFacturation(
+    'salary_sheet',
+    missionStatus || ''
+  );
+  const factureType = getFileTypeByStatusFacturation(
+    'invoice',
+    missionStatus || ''
+  );
+  const salaryFileExists = checkFileStatusForDate(
+    fileStatuses,
+    selectedMonthYear.year,
+    selectedMonthYear.month,
+    false,
+    salaryType
+  ).exists;
+  const factureFileExists = checkFileStatusForDate(
+    fileStatuses,
+    selectedMonthYear.year,
+    selectedMonthYear.month,
+    true,
+    factureType
+  ).exists;
+  const refreshFiles = () => checkAllFiles(missionData);
 
   const isPaymentSelected = useMemo(() => {
     const payments = Array.isArray(missionData.facturation_fournisseur_payment)
@@ -172,12 +201,37 @@ export default function EtatFacturationsRow({
         isSelected={isSalaryPaymentSelected}
       />
       {/* Bulletin de salaire */}
-      <XpertStatusBox
-        fileStatuses={fileStatuses}
-        selectedMonthYear={selectedMonthYear}
-        fileType={missionStatus === 'cdi' ? 'salary_sheet' : ''}
-        xpertAssociatedStatus={missionStatus || ''}
-      />
+      {missionStatus === 'cdi' ? (
+        <div className="relative col-span-1">
+          <XpertStatusBox
+            fileStatuses={fileStatuses}
+            selectedMonthYear={selectedMonthYear}
+            fileType="salary_sheet"
+            xpertAssociatedStatus={missionStatus || ''}
+          />
+          {salaryFileExists && (
+            <div className="absolute right-0.5 top-0.5 z-10 size-6">
+              <ViewFileDialog
+                type={salaryType}
+                title="Bulletin de salaire"
+                missionData={missionData}
+                hasFile={salaryFileExists}
+                isFacturation
+                selectedYear={selectedMonthYear.year}
+                selectedMonth={selectedMonthYear.month}
+                onDeleteSuccess={refreshFiles}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <XpertStatusBox
+          fileStatuses={fileStatuses}
+          selectedMonthYear={selectedMonthYear}
+          fileType=""
+          xpertAssociatedStatus={missionStatus || ''}
+        />
+      )}
       {/* Facture validée */}
       <XpertStatusBox
         fileStatuses={fileStatuses}
@@ -198,13 +252,30 @@ export default function EtatFacturationsRow({
         paymentDate={invoicePaidPayment?.payment_date}
       />
       {/* Facture */}
-      <StatusBox
-        fileStatuses={fileStatuses}
-        selectedMonthYear={selectedMonthYear}
-        fileType="invoice"
-        isFournisseur
-        xpertAssociatedStatus={missionStatus || ''}
-      />
+      <div className="relative col-span-1">
+        <StatusBox
+          fileStatuses={fileStatuses}
+          selectedMonthYear={selectedMonthYear}
+          fileType="invoice"
+          isFournisseur
+          xpertAssociatedStatus={missionStatus || ''}
+        />
+        {factureFileExists && (
+          <div className="absolute right-0.5 top-0.5 z-10 size-6">
+            <ViewFileDialog
+              type={factureType}
+              title="Facture fournisseur"
+              missionData={missionData}
+              hasFile={factureFileExists}
+              isFournisseurSide
+              isFacturation
+              selectedYear={selectedMonthYear.year}
+              selectedMonth={selectedMonthYear.month}
+              onDeleteSuccess={refreshFiles}
+            />
+          </div>
+        )}
+      </div>
       {/* Paiement */}
       <StatusBox
         fileStatuses={fileStatuses}
