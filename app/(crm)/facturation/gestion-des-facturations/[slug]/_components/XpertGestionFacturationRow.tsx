@@ -43,6 +43,9 @@ export default function XpertGestionFacturationRow({
     useState(false);
   const [isInvoicePendingDeletion, setIsInvoicePendingDeletion] =
     useState(false);
+  const [isSalaryPendingValidation, setIsSalaryPendingValidation] =
+    useState(false);
+  const [isSalaryPendingDeletion, setIsSalaryPendingDeletion] = useState(false);
 
   const { fileStatusesByMission } = useFileStatusFacturationStore();
   const fileStatuses =
@@ -144,6 +147,19 @@ export default function XpertGestionFacturationRow({
     selectedMonth
   );
 
+  const salaryValidatedStatus = checkFileExistsForDate(
+    fileStatuses[
+      getFileTypeByStatusFacturation(
+        'salary_sheet_validated',
+        missionData?.xpert_associated_status || ''
+      )
+    ]?.xpertFiles || [],
+    selectedYear,
+    selectedMonth
+  );
+
+  const isCdi = status === 'cdi';
+
   const handleValidatePresenceSheet = () => {
     if (presenceSheetValidatedStatus.exists) {
       toast.info('La feuille de présence a déjà été validée');
@@ -196,6 +212,51 @@ export default function XpertGestionFacturationRow({
     setIsInvoicePendingDeletion(true);
     setIsInvoicePendingValidation(false);
   };
+
+  const handleValidateSalary = () => {
+    if (salaryValidatedStatus.exists) {
+      toast.info('La feuille de salaire a déjà été validée');
+      return;
+    }
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|salary_sheet`;
+    if (isSalaryPendingValidation) {
+      onPendingChange?.('validation', key, false);
+      setIsSalaryPendingValidation(false);
+      return;
+    }
+    onPendingChange?.('validation', key, true);
+    onPendingChange?.('deletion', key, false);
+    setIsSalaryPendingValidation(true);
+    setIsSalaryPendingDeletion(false);
+  };
+
+  const handleDeleteSalary = () => {
+    const key = `${missionData.mission_number}|${missionData.xpert?.generated_id}|${selectedYear}|${(selectedMonth + 1).toString().padStart(2, '0')}|salary_sheet`;
+    if (isSalaryPendingDeletion) {
+      onPendingChange?.('deletion', key, false);
+      setIsSalaryPendingDeletion(false);
+      return;
+    }
+    onPendingChange?.('deletion', key, true);
+    onPendingChange?.('validation', key, false);
+    setIsSalaryPendingDeletion(true);
+    setIsSalaryPendingValidation(false);
+  };
+
+  // Sélection du document "milieu" selon le type de contrat
+  const docValidatedStatus = isCdi
+    ? salaryValidatedStatus
+    : invoiceValidatedStatus;
+  const handleValidateDoc = isCdi
+    ? handleValidateSalary
+    : handleValidateInvoice;
+  const handleDeleteDoc = isCdi ? handleDeleteSalary : handleDeleteInvoice;
+  const docPendingValidation = isCdi
+    ? isSalaryPendingValidation
+    : isInvoicePendingValidation;
+  const docPendingDeletion = isCdi
+    ? isSalaryPendingDeletion
+    : isInvoicePendingDeletion;
 
   const paymentStatus = checkPaymentStatusForDate(
     status === 'cdi'
@@ -307,20 +368,19 @@ export default function XpertGestionFacturationRow({
         {status === 'cdi' ? 'Feuille de salaire' : 'Facture validée'}
       </Box>
       <div className="col-span-1 flex gap-2">
-        {status !== 'cdi' ? (
-          <ViewFileDialog
-            type={getFileTypeByStatusFacturation(
-              'invoice_received',
-              missionData?.xpert_associated_status || ''
-            )}
-            title={status === 'cdi' ? 'Feuille de salaire' : 'Facture validée'}
-            missionData={missionData}
-            hasFile={salaryOrInvoiceStatus.exists}
-            isFacturation
-            selectedYear={selectedYear}
-            selectedMonth={selectedMonth}
-          />
-        ) : null}
+        <ViewFileDialog
+          type={getFileTypeByStatusFacturation(
+            isCdi ? 'salary_sheet' : 'invoice_received',
+            missionData?.xpert_associated_status || ''
+          )}
+          title={isCdi ? 'Feuille de salaire' : 'Facture validée'}
+          missionData={missionData}
+          hasFile={salaryOrInvoiceStatus.exists}
+          isFacturation
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          onDeleteSuccess={onFileUpdate}
+        />
         {status === 'cdi' ? (
           <UploadFileDialog
             type={getFileTypeByStatusFacturation(
@@ -373,39 +433,39 @@ export default function XpertGestionFacturationRow({
       >
         <p>
           {salaryOrInvoiceStatus.exists
-            ? invoiceValidatedStatus.exists
+            ? docValidatedStatus.exists
               ? 'Validé le'
               : 'Reçu le'
             : 'Non reçu'}
         </p>
         <p>
           {salaryOrInvoiceStatus.exists
-            ? formatDate(invoiceValidatedStatus.createdAt ?? '')
+            ? formatDate(docValidatedStatus.createdAt ?? '')
             : ''}
         </p>
       </Box>
-      {status !== 'cdi' && (
+      {
         <div className="col-span-1 flex gap-2">
           <Button
             className={`flex size-full w-1/2 bg-[#92C6B0] text-white hover:bg-[#92C6B0]/80 ${
-              isInvoicePendingValidation && 'border-4 border-accent'
+              docPendingValidation && 'border-4 border-accent'
             }`}
-            onClick={handleValidateInvoice}
+            onClick={handleValidateDoc}
             disabled={!salaryOrInvoiceStatus.exists}
           >
             <Check className="size-6" />
           </Button>
           <Button
             className={`flex size-full w-1/2 bg-[#b32f2f] text-white hover:bg-[#b32f2f]/80 ${
-              isInvoicePendingDeletion && 'border-4 border-accent'
+              docPendingDeletion && 'border-4 border-accent'
             }`}
-            onClick={handleDeleteInvoice}
+            onClick={handleDeleteDoc}
             disabled={!salaryOrInvoiceStatus.exists}
           >
             <X className="size-6" />
           </Button>
         </div>
-      )}
+      }
 
       <Box className="col-span-3 h-[70px] bg-[#F5F5F5]">
         {status === 'cdi' ? 'Paiement salaire' : 'Facture payée'}

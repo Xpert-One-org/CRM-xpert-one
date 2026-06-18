@@ -45,6 +45,7 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
             status
           ),
           getFileTypeByStatusFacturation('invoice_validated', status),
+          getFileTypeByStatusFacturation('salary_sheet_validated', status),
           getFileTypeByStatusFacturation('invoice', status),
         ].filter(Boolean) as string[];
 
@@ -151,6 +152,7 @@ export const useFileStatusFacturationStore = create<FileStatusFacturationStore>(
               status
             ),
             getFileTypeByStatusFacturation('invoice_validated', status),
+            getFileTypeByStatusFacturation('salary_sheet_validated', status),
             getFileTypeByStatusFacturation('invoice', status),
           ]
             .filter(Boolean)
