@@ -87,10 +87,21 @@ export default function GestionDesFacturationsPage(props: {
       )) {
         if (isValidated) {
           const [missionNumber, xpertId, year, month, type] = key.split('|');
-          const isInvoice = type === 'invoice';
+          const baseTypeKey =
+            type === 'invoice'
+              ? 'invoice_received'
+              : type === 'salary_sheet'
+                ? 'salary_sheet'
+                : 'presence_sheet_signed';
+          const validatedTypeKey =
+            type === 'invoice'
+              ? 'invoice_validated'
+              : type === 'salary_sheet'
+                ? 'salary_sheet_validated'
+                : 'presence_sheet_validated';
 
           const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/${getFileTypeByStatusFacturation(
-            isInvoice ? 'invoice_received' : 'presence_sheet_signed',
+            baseTypeKey,
             missionData?.xpert_associated_status || ''
           )}`;
 
@@ -103,11 +114,11 @@ export default function GestionDesFacturationsPage(props: {
             const sourceFilePath = `${basePath}/${mostRecentFile.name}`;
             const validatedFilePath = sourceFilePath.replace(
               `${getFileTypeByStatusFacturation(
-                isInvoice ? 'invoice_received' : 'presence_sheet_signed',
+                baseTypeKey,
                 missionData?.xpert_associated_status || ''
               )}`,
               `${getFileTypeByStatusFacturation(
-                isInvoice ? 'invoice_validated' : 'presence_sheet_validated',
+                validatedTypeKey,
                 missionData?.xpert_associated_status || ''
               )}`
             );
@@ -121,10 +132,15 @@ export default function GestionDesFacturationsPage(props: {
       for (const [key, isDeleted] of Object.entries(pendingChanges.deletions)) {
         if (isDeleted) {
           const [missionNumber, xpertId, year, month, type] = key.split('|');
-          const isInvoice = type === 'invoice';
+          const baseTypeKey =
+            type === 'invoice'
+              ? 'invoice_received'
+              : type === 'salary_sheet'
+                ? 'salary_sheet'
+                : 'presence_sheet_signed';
 
           const basePath = `${missionNumber}/${xpertId}/facturation/${year}/${month}/${getFileTypeByStatusFacturation(
-            isInvoice ? 'invoice_received' : 'presence_sheet_signed',
+            baseTypeKey,
             missionData?.xpert_associated_status || ''
           )}`;
 
