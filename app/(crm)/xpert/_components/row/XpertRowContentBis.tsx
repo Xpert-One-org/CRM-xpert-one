@@ -149,21 +149,21 @@ export default function XpertRowContentBis({
   ]);
 
   const [documentType, setDocumentType] = useState(
-    cvInfo
+    cvInfo.created_at
       ? 'cv'
-      : urssafInfo
+      : urssafInfo.created_at
         ? 'urssaf'
-        : kbisInfo
+        : kbisInfo.created_at
           ? 'kbis'
-          : responsabiliteCivileInfo
+          : responsabiliteCivileInfo.created_at
             ? 'civil_responsability'
-            : ribInfo
+            : ribInfo.created_at
               ? 'rib'
-              : identityInfo
+              : identityInfo.created_at
                 ? 'identity'
-                : vitaleInfo
+                : vitaleInfo.created_at
                   ? 'vitale'
-                  : habilitationInfo
+                  : habilitationInfo.created_at
                     ? 'habilitation'
                     : ''
   );
@@ -254,6 +254,18 @@ export default function XpertRowContentBis({
           ]
         : []),
   ];
+
+  // Sélectionne automatiquement un document existant (ex. une habilitation
+  // seule, sans CV) pour que le viewer affiche toujours un doc consultable.
+  const documentOptionsKey = selectOptions.map((o) => o.value).join('|');
+  useEffect(() => {
+    if (selectOptions.length === 0) return;
+    const isValid = selectOptions.some((o) => o.value === documentType);
+    if (!isValid) {
+      setDocumentType(selectOptions[0].value as string);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentOptionsKey]);
 
   const handleChangeInput = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -619,7 +631,7 @@ export default function XpertRowContentBis({
         onConfirm={handleDeleteDocument}
         documentType={documentType}
       />
-      {(cvInfo.created_at ?? urssafInfo.created_at) && (
+      {selectOptions.length > 0 && (
         <div className="w-full p-1 font-light xl:max-w-[280px]">
           <Label htmlFor="document_type" className="mb-1 flex items-center">
             Type de documents
