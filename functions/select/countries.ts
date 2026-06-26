@@ -1,19 +1,28 @@
 import type { Country } from '@/types/types';
+import { COUNTRY_CODES } from '@/data/countryCodes';
 
 export const getCountries = async () => {
-  const response = await fetch(
-    'https://restcountries.com/v3.1/all?fields=translations,cca2,flags'
-  );
-  const data = await response.json();
-  const countries = data.map((country: any, i: number) => {
+  // La liste est construite localement (codes ISO figés + noms FR via
+  // Intl.DisplayNames + drapeaux flagcdn) pour ne plus dépendre de l'API
+  // externe restcountries, désormais dépréciée.
+  const regionNames = new Intl.DisplayNames(['fr'], { type: 'region' });
+
+  const countries = COUNTRY_CODES.map((code) => {
+    let label = code;
+    try {
+      label = regionNames.of(code) ?? code;
+    } catch {
+      label = code;
+    }
     return {
-      value: country.cca2,
-      label: country.translations.fra.common,
-      flag: country.flags.svg,
+      value: code,
+      label,
+      flag: `https://flagcdn.com/${code.toLowerCase()}.svg`,
     };
-  });
+  }).filter((country) => country.label !== country.value); // exclut les codes sans nom FR
+
   const sortedCountries = countries.sort((a: Country, b: Country) =>
-    a.label.localeCompare(b.label)
+    a.label.localeCompare(b.label, 'fr')
   );
 
   return { data: sortedCountries, error: null };
