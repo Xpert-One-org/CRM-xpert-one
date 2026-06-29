@@ -15,6 +15,7 @@ import { Check, Loader2Icon, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from './ui/label';
 import { getLabel } from '@/utils/getLabel';
+import { normalizeSearch } from '@/utils/string';
 
 type Option = {
   value: string;
@@ -56,8 +57,8 @@ type Action =
 
 const matches = (str: string, query: string, exact: boolean = false) =>
   exact
-    ? str.toLowerCase() === query.toLowerCase()
-    : str.toLowerCase().includes(query.toLowerCase());
+    ? normalizeSearch(str) === normalizeSearch(query)
+    : normalizeSearch(str).includes(normalizeSearch(query));
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {

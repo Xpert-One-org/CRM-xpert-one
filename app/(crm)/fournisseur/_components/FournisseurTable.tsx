@@ -8,6 +8,7 @@ import FournisseurMissionTable from './FournisseurMissionRow';
 import Input from '@/components/inputs/Input';
 import { empty } from '@/data/constant';
 import { getLabel } from '@/utils/getLabel';
+import { normalizeSearch } from '@/utils/string';
 import { useSelect } from '@/store/select';
 import MultiSelectComponent from '@/components/MultiSelectComponent';
 import {
@@ -166,21 +167,21 @@ export default function FournisseurTable() {
   const displayFournisseurs = useMemo(() => {
     let list = [...(fournisseurs || [])];
 
-    const query = searchQuery.trim().toLowerCase();
+    const query = normalizeSearch(searchQuery);
     if (query) {
       list = list.filter((fournisseur) =>
-        [
-          fournisseur.firstname,
-          fournisseur.lastname,
-          fournisseur.company_name,
-          fournisseur.generated_id,
-          fournisseur.company_role,
-          fournisseur.email,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .includes(query)
+        normalizeSearch(
+          [
+            fournisseur.firstname,
+            fournisseur.lastname,
+            fournisseur.company_name,
+            fournisseur.generated_id,
+            fournisseur.company_role,
+            fournisseur.email,
+          ]
+            .filter(Boolean)
+            .join(' ')
+        ).includes(query)
       );
     }
 

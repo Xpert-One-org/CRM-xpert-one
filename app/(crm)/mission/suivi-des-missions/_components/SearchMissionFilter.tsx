@@ -17,6 +17,7 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FilterMission } from '@/store/mission';
 import { useMissionStore } from '@/store/mission';
+import { normalizeSearch } from '@/utils/string';
 
 type SearchMissionFilterProps = {
   placeholder: string;
@@ -54,7 +55,7 @@ export default function SearchMissionFilter({
   };
 
   const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(debouncedSearch.toLowerCase())
+    normalizeSearch(option.label).includes(normalizeSearch(debouncedSearch))
   );
 
   return (
