@@ -13,6 +13,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { normalizeSearch } from '@/utils/string';
 
 export type Option = {
   value: string;
@@ -379,7 +380,9 @@ const MultipleSelector = React.forwardRef<
 
       if (creatable) {
         return (value: string, search: string) => {
-          return value.toLowerCase().includes(search.toLowerCase()) ? 1 : -1;
+          return normalizeSearch(value).includes(normalizeSearch(search))
+            ? 1
+            : -1;
         };
       }
       // Using default filter in `cmdk`. We don't have to provide it.

@@ -6,6 +6,7 @@ import type {
 } from '@/components/dialogs/CreateXpertDialog';
 import { limitXpert, limitXpertLastJobs } from '@/data/constant';
 import { transformArray } from '@/lib/utils';
+import { buildAccentInsensitivePattern } from '@/utils/string';
 import type { AdminOpinionValue, FilterXpert } from '@/types/types';
 import type {
   DBMission,
@@ -338,11 +339,18 @@ export const getXpertsOptimized = async ({
 
   // Ajout des filtres manquants
   if (filters?.firstname) {
-    query = query.ilike('firstname', `%${filters.firstname}%`);
+    // Recherche insensible aux accents (regex POSIX ~* via PostgREST imatch)
+    const pattern = buildAccentInsensitivePattern(filters.firstname);
+    if (pattern) {
+      query = query.filter('firstname', 'imatch', pattern);
+    }
   }
 
   if (filters?.lastname) {
-    query = query.ilike('lastname', `%${filters.lastname}%`);
+    const pattern = buildAccentInsensitivePattern(filters.lastname);
+    if (pattern) {
+      query = query.filter('lastname', 'imatch', pattern);
+    }
   }
 
   if (filters?.generated_id) {
