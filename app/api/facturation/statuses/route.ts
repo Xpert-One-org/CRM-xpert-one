@@ -40,7 +40,10 @@ export async function POST(req: Request) {
   const bucket = 'mission_files';
   const out: Record<string, Record<string, TypeEntry>> = {};
 
-  for (const m of missions) {
+  // Traite UNE mission (requête storage + agrégation) — exécuté en parallèle
+  // par vagues plus bas, au lieu d'une boucle séquentielle (N missions =
+  // N allers-retours enchaînés auparavant).
+  const processMission = async (m: (typeof missions)[number]) => {
     const xpertPrefix = m.xpert_generated_id
       ? `${m.mission_number}/${m.xpert_generated_id}/facturation/`
       : null;
@@ -51,7 +54,7 @@ export async function POST(req: Request) {
     // Aucun des deux préfixes -> rien à faire pour cette mission
     if (!xpertPrefix && !fournisseurPrefix) {
       out[m.mission_number] = {};
-      continue;
+      return;
     }
 
     const prefixes = [xpertPrefix, fournisseurPrefix].filter(
@@ -71,7 +74,7 @@ export async function POST(req: Request) {
 
     if (error || !data) {
       out[m.mission_number] = {};
-      continue;
+      return;
     }
 
     // map[type] -> { xpertFiles[], fournisseurFiles[] }
@@ -141,25 +144,12 @@ export async function POST(req: Request) {
     }
 
     out[m.mission_number] = compact;
+  };
 
-    // Debug ciblé : vérifier la clé mentionnée
-    if (
-      m.mission_number === 'M 9869' &&
-      compact.invoice_received_freelance_portage
-    ) {
-      console.log({
-        out: compact.invoice_received_freelance_portage.xpertFiles.map((f) => ({
-          createdAt: f.createdAt,
-          createdAtMs: f.createdAtMs,
-        })),
-      });
-    }
-    if (m.mission_number === 'M 9869') {
-      console.log({
-        out: out[m.mission_number].invoice_validated_freelance_portage
-          .xpertFiles,
-      });
-    }
+  // Exécution par vagues de 10 requêtes en parallèle
+  const CONCURRENCY = 10;
+  for (let i = 0; i < missions.length; i += CONCURRENCY) {
+    await Promise.all(missions.slice(i, i + CONCURRENCY).map(processMission));
   }
 
   return NextResponse.json({ data: out });

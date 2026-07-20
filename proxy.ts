@@ -42,8 +42,6 @@ export default async function proxy(request: NextRequest) {
     pathname.startsWith("/nouveau-mot-de-passe") ||
     searchParams.get("type") === "recovery";
 
-  console.log({ isPasswordReset });
-
   const isPublicPath = pathname === "/connexion" ||
     pathname === "/auth/callback" ||
     isPasswordReset;
@@ -77,7 +75,8 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // tout sauf assets/images/favicon
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // tout sauf assets statiques (le getUser() ci-dessus coûte un aller-retour
+    // réseau : on ne le paie que pour les vraies navigations/API)
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|json|txt|xml|woff|woff2|ttf|otf|eot|webmanifest)$).*)",
   ],
 };

@@ -9,8 +9,8 @@ import PeopleUsersAdd from '@/components/svg/PeopleUsersAdd';
 import {
   getCountMissions,
   getCountMissionsState,
-  getLastSignupNewUsers,
-  getLastSignUpNewUsersWeek,
+  getCountNewUsers,
+  getCountNewUsersWeek,
   getCountMissionApplications,
   getCountMissionApplicationsWeek,
 } from '@functions/dashboard';
@@ -20,30 +20,37 @@ import { getLoggedUser } from '@functions/auth/getLoggedUser';
 export default async function DashboardPage() {
   const user = await getLoggedUser();
 
-  const { data: newUsers } = await getLastSignupNewUsers('xpert');
-  const { data: newSuppliers } = await getLastSignupNewUsers('company');
-  const { newUsersLastWeek } = await getLastSignUpNewUsersWeek('xpert');
-  const { newUsersLastWeek: newSuppliersLastWeek } =
-    await getLastSignUpNewUsersWeek('company');
+  // Compteurs indépendants : une seule vague de requêtes en parallèle
+  const [
+    { count: newUsersCount },
+    { count: newSuppliersCount },
+    { count: newUsersLastWeekCount },
+    { count: newSuppliersLastWeekCount },
+    { count: missionsOpenCount },
+    { count: missionInProgressCount },
+    { count: missionsCount },
+    tasksResult,
+    { count: missionsToValidateCount },
+    { count: missionsClosedCount },
+    { count: missionApplicationsCount },
+    { count: missionApplicationsWeekCount },
+  ] = await Promise.all([
+    getCountNewUsers('xpert'),
+    getCountNewUsers('company'),
+    getCountNewUsersWeek('xpert'),
+    getCountNewUsersWeek('company'),
+    getCountMissionsState('open'),
+    getCountMissionsState('in_progress'),
+    getCountMissions(),
+    getCountTasksToTreatAndUrgent(),
+    getCountMissionsState('to_validate'),
+    getCountMissionsState('finished'),
+    getCountMissionApplications(),
+    getCountMissionApplicationsWeek(),
+  ]);
 
-  const { data: missionsOpen } = await getCountMissionsState('open');
-  const { data: missionInProgress } =
-    await getCountMissionsState('in_progress');
-
-  const { data: missions } = await getCountMissions();
-
-  const { pending: pendingTaskCount, urgent: urgentTaskCount } = (
-    await getCountTasksToTreatAndUrgent()
-  ).count;
-
-  const { data: missionsToValidate } =
-    await getCountMissionsState('to_validate');
-
-  const { data: missionsClosed } = await getCountMissionsState('finished');
-
-  const { data: missionApplications } = await getCountMissionApplications();
-  const { data: missionApplicationsWeek } =
-    await getCountMissionApplicationsWeek();
+  const { pending: pendingTaskCount, urgent: urgentTaskCount } =
+    tasksResult.count;
 
   return (
     <>
@@ -51,7 +58,7 @@ export default async function DashboardPage() {
         {user?.role !== 'hr' && user?.role !== 'adv' && (
           <>
             <DashBoardCards
-              count={missionsOpen.length}
+              count={missionsOpenCount}
               title="Missions ouvertes"
               urgentTitle="Urgentes"
               urgentCount={0}
@@ -62,7 +69,7 @@ export default async function DashboardPage() {
               link="/mission/etats?etat=open"
             />
             <DashBoardCards
-              count={missionInProgress.length}
+              count={missionInProgressCount}
               title="Missions placées"
               urgentTitle="Urgentes"
               urgentCount={0}
@@ -86,7 +93,7 @@ export default async function DashboardPage() {
         {user?.role !== 'hr' && user?.role !== 'adv' && (
           <>
             <DashBoardCards
-              count={missionsToValidate.length}
+              count={missionsToValidateCount}
               title="Missions à valider"
               urgentTitle="Urgentes"
               urgentCount={0}
@@ -101,10 +108,10 @@ export default async function DashboardPage() {
         {user?.role !== 'hr' && user?.role !== 'adv' && (
           <>
             <DashBoardCards
-              count={newUsers.length}
+              count={newUsersCount}
               title="Total xperts inscrits"
               urgentTitle="Semaine"
-              urgentCount={newUsersLastWeek.length || 0}
+              urgentCount={newUsersLastWeekCount}
               buttonTitle="Nouveaux inscrits"
               iconButton={
                 <PeopleUsersAdd className="fill-white" width={24} height={24} />
@@ -112,10 +119,10 @@ export default async function DashboardPage() {
               link="/nouveaux-inscrits?role=xpert"
             />
             <DashBoardCards
-              count={missionApplications.length}
+              count={missionApplicationsCount}
               title="Nouvelles candidatures"
               urgentTitle="Cette semaine"
-              urgentCount={missionApplicationsWeek.length || 0}
+              urgentCount={missionApplicationsWeekCount}
               buttonTitle="Candidatures"
               iconButton={
                 <PeopleUsersAdd className="fill-white" width={24} height={24} />
@@ -123,10 +130,10 @@ export default async function DashboardPage() {
               link="/mission/etats?etat=open"
             />
             <DashBoardCards
-              count={newSuppliers.length}
+              count={newSuppliersCount}
               title="Total fournisseurs inscrits"
               urgentTitle="Semaine"
-              urgentCount={newSuppliersLastWeek.length || 0}
+              urgentCount={newSuppliersLastWeekCount}
               buttonTitle="Nouveaux inscrits"
               iconButton={
                 <PeopleUsersAdd className="fill-white" width={24} height={24} />
@@ -136,7 +143,7 @@ export default async function DashboardPage() {
           </>
         )}
         <DashBoardCards
-          count={missions.length}
+          count={missionsCount}
           title="Suivi des missions"
           urgentTitle="Urgentes"
           urgentCount={0}
@@ -145,7 +152,7 @@ export default async function DashboardPage() {
           link="/mission/suivi-des-missions"
         />
         <DashBoardCards
-          count={missionsClosed.length}
+          count={missionsClosedCount}
           title="Missions arrêtées"
           urgentTitle="Non cloturées"
           urgentCount={0}

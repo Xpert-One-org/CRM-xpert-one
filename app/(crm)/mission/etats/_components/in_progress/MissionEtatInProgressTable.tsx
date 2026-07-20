@@ -49,13 +49,31 @@ export default function MissionEtatInProgressTable() {
         Record<string, { exists: boolean; createdAt?: string }>
       > = {};
 
+      const checkPath = async (basePath: string) => {
+        const { data: files, error } = await supabase.storage
+          .from('mission_files')
+          .list(basePath);
+        if (!error && files && files.length > 0) {
+          const sortedFiles = files.sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          );
+          return { exists: true, createdAt: sortedFiles[0].created_at };
+        }
+        return { exists: false };
+      };
+
+      // Une entrée par (mission, type de document) — toutes les requêtes
+      // storage partent en parallèle (avant : boucle entièrement séquentielle,
+      // jusqu'à missions × 5 allers-retours enchaînés)
+      const jobs: Promise<void>[] = [];
+
       for (const mission of missions) {
         if (mission.state !== 'in_progress') continue;
 
-        const missionStatuses: Record<
-          string,
-          { exists: boolean; createdAt?: string }
-        > = {};
+        statuses[mission.id] = {};
+        const missionStatuses = statuses[mission.id];
         const missionXpertStatus = mission.xpert_associated_status;
 
         const xpertTypes = [
@@ -71,24 +89,11 @@ export default function MissionEtatInProgressTable() {
         if (mission.xpert?.generated_id) {
           for (const type of xpertTypes) {
             const basePath = `${mission.mission_number}/${mission.xpert?.generated_id}/activation/${type}`;
-
-            const { data: files, error } = await supabase.storage
-              .from('mission_files')
-              .list(basePath);
-
-            if (!error && files && files.length > 0) {
-              const sortedFiles = files.sort(
-                (a, b) =>
-                  new Date(b.created_at).getTime() -
-                  new Date(a.created_at).getTime()
-              );
-              missionStatuses[type] = {
-                exists: true,
-                createdAt: sortedFiles[0].created_at,
-              };
-            } else {
-              missionStatuses[type] = { exists: false };
-            }
+            jobs.push(
+              checkPath(basePath).then((result) => {
+                missionStatuses[type] = result;
+              })
+            );
           }
         }
 
@@ -98,28 +103,15 @@ export default function MissionEtatInProgressTable() {
             missionXpertStatus ?? ''
           );
           const basePath = `${mission.mission_number}/${mission.supplier?.generated_id}/activation/${fournisseurType}`;
-
-          const { data: files, error } = await supabase.storage
-            .from('mission_files')
-            .list(basePath);
-
-          if (!error && files && files.length > 0) {
-            const sortedFiles = files.sort(
-              (a, b) =>
-                new Date(b.created_at).getTime() -
-                new Date(a.created_at).getTime()
-            );
-            missionStatuses[fournisseurType] = {
-              exists: true,
-              createdAt: sortedFiles[0].created_at,
-            };
-          } else {
-            missionStatuses[fournisseurType] = { exists: false };
-          }
+          jobs.push(
+            checkPath(basePath).then((result) => {
+              missionStatuses[fournisseurType] = result;
+            })
+          );
         }
-
-        statuses[mission.id] = missionStatuses;
       }
+
+      await Promise.all(jobs);
 
       setFileStatuses(statuses);
     };

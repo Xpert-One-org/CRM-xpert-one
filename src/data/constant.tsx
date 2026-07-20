@@ -13,5 +13,5 @@ export const minQuerySearch = 2;
 export const ageMax = 35;
 export const limitXpert = 35;
 export const limitXpertLastJobs = 35;
-export const limitFournisseur = 10;
+export const limitFournisseur = 50;
 export const limitTask = 9;

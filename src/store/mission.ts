@@ -155,8 +155,10 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   },
 
   fetchLastMissionNumber: async () => {
-    const { data } = await getLastMissionNumber();
-    const { data: dataFacturation } = await getLastMissionNumber(true);
+    const [{ data }, { data: dataFacturation }] = await Promise.all([
+      getLastMissionNumber(),
+      getLastMissionNumber(true),
+    ]);
     set({
       lastMissionNumber: data ?? '',
       lastMissionNumberFacturation: dataFacturation ?? data ?? '',

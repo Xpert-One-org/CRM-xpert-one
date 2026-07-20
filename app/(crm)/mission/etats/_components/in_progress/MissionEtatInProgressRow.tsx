@@ -49,27 +49,30 @@ export default function MissionEtatInProgressRow({
         {};
 
       if (mission.xpert?.generated_id) {
-        for (const type of xpertTypes) {
-          const basePath = `${mission.mission_number}/${mission.xpert?.generated_id}/activation/${type}`;
+        // Les 4 vérifications partent en parallèle (avant : séquentielles)
+        await Promise.all(
+          xpertTypes.map(async (type) => {
+            const basePath = `${mission.mission_number}/${mission.xpert?.generated_id}/activation/${type}`;
 
-          const { data: files, error } = await supabase.storage
-            .from('mission_files')
-            .list(basePath);
+            const { data: files, error } = await supabase.storage
+              .from('mission_files')
+              .list(basePath);
 
-          if (!error && files && files.length > 0) {
-            const sortedFiles = files.sort(
-              (a, b) =>
-                new Date(b.created_at).getTime() -
-                new Date(a.created_at).getTime()
-            );
-            statuses[type] = {
-              exists: true,
-              createdAt: sortedFiles[0].created_at,
-            };
-          } else {
-            statuses[type] = { exists: false };
-          }
-        }
+            if (!error && files && files.length > 0) {
+              const sortedFiles = files.sort(
+                (a, b) =>
+                  new Date(b.created_at).getTime() -
+                  new Date(a.created_at).getTime()
+              );
+              statuses[type] = {
+                exists: true,
+                createdAt: sortedFiles[0].created_at,
+              };
+            } else {
+              statuses[type] = { exists: false };
+            }
+          })
+        );
       }
 
       if (mission.supplier?.generated_id) {

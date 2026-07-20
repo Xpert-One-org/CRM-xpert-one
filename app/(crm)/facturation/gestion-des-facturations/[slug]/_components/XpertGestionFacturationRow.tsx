@@ -47,11 +47,11 @@ export default function XpertGestionFacturationRow({
     useState(false);
   const [isSalaryPendingDeletion, setIsSalaryPendingDeletion] = useState(false);
 
-  const { fileStatusesByMission } = useFileStatusFacturationStore();
+  const fileStatusesByMission = useFileStatusFacturationStore(
+    (s) => s.fileStatusesByMission
+  );
   const fileStatuses =
     fileStatusesByMission[missionData.mission_number || ''] || {};
-
-  console.log({ fileStatuses });
 
   const handleDownloadFile = async ({
     type,
@@ -266,7 +266,6 @@ export default function XpertGestionFacturationRow({
     selectedMonth
   );
 
-  console.log({ paymentStatus });
   return (
     <>
       <Box className="col-span-2 h-[70px] bg-[#F5F5F5]">

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import React from 'react';
-import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import MenuBurger from '@components/MenuBurger';
 import NotificationBell from '@components/NotificationBell';
 import ActualPageTitle from './actual-page-title';
@@ -14,13 +13,14 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseAppServerClient();
-  const { user } = (await supabase.auth.getUser()).data;
-  if (!user) {
+  // getLoggedUser fait déjà auth.getUser() + profil : un seul aller-retour
+  // (avant, le layout refaisait un auth.getUser() séparé à chaque navigation)
+  let userData: Awaited<ReturnType<typeof getLoggedUser>>;
+  try {
+    userData = await getLoggedUser();
+  } catch {
     redirect('/connexion');
   }
-
-  const userData = await getLoggedUser();
 
   return (
     <section className="flex w-full">
@@ -36,7 +36,7 @@ export default async function Layout({
             <ActualPageTitle className="flex items-center justify-center" />
             <div className="flex items-center justify-end gap-x-spaceSmall sm:gap-x-spaceContainer lg:items-end">
               <div>
-                <NotificationBell user={user} />
+                <NotificationBell user={{ id: userData.id }} />
               </div>
               <Avatar className="size-[51px] sm:size-[64px]">
                 <AvatarImage

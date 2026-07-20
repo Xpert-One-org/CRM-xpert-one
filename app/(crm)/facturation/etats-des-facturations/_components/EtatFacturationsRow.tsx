@@ -30,9 +30,16 @@ export default function EtatFacturationsRow({
   ) => void;
 }) {
   const router = useRouter();
-  const { setCreateTaskDialogOpen, setInitialTaskData } = useTasksStore();
-  const { fileStatusesByMission, checkAllFiles } =
-    useFileStatusFacturationStore();
+  // Sélecteurs ciblés : la ligne ne se re-rend que si SA donnée change,
+  // pas à chaque mutation du store (des dizaines de lignes sont montées)
+  const setCreateTaskDialogOpen = useTasksStore(
+    (s) => s.setCreateTaskDialogOpen
+  );
+  const setInitialTaskData = useTasksStore((s) => s.setInitialTaskData);
+  const fileStatusesByMission = useFileStatusFacturationStore(
+    (s) => s.fileStatusesByMission
+  );
+  const checkAllFiles = useFileStatusFacturationStore((s) => s.checkAllFiles);
   const missionStatus = missionData.xpert_associated_status;
 
   const fileStatuses =
