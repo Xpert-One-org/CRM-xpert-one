@@ -22,19 +22,22 @@ const checkMissionAccess = async (supabase: any) => {
 
   if (!userProfile) return { isAuthorized: false };
 
-  // Vérifier si l'utilisateur est un remplaçant
-  const { data: isReplacement } = await supabase
-    .from('profile')
-    .select('id')
-    .eq('collaborator_is_absent', true)
-    .eq('collaborator_replacement_id', authUser.id);
-
-  const isReplaceForSomeone = isReplacement && isReplacement.length > 0;
-
   // D'après l'image, admin et chargé d'affaires ont accès complet
   const isAdmin = userProfile.role === 'admin';
   const isChargeAffaires = userProfile.role === 'business';
   const isStagiaire = userProfile.role === 'intern';
+
+  // Vérifier si l'utilisateur est un remplaçant — inutile pour les rôles qui
+  // ont déjà l'accès complet (économise une requête sur chaque appel admin)
+  let isReplaceForSomeone = false;
+  if (!isAdmin && !isChargeAffaires) {
+    const { data: isReplacement } = await supabase
+      .from('profile')
+      .select('id')
+      .eq('collaborator_is_absent', true)
+      .eq('collaborator_replacement_id', authUser.id);
+    isReplaceForSomeone = !!isReplacement && isReplacement.length > 0;
+  }
 
   const hasWriteAccess = isAdmin || isChargeAffaires || isReplaceForSomeone;
   const hasReadAccess =
@@ -264,9 +267,6 @@ export const getAllMissions = async (
     query = query.in('state', options.states);
   }
 
-  // Récupérer le nombre total pour la pagination
-  const { count } = await query;
-
   // Appliquer le tri si spécifié
   if (options?.sortBy) {
     query = query.order(options.sortBy.column, {
@@ -281,7 +281,9 @@ export const getAllMissions = async (
   // Appliquer la pagination
   query = query.range(offset, offset + limit - 1);
 
-  const { data, error } = await query;
+  // count: 'exact' est déjà demandé dans le select : une seule requête
+  // renvoie données + total (avant, la requête lourde était exécutée deux fois)
+  const { data, error, count } = await query;
 
   if (error) {
     console.error('Query error:', error);

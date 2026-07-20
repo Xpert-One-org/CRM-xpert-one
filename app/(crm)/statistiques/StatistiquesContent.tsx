@@ -1,10 +1,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import XpertStatsDashboard from './XpertStatsDashboard';
-import MissionStatsDashboard from './MissionStatsDashboard';
-import FournisseurStatsDashboard from './FournisseurStatsDashboard';
+import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
+import Loader from '@/components/Loader';
+
+// Chargement dynamique : recharts + react-simple-maps ne sont téléchargés
+// que pour l'onglet affiché, pas au premier rendu de la page.
+const dashboardLoading = () => (
+  <div className="flex w-full items-center justify-center p-10">
+    <Loader />
+  </div>
+);
+const XpertStatsDashboard = dynamic(() => import('./XpertStatsDashboard'), {
+  ssr: false,
+  loading: dashboardLoading,
+});
+const MissionStatsDashboard = dynamic(() => import('./MissionStatsDashboard'), {
+  ssr: false,
+  loading: dashboardLoading,
+});
+const FournisseurStatsDashboard = dynamic(
+  () => import('./FournisseurStatsDashboard'),
+  { ssr: false, loading: dashboardLoading }
+);
 
 const StatistiquesContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<

@@ -118,7 +118,10 @@ export default function MissionEtatOpenRow({
     };
 
     fetchMatchingCount();
-  }, [mission]);
+    // Clé stable : dépendre de l'objet mission entier relançait ce fetch à
+    // chaque mise à jour du store (2 requêtes × N lignes à chaque frappe)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mission.id]);
 
   useEffect(() => {
     const fetchSelectionCount = async () => {

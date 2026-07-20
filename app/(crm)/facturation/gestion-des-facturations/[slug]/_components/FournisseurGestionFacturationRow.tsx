@@ -31,7 +31,9 @@ export default function FournisseurGestionFacturationRow({
   selectedMonth,
   onFileUpdate,
 }: Omit<FournisseurGestionFacturationRowProps, 'fileStatuses'>) {
-  const { fileStatusesByMission } = useFileStatusFacturationStore();
+  const fileStatusesByMission = useFileStatusFacturationStore(
+    (s) => s.fileStatusesByMission
+  );
   const [isEditingOrderNumber, setIsEditingOrderNumber] = useState(false);
   const [orderNumber, setOrderNumber] = useState(
     missionData.order_number ?? missionData.mission_number ?? ''

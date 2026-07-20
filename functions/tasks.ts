@@ -314,42 +314,49 @@ export async function getTaskHistory(taskId: number): Promise<{
     return { data: null, error: 'No data found' };
   }
 
-  // Enrichir avec les infos des assignés
-  const enrichedData = await Promise.all(
-    historyData.map(async (entry) => {
-      const oldValues = entry.old_values as Task;
-      const newValues = entry.new_values as Task;
-
-      let oldAssigned = null;
-      let newAssigned = null;
-
-      if (oldValues?.assigned_to) {
-        const { data: oldProfile } = await supabase
-          .from('profile')
-          .select('firstname, lastname')
-          .eq('id', oldValues.assigned_to)
-          .single();
-        oldAssigned = oldProfile;
-      }
-
-      if (newValues?.assigned_to) {
-        const { data: newProfile } = await supabase
-          .from('profile')
-          .select('firstname, lastname')
-          .eq('id', newValues.assigned_to)
-          .single();
-        newAssigned = newProfile;
-      }
-
-      return {
-        ...entry,
-        old_assigned: oldAssigned,
-        new_assigned: newAssigned,
-        old_values: oldValues,
-        new_values: newValues,
-      };
-    })
+  // Enrichir avec les infos des assignés : une seule requête groupée sur les
+  // IDs distincts (avant : jusqu'à 2 requêtes par entrée d'historique)
+  const assignedIds = Array.from(
+    new Set(
+      historyData
+        .flatMap((entry) => [
+          (entry.old_values as Task)?.assigned_to,
+          (entry.new_values as Task)?.assigned_to,
+        ])
+        .filter((id): id is string => !!id)
+    )
   );
+
+  const assignedMap: Record<
+    string,
+    { firstname: string | null; lastname: string | null }
+  > = {};
+  if (assignedIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profile')
+      .select('id, firstname, lastname')
+      .in('id', assignedIds);
+    for (const p of profiles ?? []) {
+      assignedMap[p.id] = { firstname: p.firstname, lastname: p.lastname };
+    }
+  }
+
+  const enrichedData = historyData.map((entry) => {
+    const oldValues = entry.old_values as Task;
+    const newValues = entry.new_values as Task;
+
+    return {
+      ...entry,
+      old_assigned: oldValues?.assigned_to
+        ? (assignedMap[oldValues.assigned_to] ?? null)
+        : null,
+      new_assigned: newValues?.assigned_to
+        ? (assignedMap[newValues.assigned_to] ?? null)
+        : null,
+      old_values: oldValues,
+      new_values: newValues,
+    };
+  });
 
   return { data: enrichedData, error: null };
 }

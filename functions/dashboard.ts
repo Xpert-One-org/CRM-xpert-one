@@ -1,110 +1,103 @@
 'use server';
 
-import type { DBMissionState, DBProfile } from '@/types/typesDb';
+import type { DBMissionState } from '@/types/typesDb';
 import { createSupabaseAppServerClient } from '@/utils/supabase/server';
 import { checkAuthRole } from './auth/checkRole';
 
-export const getLastSignupNewUsers = async (role?: string) => {
+// Toutes ces fonctions n'alimentent que des compteurs du dashboard :
+// on utilise des requêtes `count` (head: true) pour ne transférer aucune ligne.
+
+export const getCountNewUsers = async (role?: string) => {
   const supabase = await createSupabaseAppServerClient();
 
   let query = supabase
     .from('profile')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .select('*', { count: 'exact', head: true });
 
   if (role) {
     query = query.eq('role', role);
   }
 
-  const { data, error } = await query;
+  const { count, error } = await query;
 
   if (error) {
     throw error;
   }
 
-  return { data };
+  return { count: count ?? 0 };
 };
 
-export const getLastSignUpNewUsersWeek = async (role?: string) => {
+export const getCountNewUsersWeek = async (role?: string) => {
   const supabase = await createSupabaseAppServerClient();
 
   const isAdmin = await checkAuthRole();
 
-  if (isAdmin) {
-    let query = supabase
-      .from('profile')
-      .select('*')
-      .gte(
-        'created_at',
-        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleString('en-US', {
-          timeZone: 'Europe/Paris',
-        })
-      )
-      .order('created_at', { ascending: false });
-
-    if (role) {
-      query = query.eq('role', role);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      throw error;
-    }
-
-    const lastWeek = new Date();
-    lastWeek.setDate(lastWeek.getDate() - 7);
-
-    const newUsersLastWeek = data.filter(
-      (user: DBProfile) => new Date(user.created_at) > lastWeek
-    );
-
-    return { newUsersLastWeek };
+  if (!isAdmin) {
+    return { count: 0 };
   }
 
-  return { newUsersLastWeek: [] };
+  const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  let query = supabase
+    .from('profile')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', lastWeek.toISOString());
+
+  if (role) {
+    query = query.eq('role', role);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  return { count: count ?? 0 };
 };
 
 export const getCountMissions = async () => {
   const supabase = await createSupabaseAppServerClient();
 
-  const { data, error } = await supabase.from('mission').select('*');
+  const { count, error } = await supabase
+    .from('mission')
+    .select('*', { count: 'exact', head: true });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return { data };
+  return { count: count ?? 0 };
 };
 
 export const getCountMissionsState = async (state: DBMissionState) => {
   const supabase = await createSupabaseAppServerClient();
 
-  const { data, error } = await supabase
+  const { count, error } = await supabase
     .from('mission')
-    .select('*')
+    .select('*', { count: 'exact', head: true })
     .eq('state', state);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return { data };
+  return { count: count ?? 0 };
 };
 
 export const getCountMissionApplications = async () => {
   const supabase = await createSupabaseAppServerClient();
-  const { data, error } = await supabase
+  const { count, error } = await supabase
     .from('selection_matching')
-    .select('*, xpert:profile(firstname, lastname, generated_id)')
+    .select('*', { count: 'exact', head: true })
     .eq('column_status', 'postulant');
 
   if (error) {
     console.error('Error fetching mission applications:', error);
-    return { data: [] };
+    return { count: 0 };
   }
 
-  return { data: data || [] };
+  return { count: count ?? 0 };
 };
 
 export const getCountMissionApplicationsWeek = async () => {
@@ -112,16 +105,16 @@ export const getCountMissionApplicationsWeek = async () => {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const { data, error } = await supabase
+  const { count, error } = await supabase
     .from('selection_matching')
-    .select('*')
+    .select('*', { count: 'exact', head: true })
     .eq('column_status', 'postulant')
     .gte('created_at', weekAgo.toISOString());
 
   if (error) {
     console.error('Error fetching mission applications of the week:', error);
-    return { data: [] };
+    return { count: 0 };
   }
 
-  return { data: data || [] };
+  return { count: count ?? 0 };
 };

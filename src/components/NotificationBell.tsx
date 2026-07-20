@@ -13,9 +13,8 @@ import { Button } from './ui/button';
 import { AlertTriangle, Check, Info, Trash2 } from 'lucide-react';
 import InfiniteScroll from './ui/infinite-scroll';
 import Loader from './Loader';
-import type { User } from '@supabase/supabase-js';
 
-function NotificationBell({ user }: { user: User }) {
+function NotificationBell({ user }: { user: { id: string } }) {
   const [isOpen, setIsOpen] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [isDeletingAll, setIsDeletingAll] = useState(false);

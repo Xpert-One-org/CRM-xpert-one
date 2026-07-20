@@ -17,8 +17,23 @@ import {
 import { Button } from '@/components/ui/button';
 import { roleSelect } from '@/data/mocked_select';
 import { cn } from '@/lib/utils';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import dynamic from 'next/dynamic';
+
+// emoji-mart (composant + ~1 Mo de données) n'est chargé que lorsqu'un
+// utilisateur ouvre le sélecteur de réaction, pas avec la page de chat.
+const EmojiPicker = dynamic(
+  async () => {
+    const [{ default: Picker }, { default: data }] = await Promise.all([
+      import('@emoji-mart/react'),
+      import('@emoji-mart/data'),
+    ]);
+    const PickerWithData = (props: Record<string, unknown>) => (
+      <Picker data={data} {...props} />
+    );
+    return PickerWithData;
+  },
+  { ssr: false }
+);
 
 import { Lock, MessageSquareMore, Pin, X } from 'lucide-react';
 import { useState } from 'react';
@@ -219,13 +234,14 @@ export const MsgCard = ({
                 Ajouter une réaction
               </PopoverTrigger>
               <PopoverContent className="w-full border-none bg-transparent p-0">
-                <Picker
-                  locale="fr"
-                  autoFocus
-                  noCountryFlags
-                  data={data}
-                  onEmojiSelect={addReaction}
-                />
+                {open && (
+                  <EmojiPicker
+                    locale="fr"
+                    autoFocus
+                    noCountryFlags
+                    onEmojiSelect={addReaction}
+                  />
+                )}
               </PopoverContent>
             </Popover>
 

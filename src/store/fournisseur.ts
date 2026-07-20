@@ -133,34 +133,27 @@ export const useFournisseurStore = create<FournisseurState>((set, get) => ({
     // Si forceReload est true ou si on n'a pas encore de fournisseurs, on récupère toutes les pages
     // Sinon, on continue la pagination incrémentale
     if (forceReload || currentFournisseurs.length === 0) {
-      // Récupérer toutes les pages
-      let allFournisseurs: DBFournisseur[] = [];
-      let currentOffset = 0;
-      let hasMore = true;
-      let totalCount: number | null = null;
+      // Première page pour connaître le total, puis pages restantes en
+      // PARALLÈLE (avant : boucle séquentielle, un aller-retour par page)
+      const { data: firstPage, count: totalCount } = await getAllFournisseurs({
+        offset: 0,
+      });
 
-      while (hasMore) {
-        const { data, count } = await getAllFournisseurs({
-          offset: currentOffset,
-        });
-        totalCount = count;
+      let allFournisseurs: DBFournisseur[] = [...firstPage];
 
-        if (data.length === 0) {
-          hasMore = false;
-        } else {
-          allFournisseurs = [...allFournisseurs, ...data];
-          currentOffset += data.length;
-
-          // Si on a récupéré tous les fournisseurs, on arrête
-          if (totalCount !== null && allFournisseurs.length >= totalCount) {
-            hasMore = false;
-          }
-
-          // Si on a récupéré moins que la limite, c'est qu'on a atteint la fin
-          if (data.length < limitFournisseur) {
-            hasMore = false;
-          }
+      if (
+        totalCount !== null &&
+        totalCount > firstPage.length &&
+        firstPage.length === limitFournisseur
+      ) {
+        const remainingOffsets: number[] = [];
+        for (let o = limitFournisseur; o < totalCount; o += limitFournisseur) {
+          remainingOffsets.push(o);
         }
+        const pages = await Promise.all(
+          remainingOffsets.map((o) => getAllFournisseurs({ offset: o }))
+        );
+        allFournisseurs = [...allFournisseurs, ...pages.flatMap((p) => p.data)];
       }
 
       set({
