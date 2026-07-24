@@ -1,4 +1,5 @@
 import Input from '@/components/inputs/Input';
+import TextArea from '@/components/inputs/TextArea';
 import { empty } from '@/data/constant';
 import {
   areaSelect,
@@ -268,7 +269,7 @@ export default function XpertRowContentBis({
   }, [documentOptionsKey]);
 
   const handleChangeInput = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     table?: NestedTableKey
   ) => {
     const name = e.target.name;
@@ -1007,6 +1008,16 @@ export default function XpertRowContentBis({
             />
           </div>
         )}
+        <div className="h-px w-full bg-[#BEBEC0]" />
+        <div className="grid w-full grid-cols-1 gap-4">
+          <TextArea
+            label="Éléments à nous communiquer"
+            name="others"
+            placeholder="Commentaires"
+            value={xpert.profile_mission?.others ?? empty}
+            onChange={(e) => handleChangeInput(e, 'profile_mission')}
+          />
+        </div>
       </div>
     </>
   );
