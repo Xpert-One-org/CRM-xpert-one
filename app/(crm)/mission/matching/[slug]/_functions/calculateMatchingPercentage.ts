@@ -1,6 +1,7 @@
 import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
 import type { NonMatchingCriteria } from './getNonMatchingCriteria';
 import { getNonMatchingCriteria } from './getNonMatchingCriteria';
+import { xpertHasJobTitle } from './xpertHasJobTitle';
 
 const getTotalCriteriaCount = (
   missionData: DBMission,
@@ -157,14 +158,17 @@ export const calculatePartialMatches = (
   let additionalPoints = 0;
 
   // Job Title
-  if (nonMatchingCriteria.job_title?.length && mission?.job_titles) {
+  if (
+    nonMatchingCriteria.job_title?.length &&
+    (mission?.job_titles?.length || mission?.job_titles_other)
+  ) {
     const requiredTitles = [
       ...(excludedCriteria.job_title ? [] : [missionData.job_title]),
       ...(additionalCriteria.job_title || []),
     ].filter((title) => title && !excludedCriteria.job_title?.includes(title));
 
     const matchingCount = requiredTitles.filter((title) =>
-      mission.job_titles?.includes(title || '')
+      xpertHasJobTitle(mission, title)
     ).length;
 
     if (matchingCount > 0) {

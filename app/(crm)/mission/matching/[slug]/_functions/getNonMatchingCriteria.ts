@@ -1,4 +1,5 @@
 import type { DBMatchedXpert, DBMission } from '@/types/typesDb';
+import { xpertHasJobTitle } from './xpertHasJobTitle';
 
 export type NonMatchingCriteria = {
   job_title?: string[];
@@ -29,7 +30,10 @@ export const getNonMatchingCriteria = ({
   const experience = xpert.profile_experience;
   const nonMatching: NonMatchingCriteria = {};
 
-  if (mission?.job_titles && missionData?.job_title) {
+  if (
+    (mission?.job_titles || mission?.job_titles_other) &&
+    missionData?.job_title
+  ) {
     const requiredJobTitles = [
       missionData.job_title,
       ...(additionalCriteria?.job_title || []),
@@ -37,7 +41,7 @@ export const getNonMatchingCriteria = ({
 
     const nonMatchingJobTitles = requiredJobTitles
       .filter((title) => !excludedCriteria?.job_title?.includes(title))
-      .filter((title) => !mission.job_titles?.includes(title));
+      .filter((title) => !xpertHasJobTitle(mission, title));
 
     if (nonMatchingJobTitles.length) {
       nonMatching.job_title = nonMatchingJobTitles;
