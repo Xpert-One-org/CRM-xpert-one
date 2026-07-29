@@ -107,6 +107,7 @@ export async function getAllMatchedXperts(
       profile_mission (
         id,
         job_titles,
+        job_titles_other,
         posts_type,
         sector,
         specialties,
