@@ -850,6 +850,59 @@ export default function XpertRowContent({
             onChange={(e) => handleOtherInput(e.target.value, 'habilitations')}
           />
         )}
+        {(() => {
+          // Habilitations "Autre" personnalisées saisies par l'xpert
+          // (stockées dans habilitations_details, nom préfixé "other:").
+          const others = (
+            (xpert.profile_expertise?.habilitations_details ?? []) as any[]
+          ).filter((d) => d?.habilitation_name?.startsWith?.('other:'));
+          if (others.length === 0) return null;
+          const supabase = createSupabaseFrontendClient();
+          return (
+            <div className="col-span-2 flex flex-col gap-2 rounded-md bg-white/60 p-3">
+              <p className="text-sm font-medium">
+                Habilitations « Autre » renseignées par l'xpert
+              </p>
+              {others.map((d, i) => {
+                const name = (d.habilitation_name ?? '').slice('other:'.length);
+                const url = d.file_name
+                  ? supabase.storage
+                      .from('profile_files')
+                      .getPublicUrl(
+                        `${xpert.generated_id}/habilitations/${d.file_name}`
+                      ).data.publicUrl
+                  : null;
+                return (
+                  <div
+                    key={i}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm"
+                  >
+                    <span className="font-semibold">
+                      {name || `Habilitation ${i + 1}`}
+                    </span>
+                    {d.expiration_date && (
+                      <span className="text-gray-500">
+                        Expire le {d.expiration_date}
+                      </span>
+                    )}
+                    {url ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary underline"
+                      >
+                        Consulter le document
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">Aucun document</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
       <div className="my-spaceContainer h-px w-full bg-[#BEBEC0]" />
       <div className="grid w-full grid-cols-2 gap-4">
