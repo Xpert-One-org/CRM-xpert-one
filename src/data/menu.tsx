@@ -217,8 +217,20 @@ export const menuCrm = [
     ),
     url: '/statistiques',
   },
+  {
+    id: 10,
+    title: 'Newsletter',
+    icon: (
+      <Mail
+        width={32}
+        height={32}
+        className="stroke-white transition group-hover:stroke-accent"
+      />
+    ),
+    url: '/newsletter',
+  },
   // {
-  //   id: 10,
+  //   id: 11,
   //   title: 'Paramètres',
   //   icon: (
   //     <Cog
