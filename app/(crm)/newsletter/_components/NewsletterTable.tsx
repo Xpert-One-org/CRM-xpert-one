@@ -11,6 +11,18 @@ import {
   type NewsletterSubscriber,
 } from '../newsletter.action';
 
+const SOURCE_LABELS: Record<string, string> = {
+  site_vitrine: 'Site Vitrine',
+};
+
+const formatSource = (source: string | null): string => {
+  if (!source) return '—';
+  return (
+    SOURCE_LABELS[source] ??
+    source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+};
+
 export default function NewsletterTable() {
   const [list, setList] = useState<NewsletterSubscriber[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +58,7 @@ export default function NewsletterTable() {
     const rows = list
       .map(
         (s) =>
-          `${s.email},${new Date(s.created_at).toISOString()},${s.source ?? ''}`
+          `${s.email},${new Date(s.created_at).toISOString()},${formatSource(s.source)}`
       )
       .join('\n');
     const blob = new Blob([header + rows], {
@@ -123,7 +135,9 @@ export default function NewsletterTable() {
                       year: 'numeric',
                     })}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{s.source ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {formatSource(s.source)}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => handleDelete(s.id)}
