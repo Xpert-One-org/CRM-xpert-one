@@ -6,8 +6,6 @@ import MatchingMissionTable from '../../matching/[slug]/_components/MatchingMiss
 import SelectionDragAndDropTable from './_components/SelectionDragAndDropTable';
 import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
 import Link from 'next/link';
-
-import { ChevronLeft } from 'lucide-react';
 import Button from '@/components/Button';
 
 export default function SelectionPage(props: {
@@ -30,11 +28,21 @@ export default function SelectionPage(props: {
   return (
     <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>
       <div className="flex h-full flex-col gap-6">
-        <Link href={`/mission/fiche/${missionSlugNumber}`} className="w-fit">
-          <Button variant="primary" className="flex items-center gap-2">
-            Voir la fiche mission
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href={`/mission/fiche/${missionSlugNumber}`} className="w-fit">
+            <Button variant="primary" className="flex items-center gap-2">
+              Voir la fiche mission
+            </Button>
+          </Link>
+          <Link
+            href={`/mission/matching/${missionSlugNumber}`}
+            className="w-fit"
+          >
+            <Button variant="primary" className="flex items-center gap-2">
+              Voir le matching
+            </Button>
+          </Link>
+        </div>
         <div className="flex w-full items-center justify-between">
           {missionData && (
             <>
