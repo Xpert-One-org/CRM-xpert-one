@@ -9,6 +9,8 @@ import type { DBMission } from '@/types/typesDb';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 import MatchingLeftSideSecond from './_components/MatchingLeftSideSecond';
 import ProtectedRoleRoutes from '@/components/auth/ProtectedRoleRoutes';
+import Link from 'next/link';
+import Button from '@/components/Button';
 
 export default function MissionMatchingPage(props: {
   params: Promise<{ slug: string }>;
@@ -33,6 +35,11 @@ export default function MissionMatchingPage(props: {
       <ProtectedRoleRoutes notAllowedRoles={['hr', 'adv']}>
         {missionData && (
           <div className="flex flex-col gap-y-spaceSmall px-spaceContainer md:px-0">
+            <Link href={`/mission/selection/${slug}`} className="w-fit">
+              <Button variant="primary" className="flex items-center gap-2">
+                Voir les sélections
+              </Button>
+            </Link>
             <MatchingMissionTable missionData={missionData} slug={'matching'} />
             <div className="relative flex flex-col gap-y-spaceSmall">
               {missionData.state != 'open' &&
