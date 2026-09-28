@@ -6,7 +6,6 @@ import {
   booleanSelect,
   expertiseSelect,
   franceSelect,
-  habilitationsSelect,
   jobTitleSelect,
   sectorSelect,
   specialitySelect,
@@ -83,7 +82,14 @@ export default function XpertRowContentBis({
     setOpenedXpertNotSaved: setXpert,
   } = useXpertStore();
 
-  const { regions, fetchRegions } = useSelect();
+  const { regions, fetchRegions, habilitations, fetchHabilitations } =
+    useSelect();
+  // Liste des habilitations sourcée depuis la base (et non plus une liste figée),
+  // pour rester synchro avec les vraies habilitations (fix Olivier).
+  const habilitationsSelect = habilitations.map((h) => ({
+    label: h.label ?? '',
+    value: h.value ?? '',
+  }));
 
   // États pour chaque type de document
   const [cvInfo, setCvInfo] = useState<DocumentInfo>(initialCvInfo);
@@ -127,6 +133,7 @@ export default function XpertRowContentBis({
 
   useEffect(() => {
     fetchRegions();
+    fetchHabilitations();
   }, []);
 
   useEffect(() => {

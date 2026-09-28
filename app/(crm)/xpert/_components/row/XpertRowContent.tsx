@@ -8,7 +8,6 @@ import {
   degreeSelect,
   expertiseSelect,
   genres,
-  habilitationsSelect,
   how,
   iamSelect,
   languageLevelSelect,
@@ -87,11 +86,19 @@ export default function XpertRowContent({
     loadingSectors, // Ajout de l'état de chargement
     fetchSubjects, // Ajout pour charger les données
     fetchSectors,
+    habilitations,
+    fetchHabilitations,
   } = useSelect();
+  // Habilitations sourcées depuis la base (plus de liste figée) — fix Olivier.
+  const habilitationsSelect = habilitations.map((h) => ({
+    label: h.label ?? '',
+    value: h.value ?? '',
+  }));
 
   useEffect(() => {
     fetchSubjects();
     fetchSectors();
+    fetchHabilitations();
   }, []);
 
   const {
