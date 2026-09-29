@@ -1,15 +1,7 @@
 import Input from '@/components/inputs/Input';
 import TextArea from '@/components/inputs/TextArea';
 import { empty } from '@/data/constant';
-import {
-  areaSelect,
-  booleanSelect,
-  expertiseSelect,
-  franceSelect,
-  jobTitleSelect,
-  sectorSelect,
-  specialitySelect,
-} from '@/data/mocked_select';
+import { areaSelect, booleanSelect, franceSelect } from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
 import { getLabel } from '@/utils/getLabel';
 import React, { useEffect, useState } from 'react';
@@ -82,14 +74,29 @@ export default function XpertRowContentBis({
     setOpenedXpertNotSaved: setXpert,
   } = useXpertStore();
 
-  const { regions, fetchRegions, habilitations, fetchHabilitations } =
-    useSelect();
-  // Liste des habilitations sourcée depuis la base (et non plus une liste figée),
-  // pour rester synchro avec les vraies habilitations (fix Olivier).
-  const habilitationsSelect = habilitations.map((h) => ({
-    label: h.label ?? '',
-    value: h.value ?? '',
-  }));
+  const {
+    regions,
+    fetchRegions,
+    habilitations,
+    fetchHabilitations,
+    sectors,
+    fetchSectors,
+    jobTitles,
+    fetchJobTitles,
+    specialities,
+    fetchSpecialties,
+    expertises,
+    fetchExpertises,
+  } = useSelect();
+  // Listes de référence sourcées depuis la base (plus de listes figées),
+  // pour rester synchro avec les valeurs réelles (fix affichage : plus d'underscores).
+  const toOpt = (arr: { label: string | null; value: string | null }[]) =>
+    arr.map((h) => ({ label: h.label ?? '', value: h.value ?? '' }));
+  const habilitationsSelect = toOpt(habilitations);
+  const sectorSelect = toOpt(sectors);
+  const jobTitleSelect = toOpt(jobTitles);
+  const specialitySelect = toOpt(specialities);
+  const expertiseSelect = toOpt(expertises);
 
   // États pour chaque type de document
   const [cvInfo, setCvInfo] = useState<DocumentInfo>(initialCvInfo);
@@ -134,6 +141,10 @@ export default function XpertRowContentBis({
   useEffect(() => {
     fetchRegions();
     fetchHabilitations();
+    fetchSectors();
+    fetchJobTitles();
+    fetchSpecialties();
+    fetchExpertises();
   }, []);
 
   useEffect(() => {
@@ -378,7 +389,8 @@ export default function XpertRowContentBis({
 
       let fileName = '';
       if (newFileType === 'habilitation') {
-        fileName = `${xpert.generated_id}/${newFileType}/${selectedHabilitationType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
+        // Dossier "habilitations" (pluriel) pour coller au dossier que lit l'affichage.
+        fileName = `${xpert.generated_id}/habilitations/${selectedHabilitationType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
       } else {
         fileName = `${xpert.generated_id}/${newFileType}/${newFileType}_${Date.now()}_${sanitizeFileName(newFile.name)}`;
       }

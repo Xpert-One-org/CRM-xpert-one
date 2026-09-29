@@ -6,13 +6,11 @@ import { getLabel } from '@/utils/getLabel';
 import React, { useEffect, useState } from 'react';
 import {
   degreeSelect,
-  expertiseSelect,
   genres,
   how,
   iamSelect,
   languageLevelSelect,
   languageSelect,
-  specialitySelect,
   statusSelectEmployee,
   statusSelectInde,
 } from '@/data/mocked_select';
@@ -88,17 +86,24 @@ export default function XpertRowContent({
     fetchSectors,
     habilitations,
     fetchHabilitations,
+    expertises,
+    fetchExpertises,
+    specialities,
+    fetchSpecialties,
   } = useSelect();
-  // Habilitations sourcées depuis la base (plus de liste figée) — fix Olivier.
-  const habilitationsSelect = habilitations.map((h) => ({
-    label: h.label ?? '',
-    value: h.value ?? '',
-  }));
+  // Listes de référence sourcées depuis la base (plus de listes figées) — fix affichage.
+  const toOpt = (arr: { label: string | null; value: string | null }[]) =>
+    arr.map((h) => ({ label: h.label ?? '', value: h.value ?? '' }));
+  const habilitationsSelect = toOpt(habilitations);
+  const expertiseSelect = toOpt(expertises);
+  const specialitySelect = toOpt(specialities);
 
   useEffect(() => {
     fetchSubjects();
     fetchSectors();
     fetchHabilitations();
+    fetchExpertises();
+    fetchSpecialties();
   }, []);
 
   const {

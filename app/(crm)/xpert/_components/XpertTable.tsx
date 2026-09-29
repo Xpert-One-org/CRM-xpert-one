@@ -200,7 +200,12 @@ export default function XpertTable() {
       for (const file of habilitationData) {
         if (file.name === '.emptyFolderPlaceholder') continue;
 
-        const habilitationType = file.name.split('.')[0];
+        // Extrait la valeur d'habilitation du nom de fichier, qu'il soit
+        // "habilitation_electrique" (ancien) ou
+        // "habilitation_electrique_<timestamp>_<fichier>.pdf" (upload CRM).
+        const habilitationType = file.name
+          .replace(/\.[^.]+$/, '')
+          .replace(/_\d{10,}_.*$/, '');
 
         if (!habilitationsMap.has(habilitationType)) {
           habilitationsMap.set(habilitationType, []);
