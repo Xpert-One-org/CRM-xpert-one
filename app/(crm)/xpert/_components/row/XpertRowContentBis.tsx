@@ -256,11 +256,20 @@ export default function XpertRowContentBis({
     ...(habilitationInfo.hasMultipleTypes
       ? Object.entries(habilitationInfo)
           .filter(([key]) => key !== 'hasMultipleTypes' && key !== 'publicUrl')
-          .map(([type, info]: [string, any]) => ({
-            label: `Habilitation - ${habilitationsSelect.find((h) => h.value === type)?.label || type}`,
-            value: `habilitation_${type}`,
-            json_key: new Date(info.created_at).toLocaleDateString(),
-          }))
+          .map(([key, info]: [string, any]) => {
+            // La clé peut être "type" ou "type__1" (historique) -> on récupère le type de base.
+            const baseType = key.split('__')[0];
+            const dateStr = info.created_at
+              ? ` (${new Date(info.created_at).toLocaleDateString()})`
+              : '';
+            return {
+              label: `Habilitation - ${habilitationsSelect.find((h) => h.value === baseType)?.label || baseType}${dateStr}`,
+              value: `habilitation_${key}`,
+              json_key: info.created_at
+                ? new Date(info.created_at).toLocaleDateString()
+                : '',
+            };
+          })
       : habilitationInfo.created_at
         ? [
             {
@@ -498,9 +507,10 @@ export default function XpertRowContentBis({
 
     if (documentType.startsWith('habilitation_')) {
       const habilitationType = documentType.replace('habilitation_', '');
+      const baseHabilitationType = habilitationType.split('__')[0];
       const habilitationLabel =
-        habilitationsSelect.find((h) => h.value === habilitationType)?.label ||
-        habilitationType;
+        habilitationsSelect.find((h) => h.value === baseHabilitationType)
+          ?.label || baseHabilitationType;
 
       const updatedHabilitations = { ...habilitationInfo };
       delete updatedHabilitations[habilitationType];

@@ -220,18 +220,20 @@ export default function XpertTable() {
           (a: { created_at: string }, b: { created_at: string }) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-        const mostRecentFile = sortedFiles[0];
-        const { data } = await supabase.storage
-          .from('profile_files')
-          .getPublicUrl(
-            `${xpert.generated_id}/habilitations/${mostRecentFile.name}`
-          );
+        // On garde TOUS les fichiers (historique), pas seulement le plus récent.
+        // Clé unique par fichier : le type pour le plus récent, puis type__1, type__2…
+        sortedFiles.forEach((file, index) => {
+          const key = index === 0 ? type : `${type}__${index}`;
+          const { data } = supabase.storage
+            .from('profile_files')
+            .getPublicUrl(`${xpert.generated_id}/habilitations/${file.name}`);
 
-        habilitationsUrls[type] = {
-          publicUrl: data.publicUrl,
-          created_at: mostRecentFile.created_at,
-          pathname: `${xpert.generated_id}/habilitations/${mostRecentFile.name}`,
-        };
+          habilitationsUrls[key] = {
+            publicUrl: data.publicUrl,
+            created_at: file.created_at,
+            pathname: `${xpert.generated_id}/habilitations/${file.name}`,
+          };
+        });
       }
 
       setHabilitationInfo({
