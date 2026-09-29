@@ -15,7 +15,7 @@ import {
   expertiseSelect,
   jobTitleSelect,
   languageSelect,
-  posts,
+  postTypesSelect,
   sectorSelect,
   specialitySelect,
 } from '@/data/mocked_select';
@@ -139,7 +139,7 @@ export default function MatchingXpertsRow({
                                       : key === 'languages'
                                         ? languageSelect
                                         : key === 'post_type'
-                                          ? posts
+                                          ? postTypesSelect
                                           : [],
                         })}
                         {key === 'availability' && (

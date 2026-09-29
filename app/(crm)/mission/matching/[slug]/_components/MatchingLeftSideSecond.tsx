@@ -15,7 +15,7 @@ import Input from '@/components/inputs/Input';
 import {
   expertiseSelect,
   jobTitleSelect,
-  posts,
+  postTypesSelect,
   sectorSelect,
   specialitySelect,
 } from '@/data/mocked_select';
@@ -405,7 +405,7 @@ export default function MatchingLeftSideSecond({
               >
                 {getLabel({
                   value: option,
-                  select: posts,
+                  select: postTypesSelect,
                 })?.toUpperCase() ?? empty}
                 <div className="absolute right-1 top-1">
                   <X className="size-4" />
@@ -417,7 +417,7 @@ export default function MatchingLeftSideSecond({
         {showAdditionalSelects.postType && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={posts}
+              options={postTypesSelect}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'post_type',
