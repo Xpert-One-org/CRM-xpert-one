@@ -53,6 +53,7 @@ type Action =
   | { type: 'SET_VALUES'; payload: string[] }
   | { type: 'SET_QUERY'; payload: string }
   | { type: 'SET_NEW_OPTIONS'; payload: Option[] }
+  | { type: 'SYNC_OPTIONS'; payload: Option[] }
   | { type: 'ADD_OPTION'; payload: Option }
   | { type: 'REMOVE_VALUE'; payload: string }
   | { type: 'CLEAR_ALL' };
@@ -72,6 +73,15 @@ function reducer(state: State, action: Action): State {
       return { ...state, query: action.payload };
     case 'SET_NEW_OPTIONS':
       return { ...state, newOptions: action.payload };
+    case 'SYNC_OPTIONS': {
+      // Resynchronise la liste de base quand la prop `options` arrive (ex. listes
+      // chargées en asynchrone depuis la base), tout en conservant les options
+      // créées à la main qui n'existent pas (encore) dans la liste de référence.
+      const created = state.newOptions.filter(
+        (no) => !action.payload.some((o) => o.value === no.value)
+      );
+      return { ...state, newOptions: [...action.payload, ...created] };
+    }
     case 'ADD_OPTION':
       return {
         ...state,
@@ -173,10 +183,19 @@ export default function MultiCreatableSelect({
     }
   };
 
+  // Signature de contenu : `options` est recréé à chaque rendu du parent
+  // (toOpt(...)), donc on déclenche l'effet sur le CONTENU, pas la référence,
+  // pour éviter des resynchros/boucles inutiles.
+  const optionsSignature = options.map((o) => o.value).join('|');
+
   React.useEffect(() => {
     mutate?.();
+    // Sans ça, newOptions restait figé à sa valeur de montage (souvent [] tant que
+    // la liste n'était pas encore chargée) → menu d'options vide. On resynchronise.
+    dispatch({ type: 'SYNC_OPTIONS', payload: options });
     dispatch({ type: 'SET_QUERY', payload: '' });
-  }, [options, mutate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionsSignature]);
 
   return (
     <div className={cn('w-full font-light', className)}>
