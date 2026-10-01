@@ -1348,7 +1348,7 @@ export const expertiseSelect = [
 export const habilitationsSelect = [
   { label: 'Autre', value: 'autre' },
   {
-    label: 'Conduit machine sous pression',
+    label: 'Conduite machine sous pression',
     value: 'conduit_machine_sous_pression',
   },
   { label: 'Habilitation amiante', value: 'habilitation_amiante' },
