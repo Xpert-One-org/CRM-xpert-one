@@ -1,7 +1,12 @@
 import Input from '@/components/inputs/Input';
 import TextArea from '@/components/inputs/TextArea';
 import { empty } from '@/data/constant';
-import { areaSelect, booleanSelect, franceSelect } from '@/data/mocked_select';
+import {
+  areaSelect,
+  booleanSelect,
+  franceSelect,
+  postTypesSelect,
+} from '@/data/mocked_select';
 import { useSelect } from '@/store/select';
 import { getLabel } from '@/utils/getLabel';
 import React, { useEffect, useState } from 'react';
@@ -780,7 +785,7 @@ export default function XpertRowContentBis({
         <div className="grid w-full grid-cols-2 gap-4">
           <MultiCreatableSelect
             creatable
-            label="Quels secteurs d'activités ?"
+            label="Secteurs d'activités"
             defaultValue={xpert.profile_mission?.sector?.map((sector) => ({
               label: getLabel({ value: sector, select: sectorSelect }) ?? '',
               value: sector ?? '',
@@ -808,7 +813,7 @@ export default function XpertRowContentBis({
           )}
           <MultiCreatableSelect
             creatable
-            label="Types de postes"
+            label="Intitulés de postes"
             defaultValue={xpert.profile_mission?.job_titles?.map((title) => ({
               label: getLabel({ value: title, select: jobTitleSelect }) ?? '',
               value: title ?? '',
@@ -836,19 +841,34 @@ export default function XpertRowContentBis({
           {xpert.profile_mission?.job_titles?.includes('others') && (
             <Input
               required
-              label="Préciser le type de poste"
+              label="Précisez vos intitulés de postes"
               name="job_titles_other"
-              placeholder="Préciser le type de poste"
+              placeholder="Précisez vos intitulés de postes"
               className="mission_input min-w-[200px] flex-1 xl:max-w-full"
               onChange={(e) => handleChangeInput(e, 'profile_mission')}
               value={xpert.profile_mission?.job_titles_other ?? ''}
             />
           )}
+          <MultiCreatableSelect
+            label="Types de postes"
+            defaultValue={xpert.profile_mission?.posts_type?.map((pt) => ({
+              label: getLabel({ value: pt, select: postTypesSelect }) ?? '',
+              value: pt ?? '',
+            }))}
+            onChange={(selectedOption) =>
+              handleChangeMultiSelect(
+                selectedOption.map((option) => option.value),
+                'posts_type',
+                'profile_mission'
+              )
+            }
+            options={postTypesSelect}
+          />
         </div>
         <div className="grid w-full grid-cols-2 gap-4">
           <MultiCreatableSelect
             creatable
-            label="Dans quelles spécialités ?"
+            label="Spécialités"
             defaultValue={xpert.profile_mission?.specialties?.map((spe) => ({
               label: getLabel({ value: spe, select: specialitySelect }) ?? '',
               value: spe ?? '',
@@ -886,7 +906,7 @@ export default function XpertRowContentBis({
           )}
           <MultiCreatableSelect
             creatable
-            label="Dans quelles expertises ?"
+            label="Expertises"
             defaultValue={xpert.profile_mission?.expertises?.map((exp) => ({
               label: getLabel({ value: exp, select: expertiseSelect }) ?? '',
               value: exp ?? '',
