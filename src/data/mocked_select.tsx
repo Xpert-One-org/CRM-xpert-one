@@ -1153,12 +1153,7 @@ export const specialitySelect = [
     label: 'Automatismes/ Contrôle commande',
     value: 'automatismes_controle_commande',
   },
-  {
-    label:
-      'Autre (Attention, la case pour précisez s\'appellera désormais "Précisez vos spécialités")',
-    value:
-      'autre_attention_la_case_pour_precisez_s_appellera_desormais_precisez_vos_specialites',
-  },
+  { label: 'Autre', value: 'others' },
   { label: 'CFO / Photovoltaïque', value: 'cfo_photovoltaique' },
   { label: 'Chimie', value: 'chimie' },
   { label: 'Combustion', value: 'combustion' },
@@ -1254,12 +1249,7 @@ export const expertiseSelect = [
   { label: 'Analyse chimique', value: 'analyse_chimique' },
   { label: 'Analyse fonctionnelle', value: 'analyse_fonctionnelle' },
   { label: 'Audit énergétique', value: 'audit_energetique' },
-  {
-    label:
-      'Autre (Attention, la case pour précisez s\'appellera désormais "Précisez vos expertises")',
-    value:
-      'autre_attention_la_case_pour_precisez_s_appellera_desormais_precisez_vos_expertises',
-  },
+  { label: 'Autre', value: 'others' },
   { label: 'Conception', value: 'conception' },
   { label: "Conduite d'installation", value: 'conduite_d_installation' },
   {
