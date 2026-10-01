@@ -311,7 +311,7 @@ export const sectorSelect = [
   { label: 'SI & Numérique', value: 'si_numerique' },
   { label: "Traitement de l'eau", value: 'traitement_de_l_eau' },
   {
-    label: 'UIOM / Biomasse / CSR / Méthanisation',
+    label: 'Traitement et valorisation des déchets',
     value: 'uiom_biomasse_csr_methanisation',
   },
 ];
