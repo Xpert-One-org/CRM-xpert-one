@@ -16,10 +16,12 @@ import {
   jobTitleSelect,
   sectorSelect,
   infrastructureSelect,
-  specialitySelect,
-  expertiseSelect,
   languageSelect,
 } from '@/data/mocked_select';
+import {
+  useCompetenceOptions,
+  useReferenceCompetences,
+} from '@/hooks/useCompetenceOptions';
 import { useSelect } from '@/store/select';
 import { useEditMissionStore } from '../../../editMissionStore';
 import { ComboboxSelect } from '../../../../../mission/creation-de-mission/_components/ComboboxSelect';
@@ -30,6 +32,21 @@ import CreatableSelect from '@/components/CreatableSelect';
 export function MissionDetails() {
   const { openedMissionNotSaved: mission, handleUpdateField } =
     useEditMissionStore();
+
+  // Libellés depuis la base ; menus filtrés selon le secteur + l'intitulé de la
+  // mission (hooks appelés avant le retour anticipé).
+  const { allExpertises, allSpecialties } = useReferenceCompetences();
+  const { expertiseOptions, specialtyOptions } = useCompetenceOptions({
+    sectors: mission?.sector ? [mission.sector] : [],
+    jobTitles:
+      mission?.job_title && mission.job_title !== 'other'
+        ? [mission.job_title]
+        : [],
+    selectedExpertises: mission?.expertises ?? [],
+    selectedSpecialties: mission?.specialties ?? [],
+    allExpertises,
+    allSpecialties,
+  });
 
   if (!mission) return null;
 
@@ -193,11 +210,10 @@ export function MissionDetails() {
         <MultiCreatableSelect
           className="w-[280px]"
           label="Spécialité"
-          options={specialitySelect}
+          options={specialtyOptions}
           optionsOther={mission.specialties_other}
           defaultValue={mission.specialties?.map((specialty) => ({
-            label:
-              getLabel({ value: specialty, select: specialitySelect }) ?? '',
+            label: getLabel({ value: specialty, select: allSpecialties }) ?? '',
             value: specialty ?? '',
           }))}
           onChange={(selectedOption) => {
@@ -210,11 +226,10 @@ export function MissionDetails() {
         <MultiCreatableSelect
           className="w-[280px]"
           label="Expertise"
-          options={expertiseSelect}
+          options={expertiseOptions}
           optionsOther={mission.expertises_other}
           defaultValue={mission.expertises?.map((expertise) => ({
-            label:
-              getLabel({ value: expertise, select: expertiseSelect }) ?? '',
+            label: getLabel({ value: expertise, select: allExpertises }) ?? '',
             value: expertise ?? '',
           }))}
           onChange={(selectedOption) => {

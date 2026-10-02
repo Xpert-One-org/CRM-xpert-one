@@ -3,6 +3,30 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CompetenceOption } from '@functions/select/competence-options';
 import { getCompetenceOptions } from '@functions/select/competence-options';
+import { useSelect } from '@/store/select';
+
+// Listes complètes (base) des expertises/spécialités, pour AFFICHER les libellés.
+// Les menus, eux, passent par useCompetenceOptions (filtré).
+export function useReferenceCompetences() {
+  const { expertises, specialities, fetchExpertises, fetchSpecialties } =
+    useSelect();
+  useEffect(() => {
+    fetchExpertises();
+    fetchSpecialties();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const allExpertises = useMemo(
+    () =>
+      expertises.map((e) => ({ label: e.label ?? '', value: e.value ?? '' })),
+    [expertises]
+  );
+  const allSpecialties = useMemo(
+    () =>
+      specialities.map((s) => ({ label: s.label ?? '', value: s.value ?? '' })),
+    [specialities]
+  );
+  return { allExpertises, allSpecialties };
+}
 
 type Option = { value: string; label: string };
 type RefRow = { value: string | null; label: string | null };

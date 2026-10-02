@@ -11,16 +11,18 @@ import {
   degreeSelect,
   energyRenewableSelect,
   energySelect,
-  expertiseSelect,
   infrastructureSelect,
   jobTitleSelect,
   languageSelect,
   postTypesSelect,
   profilSearchedSelect,
   sectorSelect,
-  specialitySelect,
   wasteTreatmentSelect,
 } from '@/data/mocked_select';
+import {
+  useCompetenceOptions,
+  useReferenceCompetences,
+} from '@/hooks/useCompetenceOptions';
 import { cn } from '@/lib/utils';
 import type { Country, UserType } from '@/types/types';
 import type { DBMission } from '@/types/typesDb';
@@ -338,6 +340,17 @@ export default function Page() {
     }
   }, [isCompleted]);
 
+  // Expertises / spécialités proposées selon le secteur + l'intitulé de la mission.
+  const { allExpertises, allSpecialties } = useReferenceCompetences();
+  const { expertiseOptions, specialtyOptions } = useCompetenceOptions({
+    sectors: sector ? [sector] : [],
+    jobTitles: job_title && job_title !== 'other' ? [job_title] : [],
+    selectedExpertises: expertises ?? [],
+    selectedSpecialties: specialties ?? [],
+    allExpertises,
+    allSpecialties,
+  });
+
   return (
     <ProtectedRoleRoutes notAllowedRoles={['intern', 'hr', 'adv']}>
       <div className="flex flex-col gap-y-spaceSmall px-spaceContainer pt-spaceContainer md:px-0">
@@ -490,7 +503,7 @@ export default function Page() {
               creationMissionData.specialties?.name as keyof UserType
             )}
             label={creationMissionData.specialties?.label}
-            options={specialitySelect}
+            options={specialtyOptions}
             placeholder={'Spécialités'}
             className="w-fit"
             name={creationMissionData.specialties?.name ?? ''}
@@ -507,7 +520,7 @@ export default function Page() {
             hasError={checkIfRequiredAndNotMissing(
               creationMissionData.expertises?.name as keyof UserType
             )}
-            options={expertiseSelect}
+            options={expertiseOptions}
             placeholder={'Expertise'}
             onChange={(selectedOption) => {
               const values = selectedOption.map((option) => option.value);

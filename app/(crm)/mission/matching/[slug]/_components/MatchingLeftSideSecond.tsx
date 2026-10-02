@@ -13,12 +13,11 @@ import { Button } from '@/components/ui/button';
 
 import Input from '@/components/inputs/Input';
 import {
-  expertiseSelect,
   jobTitleSelect,
   postTypesSelect,
   sectorSelect,
-  specialitySelect,
 } from '@/data/mocked_select';
+import { useReferenceCompetences } from '@/hooks/useCompetenceOptions';
 import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function MatchingLeftSideSecond({
@@ -30,6 +29,10 @@ export default function MatchingLeftSideSecond({
 
   const { additionalCriteria, setAdditionalCriteria, saveCriteria } =
     useMatchingCriteriaStore();
+
+  // Critères secondaires : toutes les expertises/spécialités de la base
+  // (élargissement de la recherche, non limité au métier de la mission).
+  const { allExpertises, allSpecialties } = useReferenceCompetences();
 
   const [showAdditionalSelects, setShowAdditionalSelects] = useState({
     jobTitle: false,
@@ -530,7 +533,7 @@ export default function MatchingLeftSideSecond({
               >
                 {getLabel({
                   value: option,
-                  select: specialitySelect,
+                  select: allSpecialties,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -542,7 +545,7 @@ export default function MatchingLeftSideSecond({
         {showAdditionalSelects.specialties && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={specialitySelect}
+              options={allSpecialties}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'specialties',
@@ -594,7 +597,7 @@ export default function MatchingLeftSideSecond({
               >
                 {getLabel({
                   value: option,
-                  select: expertiseSelect,
+                  select: allExpertises,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -606,7 +609,7 @@ export default function MatchingLeftSideSecond({
         {showAdditionalSelects.expertises && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={expertiseSelect}
+              options={allExpertises}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'expertises',
