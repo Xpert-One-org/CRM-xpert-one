@@ -24,6 +24,7 @@ import Loader from '@/components/Loader';
 import { useXpertStore } from '@/store/xpert';
 import type { NestedTableKey } from './XpertRowContent';
 import MultiCreatableSelect from '@/components/MultiCreatableSelect';
+import { useCompetenceOptions } from '@/hooks/useCompetenceOptions';
 import CreatableSelect from '@/components/CreatableSelect';
 import FileInput from '@/components/inputs/FileInput';
 import Button from '@/components/Button';
@@ -102,6 +103,18 @@ export default function XpertRowContentBis({
   const jobTitleSelect = toOpt(jobTitles);
   const specialitySelect = toOpt(specialities);
   const expertiseSelect = toOpt(expertises);
+  // Menus expertises/spécialités : référentiel filtré selon les secteurs +
+  // intitulés choisis (les listes complètes ci-dessus servent aux libellés).
+  const { expertiseOptions, specialtyOptions } = useCompetenceOptions({
+    sectors: xpert?.profile_mission?.sector ?? [],
+    jobTitles: (xpert?.profile_mission?.job_titles ?? []).filter(
+      (j) => j !== 'other' && j !== 'others'
+    ),
+    selectedExpertises: xpert?.profile_mission?.expertises ?? [],
+    selectedSpecialties: xpert?.profile_mission?.specialties ?? [],
+    allExpertises: expertiseSelect,
+    allSpecialties: specialitySelect,
+  });
 
   // États pour chaque type de document
   const [cvInfo, setCvInfo] = useState<DocumentInfo>(initialCvInfo);
@@ -884,13 +897,13 @@ export default function XpertRowContentBis({
             options={
               xpert.profile_mission?.specialties_others
                 ? [
-                    ...specialitySelect,
+                    ...specialtyOptions,
                     {
                       label: xpert.profile_mission.specialties_others ?? '',
                       value: xpert.profile_mission.specialties_others ?? '',
                     },
                   ]
-                : specialitySelect
+                : specialtyOptions
             }
           />
           {xpert.profile_mission?.specialties?.includes('others') && (
@@ -922,13 +935,13 @@ export default function XpertRowContentBis({
             options={
               xpert.profile_mission?.expertises_others
                 ? [
-                    ...expertiseSelect,
+                    ...expertiseOptions,
                     {
                       label: xpert.profile_mission.expertises_others ?? '',
                       value: xpert.profile_mission.expertises_others ?? '',
                     },
                   ]
-                : expertiseSelect
+                : expertiseOptions
             }
           />
           {xpert.profile_mission?.expertises?.includes('others') && (

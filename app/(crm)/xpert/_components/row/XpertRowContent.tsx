@@ -23,6 +23,7 @@ import { useXpertStore } from '@/store/xpert';
 import PhoneInputComponent from '@/components/inputs/PhoneInputComponent';
 import CreatableSelect from '@/components/CreatableSelect';
 import MultiCreatableSelect from '@/components/MultiCreatableSelect';
+import { useCompetenceOptions } from '@/hooks/useCompetenceOptions';
 import Button from '@/components/Button';
 import Plus from '@/components/svg/Plus';
 import { Camera, Minus } from 'lucide-react';
@@ -113,6 +114,17 @@ export default function XpertRowContent({
     setOpenedXpertNotSaved: setXpert,
   } = useXpertStore();
   const { handleKeyChangesDebounced, handleUIChange } = useXpertDebounce();
+
+  // Menus « Mon expertise » : listes historiques + sélections existantes (le
+  // référentiel métiers n'est proposé que dans « Recherche de mission »).
+  const { expertiseOptions, specialtyOptions } = useCompetenceOptions({
+    sectors: [],
+    jobTitles: [],
+    selectedExpertises: xpert?.profile_expertise?.expertises ?? [],
+    selectedSpecialties: xpert?.profile_expertise?.specialties ?? [],
+    allExpertises: expertiseSelect,
+    allSpecialties: specialitySelect,
+  });
 
   const handleGetSpecificXpert = async () => {
     try {
@@ -780,7 +792,7 @@ export default function XpertRowContent({
             }
           }}
           optionsOther={xpert.profile_expertise?.specialties_other}
-          options={specialitySelect}
+          options={specialtyOptions}
         />
         {xpert.profile_expertise?.specialties?.some(
           (v) => v.includes('Autre') || v.includes('other')
@@ -812,7 +824,7 @@ export default function XpertRowContent({
             }
           }}
           optionsOther={xpert.profile_expertise?.expertises_other}
-          options={expertiseSelect}
+          options={expertiseOptions}
         />
         {xpert.profile_expertise?.expertises?.some(
           (v) => v.includes('Autre') || v.includes('other')
