@@ -12,13 +12,12 @@ import { useRouter } from 'next/navigation';
 import { formatDateSlash } from '@/utils/formatDates';
 import {
   degreeSelect,
-  expertiseSelect,
   jobTitleSelect,
   languageSelect,
   postTypesSelect,
   sectorSelect,
-  specialitySelect,
 } from '@/data/mocked_select';
+import { useReferenceCompetences } from '@/hooks/useCompetenceOptions';
 
 export default function MatchingXpertsRow({
   matchedXpert,
@@ -30,6 +29,8 @@ export default function MatchingXpertsRow({
   isSelected: boolean;
 }) {
   const router = useRouter();
+  // Libellés des expertises/spécialités depuis la base (référentiel complet).
+  const { allExpertises, allSpecialties } = useReferenceCompetences();
 
   const hasNonMatchingCriteria =
     Object.keys(matchedXpert.nonMatchingCriteria).length > 0;
@@ -116,24 +117,22 @@ export default function MatchingXpertsRow({
                       >
                         {getLabel({
                           value:
-                            key === 'post_type'
-                              ? val.toUpperCase()
-                              : key === 'availability'
+                            key === 'availability'
+                              ? ''
+                              : key === 'handicap'
                                 ? ''
-                                : key === 'handicap'
+                                : key === 'management'
                                   ? ''
-                                  : key === 'management'
-                                    ? ''
-                                    : val,
+                                  : val,
                           select:
                             key === 'job_title'
                               ? jobTitleSelect
                               : key === 'sector'
                                 ? sectorSelect
                                 : key === 'specialties'
-                                  ? specialitySelect
+                                  ? allSpecialties
                                   : key === 'expertises'
-                                    ? expertiseSelect
+                                    ? allExpertises
                                     : key === 'diplomas'
                                       ? degreeSelect
                                       : key === 'languages'

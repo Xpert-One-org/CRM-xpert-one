@@ -13,13 +13,15 @@ import MultiSelectComponent from '@/components/MultiSelectComponent';
 import { useMatchingCriteriaStore } from '@/store/matchingCriteria';
 import {
   degreeSelect,
-  expertiseSelect,
   jobTitleSelect,
   languageSelect,
   postTypesSelect,
   sectorSelect,
-  specialitySelect,
 } from '@/data/mocked_select';
+import {
+  useCompetenceOptions,
+  useReferenceCompetences,
+} from '@/hooks/useCompetenceOptions';
 import { AuthContext } from '@/components/auth/AuthProvider';
 
 export default function MatchingLeftSide({
@@ -34,6 +36,21 @@ export default function MatchingLeftSide({
     setAdditionalCriteria,
     saveCriteria,
   } = useMatchingCriteriaStore();
+
+  // Libellés depuis la base ; critères additionnels proposés selon le secteur +
+  // l'intitulé de la mission.
+  const { allExpertises, allSpecialties } = useReferenceCompetences();
+  const { expertiseOptions, specialtyOptions } = useCompetenceOptions({
+    sectors: missionData.sector ? [missionData.sector] : [],
+    jobTitles:
+      missionData.job_title && missionData.job_title !== 'other'
+        ? [missionData.job_title]
+        : [],
+    selectedExpertises: additionalCriteria?.expertises ?? [],
+    selectedSpecialties: additionalCriteria?.specialties ?? [],
+    allExpertises,
+    allSpecialties,
+  });
 
   const [showAdditionalSelects, setShowAdditionalSelects] = useState({
     jobTitle: false,
@@ -482,7 +499,7 @@ export default function MatchingLeftSide({
                   handleExcludedCriteriaClick('specialties', specialty)
                 }
               >
-                {getLabel({ value: specialty, select: specialitySelect }) ??
+                {getLabel({ value: specialty, select: allSpecialties }) ??
                   empty}
                 {isExcludedCriteriaSelected('specialties', specialty) && (
                   <div className="absolute right-1 top-1">
@@ -501,7 +518,7 @@ export default function MatchingLeftSide({
               >
                 {getLabel({
                   value: option,
-                  select: specialitySelect,
+                  select: allSpecialties,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -513,7 +530,7 @@ export default function MatchingLeftSide({
         {showAdditionalSelects.specialties && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={specialitySelect}
+              options={specialtyOptions}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'specialties',
@@ -583,8 +600,7 @@ export default function MatchingLeftSide({
                   handleExcludedCriteriaClick('expertises', expertise)
                 }
               >
-                {getLabel({ value: expertise, select: expertiseSelect }) ??
-                  empty}
+                {getLabel({ value: expertise, select: allExpertises }) ?? empty}
                 {isExcludedCriteriaSelected('expertises', expertise) && (
                   <div className="absolute right-1 top-1">
                     <X className="size-4" />
@@ -602,7 +618,7 @@ export default function MatchingLeftSide({
               >
                 {getLabel({
                   value: option,
-                  select: expertiseSelect,
+                  select: allExpertises,
                 }) ?? empty}
                 <div className="absolute right-1 top-1" onClick={() => {}}>
                   <X className="size-4" />
@@ -614,7 +630,7 @@ export default function MatchingLeftSide({
         {showAdditionalSelects.expertises && (
           <div className="flex max-w-[300px] items-center gap-2 rounded-xs bg-[#D0DDE1] p-3">
             <MultiSelectComponent
-              options={expertiseSelect}
+              options={expertiseOptions}
               onValueChange={(values) =>
                 handleAdditionalSelection(
                   'expertises',
