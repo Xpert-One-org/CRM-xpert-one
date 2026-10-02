@@ -720,7 +720,6 @@ export const jobTitleSelect = [
   { label: 'Administrateur systèmes', value: 'administrateur_systemes' },
   { label: "Agent d'exploitation", value: 'agent_d_exploitation' },
   { label: 'Agent de réception', value: 'agent_de_reception' },
-  { label: 'AMOE', value: 'amoe' },
   {
     label: "AMOE / Assistance à Maîtrise d'Œuvre",
     value: 'amoe_assistance_a_maitrise_d_uvre',
@@ -781,7 +780,6 @@ export const jobTitleSelect = [
   { label: 'Consultant GRC', value: 'consultant_grc' },
   { label: 'Coordinateur de production', value: 'coordinateur_de_production' },
   { label: 'Coordinateur maintenance', value: 'coordinateur_maintenance' },
-  { label: 'Coordinateur sécurité', value: 'coordinateur_securite' },
   {
     label: 'Coordinateur sécurité / CSPS',
     value: 'coordinateur_securite_csps',
@@ -878,7 +876,6 @@ export const jobTitleSelect = [
   { label: 'Ingénieur ferroviaire', value: 'ingenieur_ferroviaire' },
   { label: 'Ingénieur fiabilité', value: 'ingenieur_fiabilite' },
   { label: 'Ingénieur fluides', value: 'ingenieur_fluides' },
-  { label: 'Ingénieur génie civil', value: 'ingenieur_genie_civil' },
   {
     label: 'Ingénieur génie civil / construction',
     value: 'ingenieur_genie_civil_construction',
@@ -1066,7 +1063,6 @@ export const jobTitleSelect = [
   { label: 'Superviseur de chantier', value: 'superviseur_de_chantier' },
   { label: 'Superviseur de production', value: 'superviseur_de_production' },
   { label: 'Superviseur électricité', value: 'superviseur_electricite' },
-  { label: 'Superviseur électrique', value: 'superviseur_electrique' },
   { label: 'Superviseur génie civil', value: 'superviseur_genie_civil' },
   { label: 'Superviseur GTB/GTC', value: 'superviseur_gtb_gtc' },
   { label: 'Superviseur hydraulique', value: 'superviseur_hydraulique' },
